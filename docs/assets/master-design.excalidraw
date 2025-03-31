@@ -10985,7 +10985,7 @@
       "x": 490.7999559999997,
       "y": 2882.548257999999,
       "width": 1181.214679992204,
-      "height": 709.9751467955668,
+      "height": 469.2820317639079,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -11001,11 +11001,11 @@
         "type": 3
       },
       "seed": 146628043,
-      "version": 965,
-      "versionNonce": 1585298597,
+      "version": 994,
+      "versionNonce": 1418886915,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1743312423918,
+      "updated": 1743322744946,
       "link": null,
       "locked": false
     },
