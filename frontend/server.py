@@ -22,8 +22,7 @@ def create_app(logger=None):
     static_dir = os.path.join(os.path.dirname(__file__), 'static')
     file_extensions = (
         '.css','.js',                   # CSS, JavaScript
-        '.png','.jpg','.ico','.svg',    # Images 
-        '.ttf'                          # Fonts
+        '.png','.jpg','.ico','.svg',    # Images
     )
 
 

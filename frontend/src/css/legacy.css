@@ -1,14 +1,6 @@
 @import "tailwindcss";
 
-@font-face {
-    src: url("../font/fauna-thin.ttf");
-    font-family: "Fauna";
-    font-style: normal;
-    font-display: swap;
-}
-
 @theme {
-    --font-fauna: "Fauna";
     --color-hive: #f79322;
     --color-hive-dark: #663d0e;
     --color-legacy: #f5e570;
@@ -99,11 +91,6 @@
 }
 
 @layer components {
-
-    .logo-legacy {
-        @apply text-transparent font-fauna text-4xl bg-gradient-to-b from-amber-100 via-legacy to-amber-600 bg-clip-text
-    }
-
     /* Main layout components */
     .module {
         @apply flex justify-center items-center overflow-y-auto;
