@@ -57,7 +57,7 @@
                 "env": {
                     "CI_BUILD_ENV": "Debug"
                 }
-            },
+            }
         },
         {
             "label": "python test",
@@ -113,7 +113,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",
             "args": [
-                "backend/tools/debug_rpi_pendant.py",
+                "backend/tools/debug_rpi_pendant.py"
             ],
             "icon": {
                 "id": "debug-console"
@@ -231,42 +231,25 @@
             }
         },
         {
-            "label": "Tailwind Dev",
+            "label": "Fontend Tailwind",
             "type": "shell",
-            "command": "echo \"failed to find OS specific command\"",
-            "windows": {
-                "command": ".\\third_party\\tailwindcss.exe",
-                "args": [
-                    "--cwd",
-                    ".\\frontend\\static",
-                    "-i",
-                    ".\\css\\tailwind.input.css",
-                    "-o",
-                    ".\\css\\tailwind.css",
-                    "--watch",
-                    "--optimize"
-                ]
-            },
-            "linux": {
-                "command": "./third_party/tailwindcss",
-                "args": [
-                    "--cwd",
-                    "./frontend",
-                    "-i",
-                    "./static/css/tailwind.input.css",
-                    "-o",
-                    "./static/css/tailwind.css",
-                    "--watch",
-                    "--optimize"
-                ]
-            },
+            "command": "./third_party/tailwindcss",
+            "args": [
+                "--cwd",
+                "./frontend",
+                "-i",
+                "./src/css/legacy.css",
+                "-o",
+                "./static/css/legacy.tailwind.css",
+                "--watch",
+                "--optimize"
+            ],
             "icon": {
                 "id": "paintcan"
-            },
-            "problemMatcher": []
+            }
         },
         {
-            "label": "start frontend (no API)",
+            "label": "Frontend Flask Server",
             "type": "shell",
             "command": "flask",
             "args": [
@@ -277,7 +260,7 @@
                 "--port=8008"
             ],
             "icon": {
-                "id": "debug-console",
+                "id": "server-process",
                 "color": "terminal.ansiRed"
             },
             "options": {
@@ -288,7 +271,7 @@
             "problemMatcher": []
         },
         {
-            "label": "start frontend (dev test mode)",
+            "label": "Frontend Dev",
             "type": "shell",
             "command": "source",
             "args": [
@@ -314,7 +297,7 @@
             "problemMatcher": []
         },
         {
-            "label": "start frontend (EXPERIMENTAL MODE)",
+            "label": "Frontend Dev [EXPERIMENTAL]",
             "type": "shell",
             "command": "source",
             "args": [
@@ -342,7 +325,7 @@
             "problemMatcher": []
         },
         {
-            "label": "start frontend (replay simulation mode)",
+            "label": "Frontend Rocket.py",
             "type": "shell",
             "command": "source",
             "args": [
@@ -357,8 +340,8 @@
                 "TEST"
             ],
             "icon": {
-                "id": "debug-console",
-                "color": "terminal.ansiRed"
+                "id": "debug-continue",
+                "color": "terminal.ansiMagenta"
             },
             "options": {
                 "env": {
@@ -368,7 +351,7 @@
             "problemMatcher": []
         },
         {
-            "label": "start frontend (replay mission 20250504)",
+            "label": "Frontend Replay 20250504",
             "type": "shell",
             "command": "source",
             "args": [
@@ -383,8 +366,34 @@
                 "20250504"
             ],
             "icon": {
-                "id": "debug-console",
-                "color": "terminal.ansiRed"
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Replay IREC2025",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "IREC2025"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
             },
             "options": {
                 "env": {

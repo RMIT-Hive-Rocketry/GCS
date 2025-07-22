@@ -1,12 +1,5 @@
 @import "tailwindcss";
 
-/*
-This is a template/config file used to generate tailwind.css
-
-Please don't link to it from the site,
-Only modify if you know what you're doing :-)
-*/
-
 @font-face {
     src: url("../font/fauna-thin.ttf");
     font-family: "Fauna";
