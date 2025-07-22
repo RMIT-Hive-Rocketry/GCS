@@ -20,7 +20,11 @@ def create_app(logger=None):
     # Initialise flask
     app = Flask(__name__)
     static_dir = os.path.join(os.path.dirname(__file__), 'static')
-    file_extensions = ('.html', '.css', '.js', '.png', '.jpg', '.ico', '.svg', '.csv', 'json', 'ttf')
+    file_extensions = (
+        '.css','.js',                   # CSS, JavaScript
+        '.png','.jpg','.ico','.svg',    # Images 
+        '.ttf'                          # Fonts
+    )
 
 
     """
@@ -42,6 +46,10 @@ def create_app(logger=None):
     def index():
         return render_template("layout.html")
 
+    # API debugging
+    @app.route('/api')
+    def api():
+        return render_template("debug_api.html")
 
     # Serve static files and HTML pages
     @app.route('/<path:filename>')

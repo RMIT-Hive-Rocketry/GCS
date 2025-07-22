@@ -34,10 +34,12 @@ window.addEventListener("DOMContentLoaded", () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
+    renderer.gammaOutput = true;
+	renderer.gammaFactor = 2.2;
 
     // === Create Scene ===
     const scene = new THREE.Scene();
-    scene.background = null; // Keep canvas transparent
+    //scene.background = null; // Keep canvas transparent
 
     // === Camera Setup (Orthographic for a clean top-down view) ===
     const aspect = container.clientWidth / container.clientHeight;
@@ -55,10 +57,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // === Lighting Configuration (balanced accordingly for model clarity) ===
     const lights = [
-        new THREE.DirectionalLight(0xffffff, 36),
-        new THREE.DirectionalLight(0xffffff, 24),
-        new THREE.SpotLight(0xffffff, 36),
-        new THREE.HemisphereLight(0xffffff, 0x333333, 7.5)
+        new THREE.DirectionalLight(0xffffff, 1),
+        new THREE.DirectionalLight(0xffffff, 1),
+        new THREE.SpotLight(0xffffff, 3),
+        new THREE.HemisphereLight(0xb1e1ff, 0x000000, 0.1)
     ];
     lights[0].position.set(15, 30, 20);
     lights[1].position.set(-15, 20, -10);
@@ -67,7 +69,6 @@ window.addEventListener("DOMContentLoaded", () => {
     lights[2].penumbra = 0.4;
     lights[2].decay = 1;
     lights[2].distance = 200;
-    lights[3].position.set(50, 0, 0);
     lights.forEach(light => scene.add(light));
 
     // Ambient light
@@ -75,17 +76,18 @@ window.addEventListener("DOMContentLoaded", () => {
     scene.add( light );
 
     // === Environment Texture (adds reflections and realism) ===
-    const envTextureLoader = new THREE.CubeTextureLoader();
-    const origin = new THREE.Vector3(3, -3.75, 0); // Not used in final render, just a helper reference
+    /*const envTextureLoader = new THREE.CubeTextureLoader();
     scene.environment = envTextureLoader.load([
         "/img/textures/posx.jpg", "/img/textures/negx.jpg",
         "/img/textures/posy.jpg", "/img/textures/negy.jpg",
         "/img/textures/posz.jpg", "/img/textures/negz.jpg",
     ]);
+    scene.environmentIntensity = 1;*/
+    //scene.environmentRotation = new THREE.Vector3(0, 1, 0);
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
-        "/static/models/rocket_model.glb",
+        "/static/models/rocket_legacy.glb",
         gltf => {
             const model = gltf.scene;
             model.scale.set(2, 2, 2); // Resize for better visibility
