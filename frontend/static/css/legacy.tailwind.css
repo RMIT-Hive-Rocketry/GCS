@@ -9,8 +9,6 @@
     --color-red-700: oklch(.505 .213 27.518);
     --color-red-800: oklch(.444 .177 26.899);
     --color-red-900: oklch(.396 .141 25.723);
-    --color-amber-100: oklch(.962 .059 95.617);
-    --color-amber-600: oklch(.666 .179 58.318);
     --color-yellow-300: oklch(.905 .182 98.111);
     --color-yellow-400: oklch(.852 .199 91.936);
     --color-yellow-500: oklch(.795 .184 86.047);
@@ -53,10 +51,8 @@
     --default-transition-timing-function: cubic-bezier(.4, 0, .2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
-    --font-fauna: "Fauna";
     --color-hive: #f79322;
     --color-hive-dark: #663d0e;
-    --color-legacy: #f5e570;
   }
 }
 
@@ -392,22 +388,6 @@
 }
 
 @layer components {
-  .logo-legacy {
-    --tw-gradient-position: to bottom in oklab;
-    background-image: linear-gradient(var(--tw-gradient-stops));
-    --tw-gradient-from: var(--color-amber-100);
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-    --tw-gradient-via: var(--color-legacy);
-    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
-    --tw-gradient-to: var(--color-amber-600);
-    font-family: var(--font-fauna);
-    font-size: var(--text-4xl);
-    line-height: var(--tw-leading, var(--text-4xl--line-height));
-    color: #0000;
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
-
   .module {
     justify-content: center;
     align-items: center;
@@ -864,10 +844,6 @@
     z-index: 50;
   }
 
-  .z-100 {
-    z-index: 100;
-  }
-
   .col-\[1\/5\] {
     grid-column: 1 / 5;
   }
@@ -1216,6 +1192,10 @@
 
   .max-w-24 {
     max-width: calc(var(--spacing) * 24);
+  }
+
+  .max-w-48 {
+    max-width: calc(var(--spacing) * 48);
   }
 
   .max-w-fit {
@@ -1701,13 +1681,6 @@
   }
 }
 
-@font-face {
-  src: url("../font/fauna-thin.ttf");
-  font-family: Fauna;
-  font-style: normal;
-  font-display: swap;
-}
-
 @keyframes pulseError {
   0%, 100% {
     background-color: var(--color-red-800);
@@ -1940,57 +1913,6 @@
 @property --tw-backdrop-sepia {
   syntax: "*";
   inherits: false
-}
-
-@property --tw-gradient-position {
-  syntax: "*";
-  inherits: false
-}
-
-@property --tw-gradient-from {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-
-@property --tw-gradient-via {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-
-@property --tw-gradient-to {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-
-@property --tw-gradient-stops {
-  syntax: "*";
-  inherits: false
-}
-
-@property --tw-gradient-via-stops {
-  syntax: "*";
-  inherits: false
-}
-
-@property --tw-gradient-from-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-@property --tw-gradient-via-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 50%;
-}
-
-@property --tw-gradient-to-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 100%;
 }
 
 @keyframes spin {
