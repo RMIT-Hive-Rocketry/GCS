@@ -231,7 +231,7 @@
             }
         },
         {
-            "label": "Fontend Tailwind",
+            "label": "Frontend Tailwind",
             "type": "shell",
             "command": "./third_party/tailwindcss",
             "args": [
@@ -246,6 +246,16 @@
             ],
             "icon": {
                 "id": "paintcan"
+            }
+        },
+        {
+            "label": "Frontend Setup",
+            "type": "shell",
+            "command": "./frontend/setup.sh",
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiRed"
             }
         },
         {
