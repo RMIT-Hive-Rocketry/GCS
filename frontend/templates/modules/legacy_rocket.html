@@ -1,18 +1,20 @@
 <!-- 3D rocket module -->
-<div class="rocket_frame w-full h-full flex flex-col font-mono">
-    <p class="font-bold uppercase text-emerald-300 text-center mt-4">
-        6DOF Rocket Visualisation
-    </p>
-    <div class="flex flex-row gap-4 justify-center text-center text-emerald-300 z-10">
-        <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch border-b-red-500 border-b-2 text-right" size="6">°</span>
-        <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw border-b-green-500 border-b-2 text-right" size="6">°</span>
-        <span>Roll:<input readonly autocomplete="off" class="rocket-roll border-b-blue-500 border-b-2 text-right" size="6">°</span>
-    </div>
+<div class="module-legacy">
+    <div class="w-full h-full rocket_frame">
+        <p class="font-bold uppercase text-emerald-300 text-center mt-4">
+            3DOF Rocket Visualisation
+        </p>
+        <div class="flex flex-row gap-4 justify-center text-center text-emerald-300 z-10">
+            <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch border-b-red-500 border-b-2 text-right" size="6">°</span>
+            <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw border-b-green-500 border-b-2 text-right" size="6">°</span>
+            <span>Roll:<input readonly autocomplete="off" class="rocket-roll border-b-blue-500 border-b-2 text-right" size="6">°</span>
+        </div>
 
-    <!-- Viewer -->
-    <div class="grow flex items-center justify-center">
-        <div id="rocketViewerContainer" class="relative w-full h-full group">
-            <canvas id="rocketCanvas" class="w-full h-full block"></canvas>
+        <!-- Viewer -->
+        <div class="grow flex items-center justify-center">
+            <div id="rocketViewerContainer" class="relative w-full h-full group">
+                <canvas id="rocketCanvas" class="w-full h-full block"></canvas>
+            </div>
         </div>
     </div>
 </div>

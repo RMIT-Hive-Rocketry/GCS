@@ -10,40 +10,36 @@
     	<link rel="preload" href="/img/icons/exclamation.svg" as="image" type="image/svg+xml">
 		<link rel="preload" href="/img/icons/hourglass.svg" as="image" type="image/svg+xml">
 	</head>
-
 	
-	<body class="w-screen h-screen max-w-screen max-h-screen bg-hexagonal_background text-white border-hive border-2 flex flex-col overflow-hidden">
-		<div class = "background-pattern">
+	<body class="legacy bg-hex w-screen h-screen max-w-screen max-h-screen text-white border-hive border-2 flex flex-col overflow-hidden">
 		<!-- Header, consistent on all pages -->
-		<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24">
+		<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50">
 			<div class="w-1/6 grow">{% include 'modules/legacy_logos.html' %}</div>
-			<nav
-				class="w-auto grow h-full self-start bg-navbar flex px-[3%] p-2 gap-2 font-medium text-center items-center text-sm">
-				<a href="#m-main" class="w-1/6">
+			<nav class="w-auto grow h-full grid grid-cols-3 bg-navbar flex px-[3%] p-2 gap-2 font-medium text-center items-center text-sm">
+				<a href="#m-main">
 					<div class="icon icon-rocket"></div>
 					<span>Main Interface</span>
 				</a>
-				<a href="#m-lf2" class="w-1/6">
+				<!--<a href="#m-lf2">
 					<div class="icon icon-video-camera"></div>
 					<span>Live - Launchpad</span>
 				</a>
-				<a href="#m-lf1" class="w-1/6">
+				<a href="#m-lf1">
 					<div class="icon icon-video-camera"></div>
 					<span>Live - Rocket</span>
 				</a>
-				<a href="#m-lf3" class="w-1/6">
+				<a href="#m-lf3">
 					<div class="icon icon-video-camera"></div>
 					<span>Live - All Feeds</span>
-				</a>
-				<a href="#m-password" class="w-1/6">
+				</a>-->
+				<a href="#m-ops">
 					<div class="icon icon-gamepad"></div>
 					<span>Single Operator</span>
 				</a>
-				<a href="#m-hmi" class="w-1/6">
+				<a href="#m-hmi">
 					<div class="icon icon-sitemap"></div>
 					<span>GSE State</span>
 				</a>
-				<a href="#m-ops" id="m-ops-button" class="w-0 h-0"></a> <!-- Needed for password page -->
 			</nav>
 
 			<div class="w-1/6 grow">{% include 'modules/legacy_radio.html' %}</div>
@@ -63,9 +59,7 @@
 			<div class="module m-main m-lf2 col-[9/13] row-[1/5]">{% include 'modules/legacy_errorlog.html' %}</div>
 			<div class="module m-main m-lf2 col-[9/13] row-[5/13]">{% include 'modules/legacy_auxdata.html' %}</div>
 
-			<!-- Single operator password page and modules -->
-			<div class="module m-password col-[1/13] row-[1/13]">{% include 'modules/legacy_password.html' %}</div>
-			
+			<!-- Single operator modules -->
 			<div class="module m-ops col-[1/5] row-[1/7]">{% include 'modules/legacy_continuitycheck.html' %}</div>
 			<div class="module m-ops col-[1/5] row-[7/13]">{% include 'modules/legacy_poptest.html' %}</div>
 			<div class="module m-ops col-[5/9] row-[7/13]">{% include 'modules/legacy_auxcontrols.html' %}</div>
@@ -89,7 +83,6 @@
 				{% include 'modules/legacy_hmi.html' %}
 			</div>
 		</main>
-		</div>
 	</body>
 
 	<!-- Javascript should generally go below, not in individual modules -->
