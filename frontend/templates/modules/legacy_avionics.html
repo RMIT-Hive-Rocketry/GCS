@@ -1,9 +1,10 @@
 <!-- Avionics module -->
 <!-- Includes acceleration, gyro, velocity -->
-<div class="w-full h-full flex flex-col gap-2 font-mono border-t-2 border-hive-dark">
+<div class="module-legacy">
 	<h2>Avionics</h2>
+
 	<!-- Avionics indicators -->
-	<section class="col-span-2 border-2 border-hive-dark bg-hive/20 mx-2 p-1 pb-0 grid grid-cols-6 text-center gap-2">
+	<div class="col-span-2 border-2 border-hive-dark bg-hive/20 mx-2 p-1 pb-0 grid grid-cols-6 text-center gap-2">
 		<div>
 			<div class="indicator-state av-state-gpsfix"></div>
 			<p>GPS Fix</p>
@@ -13,27 +14,27 @@
 			<p>Dual Board</p>
 		</div>
 		<div>
-			<div class="indicator-state av-state-pyro-1"></div>
+			<div class="indicator-state av-state-pyro-1 error"></div>
 			<p>Pyro 1</p>
 		</div>
 		<div>
-			<div class="indicator-state av-state-pyro-2"></div>
+			<div class="indicator-state av-state-pyro-2 error"></div>
 			<p>Pyro 2</p>
 		</div>
 		<div>
-			<div class="indicator-state av-state-pyro-3"></div>
+			<div class="indicator-state av-state-pyro-3 error"></div>
 			<p>Pyro 3</p>
 		</div>
 		<div>
-			<div class="indicator-state av-state-pyro-4"></div>
+			<div class="indicator-state av-state-pyro-4 error"></div>
 			<p>Pyro 4</p>
 		</div>
-	</section>
+	</div>
 
 	<!-- Accel and gyro -->
 	<div class="grid grid-cols-2 flex-1 gap-4">
 		<!-- Accelerometer -->
-		<section class="flex flex-col p-0">
+		<div class="flex flex-col">
 			<h3 class="mb-0 pl-4">Accelerometer Readings</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-av-accel" class="w-full h-full" width="0" height="0"></svg>
@@ -49,10 +50,10 @@
 					Z:<input readonly autocomplete="off" class="av-accel-z border-b-blue-500 border-b-2 text-right" size="6">
 				</label>
 			</div>
-		</section>
+		</div>
 
 		<!-- Gyro -->
-		<section class="flex flex-col p-0">
+		<div class="flex flex-col">
 			<h3 class="mb-0 pl-4">Gyroscope Readings</h3>
 			<div class="grow w-full h-full">
 				<svg id="graph-av-gyro" class="w-full h-full" width="0" height="0"></svg>
@@ -62,11 +63,11 @@
 				<label>Y:<input readonly autocomplete="off" class="av-gyro-y border-b-green-500 border-b-2 text-right" size="6"></label>
 				<label>Z:<input readonly autocomplete="off" class="av-gyro-z border-b-blue-500 border-b-2 text-right" size="6"></label>
 			</div>
-		</section>
+		</div>
 	</div>
 	
 	<!-- Velocity -->
-	<section class="grow flex flex-col flex-1 p-0">
+	<div class="grow flex flex-col flex-1">
 		<h3>Vertical Speed</h3>
 		<div class="grow w-full h-full">
 			<svg id="graph-av-velocity" class="w-full h-full" width="0" height="0"></svg>
@@ -79,5 +80,5 @@
 				Mach:<input readonly size="6" autocomplete="off" class="av-mach">
 			</label>
 		</div>
-	</section>
+	</div>
 </div>

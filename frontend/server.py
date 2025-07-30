@@ -46,9 +46,15 @@ def create_app(logger=None):
         return render_template("layout.html")
 
     # API debugging
-    @app.route('/api')
-    def api():
+    @app.route('/debug/api')
+    def debug_api():
         return render_template("debug_api.html")
+    
+    # Legacy debugging
+    @app.route('/debug/legacy')
+    @app.route('/debug/legacy3')
+    def debug_legacy3():
+        return render_template("debug_legacy3.html")
 
     # Serve static files and HTML pages
     @app.route('/<path:filename>')

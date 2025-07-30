@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
+		<title>LEGACY 3 DEBUG - RMIT HIVE-IREC</title>
+		<link rel="stylesheet" type="text/css" href="/css/legacy.tailwind.css" media="screen" />
+
+		<!-- Preload icons -->
+    	<link rel="preload" href="/img/icons/exclamation.svg" as="image" type="image/svg+xml">
+		<link rel="preload" href="/img/icons/hourglass.svg" as="image" type="image/svg+xml">
+	</head>
+	
+	<body class="legacy debug bg-hex w-full bg-zinc-800 flex flex-col gap-4 p-2">
+		<div>
+			<h1 class="text-2xl text-white">Legacy III Module Debug Page</h1>
+			<hr class="border-white">
+		</div>
+
+
+		<div class="w-1/4">{% include 'modules/legacy_logos.html' %}</div>
+        <div class="w-1/4">{% include 'modules/legacy_radio.html' %}</div>
+
+        <div class="w-1/3">{% include 'modules/legacy_auxcontrols.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_auxdata.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_avionics.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_continuitycheck.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_errorlog.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_flags.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_flightstate.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_poptest.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_position.html' %}</div>
+        <div class="w-1/3">{% include 'modules/legacy_rocket.html' %}</div>
+
+        <div class="w-1/2">{% include 'modules/legacy_video_launchpad.html' %}</div>
+        <div class="w-1/2">{% include 'modules/legacy_video_rocket.html' %}</div>
+
+        <div>{% include 'modules/legacy_hmi.html' %}</div>
+	</body>
+
+	<!-- Javascript should generally go below, not in individual modules -->
+	<script src="/js/GCS_Display.js"></script>
+	<script src="/js/GCS_API.js"></script>
+
+	<!-- Data visualisation code -->
+	<script src="/js/libraries/d3.min.js"></script>
+	<script src="/js/GCS_Graphs.js"></script>
+
+	<!-- 6DOF Rocket code -->
+	<script type="module" src="/js/GCS_RocketViewer.js" defer></script>
+
+	<!-- Debug/testing code -->
+	<script src="/js/GCS_Testing.js"></script>
+
+</html>

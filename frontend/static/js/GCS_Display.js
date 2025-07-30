@@ -2,7 +2,7 @@
  * GCS Display
  *
  * Responsible for switching tabs/pages, button logic, etc.
- * Updates stats on the webpage based on the API and handles the password screen.
+ * Updates stats on the webpage based on the API
  *
  * Functions and constants should be prefixed with "display"
  */
@@ -20,48 +20,45 @@ function displaySelectModule(selected) {
 
 const selectedClasses = ["selected"];
 
-// Get selected page
-var selected = window.location.hash
-    ? this.window.location.hash.substring(1)
-    : document.querySelector("nav a").href.split("#")[1];
+if (document.querySelector("nav")) {
+    // Get selected page
+    var selected = window.location.hash
+        ? this.window.location.hash.substring(1)
+        : document.querySelector("nav a").href.split("#")[1];
 
-// Determine which modules are "selected"
-displaySelectModule(selected);
+    // Determine which modules are "selected"
+    displaySelectModule(selected);
 
-// Highlight selected tab link
-document
-    .querySelector(`a[href='#${selected}']`)
-    .classList.add(...selectedClasses);
+    // Highlight selected tab link
+    document
+        .querySelector(`a[href='#${selected}']`)
+        .classList.add(...selectedClasses);
 
-// Switch tabs when links are pressed
-document.querySelectorAll("nav a").forEach((elem) => {
-    elem.addEventListener("click", (event) => {
-        event.preventDefault();
+    // Switch tabs when links are pressed
+    document.querySelectorAll("nav a").forEach((elem) => {
+        elem.addEventListener("click", (event) => {
+            event.preventDefault();
 
-        // Switch tabs
-        selected = elem.href.split("#")[1];
-        displaySelectModule(selected);
+            // Switch tabs
+            selected = elem.href.split("#")[1];
+            displaySelectModule(selected);
 
-        // Highlight new selected tab link
-        document.querySelectorAll("nav a").forEach((elem) => {
-            elem.classList.remove(...selectedClasses);
+            // Highlight new selected tab link
+            document.querySelectorAll("nav a").forEach((elem) => {
+                elem.classList.remove(...selectedClasses);
+            });
+            document
+                .querySelector(`a[href='#${selected}']`)
+                .classList.add(...selectedClasses);
+
+            // Update URL
+            history.replaceState(null, "", `#${selected}`);
+
+            // Dispatch page resize event (since elements are moving around)
+            window.dispatchEvent(new Event("resize"));
         });
-        document
-            .querySelector(`a[href='#${selected}']`)
-            .classList.add(...selectedClasses);
-
-        if (selected == "m-ops") {
-            // Single operator icon fix
-            document.querySelector(`a[href='#m-password']`).classList.add(...selectedClasses);
-        }
-
-        // Update URL
-        history.replaceState(null, "", `#${selected}`);
-
-        // Dispatch page resize event (since elements are moving around)
-        window.dispatchEvent(new Event("resize"));
     });
-});
+}
 
 
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
@@ -699,39 +696,3 @@ solenoidCommand.addEventListener("click", () => {
 
     apiSendSolenoids();
 });
-
-
-// single operator password page
-window.onload = function () {
-    const password = "HIVE-RMIT";
-    const submit = document.getElementById("operatorSubmit");
-    const incorrectWarning = document.getElementById("passIncorrect");
-    const inputEnter = document.getElementById("operatorPass");
-
-    submit.addEventListener("click", () => {
-        const input = document.getElementById("operatorPass").value;
-        if (input === password) {
-            document.getElementById('m-ops-button').click();
-            incorrectWarning.hidden = true;
-
-        }
-        else {
-            incorrectWarning.hidden = false;
-        }
-    });
-
-    inputEnter.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-
-            if (inputEnter.value === password) {
-                document.getElementById('m-ops-button').click();
-                incorrectWarning.hidden = true;
-
-            }
-            else {
-                incorrectWarning.hidden = false;
-            }
-        }
-    });
-
-};
