@@ -233,17 +233,7 @@
         {
             "label": "Frontend Tailwind",
             "type": "shell",
-            "command": "./third_party/tailwindcss",
-            "args": [
-                "--cwd",
-                "./frontend",
-                "-i",
-                "./src/css/legacy.css",
-                "-o",
-                "./static/css/legacy.tailwind.css",
-                "--watch",
-                "--optimize"
-            ],
+            "command": "./frontend/scripts/tailwind.sh",
             "icon": {
                 "id": "paintcan"
             }
