@@ -24,6 +24,7 @@
     --color-emerald-300: oklch(.845 .143 164.978);
     --color-emerald-500: oklch(.696 .17 162.48);
     --color-emerald-600: oklch(.596 .145 163.225);
+    --color-emerald-700: oklch(.508 .118 165.612);
     --color-blue-500: oklch(.623 .214 259.815);
     --color-zinc-200: oklch(.92 .004 286.32);
     --color-zinc-700: oklch(.37 .013 285.805);
@@ -1584,8 +1585,16 @@
     color: var(--color-emerald-300);
   }
 
+  .text-emerald-700 {
+    color: var(--color-emerald-700);
+  }
+
   .text-hive {
     color: var(--color-hive);
+  }
+
+  .text-hive-dark {
+    color: var(--color-hive-dark);
   }
 
   .text-red-400 {

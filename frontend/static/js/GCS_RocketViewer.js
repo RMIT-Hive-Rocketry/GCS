@@ -77,7 +77,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
-        "/static/models/rocket_legacy.glb",
+        "/static/models/rocket_legacy3.glb",
         gltf => {
             const model = gltf.scene;
             model.scale.set(2, 2, 2); // Resize for better visibility
