@@ -613,7 +613,7 @@
   }
 
   .rocket_frame {
-    background-image: url("/img/rocket_frame.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/rocket-frame.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -638,17 +638,17 @@
 
   .continuity-button {
     cursor: pointer;
-    background-image: url("/img/buttons/continuity_button.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
 
   .continuity-button:hover {
-    background-image: url("/img/buttons/continuity_button_hover.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))");
   }
 
   .continuity-button:active {
-    background-image: url("/img/buttons/continuity_button_pressed.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))");
   }
 
   .continuity-variables-middle {
@@ -673,7 +673,7 @@
   .pop_selector {
     opacity: .6;
     cursor: pointer;
-    background-image: url("/img/buttons/selector_active.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -684,7 +684,7 @@
 
   .pop_button_inactive {
     opacity: .6;
-    background-image: url("/img/buttons/pop_button.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -692,23 +692,23 @@
   .pop_button_active {
     cursor: pointer;
     opacity: 1;
-    background-image: url("/img/buttons/pop_button.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
 
   .pop_button_active:hover {
-    background-image: url("/img/buttons/pop_button_hover.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))");
   }
 
   .pop_button_active:active {
-    background-image: url("/img/buttons/pop_button_pressed.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))");
   }
 
   .solenoid_button_inactive {
     opacity: .6;
     cursor: pointer;
-    background-image: url("/img/buttons/solenoid_button_inactive.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -716,17 +716,17 @@
   .solenoid_button_active {
     cursor: pointer;
     opacity: 1;
-    background-image: url("/img/buttons/solenoid_button_active.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
 
   .solenoid_button_active:hover {
-    background-image: url("/img/buttons/solenoid_button_hover.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))");
   }
 
   .solenoid_button_active:active {
-    background-image: url("/img/buttons/solenoid_button_pressed.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))");
   }
 
   .switch {
@@ -793,7 +793,7 @@
   }
 
   .aux_modal {
-    background-image: url("/img/modal.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/img/legacy3/single-operator/modal.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -1142,10 +1142,6 @@
     min-height: calc(var(--spacing) * 24);
   }
 
-  .w-1 {
-    width: calc(var(--spacing) * 1);
-  }
-
   .w-1\/2 {
     width: 50%;
   }
@@ -1218,16 +1214,12 @@
     flex: 1;
   }
 
-  .flex-shrink, .shrink {
+  .shrink {
     flex-shrink: 1;
   }
 
-  .flex-grow, .grow {
+  .grow {
     flex-grow: 1;
-  }
-
-  .basis-1 {
-    flex-basis: calc(var(--spacing) * 1);
   }
 
   .basis-1\/2 {
@@ -1236,10 +1228,6 @@
 
   .basis-1\/4 {
     flex-basis: 25%;
-  }
-
-  .border-collapse {
-    border-collapse: collapse;
   }
 
   .transform {
@@ -1454,10 +1442,6 @@
     background-color: var(--color-green-500);
   }
 
-  .bg-hive {
-    background-color: var(--color-hive);
-  }
-
   .bg-hive\/20 {
     background-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
   }
@@ -1624,16 +1608,8 @@
     text-transform: uppercase;
   }
 
-  .underline {
-    text-decoration-line: underline;
-  }
-
   .opacity-60 {
     opacity: .6;
-  }
-
-  .opacity-100 {
-    opacity: 1;
   }
 
   .shadow {
@@ -1672,11 +1648,6 @@
 
   .backdrop-blur-sm {
     --tw-backdrop-blur: blur(var(--blur-sm));
-    -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
-    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
-  }
-
-  .backdrop-filter {
     -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
     backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
   }

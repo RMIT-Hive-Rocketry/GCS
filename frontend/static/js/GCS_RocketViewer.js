@@ -75,16 +75,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const light = new THREE.AmbientLight( 0x909090 ); // soft white light
     scene.add( light );
 
-    // === Environment Texture (adds reflections and realism) ===
-    /*const envTextureLoader = new THREE.CubeTextureLoader();
-    scene.environment = envTextureLoader.load([
-        "/img/textures/posx.jpg", "/img/textures/negx.jpg",
-        "/img/textures/posy.jpg", "/img/textures/negy.jpg",
-        "/img/textures/posz.jpg", "/img/textures/negz.jpg",
-    ]);
-    scene.environmentIntensity = 1;*/
-    //scene.environmentRotation = new THREE.Vector3(0, 1, 0);
-
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
         "/static/models/rocket_legacy.glb",
