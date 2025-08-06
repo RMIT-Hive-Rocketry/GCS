@@ -50,11 +50,21 @@ def create_app(logger=None):
     def debug_api():
         return render_template("debug_api.html")
     
-    # Legacy debugging
+    # Module debugging
+    @app.route('/debug/modules')
+    def debug_modules():
+        return render_template("debug_modules.html")
+    
+    # Legacy module debugging
     @app.route('/debug/legacy')
     @app.route('/debug/legacy3')
     def debug_legacy3():
         return render_template("debug_legacy3.html")
+    
+    # Atlas module debugging
+    @app.route('/debug/atlas')
+    def debug_atlas():
+        return render_template("debug_atlas.html")
 
     # Serve static files and HTML pages
     @app.route('/<path:filename>')
