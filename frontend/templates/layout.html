@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
-		<title>RMIT HIVE-IREC</title>
-		<link rel="stylesheet" type="text/css" href="/css/legacy.tailwind.css" media="screen" />
 
-		<!-- Preload icons -->
-    	<link rel="preload" href="/img/icons/exclamation.svg" as="image" type="image/svg+xml">
-		<link rel="preload" href="/img/icons/hourglass.svg" as="image" type="image/svg+xml">
-	</head>
-	
-	<body class="legacy bg-hex w-screen h-screen max-w-screen max-h-screen text-white border-hive border-2 flex flex-col overflow-hidden">
-		<!-- Header, consistent on all pages -->
-		<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50">
-			<div class="w-1/6 grow">{% include 'modules/legacy_logos.html' %}</div>
-			<nav class="w-auto grow h-full grid grid-cols-3 bg-navbar flex px-[3%] p-2 gap-2 font-medium text-center items-center text-sm">
-				<a href="#m-main">
-					<div class="icon icon-rocket"></div>
-					<span>Main Interface</span>
-				</a>
-				<!--<a href="#m-lf2">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
+	<title>RMIT HIVE-IREC</title>
+	<link rel="stylesheet" type="text/css" href="/css/legacy.tailwind.css" media="screen" />
+
+	<!-- Preload icons -->
+	<link rel="preload" href="/img/icons/exclamation.svg" as="image" type="image/svg+xml">
+	<link rel="preload" href="/img/icons/hourglass.svg" as="image" type="image/svg+xml">
+</head>
+
+<body
+	class="legacy bg-hex w-screen h-screen max-w-screen max-h-screen text-white border-hive border-2 flex flex-col overflow-hidden">
+	<!-- Header, consistent on all pages -->
+	<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50">
+		<div class="w-1/6 grow">{% include 'modules/legacy_logos.html' %}</div>
+		<nav
+			class="w-auto grow h-full grid grid-cols-3 bg-navbar flex px-[3%] p-2 gap-2 font-medium text-center items-center text-sm">
+			<a href="#m-main">
+				<div class="icon icon-rocket"></div>
+				<span>Main Interface</span>
+			</a>
+			<!--<a href="#m-lf2">
 					<div class="icon icon-video-camera"></div>
 					<span>Live - Launchpad</span>
 				</a>
@@ -32,71 +35,76 @@
 					<div class="icon icon-video-camera"></div>
 					<span>Live - All Feeds</span>
 				</a>-->
-				<a href="#m-ops">
-					<div class="icon icon-gamepad"></div>
-					<span>Single Operator</span>
-				</a>
-				<a href="#m-hmi">
-					<div class="icon icon-sitemap"></div>
-					<span>GSE State</span>
-				</a>
-			</nav>
+			<a href="#m-ops">
+				<div class="icon icon-gamepad"></div>
+				<span>Single Operator</span>
+			</a>
+			<a href="#m-hmi">
+				<div class="icon icon-sitemap"></div>
+				<span>GSE State</span>
+			</a>
+		</nav>
 
-			<div class="w-1/6 grow">{% include 'modules/legacy_radio.html' %}</div>
-		</header>
+		<div class="w-1/6 grow">{% include 'modules/legacy_radio.html' %}</div>
+	</header>
 
-		<!-- Main grid (12x12), each module is a separate child div, using col/row positions instead of awkward nesting -->
-		<!-- Modules are loaded from files in the templates/ directory -->
-		<!-- and can be dynamically shown/hidden based on the m-name classes and nav links -->
-		<main class="w-full max-w-full h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2">
-			<!-- Main interface modules -->
-			<div class="module m-main m-lf1 col-[1/5] row-[1/13] flex flex-col h-full gap-2">
-				<div class="module m-main m-lf1 grow basis-1/2 w-full">{% include 'modules/legacy_avionics.html' %}</div>
-				<div class="module m-main m-lf1 grow basis-1/4 w-full">{% include 'modules/legacy_position.html' %}</div>
-			</div>
-			<div class="module m-main col-[5/9] row-[1/10]">{% include 'modules/legacy_rocket.html' %}</div>
-			<div class="module m-main col-[5/9] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
-			<div class="module m-main m-lf2 col-[9/13] row-[1/5]">{% include 'modules/legacy_errorlog.html' %}</div>
-			<div class="module m-main m-lf2 col-[9/13] row-[5/13]">{% include 'modules/legacy_auxdata.html' %}</div>
+	<!-- Main grid (12x12), each module is a separate child div, using col/row positions instead of awkward nesting -->
+	<!-- Modules are loaded from files in the templates/ directory -->
+	<!-- and can be dynamically shown/hidden based on the m-name classes and nav links -->
+	<main
+		class="w-full max-w-full h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2">
+		<!-- Main interface modules -->
+		<div class="module m-main m-lf1 col-[1/5] row-[1/13] flex flex-col h-full gap-2">
+			<div class="module m-main m-lf1 grow basis-1/2 w-full">{% include 'modules/legacy_avionics.html' %}</div>
+			<div class="module m-main m-lf1 grow basis-1/4 w-full">{% include 'modules/legacy_position.html' %}</div>
+		</div>
+		<div class="module m-main col-[5/9] row-[1/10]">{% include 'modules/legacy_rocket.html' %}</div>
+		<div class="module m-main col-[5/9] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
+		<div class="module m-main m-lf2 col-[9/13] row-[1/5]">{% include 'modules/legacy_errorlog.html' %}</div>
+		<div class="module m-main m-lf2 col-[9/13] row-[5/13]">{% include 'modules/legacy_auxdata.html' %}</div>
 
-			<!-- Single operator modules -->
-			<div class="module m-ops col-[1/5] row-[1/7]">{% include 'modules/legacy_continuitycheck.html' %}</div>
-			<div class="module m-ops col-[1/5] row-[7/13]">{% include 'modules/legacy_poptest.html' %}</div>
-			<div class="module m-ops col-[5/9] row-[7/13]">{% include 'modules/legacy_auxcontrols.html' %}</div>
-			<div class="module m-ops col-[9/13] row-[1/13]">{% include 'modules/legacy_flags.html' %}</div>
+		<!-- Single operator modules -->
+		<div class="module m-ops col-[1/5] row-[1/7]">{% include 'modules/legacy_continuitycheck.html' %}</div>
+		<div class="module m-ops col-[1/5] row-[7/13]">{% include 'modules/legacy_poptest.html' %}</div>
+		<div class="module m-ops col-[5/9] row-[7/13]">{% include 'modules/legacy_auxcontrols.html' %}</div>
+		<div class="module m-ops col-[9/13] row-[1/13]">{% include 'modules/legacy_flags.html' %}</div>
 
-			<!-- Video 2 modules - Launchpad -->
-			<div class="module m-lf2 col-[1/9] row-[1/10] items-center justify-center">{% include 'modules/legacy_video_launchpad.html' %}</div>
-			<div class="module m-lf2 col-[2/8] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
+		<!-- Video 2 modules - Launchpad -->
+		<div class="module m-lf2 col-[1/9] row-[1/10] items-center justify-center">{% include
+			'modules/legacy_video_launchpad.html' %}</div>
+		<div class="module m-lf2 col-[2/8] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
 
-			<!-- Video 1 modules - Rocket -->
-			<div class="module m-lf1 col-[5/13] row-[1/10] items-center justify-center">{% include 'modules/legacy_video_rocket.html' %}</div>
-			<div class="module m-lf1 col-[6/12] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
+		<!-- Video 1 modules - Rocket -->
+		<div class="module m-lf1 col-[5/13] row-[1/10] items-center justify-center">{% include
+			'modules/legacy_video_rocket.html' %}</div>
+		<div class="module m-lf1 col-[6/12] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
 
-			<!-- Video 3 modules - Both feeds -->
-			<div class="module m-lf3 col-[1/7] row-[1/10] items-center justify-center">{% include 'modules/legacy_video_launchpad.html' %}</div>
-			<div class="module m-lf3 col-[7/13] row-[1/10] items-center justify-center">{% include 'modules/legacy_video_rocket.html' %}</div>
-			<div class="module m-lf3 col-[4/10] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
+		<!-- Video 3 modules - Both feeds -->
+		<div class="module m-lf3 col-[1/7] row-[1/10] items-center justify-center">{% include
+			'modules/legacy_video_launchpad.html' %}</div>
+		<div class="module m-lf3 col-[7/13] row-[1/10] items-center justify-center">{% include
+			'modules/legacy_video_rocket.html' %}</div>
+		<div class="module m-lf3 col-[4/10] row-[10/13]">{% include 'modules/legacy_flightstate.html' %}</div>
 
-			<!-- HMI modules -->
-			<div class="module m-hmi col-[1/13] row-[1/13]">
-				{% include 'modules/legacy_hmi.html' %}
-			</div>
-		</main>
-	</body>
+		<!-- HMI modules -->
+		<div class="module m-hmi col-[1/13] row-[1/13]">
+			{% include 'modules/legacy_hmi.html' %}
+		</div>
+	</main>
+</body>
 
-	<!-- Javascript should generally go below, not in individual modules -->
-	<script src="/js/GCS_Display.js"></script>
-	<script src="/js/GCS_API.js"></script>
+<!-- Javascript should generally go below, not in individual modules -->
+<script src="/js/GCS_Display.js"></script>
+<script src="/js/GCS_API.js"></script>
 
-	<!-- Data visualisation code -->
-	<script src="/js/libraries/d3.min.js"></script>
-	<script src="/js/GCS_Graphs.js"></script>
+<!-- Data visualisation code -->
+<script src="/js/libraries/d3.min.js"></script>
+<script src="/js/GCS_Graphs.js"></script>
 
-	<!-- 6DOF Rocket code -->
-	<script type="module" src="/js/GCS_RocketViewer.js" defer></script>
+<!-- 6DOF Rocket code -->
+<script type="module" src="/js/GCS_RocketViewer.js" defer></script>
 
-	<!-- Debug/testing code -->
-	<script src="/js/GCS_Testing.js"></script>
+<!-- Debug/testing code -->
+<script src="/js/GCS_Testing.js"></script>
 
 </html>
