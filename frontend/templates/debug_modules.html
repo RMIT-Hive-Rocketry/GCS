@@ -4,17 +4,18 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
-	<title>DEBUG Legacy III - RMIT High Velocity</title>
+	<title>DEBUG All Modules - RMIT High Velocity</title>
 	<link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
 </head>
 
-<body class="legacy debug bg-hex w-full bg-zinc-800 flex flex-col gap-4 p-2">
+<body class="debug bg-hex w-full bg-zinc-800 flex flex-col gap-4 p-2">
 	<div>
-		<h1 class="text-2xl text-white">Legacy III Module Debug Page</h1>
+		<h1 class="text-2xl text-white">Module Debug Page</h1>
 		<hr class="border-white">
 	</div>
 
 	<div class="w-1/4">{% include 'modules/legacy3_logos.html' %}</div>
+	<div class="w-1/4">{% include 'modules/atlas_logos.html' %}</div>
 	<div class="w-1/4">{% include 'modules/legacy3_radio.html' %}</div>
 
 	<div class="w-1/3">{% include 'modules/module_errorlog.html' %}</div>
@@ -26,6 +27,7 @@
 	<div class="w-1/3">{% include 'modules/legacy3_ops_systemflags.html' %}</div>
 	<div class="w-1/3">{% include 'modules/legacy3_position.html' %}</div>
 	<div class="w-1/3">{% include 'modules/legacy3_rocket.html' %}</div>
+	<div class="w-1/3">{% include 'modules/atlas_rocket.html' %}</div>
 	<div class="w-1/3">{% include 'modules/legacy3_timeline.html' %}</div>
 
 	<div class="w-1/2">{% include 'modules/legacy3_video_launchpad.html' %}</div>
