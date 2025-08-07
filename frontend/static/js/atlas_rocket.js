@@ -22,8 +22,8 @@ let lastFrameTs = performance.now();              // Timestamp of the last frame
 
 window.addEventListener("DOMContentLoaded", () => {
     // === Canvas and Renderer Setup ===
-    const container = document.getElementById("rocketViewerContainer");
-    const canvas = document.getElementById("rocketCanvas");
+    const container = document.getElementById("rocketContainerAtlas");
+    const canvas = document.getElementById("rocketCanvasAtlas");
 
     const renderer = new THREE.WebGLRenderer({
         canvas,

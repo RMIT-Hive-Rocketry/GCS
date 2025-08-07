@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, abort, render_template, jsonify
+from flask import Flask, send_from_directory, abort, render_template
+import os
+import frontend.config
 # import logging
 # import backend.includes_python.process_logging as slogger
-import os
-import socket
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -16,15 +16,16 @@ class SubprocessLogHandler(logging.Handler):
             slogger.info(msg)  # fallback
 """
 
-def create_app(logger=None):
-    # Initialise flask
+# Initialise flask app
+def create_app():
+    # App configuration
     app = Flask(__name__)
+    app.config.from_object("frontend.config." + frontend.config.rocket + "Config")
     static_dir = os.path.join(os.path.dirname(__file__), 'static')
     file_extensions = (
         '.css','.js',                   # CSS, JavaScript
         '.png','.jpg','.ico','.svg',    # Images
     )
-
 
     """
     # Custom logging
@@ -39,32 +40,10 @@ def create_app(logger=None):
         app.logger.setLevel(logging.DEBUG)
     """
 
-
     # Serve main layout
     @app.route('/')
     def index():
-        return render_template("layout.html")
-
-    # API debugging
-    @app.route('/debug/api')
-    def debug_api():
-        return render_template("debug_api.html")
-    
-    # Module debugging
-    @app.route('/debug/modules')
-    def debug_modules():
-        return render_template("debug_modules.html")
-    
-    # Legacy module debugging
-    @app.route('/debug/legacy')
-    @app.route('/debug/legacy3')
-    def debug_legacy3():
-        return render_template("debug_legacy3.html")
-    
-    # Atlas module debugging
-    @app.route('/debug/atlas')
-    def debug_atlas():
-        return render_template("debug_atlas.html")
+        return render_template("layout.html", config=app.config)
 
     # Serve static files and HTML pages
     @app.route('/<path:filename>')
@@ -87,10 +66,13 @@ def create_app(logger=None):
             #app.logger.warning(f"404 not found: {filename}")
             abort(404)
 
+    # Debugging
+    @app.route('/debug/api')
+    def debug_api():
+        return render_template("debug_api.html")
+    
+    @app.route('/debug/modules')
+    def debug_modules():
+        return render_template("debug_modules.html")
+
     return app
-
-
-if __name__ == "__main__":
-    app = create_app()
-    app.run(debug=True)
-
