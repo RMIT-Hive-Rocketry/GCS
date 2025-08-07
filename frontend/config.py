@@ -1,17 +1,13 @@
 """
 FRONTEND CONFIG
 
-Use .flaskenv for runtime configuration
-Change FrontendConfig variable to use that config
+(use .flaskenv for runtime configuration)
 """
+# SELECT CONFIG HERE
+rocket = "Atlas" # Options: "", "Atlas", "Legacy"
 
 
-# Select rocket here
-# Options: "", "Atlas", "Legacy"
-rocket = "Atlas"
-
-
-# Default configuration
+# DEFAULT CONFIGURATION
 class Config(object):
     ROCKET_NAME = ""
     PAGES = [
@@ -19,21 +15,6 @@ class Config(object):
             "name": "Main Interface",
             "icon": "icon-rocket",
             "id": "m-main"
-        },
-        {
-            "name": "Live - Launchpad",
-            "icon": "icon-video-camera",
-            "id": "m-lf2"
-        },
-        {
-            "name": "Live - Rocket",
-            "icon": "icon-video-camera",
-            "id": "m-lf1"
-        },
-        {
-            "name": "Live - All Feeds",
-            "icon": "icon-video-camera",
-            "id": "m-lf3"
         },
         {
             "name": "Single Operator",
@@ -50,7 +31,10 @@ class Config(object):
     MODULE_RADIO = "modules/module_radio.html"
 
 
-# Rocket specific configurations
+# ROCKET SPECIFIC CONFIGURATIONS
+
+# Atlas
+# Used for AURC 2025
 class AtlasConfig(Config):
     ROCKET_NAME = "Atlas"
     PAGES = [
@@ -59,26 +43,13 @@ class AtlasConfig(Config):
             "icon": "icon-rocket",
             "id": "m-main"
         },
-        {
-            "name": "Live - Launchpad",
-            "icon": "icon-video-camera",
-            "id": "m-lf2"
-        },
-        {
-            "name": "Live - Rocket",
-            "icon": "icon-video-camera",
-            "id": "m-lf1"
-        },
-        {
-            "name": "Live - All Feeds",
-            "icon": "icon-video-camera",
-            "id": "m-lf3"
-        },
     ]
     MODULE_LOGOS = "modules/atlas_logos.html"
     MODULES = []
 
 
+# Legacy III
+# Used for IREC 2025
 class LegacyConfig(Config):
     ROCKET_NAME = "Legacy III"
     PAGES = [
@@ -86,6 +57,21 @@ class LegacyConfig(Config):
             "name": "Main Interface",
             "icon": "icon-rocket",
             "id": "m-main"
+        },
+        {
+            "name": "Launchpad",
+            "icon": "icon-video-camera",
+            "id": "m-lf2"
+        },
+        {
+            "name": "Rocket",
+            "icon": "icon-video-camera",
+            "id": "m-lf1"
+        },
+        {
+            "name": "Both feeds",
+            "icon": "icon-video-camera",
+            "id": "m-lf3"
         },
         {
             "name": "Single Operator",
