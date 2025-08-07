@@ -253,11 +253,11 @@
             "type": "shell",
             "command": "flask",
             "args": [
-                "--app",
+                "-e",
+                "./frontend/.flaskenv",
+                "-A",
                 "frontend.server",
-                "--debug",
-                "run",
-                "--port=8008"
+                "run"
             ],
             "icon": {
                 "id": "server-process",

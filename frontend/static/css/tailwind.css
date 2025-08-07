@@ -27,6 +27,7 @@
     --color-zinc-200: oklch(.92 .004 286.32);
     --color-zinc-700: oklch(.37 .013 285.805);
     --color-zinc-800: oklch(.274 .006 286.033);
+    --color-zinc-900: oklch(.21 .006 285.885);
     --color-black: #000;
     --color-white: #fff;
     --spacing: .25rem;
@@ -300,11 +301,9 @@
     display: none !important;
   }
 
-  .debug .module-legacy, .debug .module-atlas {
-    background-color: var(--color-black);
-  }
-
   .bg-hex {
+    background-position: inherit;
+    background-origin: inherit;
     background: #000 url("/img/bg-hex.svg");
   }
 
@@ -334,7 +333,7 @@
 
   .module-atlas {
     gap: calc(var(--spacing) * 2);
-    border-color: var(--color-atlas-dark);
+    border-color: var(--color-hive-dark);
     width: 100%;
     max-width: 100%;
     height: 100%;
@@ -351,7 +350,7 @@
   .module-atlas > h2:first-child {
     border-top-style: var(--tw-border-style);
     border-top-width: 2px;
-    border-color: var(--color-atlas-dark);
+    border-color: var(--color-hive-dark);
     width: 100%;
     display: inline-block;
   }
@@ -1029,6 +1028,10 @@
     margin-inline: calc(var(--spacing) * 2);
   }
 
+  .my-4 {
+    margin-block: calc(var(--spacing) * 4);
+  }
+
   .mt-4 {
     margin-top: calc(var(--spacing) * 4);
   }
@@ -1237,6 +1240,14 @@
     resize: both;
   }
 
+  .list-inside {
+    list-style-position: inside;
+  }
+
+  .list-disc {
+    list-style-type: disc;
+  }
+
   .grid-flow-col {
     grid-auto-flow: column;
   }
@@ -1325,6 +1336,10 @@
     gap: calc(var(--spacing) * 4);
   }
 
+  .gap-8 {
+    gap: calc(var(--spacing) * 8);
+  }
+
   :where(.space-y-1 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));
@@ -1370,6 +1385,11 @@
     border-width: 2px;
   }
 
+  .border-4 {
+    border-style: var(--tw-border-style);
+    border-width: 4px;
+  }
+
   .border-y-2 {
     border-block-style: var(--tw-border-style);
     border-block-width: 2px;
@@ -1389,6 +1409,10 @@
     border-color: #00ff4d;
   }
 
+  .border-atlas-medium {
+    border-color: var(--color-atlas-medium);
+  }
+
   .border-hive {
     border-color: var(--color-hive);
   }
@@ -1399,6 +1423,10 @@
 
   .border-hive\/20 {
     border-color: color-mix(in oklab, var(--color-hive) 20%, transparent);
+  }
+
+  .border-legacy-medium {
+    border-color: var(--color-legacy-medium);
   }
 
   .border-white {
@@ -1455,6 +1483,10 @@
 
   .bg-zinc-800 {
     background-color: var(--color-zinc-800);
+  }
+
+  .bg-zinc-900 {
+    background-color: var(--color-zinc-900);
   }
 
   .p-0 {
@@ -1617,6 +1649,10 @@
 
   .uppercase {
     text-transform: uppercase;
+  }
+
+  .underline {
+    text-decoration-line: underline;
   }
 
   .opacity-60 {

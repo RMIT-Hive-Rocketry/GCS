@@ -1,13 +1,13 @@
 <!-- 3D rocket module -->
 <div class="module-legacy">
     <style>
-        .rocket-frame {
+        .module-legacy .rocket-frame {
             background-image: url('/img/legacy3/rocket-frame.svg#svgView(preserveAspectRatio(none))');
             background-size: 100% 100%;
             background-repeat: no-repeat;
         }
 
-        #rocketCanvas {
+        #rocketCanvasLegacy {
             --current-color: var(--color-legacy-medium);
             filter: drop-shadow(1px 1px 0 var(--current-color)) drop-shadow(-1px 1px 0 var(--current-color)) drop-shadow(-1px -1px 0 var(--current-color)) drop-shadow(1px -1px 0 var(--current-color));
         }
@@ -28,8 +28,8 @@
 
         <!-- Viewer -->
         <div class="grow flex items-center justify-center h-full">
-            <div id="rocketViewerContainer" class="relative w-full h-full group">
-                <canvas id="rocketCanvas" class="w-full h-full block"></canvas>
+            <div id="rocketContainerLegacy" class="relative w-full h-full group">
+                <canvas id="rocketCanvasLegacy" class="w-full h-full block"></canvas>
             </div>
         </div>
     </div>

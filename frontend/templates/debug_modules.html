@@ -4,36 +4,56 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
-	<title>DEBUG All Modules - RMIT High Velocity</title>
+	<title>MODULE DEBUG - RMIT High Velocity</title>
 	<link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
 </head>
 
-<body class="debug bg-hex w-full bg-zinc-800 flex flex-col gap-4 p-2">
-	<div>
-		<h1 class="text-2xl text-white">Module Debug Page</h1>
-		<hr class="border-white">
+<body class="bg-hex bg-zinc-900">
+	<div class="p-4 w-full text-white">
+		<h1 class="text-2xl">Module debug page</h1>
+		<ul class="list-disc list-inside my-4 text-lg">
+			<li>
+				<a href="#shared" class="underline text-hive">Shared modules</a>
+			</li>
+			<li>
+				<a href="#atlas" class="underline text-atlas">Atlas modules</a>
+			</li>
+			<li>
+				<a href="#legacy3" class="underline text-legacy">Legacy III modules</a>
+			</li>
+		</ul>
 	</div>
 
-	<div class="w-1/4">{% include 'modules/legacy3_logos.html' %}</div>
-	<div class="w-1/4">{% include 'modules/atlas_logos.html' %}</div>
-	<div class="w-1/4">{% include 'modules/legacy3_radio.html' %}</div>
+	<main class="debug w-full flex flex-col gap-8">
+		<section class="flex flex-col gap-4 p-4 bg-hex bg-black border-4 border-hive-dark">
+			<h1 class="text-2xl text-hive">Shared modules</h1>
+			<div class="w-1/3">{% include 'modules/module_errorlog.html' %}</div>
+		</section>
 
-	<div class="w-1/3">{% include 'modules/module_errorlog.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_avionics.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_gse.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_ops_auxcontrols.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_ops_continuitycheck.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_ops_poptest.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_ops_systemflags.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_position.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_rocket.html' %}</div>
-	<div class="w-1/3">{% include 'modules/atlas_rocket.html' %}</div>
-	<div class="w-1/3">{% include 'modules/legacy3_timeline.html' %}</div>
+		<section id="atlas" class="flex flex-col gap-4 p-4 bg-hex bg-black border-4 border-atlas-medium">
+			<h1 class="text-2xl text-atlas">Atlas modules</h1>
+			<div class="w-1/4">{% include 'modules/atlas_logos.html' %}</div>
+			<div class="w-1/3">{% include 'modules/atlas_rocket.html' %}</div>
+		</section>
 
-	<div class="w-1/2">{% include 'modules/legacy3_video_launchpad.html' %}</div>
-	<div class="w-1/2">{% include 'modules/legacy3_video_rocket.html' %}</div>
-
-	<div>{% include 'modules/legacy3_hmi.html' %}</div>
+		<section id="legacy3" class="flex flex-col gap-4 p-4 bg-hex bg-black border-4 border-legacy-medium">
+			<h1 class="text-2xl text-legacy">Legacy III modules</h1>
+			<div class="w-1/4">{% include 'modules/legacy3_logos.html' %}</div>
+			<div class="w-1/4">{% include 'modules/legacy3_radio.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_avionics.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_gse.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_ops_auxcontrols.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_ops_continuitycheck.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_ops_poptest.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_ops_systemflags.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_position.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_rocket.html' %}</div>
+			<div class="w-1/3">{% include 'modules/legacy3_timeline.html' %}</div>
+			<div class="w-1/2">{% include 'modules/legacy3_video_launchpad.html' %}</div>
+			<div class="w-1/2">{% include 'modules/legacy3_video_rocket.html' %}</div>
+			<div class="w-full">{% include 'modules/legacy3_hmi.html' %}</div>
+		</section>
+	</main>
 </body>
 
 <!-- Javascript should generally go below, not in individual modules -->
