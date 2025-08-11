@@ -236,7 +236,8 @@
             "command": "./frontend/scripts/tailwind.sh",
             "icon": {
                 "id": "paintcan"
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "Frontend Setup",
