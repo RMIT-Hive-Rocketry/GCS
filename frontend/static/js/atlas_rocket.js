@@ -39,7 +39,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // === Create Scene ===
     const scene = new THREE.Scene();
-    //scene.background = null; // Keep canvas transparent
 
     // === Camera Setup (Orthographic for a clean top-down view) ===
     const aspect = container.clientWidth / container.clientHeight;
@@ -76,10 +75,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     lights[5].position.set(10, 2, 5);
     
-
-    
     lights.forEach(light => scene.add(light));
-
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(

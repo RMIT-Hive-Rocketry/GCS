@@ -28,7 +28,7 @@
 	<!-- Main grid (12x12) -->
 	<!-- Modules are loaded from separate files in templates/modules/ -->
 	<main class="w-full max-w-full h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden
-				grid grid-cols-12 grid-rows-12 grid-flow-col gap-2 p-2" id="{{config.PAGES[0]['id']}}">
+				grid grid-cols-12 grid-rows-12 grid-flow-col gap-4 px-4 py-2" id="{{config.PAGES[0]['id']}}">
 		<!-- Adjust modules in config.py -->
 		{% for module in config.MODULES %}
 		<div class="{{config.MODULES[module]['classes']}}">
