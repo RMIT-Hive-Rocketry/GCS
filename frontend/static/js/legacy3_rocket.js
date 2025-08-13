@@ -10,6 +10,10 @@
 import * as THREE from "./libraries/three.module.js";
 import { GLTFLoader } from "./libraries/GLTFLoader.js";
 
+const rocket_containerID = "rocketContainerLegacy";
+const rocket_canvasID = "rocketCanvasLegacy";
+const rocket_model = "/static/models/rocket_legacy3.glb";
+
 // === Core Variables ===
 let rocket = null;                                // The main rocket model group
 let targetQuat = new THREE.Quaternion();          // Most recent target orientation
@@ -22,8 +26,8 @@ let lastFrameTs = performance.now();              // Timestamp of the last frame
 
 window.addEventListener("DOMContentLoaded", () => {
     // === Canvas and Renderer Setup ===
-    const container = document.getElementById("rocketContainerLegacy");
-    const canvas = document.getElementById("rocketCanvasLegacy");
+    const container = document.getElementById(rocket_containerID);
+    const canvas = document.getElementById(rocket_canvasID);
 
     const renderer = new THREE.WebGLRenderer({
         canvas,
@@ -77,7 +81,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
-        "/static/models/rocket_legacy3.glb",
+        rocket_model,
         gltf => {
             const model = gltf.scene;
             model.scale.set(2, 2, 2); // Resize for better visibility
