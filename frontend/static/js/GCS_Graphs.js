@@ -84,6 +84,11 @@ function graphCreateLine(chart, numLines) {
     // Select SVG
     chart.svg = d3.select(chart.selector);
 
+    // Make sure chart exists
+    if (chart.svg.node() == null) {
+        return
+    }
+
     // Dynamic graph size initialisation
     const boundingRect = chart.svg.node().parentElement.getBoundingClientRect();
     chart.width = boundingRect.width;
