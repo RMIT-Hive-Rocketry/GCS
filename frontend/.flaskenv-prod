@@ -1,0 +1,7 @@
+#.flaskenv-prod
+# PRODUCTION CONFIG
+
+FLASK_ENV=production
+FLASK_RUN_HOST=0.0.0.0
+FLASK_RUN_PORT=8008
+FLASK_DEBUG=False

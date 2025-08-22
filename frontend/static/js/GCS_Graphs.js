@@ -84,6 +84,11 @@ function graphCreateLine(chart, numLines) {
     // Select SVG
     chart.svg = d3.select(chart.selector);
 
+    // Make sure chart exists
+    if (chart.svg.node() == null) {
+        return
+    }
+
     // Dynamic graph size initialisation
     const boundingRect = chart.svg.node().parentElement.getBoundingClientRect();
     chart.width = boundingRect.width;
@@ -425,7 +430,7 @@ function graphUpdatePosition(data) {
 }
 
 function graphUpdateAuxData(data) {
-    // AUXILLIARY DATA MODULE GRAPHS
+    // AUXILIARY DATA MODULE GRAPHS
     if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
         const timestamp = data.meta.timestampS;
 

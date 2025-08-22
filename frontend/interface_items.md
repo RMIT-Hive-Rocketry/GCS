@@ -1,4 +1,10 @@
 # Display item keys and IDs
+
+# THIS DOCUMENT IS OUT OF DATE
+# TODO: Incorporate this into the API standardisation
+#       Which makes all keys and values consistently handled across the entire system
+#       Instead of having to do a bunch of processing/handling on each interface
+
 ## Per module
 These are the item IDs for updating values with JavaScript.
 

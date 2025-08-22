@@ -1,0 +1,71 @@
+<div class="module-legacy">
+	<h2>Pop Test</h2>
+
+	<div class="grid grid-cols-4 gap-2 px-2 pb-2 items-center">
+
+		<!-- Prompt -->
+		<div id="prompt" class="col-span-4 text-center text-red-600 mb-1">
+			Select an option
+		</div>
+
+		<!-- Pop Button -->
+		<div class="col-start-2 row-start-1 flex justify-center items-center p-4">
+			<button id="popButton" class="pop_button_inactive w-24 h-24" disabled></button>
+		</div>
+
+
+		<!-- Pop test options -->
+		<div class="col-start-4 row-start-1 row-span-4 flex flex-col justify-center gap-1">
+			<input type="checkbox" id="optionMainP" class="sr-only peer">
+			<label for="optionMainP"
+				class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+				Main: Primary
+			</label>
+
+			<button>
+				<input type="checkbox" id="optionMainS" class="sr-only peer">
+				<label for="optionMainS"
+					class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+					Main: Secondary
+				</label>
+			</button>
+
+			<button>
+				<input type="checkbox" id="optionApogeeP" class="sr-only peer">
+				<label for="optionApogeeP"
+					class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+					Apogee: Primary
+				</label>
+			</button>
+
+			<button>
+				<input type="checkbox" id="optionApogeeS" class="sr-only peer">
+				<label for="optionApogeeS"
+					class="peer-checked:opacity-100 pop_selector opacity-60 w-32 h-5 flex items-center justify-center leading-none text-xs font-mono">
+					Apogee: Secondary
+				</label>
+			</button>
+		</div>
+
+		<!-- Indicators -->
+		<div class="col-span-2 flex items-center gap-2 font-mono text-sm">
+			<p>Pop Test CMD Received</p>
+			<div class="indicator-state"></div>
+		</div>
+
+		<div class="col-span-2 flex items-center gap-2 font-mono text-sm">
+			<p>Pop Test Result</p>
+			<div class="indicator-state"></div>
+		</div>
+
+		<!-- Camera switch -->
+		<div class="col-span-2 flex items-center gap-2 font-mono text-sm p-4">
+			<h3 class="text-center p-1 text-sm">Camera Power</h3>
+			<label class="switch">
+				<input id="cameraSwitch" type="checkbox">
+				<span class="slider round"></span>
+			</label>
+		</div>
+
+	</div>
+</div>
