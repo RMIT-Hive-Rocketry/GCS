@@ -12,17 +12,16 @@ class IgnoreWebMessagesFilter(logging.Filter):
         return "GET" not in record.getMessage()
 
 
-def start_frontend_webserver(logger: logging.Logger, debug: bool = False):
+def start_frontend_webserver(logger: logging.Logger):
     SERVICE_NAME = "frontend_webserver"
     try:
         FRONTEND_COMMAND = [
             "flask",
-            "--app",
-            "frontend.flask_server",
-            *(["--debug"] if debug else []),
-            "run",
-            "--host=0.0.0.0",
-            f"--port={load_config()['frontend']['http_port'].strip()}"
+            "-e",
+            "./frontend/.flaskenv",
+            "-A",
+            "frontend.server",
+            "run"
         ]
 
         logger.debug(
