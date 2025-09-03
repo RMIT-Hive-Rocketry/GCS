@@ -2,8 +2,8 @@
 
 <p>
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
-    <img alt="Static Badge" src="https://img.shields.io/badge/status-Deployed_for_IREC-limegreen">
-    <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
+    <img alt="Static Badge" src="https://img.shields.io/badge/status-in_development-black">
+    <!-- <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem"> -->
     <!-- <img src="https://img.shields.io/github/v/release/RMIT-Competition-Rocketry/GCS?label=version" height="20rem"> -->
 </p>
 
@@ -21,7 +21,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
   <img src="docs/assets/irec2025stand.jpeg" height="250px"/>
 </p>
 
-© 2025 RMIT Competition Rocketry - Licensed under the MIT License    
+© 2026 RMIT Competition Rocketry - Licensed under the MIT License    
 
 ## Contents
 
@@ -48,9 +48,25 @@ The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, av
 
 GCS Software Team
 
-| Name | Role | Year |
-| --- | --- | --- |
-| [Freddy Mcloughlan](https://www.linkedin.com/in/freddy-mcloughlan/) (`mcloughlan`)  | GCS software lead & backend software engineer | 2025 |
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Year</th>
+    </tr>
+    <tr>
+        <td rowspan=2><a href="https://www.linkedin.com/in/freddy-mcloughlan/">Freddy Mcloughlan</a> (<code>mcloughlan</code>)</td>
+        <td>new role</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>GCS software lead & backend software engineer</td>
+        <td>2025</td>
+    </tr>
+
+</table>
+
+
 | [Amber Taylor](https://www.linkedin.com/in/amber-taylor-20bb63264/) (`s4105951`)  | GCS frontend lead & software engineer | 2025 |
 | [Caspar O'Neill](https://www.linkedin.com/in/caspar-oneill/) (`s3899921`)  | GCS frontend API engineer | 2025 |
 | [Anuk Jayasundara](https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/) (`s3899921`)  | GCS 6DOF rocket visualisation | 2025 |
