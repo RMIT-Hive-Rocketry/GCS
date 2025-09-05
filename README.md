@@ -63,16 +63,42 @@ GCS Software Team
         <td>GCS software lead & backend software engineer</td>
         <td>2025</td>
     </tr>
-
+    <tr>
+        <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
+        <td>new role</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>GCS frontend lead & software engineer</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/caspar-oneill/">Caspar O'Neill</a> (<code>s3899921</code>)</td>
+        <td>GCS frontend API engineer</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/">Anuk Jayasundara</a> (<code>SaviruA</code>)</td>
+        <td>GCS 6DOF rocket visualisation</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td>Jonathan Do (<code>J88error</code>)</td>
+        <td>GCS frontend UI/UX design</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td>Nathan La (<code>s4003562</code>)</td>
+        <td>GCS data visualisation</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/trist4nl3/">Tristan Le</a> (<code>trist4nl3</code>)</td>
+        <td>GCS simulation integration</td>
+        <td>2025</td>
+    </tr>
 </table>
 
-
-| [Amber Taylor](https://www.linkedin.com/in/amber-taylor-20bb63264/) (`s4105951`)  | GCS frontend lead & software engineer | 2025 |
-| [Caspar O'Neill](https://www.linkedin.com/in/caspar-oneill/) (`s3899921`)  | GCS frontend API engineer | 2025 |
-| [Anuk Jayasundara](https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/) (`s3899921`)  | GCS 6DOF rocket visualisation | 2025 |
-| Jonathan Do (`s4003025`)  | GCS frontend UI/UX design | 2025 |
-| Nathan La (`s4003562`)  | GCS data visualisation | 2025 |
-| [Tristan Le](https://www.linkedin.com/in/trist4nl3/) (`trist4nl3`) | GCS simulation integration | 2025 |
 
 Special thanks
 

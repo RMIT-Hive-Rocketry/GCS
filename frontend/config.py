@@ -5,13 +5,13 @@ FRONTEND CONFIG
 """
 
 # SELECT CONFIG HERE
-rocket = "Atlas" # Options: "", "Atlas", "Legacy"
+rocket = "Legacy"  # Options: "", "Atlas", "Legacy"
 
 
 # DEFAULT CONFIGURATION
 class Config(object):
     ROCKET_NAME = ""
-    
+
     # List of pages in the interface
     # These appear in the navbar at the top of the page
     # Page ID values are used for module layouts
@@ -153,6 +153,8 @@ class LegacyConfig(Config):
 
 # Atlas
 # Launched at AURC 2025
+
+
 class AtlasConfig(Config):
     ROCKET_NAME = "Atlas"
     PAGES = [
