@@ -20,6 +20,16 @@ With this system, we can use any radio we want, as long as a simple hardware abs
 
 Many primitive monitoring applications show everything. Our system understands that not everything is important. There is no need to show the reading of every sensor as soon as you receive information. Our system only shows information that may be useful to the operator to reduce clutter and response time. All of the data appears in real time. We can see as soon as the rocket is ready for ignition, or as soon the rocket has hit apogee. As our system also connects to our GSE and offers a web interface, we can present real time GSE feedback to pad personnel on a tablet out near the launch rail This system will work seamlessly for any vehicle that has an Australis flight computer or follows the Australis networking protocol. Various settings and models may need to be updated to fit each rocket's flight profile.
 
+## File Diagram
+
+This is a bit of a mid level explanation of how the service manager operates
+
+<!-- 
+This is also in /assets as a .excalidraw file
+-->
+
+![soteria file based diagram](assets/draft-gcs-files.png)
+
 <!-- ---
 
 WIP
