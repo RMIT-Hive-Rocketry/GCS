@@ -243,9 +243,12 @@ target_link_libraries(middleware_server PUBLIC middleware_lib)
 
 # Add RPATH settings for the middleware server executable as well
 if(APPLE)
+    list(APPEND CMAKE_BUILD_RPATH "/opt/homebrew/lib")
+    list(APPEND CMAKE_INSTALL_RPATH "/opt/homebrew/lib")
+
     set_target_properties(middleware_server PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH "@loader_path;@loader_path/../lib;/usr/local/lib"
+        INSTALL_RPATH "@loader_path;@loader_path/../lib;/usr/local/lib;/opt/homebrew/lib"
         MACOSX_RPATH TRUE
     )
 endif()
