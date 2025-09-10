@@ -8,7 +8,7 @@ The GCS software is run by using a Python based CLI with a C++ server component.
 For a minimal clean slate installation, you can get away with:
 
 1. Setting up your Linux environment
-2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, (see version below) and cpp compilers (`CXX20`) with your package manager
+2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, `swig`, `zmq`, (see version below) and cpp compilers (`CXX20`) with your package manager
 3. Clone and `cd` in to the repository
 4. Run `bash setup.sh` to check python version and protobuf installation
 5. Run `python -m pip install -r requirements.txt`
@@ -41,6 +41,7 @@ For a minimal clean slate installation, you can get away with:
 | Protobuf* (inc. `proto` compiler & `libprotodev`) | `30.x` | ✅ (_needed for gencode_) | 🐳 | ✅ |
 | qrencode | Latest? | ✅ | 🐳 | ✅ |
 | pytest | Latest? | _for testing_ | 🐳 | _for testing_ |
+| swig | Latest? | ❌ | 🐳 | ✅ |
 
 > [!WARNING]
 > Please let me know if this is wrong. I may have missed some things
