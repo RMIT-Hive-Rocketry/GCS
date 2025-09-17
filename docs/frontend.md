@@ -1,14 +1,49 @@
-# Display item keys and IDs
 
-# THIS DOCUMENT IS OUT OF DATE
-# TODO: Incorporate this into the API standardisation
-#       Which makes all keys and values consistently handled across the entire system
-#       Instead of having to do a bunch of processing/handling on each interface
+# Frontend developer documentation
 
-## Per module
+*Developer notes and documentation for working on the GCS frontend.*
+
+## Libraries
+We're using the following libraries for frontend:
+- Tailwind v4.0.17
+- D3.js v7.9.0
+- Three.js v0.175.0
+
+These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN. 
+
+Unless updating them is absolutely necessary, we will be using these specific versions throughout the capstone project. Updating in the middle of development can add a lot of work and cause weird glitches.
+
+### Tailwind
+**Tailwind v4.0.17 is used for stylesheets.**
+
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development. 
+
+The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
+
+- *tailwind_dev.sh* will update tailwind.css in realtime, as you make changes to the html. Use this while developing the webpage.
+- *tailwind_build.sh* will build an optimised and minified version of tailwind.css for production. This probably isn't necessary since it's a fairly small website, but we'll take any optimisations we can get.
+
+### D3.js
+**D3.js v7.9.0 is used for data visualisation.**
+
+It lets us make pretty graphs
+
+### Three.js
+**Three.js v0.175.0 is used to render the 3D model of the rocket.**
+
+Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
+
+## Interface items
+### Display item keys and IDs
+
+> These are out of date, and were documented during development of the GCS-2025 system.
+> 
+> TODO: Incorporate this into the API standardisation, which makes all keys and values consistently handled across the entire system, instead of having to do a bunch of processing/handling on each interface
+
+### Module tables
 These are the item IDs for updating values with JavaScript.
 
-### Aux Data (aux)
+**Aux Data (aux)**
 | Name | Unit | API ID | API key | ID | Error ID | Error Key |
 | --- | --- | --- | --- | --- | --- | --- |
 | Transducer 1 - N2O In | Bar | 6 | `transducer1` | `aux-transducer-1` | 6,7 | `errorFlags.transducer1Error` |
@@ -23,7 +58,7 @@ These are the item IDs for updating values with JavaScript.
 | Gas bottle 2 - N2O #2 | kg | 7 | `gasBottleWeight2` | `aux-gasbottle-2` |  |  |
 | Rocket mass | kg | 7 | `analogVoltageInput1` | `aux-loadcell` |  |  |
 
-### Avionics (av)
+**Avionics (av)**
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
 | GPS fix | bool | 3,4,5 | `stateFlags.GPSFixFlag` | `av-state-gpsfix` |
@@ -41,13 +76,13 @@ These are the item IDs for updating values with JavaScript.
 | Gyro Y | deg/s | 3 | `gyroY` | `av-gyro-y` |
 | Gyro Z | deg/s | 3 | `gyroZ` | `av-gyro-z` |
 
-### Flight State (fs)
+**Flight State (fs)**
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
 | Flight state |  | 3,4,5 | `flightState` | `fs-flightstate` |
 | Time |  |  |  | `fs-time` |
 
-### Position (pos)
+**Position (pos)**
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
 | Altitude | m | 3 | `altitude` | `pos-alt-m` |
@@ -58,7 +93,7 @@ These are the item IDs for updating values with JavaScript.
 | GPS longitude |  | 4 | `GPSLongitude` | `pos-gps-lon` |
 | Nav state |  |  | `navigationStatus` | `pos-navstate` |
 
-### Radio (radio)
+**Radio (radio)**
 | Name | Unit | API ID | API key | ID |
 | --- | --- | --- | --- | --- |
 | AV comms state | *bool* |  |  | `radio-av-state` |
@@ -69,3 +104,7 @@ These are the item IDs for updating values with JavaScript.
 | GSE RSSI | dBm [0,255] | 6,7 | `meta.rssi` | `radio-gse-rssi` |
 | GSE SNR | dB | 6,7 | `meta.snr` | `radio-gse-snr` |
 | GSE Packets | *int* | 6,7 | `meta.packets` | `radio-gse-packets` |
+
+---
+
+[Home](../README.md)
