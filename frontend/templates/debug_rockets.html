@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
+	<title>ROCKET DEBUG - RMIT High Velocity</title>
+	<link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
+</head>
+
+<body class="p-4">
+	<h1 class="text-2xl">Rocket debug page</h1>
+	<p>Loaded rocket modules:</p>
+
+	<style>
+		td, th {
+			border: 1px solid rgba(255,255,255,0.4);
+			padding: 2px 4px;
+		}
+		table {
+			border: 2px solid var(--color-hive);
+		}
+		table th {
+			color: var(--color-hive);
+			text-align: right;
+		}
+
+		table table {
+			border: 2px solid var(--color-legacy);
+			margin: 4px 2px;
+		}
+		table table th {
+			color: var(--color-legacy);
+			text-align: right;
+		}
+		
+		table table table {
+			border: 2px solid var(--color-atlas);
+		}
+		table table table th {
+			color: var(--color-atlas);
+			text-align: center;
+		}
+	</style>
+
+	<main class="debug w-full flex flex-col gap-8 my-4">
+		{% for rocket in config.rockets %}
+		<section id="{{ rocket }}" class="flex flex-col gap-4 p-4 border border-black bg-zinc-900 bg-hex text-white">
+			<h2 class="lowercase!">/rockets/{{ rocket }}</h2>
+			<table>
+				<tr>
+					<th>path</th>
+					<td>{{ config.rockets[rocket]["path"] }}</td>
+				</tr>
+				<tr>
+					<th>package</th>
+					<td>{{ config.rockets[rocket]["package"] }}</td>
+				</tr>
+				<tr>
+					<th>configs</th>
+					<td>
+						{% for config in config.rockets[rocket]["configs"] %}
+						<table>
+							<tr>
+								<th colspan="2" style="text-align:center; font-weight:normal;">{{ config }}</th>
+							</tr>
+							<tr>
+								<th>ROCKET_NAME</th>
+								<td style="font-weight: bold">{{ config.ROCKET_NAME }}</td>
+							</tr>
+							<tr>
+								<th>MODULES</th>
+								<td>
+									<table>
+										{% for module in config.MODULES %}
+										<tr>
+											<td>{{ module }}</td>
+										</tr>
+										{% endfor %}
+									</table>
+								</td>
+							</tr>
+							<tr>
+								<th>PAGES</th>
+								<td>
+									<table>
+										<tr>
+											<th>name</th>
+											<th>icon</th>
+											<th>id</th>
+										</tr>
+										{% for page in config.PAGES %}
+											<tr>
+												<td>{{ page.name }}</td>
+												<td>{{ page.icon }}</td>
+												<td>{{ page.id }}</td>
+											</tr>
+										{% endfor %}
+									</table>
+								</td>
+							</tr>
+							<tr>
+								<th>MODULE_PAGES</th>
+								<td>
+									{% for module in config.MODULE_PAGES %}
+									<table>
+										<tr>
+											<th>{{module}}</th>
+										</tr>
+										{% for module_page in config.MODULE_PAGES[module] %}
+										<tr>
+											<td>
+												{{ module_page }}	
+											</td>
+										</tr>
+										{% endfor %}
+									</table>
+									{% endfor %}
+								</td>
+							</tr>
+							
+						</table>
+						{% endfor %}
+					</td>
+				</tr>
+			</table>
+		</section>
+		{% endfor %}
+	</main>
+</body>
+
+</html>

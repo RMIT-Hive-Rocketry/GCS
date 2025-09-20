@@ -6,7 +6,7 @@ Defines default modules, pages, and layout
 
 # DEFAULT ROCKET CONFIGURATION
 class Config(object):
-    ROCKET_NAME = "Default"
+    ROCKET_NAME = "Rocket name"
     
     # List of modules used by the rocket
     MODULES = [
