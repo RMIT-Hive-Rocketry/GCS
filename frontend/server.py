@@ -74,9 +74,10 @@ def load_rockets():
         # Debug info
         print(f"Loaded 'rockets/{package_name}' with {len(ROCKETS[package_name]['configs'])} config(s):")
         for c in ROCKETS[package_name]['configs']:
-            print(f"  {c.ROCKET_NAME} \
-                  \n  - Pages: {len(c.PAGES)}\
-                  \n  - Modules: {len(c.MODULES)}")
+            print(f"  {type(c).__name__}() \
+                  \n   - Rocket: {c.ROCKET_NAME} \
+                  \n   - Pages: {len(c.PAGES)} \
+                  \n   - Modules: {len(c.MODULES)}")
 
 
 # Validate rocket configurations
@@ -138,7 +139,7 @@ def create_app():
     # Load rockets
     load_rockets()
     app.config["rockets"] = ROCKETS
-    #print(app.config["rockets"])
+    # print(app.config["rockets"])
 
     """
     Logging
@@ -234,11 +235,6 @@ def create_app():
     @app.route('/debug/rockets')
     def debug_rockets():
         return render_template("debug_rockets.html")
-    
-    # Debug API keys, listeners, values
-    @app.route('/debug/api')
-    def debug_api():
-        return render_template("debug_api.html")
     
     # Debug modules
     # Shows all modules from loaded rockets
