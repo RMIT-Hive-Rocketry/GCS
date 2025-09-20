@@ -1,27 +1,17 @@
-# Default v1
+# Rocket Base v1
 
-This rocket is named **Default**. 
-
-I don't have anything to say about it.
+This "rocket" includes the base frontend files for all rockets, and also serves
+as a template/tutorial for defining your own rocket configurations. 
 
 ## Description
 
 > Include a description of the rocket, it's specifications, and personality.
-
-**Default** is matte grey. It has a dull, bland personality. 
-
-| | |
-| --- | --- |
-| **Type** | Imaginary |
-| **Motor class** | Micro |
-
 
 ## Launches
 
 > Include past and future launches here with the date and location of each launch,
 
 **Default** has never been launched, since it's not actually a rocket.
-
 
 ## Contributors
 

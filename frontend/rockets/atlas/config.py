@@ -1,1 +1,0 @@
-from rockets.default.config import DefaultConfig
