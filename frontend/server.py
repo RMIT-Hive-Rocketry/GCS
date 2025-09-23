@@ -99,6 +99,8 @@ def validate_rocket_config(c):
         assert isinstance(page["id"], str)
 
     # Test MODULE_PAGES formatting
+    logos_count = 0
+    radio_count = 0
     for key in c.MODULE_PAGES:
         # Test modules are defined properly
         assert key in [m.split("/")[-1].replace(".html","") for m in c.MODULES], "Module " + key + " in MODULE_PAGES not in MODULES"
@@ -121,6 +123,12 @@ def validate_rocket_config(c):
                 assert pos[1] + pos[3] <= 12, "Module width out of bounds"
                 assert pos[2] + pos[4] <= 12, "Module height out of bounds"
                 assert pos[0] in [n["id"] for n in c.PAGES], "Module page not found"
+            elif pos == "logos":
+                logos_count += 1
+                assert logos_count <= 1, "More than one module in position 'logos'"
+            elif pos == "radio":
+                radio_count += 1
+                assert radio_count <= 1, "More than one module in position 'radio'"
 
 
 # Initialise flask app
