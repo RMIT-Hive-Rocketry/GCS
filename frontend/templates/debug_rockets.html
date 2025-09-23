@@ -41,6 +41,13 @@
 			color: var(--color-atlas);
 			text-align: center;
 		}
+		#debug-page-grid {
+			background-image:
+				linear-gradient(var(--color-hive-dark) 0 2px, transparent 2px 100%),
+				linear-gradient(90deg, var(--color-hive-dark) 0 2px, transparent 2px 100%);
+			background-size: calc(384px / 12) calc(180px / 12);
+			background-position: -1px -1px;
+		}
 	</style>
 
 	<main class="debug w-full flex flex-col gap-8 my-4">
@@ -60,10 +67,12 @@
 					<th>configs</th>
 					<td>
 						{% for config in config.rockets[rocket]["configs"] %}
-						<table>
-							<tr>
-								<th colspan="2" style="text-align:center; font-weight:normal;">{{ config }}</th>
-							</tr>
+						<details open>
+						<summary class="text-legacy font-medium">{{ config }}</summary>
+						
+						<div class="flex flex-row flex-nowrap">
+
+							<table>
 							<tr>
 								<th>ROCKET_NAME</th>
 								<td style="font-weight: bold">{{ config.ROCKET_NAME }}</td>
@@ -74,7 +83,11 @@
 									<table>
 										{% for module in config.MODULES %}
 										<tr>
-											<td>{{ module }}</td>
+										{% if module.split("/")[-1].split(".")[0] in config.MODULE_PAGES %}
+											<td>{{ '/'.join(module.split("/")[:-1]) }}/<span class="text-legacy-gold font-medium">{{module.split("/")[-1].split(".")[0]}}</span>.{{module.split("/")[-1].split(".")[1]}}</td>
+										{% else %}
+											<td>{{module}}</td>
+										{% endif %}
 										</tr>
 										{% endfor %}
 									</table>
@@ -102,24 +115,90 @@
 							<tr>
 								<th>MODULE_PAGES</th>
 								<td>
+									<table class="text-center">
+									<tr>
+										<th>module</th>
+										<th>page</th>
+										<th>x</th>
+										<th>y</th>
+										<th>width</th>
+										<th>height</th>
+									</tr>
+
 									{% for module in config.MODULE_PAGES %}
-									<table>
-										<tr>
-											<th>{{module}}</th>
-										</tr>
 										{% for module_page in config.MODULE_PAGES[module] %}
 										<tr>
-											<td>
+											{% if loop.first %}
+											<td class="text-legacy-gold font-medium" rowspan="{{ config.MODULE_PAGES[module] | length }}">
+												{{module}}
+											</td>
+											{% endif %}
+											
+											{% if module_page in ["logos", "radio"] %}
+											<td colspan="5">
 												{{ module_page }}	
 											</td>
+											{% else %}
+											<td style="min-width:2rem;">{{ module_page[0] }}</td>
+											<td style="min-width:2rem; text-align:right;">{{ module_page[1] }}</td>
+											<td style="min-width:2rem; text-align:right;">{{ module_page[2] }}</td>
+											<td style="min-width:2rem; text-align:right;">{{ module_page[3] }}</td>
+											<td style="min-width:2rem; text-align:right;">{{ module_page[4] }}</td>
+											{% endif %}
 										</tr>
 										{% endfor %}
-									</table>
 									{% endfor %}
+									</table>
 								</td>
 							</tr>
 							
 						</table>
+
+							<div class="w-full h-full flex flex-row flex-wrap gap-4 px-4 justify-evenly align-baseline">
+								{% for page in config.PAGES %}
+								<div>
+									<p class="text-hive font-medium text-center">{{ page.id }}</p>
+									<div class="outline-hive outline-2" style="width:384px; height:216px">
+										<div style="width:384px; height:36px;" class="flex flex-row gap-0">
+											{% for module in config.MODULE_PAGES %}
+											{% for module_page in config.MODULE_PAGES[module] %}
+											{% if module_page == "logos" %}
+											<div class="text-sm w-28 h-full border-legacy-medium border-1 bg-legacy-dark/20">
+												{{module}}
+											</div>
+											{% endif %}
+											{% endfor %}
+											{% endfor %}
+											<div class="grow"></div>
+											{% for module in config.MODULE_PAGES %}
+											{% for module_page in config.MODULE_PAGES[module] %}
+											{% if module_page == "radio" %}
+											<div class="self-end text-sm w-28 h-full border-legacy-medium border-1 bg-legacy-dark/20">
+												{{module}}
+											</div>
+											{% endif %}
+											{% endfor %}
+											{% endfor %}
+										</div>
+										<div id="debug-page-grid" style="width:384px; height:180px;" class="grid grid-cols-12 grid-rows-12">
+											{% for module in config.MODULE_PAGES %}
+											{% for module_page in config.MODULE_PAGES[module] %}
+												{% if module_page not in ["logos", "radio"] and module_page[0] == page.id %}
+													<div 
+														class="border-legacy-medium border-1 bg-legacy-dark/20 text-sm"
+														style="word-break: break-all; grid-column:{{module_page[1] + 1}} / span {{module_page[3]}}; grid-row: {{module_page[2] + 1}} / span {{module_page[4]}};">{{ module }}</div>
+												{% endif %}
+											{% endfor %}
+											{% endfor %}
+										</div>
+									</div>
+								</div>
+									
+								{% endfor %}
+							</div>
+						</div>
+					
+						</details>
 						{% endfor %}
 					</td>
 				</tr>
