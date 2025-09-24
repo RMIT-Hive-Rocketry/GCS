@@ -10,9 +10,10 @@ For a minimal clean slate installation, you can get away with:
 1. Setting up your Linux environment
 2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, `swig`, `zmq`, (see version below) and cpp compilers (`CXX20`) with your package manager
 3. Clone and `cd` in to the repository
-4. Run `bash setup.sh` to check python version and protobuf installation
-5. Run `python -m pip install -r requirements.txt`
-6. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
+4. Run `python3.11 -m venv .venv` and `source ./.venv/bin/activate` to activate the python virtual environment
+5. Run `bash setup.sh` to verify python version and protobuf installation
+6. Run `pip install -r requirements.txt`
+7. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
 
 > [!WARNING]
 > Please message @mcloughlan with system and setup details and screenshots if that does not work ^
