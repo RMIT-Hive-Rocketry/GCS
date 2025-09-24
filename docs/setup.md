@@ -44,6 +44,9 @@ For a minimal clean slate installation, you can get away with:
 | pytest | Latest? | _for testing_ | 🐳 | _for testing_ |
 | swig | Latest? | ❌ | 🐳 | ✅ |
 
+> [!NOTE]
+> If you have a different version of protobuf installed globally and dont want to override it refer to [this](protobuf.md).
+
 > [!WARNING]
 > Please let me know if this is wrong. I may have missed some things
 
