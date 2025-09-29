@@ -1,6 +1,19 @@
 name: Build and Test
 
 on:
+  workflow_dispatch:
+    paths:
+      - '**/CMakeLists.txt'
+      - 'backend/**'
+      - '**.c'
+      - '**.h'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.proto'
+      - '.github/workflows/build_and_test_cpp.yml'
+      - '!docs/**'
+      - '!notes/**'
+      - '**/requirements.txt'
   push:
     paths:
       - '**/CMakeLists.txt'
