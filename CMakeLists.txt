@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 20) # For std::bit_cast
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # For CMake 3.12+
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "18.0.0")
@@ -243,9 +245,12 @@ target_link_libraries(middleware_server PUBLIC middleware_lib)
 
 # Add RPATH settings for the middleware server executable as well
 if(APPLE)
+    list(APPEND CMAKE_BUILD_RPATH "/opt/homebrew/lib")
+    list(APPEND CMAKE_INSTALL_RPATH "/opt/homebrew/lib")
+
     set_target_properties(middleware_server PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH "@loader_path;@loader_path/../lib;/usr/local/lib"
+        INSTALL_RPATH "@loader_path;@loader_path/../lib;/usr/local/lib;/opt/homebrew/lib"
         MACOSX_RPATH TRUE
     )
 endif()
