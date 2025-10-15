@@ -97,13 +97,14 @@ A set of basic modules is included in the frontend by default. Rockets can use t
 
 Rockets are stored in their own folders in `/frontend/rockets/`.
 
-Each rocket folder **must** include:
+Each rocket **must** include:
 
--   A `config.py` file which lists assets used by the rocket and includes layout configuration presets.
+-   A `__init__.py` file which loads the rocket as a python module, lists assets used by the rocket and includes layout configuration presets
 -   A `rocket_info.md` file with information about the rocket, including:
     -   The rocket's name.
     -   Any launches, or launch attempts, that the rocket has had.
     -   A list of the people who worked on the rocket.
+-   A 'modules/' folder with each module in a separate '.html' file. These modules are loaded into the interface based on the rocket's configuration, and can also be loaded by other rockets. **MODULE FILENAMES MUST BE GLOBALLY UNIQUE.**
 
 Rocket folders often have these too:
 
@@ -111,8 +112,7 @@ Rocket folders often have these too:
 -   A `css/` folder with any stylesheets used by the rocket.
 -   An `img/` folder with logos, photos, and any other images used by frontend.
 -   A `js/` folder with module-specific JavaScript, or JS that extends core functionality.
--   A `modules/` folder with each modules in a separate `.html` file. These modules are loaded into the interface based on the rocket's config.
 
-### config.py
+#### **init**.py
 
-### rocket_info.txt
+#### rocket_info.md

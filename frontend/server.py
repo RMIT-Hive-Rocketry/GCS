@@ -32,7 +32,7 @@ valid_file_extensions = (
 ROCKETS = {}
 
 
-def load_rockets():
+def load_rockets(app=None):
     # Scan for rockets in rockets/ directory
     dir_rockets = os_path.join(os_path.dirname(__file__), "rockets")
     assert os_path.isdir(dir_rockets)
@@ -71,6 +71,10 @@ def load_rockets():
             ),
             "configs": [],
         }
+
+        # Add rocket modules blueprint to app
+        if app != None:
+            app.register_blueprint(ROCKETS[package_name]["blueprint"])
 
         # Load all config classes from module
         for name, obj in getmembers(rocket_package, isclass):
@@ -167,8 +171,9 @@ def create_app():
     assert os_path.isdir(DIR_STATIC)
 
     # Load rockets
-    load_rockets()
+    load_rockets(app)
     app.config["rockets"] = ROCKETS
+
     # print(app.config["rockets"])
 
     """
