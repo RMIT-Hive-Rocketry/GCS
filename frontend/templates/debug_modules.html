@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
     <head>
         <meta charset="utf-8" />
         <meta
@@ -15,41 +15,27 @@
         />
     </head>
 
-    <body class="bg-hex bg-zinc-900">
-        <div class="p-4 w-full text-white">
+    <body class="p-4">
+        <header class="mb-4">
             <h1 class="text-2xl">Module debug page</h1>
-            <ul class="list-disc list-inside my-4 text-lg">
-                <li>
-                    <a href="#shared" class="underline text-hive"
-                        >Shared modules</a
-                    >
-                </li>
-                <li>
-                    <a href="#atlas" class="underline text-atlas"
-                        >Atlas modules</a
-                    >
-                </li>
-                <li>
-                    <a href="#legacy3" class="underline text-legacy"
-                        >Legacy III modules</a
-                    >
-                </li>
-            </ul>
-        </div>
+            <p>Loaded rocket modules:</p>
+        </header>
 
         <main class="debug w-full flex flex-col gap-8">
             {% for rocket in config.rockets %}
-            <section
-                class="flex flex-col gap-4 p-4 border border-black bg-zinc-900 bg-hex text-white"
-            >
+            <section class="bg-zinc-900 p-4">
                 <h2 class="lowercase!">/rockets/{{ rocket }} modules</h2>
-                {% for rocketconfig in config.rockets[rocket]["configs"] %} {%
-                for module in rocketconfig.MODULES %} {% if module.split("/")[0]
-                == rocket %}
-                <div>
-                    {{ config.rockets[rocket]["blueprint"].template_folder }}
+                <div class="flex flex-col gap-4 py-4">
+                    {% for rocketconfig in config.rockets[rocket]["configs"] %}
+                    {% for module in rocketconfig.MODULES %} {% if
+                    module.split("/")[0] == rocket %}
+                    <div
+                        class="border border-black bg-zinc-900 bg-hex text-white"
+                    >
+                        {% include module.split("/")[-1] %}
+                    </div>
+                    {% endif %} {% endfor %} {% endfor %}
                 </div>
-                {% endif %} {% endfor %} {% endfor %}
             </section>
             {% endfor %}
         </main>
