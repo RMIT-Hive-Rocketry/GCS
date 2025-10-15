@@ -104,14 +104,14 @@ Each rocket **must** include:
     -   The rocket's name.
     -   Any launches, or launch attempts, that the rocket has had.
     -   A list of the people who worked on the rocket.
--   A 'modules/' folder with each module in a separate '.html' file. These modules are loaded into the interface based on the rocket's configuration, and can also be loaded by other rockets. **MODULE FILENAMES MUST BE GLOBALLY UNIQUE.**
+-   A `modules/` folder with each module in a separate '.html' file. These modules are loaded into the interface based on the rocket's configuration, and can also be loaded by other rockets. **MODULE FILENAMES MUST BE GLOBALLY UNIQUE.**
 
-Rocket folders often have these too:
+Rocket folders often include a `static/` directory with the following:
 
--   An `assets/` folder with 3D models, videos, or any other assets being loaded.
--   A `css/` folder with any stylesheets used by the rocket.
--   An `img/` folder with logos, photos, and any other images used by frontend.
--   A `js/` folder with module-specific JavaScript, or JS that extends core functionality.
+-   `static/assets/` with 3D models, videos, or any other assets being loaded.
+-   `static/css/` with stylesheets used by the rocket.
+-   `static/img/` with images used by frontend, such as logos and photos.
+-   `static/js/` with module-specific JavaScript, or JS that extends core functionality.
 
 #### **init**.py
 

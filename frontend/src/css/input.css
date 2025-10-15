@@ -284,16 +284,16 @@
 
     .continuity-button {
         @apply cursor-pointer;
-        background-image: url('/img/legacy3/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
 
         &:hover {
-            background-image: url('/img/legacy3/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))');
+            background-image: url('/legacy/img/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))');
         }
 
         &:active {
-            background-image: url('/img/legacy3/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))');
+            background-image: url('/legacy/img/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))');
         }
     }
 
@@ -307,7 +307,7 @@
 
     /* Pop Test (Single Operator) */
     .pop_selector {
-        background-image: url('/img/legacy3/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
@@ -319,7 +319,7 @@
     }
 
     .pop_button_inactive {
-        background-image: url('/img/legacy3/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
@@ -327,23 +327,23 @@
 
     .pop_button_active {
         @apply cursor-pointer;
-        background-image: url('/img/legacy3/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 100%;
 
         &:hover {
-            background-image: url('/img/legacy3/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))');
+            background-image: url('/legacy/img/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))');
         }
 
         &:active {
-            background-image: url('/img/legacy3/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))');
+            background-image: url('/legacy/img/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))');
         }
     }
 
     /* Aux System Buttons (Single Operator). Switche referenced from https://www.w3schools.com/howto/howto_css_switch.asp*/
     .solenoid_button_inactive {
-        background-image: url('/img/legacy3/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
@@ -352,17 +352,17 @@
 
     .solenoid_button_active {
         @apply cursor-pointer;
-        background-image: url('/img/legacy3/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 100%;
 
         &:hover {
-            background-image: url('/img/legacy3/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))');
+            background-image: url('/legacy/img/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))');
         }
 
         &:active {
-            background-image: url('/img/legacy3/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))');
+            background-image: url('/legacy/img/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))');
         }
     }
 
@@ -441,7 +441,7 @@
     }
 
     .aux_modal {
-        background-image: url('/img/legacy3/single-operator/modal.svg#svgView(preserveAspectRatio(none))');
+        background-image: url('/legacy/img/single-operator/modal.svg#svgView(preserveAspectRatio(none))');
         background-size: 100% 100%;
         background-repeat: no-repeat;
     }

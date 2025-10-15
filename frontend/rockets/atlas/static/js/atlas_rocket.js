@@ -7,12 +7,8 @@
  * Functions and constants should be prefixed with "rocket_" for clarity and namespace safety.
  */
 
-import * as THREE from "../../../static/js/libraries/three.module.js";
-import { GLTFLoader } from "../../../static/js/libraries/GLTFLoader.js";
-
-const rocket_containerID = "rocketContainerLegacy";
-const rocket_canvasID = "rocketCanvasLegacy";
-const rocket_model = "/static/models/rocket_legacy3.glb";
+import * as THREE from "../../../../static/js/libraries/three.module.js";
+import { GLTFLoader } from "../../../../static/js/libraries/GLTFLoader.js";
 
 // === Core Variables ===
 let rocket = null; // The main rocket model group
@@ -26,8 +22,8 @@ let lastFrameTs = performance.now(); // Timestamp of the last frame (used for dt
 
 window.addEventListener("DOMContentLoaded", () => {
     // === Canvas and Renderer Setup ===
-    const container = document.getElementById(rocket_containerID);
-    const canvas = document.getElementById(rocket_canvasID);
+    const container = document.getElementById("rocketContainerAtlas");
+    const canvas = document.getElementById("rocketCanvasAtlas");
 
     const renderer = new THREE.WebGLRenderer({
         canvas,
@@ -43,7 +39,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // === Create Scene ===
     const scene = new THREE.Scene();
-    //scene.background = null; // Keep canvas transparent
 
     // === Camera Setup (Orthographic for a clean top-down view) ===
     const aspect = container.clientWidth / container.clientHeight;
@@ -59,32 +54,35 @@ window.addEventListener("DOMContentLoaded", () => {
     camera.position.set(0, 0, 20);
     camera.lookAt(0, 0, 0);
 
-    // === Lighting Configuration (balanced accordingly for model clarity) ===
+    // Lighting
     const lights = [
         new THREE.DirectionalLight(0xffffff, 1),
         new THREE.DirectionalLight(0xffffff, 1),
         new THREE.SpotLight(0xffffff, 3),
         new THREE.HemisphereLight(0xb1e1ff, 0x000000, 0.1),
+        new THREE.AmbientLight(0xffffff),
+        new THREE.PointLight(0xffffff, 0.5),
     ];
     lights[0].position.set(15, 30, 20);
+
     lights[1].position.set(-15, 20, -10);
+
     lights[2].position.set(0, 30, 25);
     lights[2].angle = Math.PI / 5;
     lights[2].penumbra = 0.4;
     lights[2].decay = 1;
     lights[2].distance = 200;
-    lights.forEach((light) => scene.add(light));
 
-    // Ambient light
-    const light = new THREE.AmbientLight(0x909090); // soft white light
-    scene.add(light);
+    lights[5].position.set(10, 2, 5);
+
+    lights.forEach((light) => scene.add(light));
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
-        rocket_model,
+        "/atlas/assets/rocket_atlas.glb",
         (gltf) => {
             const model = gltf.scene;
-            model.scale.set(2, 2, 2); // Resize for better visibility
+            model.scale.set(3, 3, 3); // Resize for better visibility
 
             // Center the model at the origin for rotation
             const box = new THREE.Box3().setFromObject(model);

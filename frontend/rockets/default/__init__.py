@@ -19,7 +19,6 @@ class Config(object):
         "default/modules/default_logos.html",
         "default/modules/default_position.html",
         "default/modules/default_radio.html",
-        "default/modules/default_rocket.html",
         "default/modules/default_timeline.html",
     ]
 

@@ -67,7 +67,10 @@ def load_rockets(app=None):
             "blueprint": Blueprint(
                 package_name,
                 __name__,
+                url_prefix="/",
                 template_folder=os_path.join(dir_rockets, f"{package_name}/modules"),
+                static_folder=os_path.join(dir_rockets, f"{package_name}/static"),
+                static_url_path=f"/{package_name}",
             ),
             "configs": [],
         }
@@ -160,7 +163,10 @@ def validate_rocket_config(c):
 # Initialise flask app
 def create_app():
     # Create flask app
-    app = Flask(__name__, template_folder=os_path.join(os_path.dirname(__file__), "."))
+    app = Flask(
+        __name__,
+        template_folder=os_path.join(os_path.dirname(__file__), "."),
+    )
     # app.config.from_object("frontend.config." + frontend.config.rocket + "Config")
 
     """
