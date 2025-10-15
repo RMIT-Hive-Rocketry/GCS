@@ -24,9 +24,9 @@ function testing_updateAllDisplayValues() {
 function testing_mockApi() {
     verboseLogging = true;
 
-    TESTING_API.forEach(mockPacket => {
+    TESTING_API.forEach((mockPacket) => {
         API_OnMessage({ data: JSON.stringify(mockPacket) });
-    })
+    });
 
     verboseLogging = false;
 }

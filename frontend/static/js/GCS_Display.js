@@ -6,7 +6,6 @@
  * Functions and constants should be prefixed with "display"
  */
 
-
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
 var verboseLogging = false;
 const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
@@ -15,7 +14,12 @@ const timeouts = {};
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
-        if (verboseLogging) console.debug(`new value %c${item}%c ${parseFloat(value).toFixed(precision)}`, 'color:orange', 'color:white');
+        if (verboseLogging)
+            console.debug(
+                `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
+                "color:orange",
+                "color:white"
+            );
 
         // Use classes instead of IDs since IDs must be unique
         // and some items occur on multiple pages
@@ -39,7 +43,12 @@ function displaySetValue(item, value, precision = 2, error = false) {
 function displaySetString(item, string) {
     // Updates the string in a display item
     if (string != undefined) {
-        if (verboseLogging) console.debug(`new string %c${item}%c ${string}`, 'color:orange', 'color:white');
+        if (verboseLogging)
+            console.debug(
+                `new string %c${item}%c ${string}`,
+                "color:orange",
+                "color:white"
+            );
 
         // Update all instances of item
         let elements = document.querySelectorAll(`.${item}`);
@@ -68,7 +77,12 @@ function displaySetError(item, error) {
 
 function displaySetState(item, value) {
     // Updates the state of an indicator
-    if (verboseLogging) console.debug(`new state %c${item}%c ${value}`, 'color:orange', 'color:white');
+    if (verboseLogging)
+        console.debug(
+            `new state %c${item}%c ${value}`,
+            "color:orange",
+            "color:white"
+        );
 
     // Update all instances of item
     let elements = document.querySelectorAll(`.${item}`);
@@ -123,7 +137,10 @@ function displaySetActiveFlightState(item) {
     if (item == "fs-state-preflight") {
         timers.launchTimestamp = 0;
     } else {
-        if (timers.launchTimestamp == undefined || timers.launchTimestamp == 0) {
+        if (
+            timers.launchTimestamp == undefined ||
+            timers.launchTimestamp == 0
+        ) {
             timers.launchTimestamp = timestampApi;
         }
     }
@@ -146,15 +163,21 @@ function displayUpdateTime() {
     if (timestampApi != 0) {
         displaySetValue("fs-time-api", timestampApi, 1);
 
-        // Rocket launch time 
+        // Rocket launch time
         // TODO: Find somewhere nicer to put this in the code, this is so jank
         if (timers?.launchTimestamp != undefined) {
-            const launchTime = timers.launchTimestamp == 0 ? 0 : timestampApi - timers.launchTimestamp;
+            const launchTime =
+                timers.launchTimestamp == 0
+                    ? 0
+                    : timestampApi - timers.launchTimestamp;
             displaySetString("fs-launch-time", `T+${launchTime.toFixed(1)}`);
         }
     }
     if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetString("fs-time-local", `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`);
+        displaySetString(
+            "fs-time-local",
+            `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`
+        );
     }
 }
 
@@ -208,23 +231,26 @@ function displayUpdateAuxData(data) {
     // Gas bottle weights
     if (data?.gasBottleWeight1) {
         // n2o #1 weight
-        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1)
+        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1);
     }
     if (data?.gasBottleWeight2) {
         // n2o #2 weight
-        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1)
+        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1);
     }
 
     // Gas fill timer
     if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
-        displaySetString("aux-gasbottle-time", `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`);
+        displaySetString(
+            "aux-gasbottle-time",
+            `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`
+        );
     }
 
     // Rocket mass
     if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
-    
+
     // Solenoids
     if (data?.stateFlags) {
         hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
@@ -244,7 +270,9 @@ function displayUpdateAvionics(data) {
         } else if (["DR", "TT"].includes(data.navigationStatus)) {
             // Yellow
             displaySetState("av-state-gpsfix", 2);
-        } else if (["D2", "D3", "G2", "G3", "RK"].includes(data.navigationStatus)) {
+        } else if (
+            ["D2", "D3", "G2", "G3", "RK"].includes(data.navigationStatus)
+        ) {
             // Green
             displaySetState("av-state-gpsfix", 1);
         }
@@ -302,20 +330,32 @@ function displayUpdateAvionics(data) {
 
 function displayUpdateSystemFlags(data) {
     // green : off
-	if (data?.stateFlags) {
-		if (data.stateFlags?.dualBoardConnectivityStateFlag) {
-			displaySetState("sysflags-state-dualboard", data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0);
-		}
-		if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
-			displaySetState("sysflags-state-recovery", data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0);
-		}
-		if (data.stateFlags?.payloadConnectionFlag) {
-			displaySetState("sysflags-state-payload", data.stateFlags.payloadConnectionFlag ? 1 : 0);
-		}
-		if (data.stateFlags?.cameraControllerConnectionFlag) {
-			displaySetState("sysflags-state-camera", data.stateFlags.cameraControllerConnectionFlag ? 1 : 0);
-		}
-	}
+    if (data?.stateFlags) {
+        if (data.stateFlags?.dualBoardConnectivityStateFlag) {
+            displaySetState(
+                "sysflags-state-dualboard",
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0
+            );
+        }
+        if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
+            displaySetState(
+                "sysflags-state-recovery",
+                data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0
+            );
+        }
+        if (data.stateFlags?.payloadConnectionFlag) {
+            displaySetState(
+                "sysflags-state-payload",
+                data.stateFlags.payloadConnectionFlag ? 1 : 0
+            );
+        }
+        if (data.stateFlags?.cameraControllerConnectionFlag) {
+            displaySetState(
+                "sysflags-state-camera",
+                data.stateFlags.cameraControllerConnectionFlag ? 1 : 0
+            );
+        }
+    }
 }
 
 function displayUpdateFlightState(data) {
@@ -324,7 +364,10 @@ function displayUpdateFlightState(data) {
         displaySetError("fs-flightstate", false);
 
         let stateName = "";
-        if (data.flightState == 0 || data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY") {
+        if (
+            data.flightState == 0 ||
+            data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY"
+        ) {
             // Preflight (not ready)
             stateName = "Pre-flight (not ready)";
             displaySetActiveFlightState("fs-state-preflight");
@@ -348,7 +391,11 @@ function displayUpdateFlightState(data) {
             // Landed successfully
             stateName = "Landed";
             displaySetActiveFlightState("fs-state-landed");
-        } else if (data.flightState == 6 || data.flightState == 7 || data.flightState == "OH_NO") {
+        } else if (
+            data.flightState == 6 ||
+            data.flightState == 7 ||
+            data.flightState == "OH_NO"
+        ) {
             // Oh no oh no what the oh no :(
             stateName = "OH NO!";
             displaySetErrorFlightState();
@@ -431,12 +478,12 @@ function displayUpdateRadio(data) {
 
             if (data?.meta?.packets) {
                 // Lost packets calculation
-                let lostPackets = data.meta.totalPacketCountAv - data.meta.packets;
+                let lostPackets =
+                    data.meta.totalPacketCountAv - data.meta.packets;
 
                 // Display number of packets
                 displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
-
         } else if (data.meta.radio == "gse") {
             // GSE DATA
             // Connection indicators
@@ -455,7 +502,6 @@ function displayUpdateRadio(data) {
                     displaySetState("radio-gse-state", 5); // error
                 }, 10000);
             }
-            
 
             // Update GSE radio data
             if (data?.meta?.rssi) {
@@ -468,7 +514,8 @@ function displayUpdateRadio(data) {
 
             if (data?.meta?.packets) {
                 // Lost packets calculation
-                let lostPackets = data.meta.totalPacketCountGse - data.meta.packets;
+                let lostPackets =
+                    data.meta.totalPacketCountGse - data.meta.packets;
 
                 // Display number of packets
                 displaySetValue("radio-gse-packets", data.meta.packets, 0);

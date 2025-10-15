@@ -1,7 +1,7 @@
 # Rocket Base v1
 
 This "rocket" includes the base frontend files for all rockets, and also serves
-as a template/tutorial for defining your own rocket configurations. 
+as a template/tutorial for defining your own rocket configurations.
 
 ## Description
 
@@ -17,5 +17,4 @@ as a template/tutorial for defining your own rocket configurations.
 
 > A list of all contributors. They can be listed in alphabetical order, or grouped by team/contributions.
 
-- Amber Taylor
-
+-   Amber Taylor

@@ -2,14 +2,17 @@
 <div class="module-legacy">
     <style>
         .module-legacy .rocket-frame {
-            background-image: url('/img/legacy3/rocket-frame.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/img/legacy3/rocket-frame.svg#svgView(preserveAspectRatio(none))");
             background-size: 100% 100%;
             background-repeat: no-repeat;
         }
 
         #rocketCanvasLegacy {
             --current-color: var(--color-legacy-medium);
-            filter: drop-shadow(1px 1px 0 var(--current-color)) drop-shadow(-1px 1px 0 var(--current-color)) drop-shadow(-1px -1px 0 var(--current-color)) drop-shadow(1px -1px 0 var(--current-color));
+            filter: drop-shadow(1px 1px 0 var(--current-color))
+                drop-shadow(-1px 1px 0 var(--current-color))
+                drop-shadow(-1px -1px 0 var(--current-color))
+                drop-shadow(1px -1px 0 var(--current-color));
         }
     </style>
 
@@ -17,19 +20,45 @@
         <p class="font-bold uppercase text-legacy text-center mt-4">
             3DOF Rocket Visualisation
         </p>
-        <div class="flex flex-row gap-4 justify-center text-center text-legacy z-10">
-            <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch border-b-red-500 border-b-2 text-right"
-                    size="6">°</span>
-            <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw border-b-green-500 border-b-2 text-right"
-                    size="6">°</span>
-            <span>Roll:<input readonly autocomplete="off" class="rocket-roll border-b-blue-500 border-b-2 text-right"
-                    size="6">°</span>
+        <div
+            class="flex flex-row gap-4 justify-center text-center text-legacy z-10"
+        >
+            <span
+                >Pitch:<input
+                    readonly
+                    autocomplete="off"
+                    class="rocket-pitch border-b-red-500 border-b-2 text-right"
+                    size="6"
+                />°</span
+            >
+            <span
+                >Yaw:<input
+                    readonly
+                    autocomplete="off"
+                    class="rocket-yaw border-b-green-500 border-b-2 text-right"
+                    size="6"
+                />°</span
+            >
+            <span
+                >Roll:<input
+                    readonly
+                    autocomplete="off"
+                    class="rocket-roll border-b-blue-500 border-b-2 text-right"
+                    size="6"
+                />°</span
+            >
         </div>
 
         <!-- Viewer -->
         <div class="grow flex items-center justify-center h-full">
-            <div id="rocketContainerLegacy" class="relative w-full h-full group">
-                <canvas id="rocketCanvasLegacy" class="w-full h-full block"></canvas>
+            <div
+                id="rocketContainerLegacy"
+                class="relative w-full h-full group"
+            >
+                <canvas
+                    id="rocketCanvasLegacy"
+                    class="w-full h-full block"
+                ></canvas>
             </div>
         </div>
     </div>
