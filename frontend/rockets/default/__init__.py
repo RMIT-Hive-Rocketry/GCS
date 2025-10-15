@@ -10,6 +10,7 @@ class Config(object):
     ROCKET_NAME = "None"
 
     # List of modules used by the rocket
+    PATH = "default/modules/"
     MODULES = [
         "default/modules/default_avionics.html",
         "default/modules/default_camera.html",
@@ -47,6 +48,12 @@ class Config(object):
         ],
     }
 
+    ## Methods
     def print_modules(this):
         for module in this.MODULES:
             print(module)
+
+    ## Other
+    MODULE_CLASSES = {}
+    MODULE_RADIO = ""
+    MODULE_LOGOS = ""

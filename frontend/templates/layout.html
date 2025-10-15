@@ -25,7 +25,7 @@
         <header
             class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50"
         >
-            <div class="w-3/10">{% include config.MODULE_LOGOS %}</div>
+            <div class="w-3/10">{% include config.active.MODULE_LOGOS %}</div>
             <nav
                 class="w-4/10 h-full grid grid-cols-{{config.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
             >
@@ -36,19 +36,21 @@
                 </a>
                 {% endfor %}
             </nav>
-            <div class="w-3/10">{% include config.MODULE_RADIO %}</div>
+            <div class="w-3/10">{% include config.active.MODULE_RADIO %}</div>
         </header>
 
         <!-- Main grid (12x12) -->
         <!-- Modules are loaded from separate files in templates/modules/ -->
         <main
             class="w-full max-w-full h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden grid grid-cols-12 grid-rows-12 grid-flow-col gap-4 px-4 py-2"
-            id="{{config.PAGES[0]['id']}}"
+            id="{{config.active.PAGES[0]['id']}}"
         >
             <!-- Adjust modules in config.py -->
-            {% for module in config.MODULES %}
-            <div class="{{config.MODULES[module]['classes']}}">
-                {% include module %}
+            {% for module in config.active.MODULES %}
+            <div
+                class="{{config.active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
+            >
+                {% include module.split('/')[-1] %}
             </div>
             {% endfor %}
         </main>

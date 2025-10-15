@@ -30,6 +30,7 @@ valid_file_extensions = (
 
 # Load rocket configs and assets from /rockets directory
 ROCKETS = {}
+active_rocket = ("default", 0)
 
 
 def load_rockets(app=None):
@@ -103,6 +104,10 @@ def load_rockets(app=None):
                   \n   - Pages: {len(c.PAGES)} \
                   \n   - Modules: {len(c.MODULES)}"
             )
+
+    # Set active rocket in config
+    # TODO: Make this customisable with launch parameters or something?
+    app.config["active"] = ROCKETS[active_rocket[0]]["configs"][active_rocket[1]]
 
 
 # Validate rocket configurations
@@ -180,8 +185,6 @@ def create_app():
     load_rockets(app)
     app.config["rockets"] = ROCKETS
 
-    # print(app.config["rockets"])
-
     """
     Logging
     """
@@ -207,47 +210,63 @@ def create_app():
     def index():
         # Parse app.config and pre-process modular layout information for CSS
         # Generate CSS selectors for pages
+        """
         app.config["CSS"] = (
             ", ".join(["#{0} .{0}".format(page["id"]) for page in app.config["PAGES"]])
             + " {display: flex;}"
         )
+        """
 
         # Generate positional classes for modules
         grid = set()
-        for module in app.config["MODULES"]:
+
+        for module in app.config["active"].MODULES:
+            module_id = module.split("/")[-1].split(".")[0]
+
             # All modules are hidden by default
             class_list = {"module", "hidden"}
 
             # For each module, update visibility and position for each page
-            for page in app.config["MODULES"][module]["pages"]:
-                # Encode position and size in grid
-                cols = "{}-c-{}-{}".format(page[0], page[1], page[3])
-                rows = "{}-r-{}-{}".format(page[0], page[2], page[4])
+            if module_id in app.config["active"].MODULE_PAGES:
+                for page in app.config["active"].MODULE_PAGES[module_id]:
+                    if isinstance(page, tuple):
+                        # Encode position and size in grid
+                        cols = "{}-c-{}-{}".format(page[0], page[1], page[3])
+                        rows = "{}-r-{}-{}".format(page[0], page[2], page[4])
 
-                # Add classes to grid
-                grid.add("#{} .{}".format(page[0], cols))
-                grid.add("#{} .{}".format(page[0], rows))
+                        # Add classes to grid
+                        grid.add("#{} .{}".format(page[0], cols))
+                        grid.add("#{} .{}".format(page[0], rows))
 
-                # Add classes to module
-                class_list.add(page[0])
-                class_list.add(cols)
-                class_list.add(rows)
+                        # Add classes to module
+                        class_list.add(page[0])
+                        class_list.add(cols)
+                        class_list.add(rows)
+                    elif page == "radio":
+                        app.config["active"].MODULE_RADIO = module_id + ".html"
+                        print(module_id, "radio")
+                    elif page == "logos":
+                        app.config["active"].MODULE_LOGOS = module_id + ".html"
+                        print(module_id, "logos")
 
             # Assign generated classes to module
-            app.config["MODULES"][module]["classes"] = " ".join(class_list)
+            print(module_id, class_list)
+            app.config["active"].MODULE_CLASSES[module_id] = " ".join(class_list)
 
         # Add optimised grid to CSS
         for grid_class in grid:
             grid_type, grid_start, grid_span = grid_class.split("-")[-3:]
+            """
             app.config["CSS"] += "\n{} {{grid-{}: {} / span {};}} ".format(
                 grid_class,
                 "column" if grid_type == "c" else "row",
                 int(grid_start) + 1,
                 grid_span,
             )
+            """
 
         # Render the page
-        return render_template("layout.html", config=app.config)
+        return render_template("/templates/layout.html", config=app.config)
 
     """
     Static file loading
