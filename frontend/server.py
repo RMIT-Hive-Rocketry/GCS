@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, abort, render_template
+from flask import Flask, Blueprint, send_from_directory, abort, render_template
 from os import path as os_path, scandir as os_scandir
 from inspect import getmembers, isclass
 import importlib.util
@@ -20,12 +20,18 @@ class SubprocessLogHandler(logging.Handler):
 """
 
 valid_file_extensions = (
-    '.css','.js',                   # CSS, JavaScript
-    '.png','.jpg','.ico','.svg',    # Images
+    ".css",
+    ".js",  # CSS, JavaScript
+    ".png",
+    ".jpg",
+    ".ico",
+    ".svg",  # Images
 )
 
 # Load rocket configs and assets from /rockets directory
 ROCKETS = {}
+
+
 def load_rockets():
     # Scan for rockets in rockets/ directory
     dir_rockets = os_path.join(os_path.dirname(__file__), "rockets")
@@ -33,22 +39,22 @@ def load_rockets():
 
     # Find all rocket directories
     rocket_paths = [
-        f.path for f in os_scandir(dir_rockets)
+        f.path
+        for f in os_scandir(dir_rockets)
         if f.is_dir() and os_path.isfile(os_path.join(f.path, "__init__.py"))
     ]
 
     # Make sure default rocket exists
     assert len(rocket_paths) > 0
-    assert "default" in [ path.split("/")[-1] for path in rocket_paths ]
-    
+    assert "default" in [path.split("/")[-1] for path in rocket_paths]
+
     # Load rocket configurations
     for path in rocket_paths:
 
         # Import rocket package
         package_name = path.split("/")[-1]
         spec = importlib.util.spec_from_file_location(
-            "rockets." + package_name, 
-            os_path.join(path, "__init__.py")
+            "rockets." + package_name, os_path.join(path, "__init__.py")
         )
         rocket_package = importlib.util.module_from_spec(spec)
         sys.modules["rockets." + package_name] = rocket_package
@@ -58,13 +64,21 @@ def load_rockets():
         ROCKETS[package_name] = {
             "path": path,
             "package": rocket_package,
-            "configs": []
+            "blueprint": Blueprint(
+                package_name,
+                __name__,
+                template_folder=os_path.join(dir_rockets, f"{package_name}/modules"),
+            ),
+            "configs": [],
         }
-        
+
         # Load all config classes from module
         for name, obj in getmembers(rocket_package, isclass):
-            if name.startswith("Config") and obj.__module__ == rocket_package.__name__ \
-            and (obj.__name__ == "Config" or obj.__bases__[0].__name__ == "Config"):
+            if (
+                name.startswith("Config")
+                and obj.__module__ == rocket_package.__name__
+                and (obj.__name__ == "Config" or obj.__bases__[0].__name__ == "Config")
+            ):
                 # Instantiate and validate rocket config
                 rocket_config = object.__new__(obj)
                 rocket_config.MODULE = package_name
@@ -72,12 +86,16 @@ def load_rockets():
                 ROCKETS[package_name]["configs"].append(rocket_config)
 
         # Debug info
-        print(f"Loaded 'rockets/{package_name}' with {len(ROCKETS[package_name]['configs'])} config(s):")
-        for c in ROCKETS[package_name]['configs']:
-            print(f"  {type(c).__name__}() \
+        print(
+            f"Loaded 'rockets/{package_name}' with {len(ROCKETS[package_name]['configs'])} config(s):"
+        )
+        for c in ROCKETS[package_name]["configs"]:
+            print(
+                f"  {type(c).__name__}() \
                   \n   - Rocket: {c.ROCKET_NAME} \
                   \n   - Pages: {len(c.PAGES)} \
-                  \n   - Modules: {len(c.MODULES)}")
+                  \n   - Modules: {len(c.MODULES)}"
+            )
 
 
 # Validate rocket configurations
@@ -90,8 +108,10 @@ def validate_rocket_config(c):
 
     # Test that MODULES exist
     for m in c.MODULES:
-        assert os_path.exists(os_path.join(os_path.dirname(__file__), "rockets/" + m).strip())
-    
+        assert os_path.exists(
+            os_path.join(os_path.dirname(__file__), "rockets/" + m).strip()
+        )
+
     # Test PAGES formatting
     for page in c.PAGES:
         assert isinstance(page["name"], str)
@@ -103,7 +123,9 @@ def validate_rocket_config(c):
     radio_count = 0
     for key in c.MODULE_PAGES:
         # Test modules are defined properly
-        assert key in [m.split("/")[-1].replace(".html","") for m in c.MODULES], "Module " + key + " in MODULE_PAGES not in MODULES"
+        assert key in [m.split("/")[-1].replace(".html", "") for m in c.MODULES], (
+            "Module " + key + " in MODULE_PAGES not in MODULES"
+        )
         assert isinstance(c.MODULE_PAGES[key], list), "MODULE_PAGES must be a list"
 
         # Test position format
@@ -134,14 +156,14 @@ def validate_rocket_config(c):
 # Initialise flask app
 def create_app():
     # Create flask app
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder=os_path.join(os_path.dirname(__file__), "."))
     # app.config.from_object("frontend.config." + frontend.config.rocket + "Config")
-    
+
     """
     Load static files and rocket configs
     """
     # Load static files
-    DIR_STATIC = os_path.join(os_path.dirname(__file__), 'static')
+    DIR_STATIC = os_path.join(os_path.dirname(__file__), "static")
     assert os_path.isdir(DIR_STATIC)
 
     # Load rockets
@@ -168,13 +190,17 @@ def create_app():
     """
     Page rendering
     """
+
     # Render modular layout
-    @app.route('/')
+    @app.route("/")
     def index():
         # Parse app.config and pre-process modular layout information for CSS
         # Generate CSS selectors for pages
-        app.config["CSS"] = ", ".join(["#{0} .{0}".format(page["id"]) for page in app.config["PAGES"]]) + " {display: flex;}";
-    
+        app.config["CSS"] = (
+            ", ".join(["#{0} .{0}".format(page["id"]) for page in app.config["PAGES"]])
+            + " {display: flex;}"
+        )
+
         # Generate positional classes for modules
         grid = set()
         for module in app.config["MODULES"]:
@@ -186,7 +212,7 @@ def create_app():
                 # Encode position and size in grid
                 cols = "{}-c-{}-{}".format(page[0], page[1], page[3])
                 rows = "{}-r-{}-{}".format(page[0], page[2], page[4])
-                
+
                 # Add classes to grid
                 grid.add("#{} .{}".format(page[0], cols))
                 grid.add("#{} .{}".format(page[0], rows))
@@ -197,7 +223,7 @@ def create_app():
                 class_list.add(rows)
 
             # Assign generated classes to module
-            app.config["MODULES"][module]["classes"] = ' '.join(class_list)
+            app.config["MODULES"][module]["classes"] = " ".join(class_list)
 
         # Add optimised grid to CSS
         for grid_class in grid:
@@ -205,49 +231,51 @@ def create_app():
             app.config["CSS"] += "\n{} {{grid-{}: {} / span {};}} ".format(
                 grid_class,
                 "column" if grid_type == "c" else "row",
-                int(grid_start)+1,
-                grid_span
+                int(grid_start) + 1,
+                grid_span,
             )
-        
+
         # Render the page
         return render_template("layout.html", config=app.config)
 
     """
     Static file loading
     """
+
     # Serve static files and HTML pages
-    @app.route('/<path:filename>')
+    @app.route("/<path:filename>")
     def serve_html(filename):
         # Absolute filepath of request
         filepath = os_path.join(DIR_STATIC, filename)
 
         # Load files with valid extensions
         if filename.endswith(valid_file_extensions) and os_path.isfile(filepath):
-            #app.logger.debug(f"Serving static file: {filename}")
+            # app.logger.debug(f"Serving static file: {filename}")
             return send_from_directory(DIR_STATIC, filename)
-        
+
         # Attempt to load filename as .html (so suffix isn't always required)
         elif os_path.isfile(filepath + ".html"):
-            #app.logger.debug(f"Serving static file: {filename}.html")
+            # app.logger.debug(f"Serving static file: {filename}.html")
             return send_from_directory(DIR_STATIC, filename + ".html")
-        
+
         # 404 page not found
         else:
-            #app.logger.warning(f"404 not found: {filename}")
+            # app.logger.warning(f"404 not found: {filename}")
             abort(404)
 
     """
     Debugging
     """
+
     # Debug rocket loading
-    @app.route('/debug/rockets')
+    @app.route("/debug/rockets")
     def debug_rockets():
-        return render_template("debug_rockets.html")
-    
+        return render_template("templates/debug_rockets.html")
+
     # Debug modules
     # Shows all modules from loaded rockets
-    @app.route('/debug/modules')
+    @app.route("/debug/modules")
     def debug_modules():
-        return render_template("debug_modules.html")
+        return render_template("templates/debug_modules.html")
 
     return app

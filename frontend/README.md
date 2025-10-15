@@ -4,22 +4,20 @@
 
 The RMIT High Velocity GCS frontend is designed to be:
 
-- Lightweight
-- Modular
-- Framework-free
-
+-   Lightweight
+-   Modular
+-   Framework-free
 
 ## Index <!-- omit from toc -->
 
-- [Documentation](#documentation)
-- [Getting started](#getting-started)
-- [Contributor guide](#contributor-guide)
-- [Design goals](#design-goals)
-- [Libraries](#libraries)
-  - [Tailwind](#tailwind)
-  - [D3.js](#d3js)
-  - [Three.js](#threejs)
-
+-   [Documentation](#documentation)
+-   [Getting started](#getting-started)
+-   [Contributor guide](#contributor-guide)
+-   [Design goals](#design-goals)
+-   [Libraries](#libraries)
+    -   [Tailwind](#tailwind)
+    -   [D3.js](#d3js)
+    -   [Three.js](#threejs)
 
 ## Documentation
 
@@ -28,12 +26,14 @@ Documentation can be found in the main repository. (TODO: Add links, create docu
 ## Getting started
 
 1. Setup a Python virtual environment in the project root folder:
+
     ```bash
     python -m venv .venv
     source .venv/bin/activate
     ```
 
 2. Install Python requirements:
+
     ```bash
     python -m pip install -r ./frontend/requirements.txt
     ```
@@ -43,7 +43,6 @@ Documentation can be found in the main repository. (TODO: Add links, create docu
     chmod +x ./frontend/scripts/tailwind.sh
     ```
 
-
 ## Design goals
 
 This project is currently a work in progress! Our overall design goals are:
@@ -52,11 +51,9 @@ This project is currently a work in progress! Our overall design goals are:
 2. The interface should be _accessible_ and support modern accessibility patterns.
 3. This project should be _simple to use_, and allow anyone to build/customise the interface for their rocket without extensive technical knowledge.
 
-
 ## Contributor guide
 
 WIP
-
 
 ## Page styling
 
@@ -64,22 +61,19 @@ Default stylesheets are included for the interface in `/frontend/static/css/tail
 
 Each rocket can include its own stylesheets to modify the overall look of the page, or only that rocket's modules. I suggest giving each rocket a unique look in the interface, but how much you change is up to you.
 
-
 ## Libraries
 
-We're using the following libraries for frontend. 
+We're using the following libraries for frontend.
 
 These libraries are included as standalone files, so we don't have to rely on NPM or a CDN.
-
 
 ### Tailwind CSS
 
 > **[Tailwind v4.0.17](https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17)** is used for stylesheets.
 
-The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it, then move and rename the file to `/third_party/tailwindcss` for development. 
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it, then move and rename the file to `/third_party/tailwindcss` for development.
 
 The script `/frontend/scripts/tailwind.sh` will update tailwind.css as you make changes to the html. Use this during development.
-
 
 ### D3.js
 
@@ -87,20 +81,17 @@ The script `/frontend/scripts/tailwind.sh` will update tailwind.css as you make 
 
 It lets us make pretty graphs
 
-
 ### Three.js
 
 > **[Three.js v0.129.0](https://github.com/mrdoob/three.js/releases/tag/r129)** is used to render the 3D model of the rocket.
 
 Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
 
-
 ## Rocket customisation
 
-This system is built with modularity and customisation in mind. 
+This system is built with modularity and customisation in mind.
 
-A set of basic modules is included in the frontend by default. Rockets can use these modules or add their own. 
-
+A set of basic modules is included in the frontend by default. Rockets can use these modules or add their own.
 
 ### Folder structure
 
@@ -108,22 +99,20 @@ Rockets are stored in their own folders in `/frontend/rockets/`.
 
 Each rocket folder **must** include:
 
-- A `config.py` file which lists assets used by the rocket and includes layout configuration presets.
-- A `rocket_info.md` file with information about the rocket, including:
-  - The rocket's name.
-  - Any launches, or launch attempts, that the rocket has had.
-  - A list of the people who worked on the rocket.
+-   A `config.py` file which lists assets used by the rocket and includes layout configuration presets.
+-   A `rocket_info.md` file with information about the rocket, including:
+    -   The rocket's name.
+    -   Any launches, or launch attempts, that the rocket has had.
+    -   A list of the people who worked on the rocket.
 
 Rocket folders often have these too:
 
-- An `assets/` folder with 3D models, videos, or any other assets being loaded.
-- A `css/` folder with any stylesheets used by the rocket.
-- An `img/` folder with logos, photos, and any other images used by frontend.
-- A `js/` folder with module-specific JavaScript, or JS that extends core functionality.
-- A `modules/` folder with each modules in a separate `.html` file. These modules are loaded into the interface based on the rocket's config.
-
+-   An `assets/` folder with 3D models, videos, or any other assets being loaded.
+-   A `css/` folder with any stylesheets used by the rocket.
+-   An `img/` folder with logos, photos, and any other images used by frontend.
+-   A `js/` folder with module-specific JavaScript, or JS that extends core functionality.
+-   A `modules/` folder with each modules in a separate `.html` file. These modules are loaded into the interface based on the rocket's config.
 
 ### config.py
-
 
 ### rocket_info.txt

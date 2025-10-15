@@ -1,63 +1,86 @@
 <!-- Other controls module -->
 <div class="module-legacy">
-	<h2>Aux System Controls</h2>
+    <h2>Aux System Controls</h2>
 
-	<div id="confirmationModal"
-		class="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
-		<div class="aux_modal p-4 rounded shadow-lg w-[250px] text-center">
-			<p id="confirmText" class="text-lg font-bold mb-2 font-mono">Are you sure you want to continue?</p>
-			<div class="flex justify-center gap-3">
-				<button id="confirmYes" class="bg-green-500 text-white px-3 py-1 rounded font-mono">Yes</button>
-				<button id="confirmNo" class="bg-red-500 text-white px-3 py-1 rounded font-mono">No</button>
-			</div>
-		</div>
-	</div>
+    <div
+        id="confirmationModal"
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-50"
+    >
+        <div class="aux_modal p-4 rounded shadow-lg w-[250px] text-center">
+            <p id="confirmText" class="text-lg font-bold mb-2 font-mono">
+                Are you sure you want to continue?
+            </p>
+            <div class="flex justify-center gap-3">
+                <button
+                    id="confirmYes"
+                    class="bg-green-500 text-white px-3 py-1 rounded font-mono"
+                >
+                    Yes
+                </button>
+                <button
+                    id="confirmNo"
+                    class="bg-red-500 text-white px-3 py-1 rounded font-mono"
+                >
+                    No
+                </button>
+            </div>
+        </div>
+    </div>
 
-	<!-- Solenoid buttons-->
-	<div class="grid grid-rows-[auto_auto_auto] gap-4 items-center w-full h-full">
+    <!-- Solenoid buttons-->
+    <div
+        class="grid grid-rows-[auto_auto_auto] gap-4 items-center w-full h-full"
+    >
+        <!--Manual Solenoid Activation button-->
+        <div class="flex justify-center items-center">
+            <button
+                id="solenoidButton"
+                class="solenoid_button_inactive w-40 h-8 text-xs"
+            >
+                <span class="font-mono">Enable Manual Solenoid</span>
+            </button>
+        </div>
 
-		<!--Manual Solenoid Activation button-->
-		<div class="flex justify-center items-center">
-			<button id="solenoidButton" class="solenoid_button_inactive w-40 h-8 text-xs">
-				<span class="font-mono">Enable Manual Solenoid</span>
-			</button>
-		</div>
+        <!--Solenoid switches-->
+        <div class="grid grid-cols-3 items-center w-full h-full gap-2">
+            <div class="flex flex-col justify-center items-center">
+                <p class="text-white font-mono opacity-60 text-xs p-1">Purge</p>
+                <label class="switch">
+                    <input class="solSwitch" type="checkbox" disabled />
+                    <span class="slider round"></span>
+                </label>
+            </div>
 
-		<!--Solenoid switches-->
-		<div class="grid grid-cols-3 items-center w-full h-full gap-2">
+            <div class="flex flex-col justify-center items-center">
+                <p class="text-white font-mono opacity-60 text-xs p-1">
+                    N2O Fill
+                </p>
+                <label class="switch">
+                    <input class="solSwitch" type="checkbox" disabled />
+                    <span class="slider round"></span>
+                </label>
+            </div>
 
-			<div class="flex flex-col justify-center items-center">
-				<p class="text-white font-mono opacity-60 text-xs p-1">Purge</p>
-				<label class="switch">
-					<input class="solSwitch" type="checkbox" disabled>
-					<span class="slider round"></span>
-				</label>
-			</div>
+            <div class="flex flex-col justify-center items-center">
+                <p class="text-white font-mono opacity-60 text-xs p-1">
+                    O2 Fill
+                </p>
+                <label class="switch">
+                    <input class="solSwitch" type="checkbox" disabled />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
 
-			<div class="flex flex-col justify-center items-center">
-				<p class="text-white font-mono opacity-60 text-xs p-1">N2O Fill</p>
-				<label class="switch">
-					<input class="solSwitch" type="checkbox" disabled>
-					<span class="slider round"></span>
-				</label>
-			</div>
-
-			<div class="flex flex-col justify-center items-center">
-				<p class="text-white font-mono opacity-60 text-xs p-1">O2 Fill</p>
-				<label class="switch">
-					<input class="solSwitch" type="checkbox" disabled>
-					<span class="slider round"></span>
-				</label>
-			</div>
-
-		</div>
-
-		<!--Button to send JSON packets-->
-		<div class="flex justify-center items-center gap-4">
-			<button
-				class="peer-checked:opacity-100 pop_selector opacity-60 w-40 h-7 flex items-center justify-center leading-none text-xs font-mono"
-				id="solenoidCommand" hidden>Send solenoid command</button>
-		</div>
-
-	</div>
+        <!--Button to send JSON packets-->
+        <div class="flex justify-center items-center gap-4">
+            <button
+                class="peer-checked:opacity-100 pop_selector opacity-60 w-40 h-7 flex items-center justify-center leading-none text-xs font-mono"
+                id="solenoidCommand"
+                hidden
+            >
+                Send solenoid command
+            </button>
+        </div>
+    </div>
 </div>

@@ -574,7 +574,7 @@
     left: calc(1.125rem - 50%);
   }
 
-  .indicator-flightstate:first-of-type:before, .indicator-flightstate.hidden + .indicator-flightstate:before {
+  .indicator-flightstate:first-of-type:before, .indicator-flightstate.hidden+.indicator-flightstate:before {
     display: none;
   }
 
@@ -605,14 +605,14 @@
     background: linear-gradient(90deg, var(--color-green-700) 10%, var(--color-green-400) 100%);
   }
 
-  .indicator-flightstate.active ~ .indicator-flightstate .indicator-state {
+  .indicator-flightstate.active~.indicator-flightstate .indicator-state {
     z-index: 5;
     filter: none;
     border-color: var(--color-hive-dark);
     background: #000;
   }
 
-  .indicator-flightstate.active ~ .indicator-flightstate:before {
+  .indicator-flightstate.active~.indicator-flightstate:before {
     border-color: var(--color-hive-dark);
     background: #000;
   }
@@ -692,7 +692,7 @@
     background-size: 100% 100%;
   }
 
-  input:checked + label.pop_selector {
+  input:checked+label.pop_selector {
     opacity: 1;
   }
 
@@ -783,26 +783,26 @@
     border-radius: 50%;
   }
 
-  input:checked + .slider {
+  input:checked+.slider {
     background-color: var(--color-emerald-500);
   }
 
-  input:checked + .slider:before {
+  input:checked+.slider:before {
     background-color: #fff;
     transform: translateX(26px);
   }
 
-  input:focus + .slider {
+  input:focus+.slider {
     box-shadow: 0 0 1px var(--color-emerald-500);
   }
 
-  input:disabled + .slider {
+  input:disabled+.slider {
     cursor: not-allowed;
     opacity: .6;
     background-color: #444;
   }
 
-  input:disabled + .slider:before {
+  input:disabled+.slider:before {
     background-color: #666;
   }
 
@@ -930,31 +930,31 @@
     width: 100%;
   }
 
-  @media (width >= 40rem) {
+  @media (width >=40rem) {
     .container {
       max-width: 40rem;
     }
   }
 
-  @media (width >= 48rem) {
+  @media (width >=48rem) {
     .container {
       max-width: 48rem;
     }
   }
 
-  @media (width >= 64rem) {
+  @media (width >=64rem) {
     .container {
       max-width: 64rem;
     }
   }
 
-  @media (width >= 80rem) {
+  @media (width >=80rem) {
     .container {
       max-width: 80rem;
     }
   }
 
-  @media (width >= 96rem) {
+  @media (width >=96rem) {
     .container {
       max-width: 96rem;
     }

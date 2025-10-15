@@ -4,10 +4,11 @@ Inherited by all rockets
 Defines default modules, pages, and layout
 """
 
+
 # DEFAULT ROCKET CONFIGURATION
 class Config(object):
     ROCKET_NAME = "None"
-    
+
     # List of modules used by the rocket
     MODULES = [
         "default/modules/default_avionics.html",
@@ -19,18 +20,14 @@ class Config(object):
         "default/modules/default_position.html",
         "default/modules/default_radio.html",
         "default/modules/default_rocket.html",
-        "default/modules/default_timeline.html"
+        "default/modules/default_timeline.html",
     ]
 
     # List of pages in the interface
     # These appear in the navbar at the top of the page
     # Page ID values are used for module layouts
     PAGES = [
-        {
-            "name": "Main Interface",
-            "icon": "icon-rocket",
-            "id": "page-main"
-        },
+        {"name": "Main Interface", "icon": "icon-rocket", "id": "page-main"},
     ]
 
     # Module positioning on each page
