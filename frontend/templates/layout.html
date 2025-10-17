@@ -6,7 +6,7 @@
             name="viewport"
             content="width=1920, height=1080, initial-scale=1"
         />
-        <title>{{ config.ROCKET_NAME }} - RMIT High Velocity</title>
+        <title>{{ config.active.ROCKET_NAME }} - RMIT High Velocity</title>
         <link
             rel="stylesheet"
             type="text/css"
@@ -14,7 +14,7 @@
             media="screen"
         />
         <style>
-            {{ config.CSS }}
+            {{ config.active.CSS }}
         </style>
     </head>
 
@@ -27,9 +27,9 @@
         >
             <div class="w-3/10">{% include config.active.MODULE_LOGOS %}</div>
             <nav
-                class="w-4/10 h-full grid grid-cols-{{config.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
+                class="w-4/10 h-full grid grid-cols-{{config.active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
             >
-                {% for page in config.PAGES %}
+                {% for page in config.active.PAGES %}
                 <a href="#{{page['id']}}">
                     <div class="icon {{page['icon']}}"></div>
                     <span>{{page['name']}}</span>
@@ -55,12 +55,14 @@
             {% endfor %}
         </main>
 
+        <!--
         <script src="/js/GCS_API.js"></script>
         <script src="/js/GCS_Display.js"></script>
         <script src="/js/GCS_Testing.js"></script>
 
         <script src="/js/libraries/d3.min.js"></script>
         <script src="/js/GCS_Graphs.js"></script>
+        -->
 
         <script>
             // PAGE SWITCHING CODE
