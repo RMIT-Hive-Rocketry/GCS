@@ -6,7 +6,7 @@
             name="viewport"
             content="width=1920, height=1080, initial-scale=1"
         />
-        <title>{{ config.active.ROCKET_NAME }} - RMIT High Velocity</title>
+        <title>{{ active.ROCKET_NAME }} - RMIT High Velocity</title>
         <link
             rel="stylesheet"
             type="text/css"
@@ -14,7 +14,7 @@
             media="screen"
         />
         <style>
-            {{ config.active.CSS }}
+            {{ active.CSS }}
         </style>
     </head>
 
@@ -26,12 +26,12 @@
             class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50"
         >
             <div class="w-3/10">
-                {% include 'rockets/' ~ config.active.MODULE_LOGOS %}
+                {% include 'rockets/' ~ active.MODULE_LOGOS %}
             </div>
             <nav
-                class="w-4/10 h-full grid grid-cols-{{config.active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
+                class="w-4/10 h-full grid grid-cols-{{active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
             >
-                {% for page in config.active.PAGES %}
+                {% for page in active.PAGES %}
                 <a href="#{{page['id']}}">
                     <div class="icon {{page['icon']}}"></div>
                     <span>{{page['name']}}</span>
@@ -39,7 +39,7 @@
                 {% endfor %}
             </nav>
             <div class="w-3/10">
-                {% include 'rockets/' ~ config.active.MODULE_RADIO %}
+                {% include 'rockets/' ~ active.MODULE_RADIO %}
             </div>
         </header>
 
@@ -47,12 +47,12 @@
         <!-- Modules are loaded from separate files in templates/modules/ -->
         <main
             class="w-full max-w-full h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden grid grid-cols-12 grid-rows-12 grid-flow-col gap-4 px-4 py-2"
-            id="{{config.active.PAGES[0]['id']}}"
+            id="{{active.PAGES[0]['id']}}"
         >
             <!-- Adjust modules in config.py -->
-            {% for module in config.active.MODULES %}
+            {% for module in active.MODULES %}
             <div
-                class="{{config.active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
+                class="{{active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
             >
                 {% include 'rockets/' ~ module %}
             </div>

@@ -10,6 +10,7 @@ class ConfigLegacy3(Config):
         super().__init__()
 
         self.ROCKET_NAME = "Legacy III"
+        self.logo = "legacy/static/img/logo-legacy3.svg"
 
         # Inherit default modules and add legacy ones
         self.MODULES.extend(

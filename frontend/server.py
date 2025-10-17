@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from frontend.rocket_loader import load_rockets
-from flask import Flask, send_from_directory, abort, render_template
+from flask import Flask, send_from_directory, abort, render_template, request
 from os import path as os_path
 
 # import logging
@@ -36,16 +36,15 @@ def create_app():
         template_folder=os_path.join(os_path.dirname(__file__), "."),
     )
 
-    # Load static files
+    # Configure paths for static and rocket files
     DIR_STATIC = os_path.join(os_path.dirname(__file__), "static")
     assert os_path.isdir(DIR_STATIC)
-
     DIR_ROCKETS = os_path.join(os_path.dirname(__file__), "rockets")
     assert os_path.isdir(DIR_ROCKETS)
 
     # Load rocket assets and configurations from /rockets dir
-    app.config["rockets"] = load_rockets(app, __name__)
-    app.config["active"] = app.config["rockets"][2].configs[0]
+    app.config["rockets"] = load_rockets(app)
+    app.config["default"] = app.config["rockets"][0].configs[0]
 
     """
     Logging
@@ -70,7 +69,20 @@ def create_app():
     # Render modular layout
     @app.route("/")
     def index():
-        return render_template("/templates/layout.html", config=app.config)
+        # Get active rocket config default
+        active = app.config.get("default")
+
+        # Check for config override via URL parameter
+        rocket = request.args.get("rocket", None)
+        if rocket != None:
+            for r in app.config.get("rockets"):
+                if r.name == rocket:
+                    active = r.configs[0]
+                    break
+
+        return render_template(
+            "/templates/layout.html", config=app.config, active=active
+        )
 
     """
     Static file loading
