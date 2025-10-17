@@ -648,17 +648,17 @@
 
   .continuity-button {
     cursor: pointer;
-    background-image: url("/legacy/img/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
 
   .continuity-button:hover {
-    background-image: url("/legacy/img/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))");
   }
 
   .continuity-button:active {
-    background-image: url("/legacy/img/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))");
   }
 
   .continuity-variables-middle {
@@ -683,7 +683,7 @@
   .pop_selector {
     opacity: .6;
     cursor: pointer;
-    background-image: url("/legacy/img/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -694,7 +694,7 @@
 
   .pop_button_inactive {
     opacity: .6;
-    background-image: url("/legacy/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -702,23 +702,23 @@
   .pop_button_active {
     cursor: pointer;
     opacity: 1;
-    background-image: url("/legacy/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
 
   .pop_button_active:hover {
-    background-image: url("/legacy/img/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))");
   }
 
   .pop_button_active:active {
-    background-image: url("/legacy/img/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))");
   }
 
   .solenoid_button_inactive {
     opacity: .6;
     cursor: pointer;
-    background-image: url("/legacy/img/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -726,17 +726,17 @@
   .solenoid_button_active {
     cursor: pointer;
     opacity: 1;
-    background-image: url("/legacy/img/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
 
   .solenoid_button_active:hover {
-    background-image: url("/legacy/img/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))");
   }
 
   .solenoid_button_active:active {
-    background-image: url("/legacy/img/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))");
   }
 
   .switch {
@@ -803,7 +803,7 @@
   }
 
   .aux_modal {
-    background-image: url("/legacy/img/single-operator/modal.svg#svgView(preserveAspectRatio(none))");
+    background-image: url("/legacy/static/img/single-operator/modal.svg#svgView(preserveAspectRatio(none))");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }

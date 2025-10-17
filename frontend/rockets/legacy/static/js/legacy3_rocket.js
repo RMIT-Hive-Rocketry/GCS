@@ -12,7 +12,7 @@ import { GLTFLoader } from "/js/libraries/GLTFLoader.js";
 
 const rocket_containerID = "rocketContainerLegacy";
 const rocket_canvasID = "rocketCanvasLegacy";
-const rocket_model = "/legacy/assets/rocket_legacy3.glb";
+const rocket_model = "/legacy/static/assets/rocket_legacy3.glb";
 
 // === Core Variables ===
 let rocket = null; // The main rocket model group
