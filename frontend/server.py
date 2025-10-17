@@ -27,6 +27,7 @@ valid_file_extensions = (
     ".jpg",
     ".ico",
     ".svg",  # Images
+    ".glb",  # 3D models
 )
 
 
@@ -41,6 +42,9 @@ def create_app():
     # Load static files
     DIR_STATIC = os_path.join(os_path.dirname(__file__), "static")
     assert os_path.isdir(DIR_STATIC)
+
+    DIR_ROCKETS = os_path.join(os_path.dirname(__file__), "rockets")
+    assert os_path.isdir(DIR_ROCKETS)
 
     # Load rocket assets and configurations from /rockets dir
     app.config["rockets"] = load_rockets(app, __name__)
@@ -78,19 +82,23 @@ def create_app():
     # Serve static files and HTML pages
     @app.route("/<path:filename>")
     def serve_html(filename):
-        # Absolute filepath of request
-        filepath = os_path.join(DIR_STATIC, filename)
-        print(filepath)
+        # Make sure rocket assets are loaded from a different directory
+        file_directory = DIR_STATIC
+        if filename.startswith(tuple([r.name for r in app.config.get("rockets")])):
+            file_directory = DIR_ROCKETS
+
+        # Set filepath
+        filepath = os_path.join(file_directory, filename)
 
         # Load files with valid extensions
         if filename.endswith(valid_file_extensions) and os_path.isfile(filepath):
             # app.logger.debug(f"Serving static file: {filename}")
-            return send_from_directory(DIR_STATIC, filename)
+            return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
         elif os_path.isfile(filepath + ".html"):
             # app.logger.debug(f"Serving static file: {filename}.html")
-            return send_from_directory(DIR_STATIC, filename + ".html")
+            return send_from_directory(file_directory, filename + ".html")
 
         # 404 page not found
         else:

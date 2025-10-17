@@ -79,7 +79,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(
-        "/atlas/assets/rocket_atlas.glb",
+        "/atlas/static/assets/rocket_atlas.glb",
         (gltf) => {
             const model = gltf.scene;
             model.scale.set(3, 3, 3); // Resize for better visibility

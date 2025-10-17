@@ -187,39 +187,53 @@ function displayUpdateAuxData(data) {
     if (data?.transducer1) {
         // N2O in pressure
         displaySetValue("aux-transducer-1", data.transducer1, 1);
-        hmiUpdateValue("hmi-pressure-1", data.transducer1);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("hmi-pressure-1", data.transducer1);
     }
     if (data?.transducer2) {
         // N2O out pressure
         displaySetValue("aux-transducer-2", data.transducer2, 1);
-        hmiUpdateValue("hmi-pressure-2", data.transducer2);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("hmi-pressure-2", data.transducer2);
     }
     if (data?.transducer3) {
         // O2 pressure
         displaySetValue("aux-transducer-3", data.transducer3, 1);
-        hmiUpdateValue("hmi-pressure-3", data.transducer3);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("hmi-pressure-3", data.transducer3);
     }
 
     // Thermocouples (degrees Celsius)
     if (data?.thermocouple1) {
         // n2o (int) temperature
         displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
-        hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
     }
     if (data?.thermocouple2) {
         // n2o #1 pressure
         displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
-        hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
     }
     if (data?.thermocouple3) {
         // n2o #2 pressure
         displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
-        hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
     }
     if (data?.thermocouple4) {
         // o2 pressure
         displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
-        hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
+
+        if (typeof hmiUpdateValue === "function")
+            hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
     }
 
     // GSE enclosure thermocouple
@@ -252,7 +266,7 @@ function displayUpdateAuxData(data) {
     }
 
     // Solenoids
-    if (data?.stateFlags) {
+    if (data?.stateFlags && typeof hmiUpdateSolenoid === "function") {
         hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
         hmiUpdateSolenoid("solenoidsV6", data.stateFlags.o2FillActivated);
         hmiUpdateSolenoid("solenoidsV7", data.stateFlags.manualPurgeActivated); // Normally open
