@@ -2,6 +2,7 @@
 from flask import Flask, Blueprint, send_from_directory, abort, render_template
 from os import path as os_path, scandir as os_scandir
 from inspect import getmembers, isclass
+from frontend.rocket_loader import load_rockets
 import importlib.util
 import sys
 
@@ -28,142 +29,6 @@ valid_file_extensions = (
     ".svg",  # Images
 )
 
-# Load rocket configs and assets from /rockets directory
-ROCKETS = {}
-active_rocket = ("default", 0)
-
-
-def load_rockets(app=None):
-    # Scan for rockets in rockets/ directory
-    dir_rockets = os_path.join(os_path.dirname(__file__), "rockets")
-    assert os_path.isdir(dir_rockets)
-
-    # Find all rocket directories
-    rocket_paths = [
-        f.path
-        for f in os_scandir(dir_rockets)
-        if f.is_dir() and os_path.isfile(os_path.join(f.path, "__init__.py"))
-    ]
-
-    # Make sure default rocket exists
-    assert len(rocket_paths) > 0
-    assert "default" in [path.split("/")[-1] for path in rocket_paths]
-
-    # Load rocket configurations
-    for path in rocket_paths:
-
-        # Import rocket package
-        package_name = path.split("/")[-1]
-        spec = importlib.util.spec_from_file_location(
-            "rockets." + package_name, os_path.join(path, "__init__.py")
-        )
-        rocket_package = importlib.util.module_from_spec(spec)
-        sys.modules["rockets." + package_name] = rocket_package
-        spec.loader.exec_module(rocket_package)
-
-        # Keep track of rocket data
-        ROCKETS[package_name] = {
-            "path": path,
-            "package": rocket_package,
-            "blueprint": Blueprint(
-                package_name,
-                __name__,
-                url_prefix="/",
-                template_folder=os_path.join(dir_rockets, f"{package_name}/modules"),
-                static_folder=os_path.join(dir_rockets, f"{package_name}/static"),
-                static_url_path=f"/{package_name}",
-            ),
-            "configs": [],
-        }
-
-        # Add rocket modules blueprint to app
-        if app != None:
-            app.register_blueprint(ROCKETS[package_name]["blueprint"])
-
-        # Load all config classes from module
-        for name, obj in getmembers(rocket_package, isclass):
-            if (
-                name.startswith("Config")
-                and obj.__module__ == rocket_package.__name__
-                and (obj.__name__ == "Config" or obj.__bases__[0].__name__ == "Config")
-            ):
-                # Instantiate and validate rocket config
-                rocket_config = object.__new__(obj)
-                rocket_config.MODULE = package_name
-                validate_rocket_config(rocket_config)
-                ROCKETS[package_name]["configs"].append(rocket_config)
-
-        # Debug info
-        print(
-            f"Loaded 'rockets/{package_name}' with {len(ROCKETS[package_name]['configs'])} config(s):"
-        )
-        for c in ROCKETS[package_name]["configs"]:
-            print(
-                f"  {type(c).__name__}() \
-                  \n   - Rocket: {c.ROCKET_NAME} \
-                  \n   - Pages: {len(c.PAGES)} \
-                  \n   - Modules: {len(c.MODULES)}"
-            )
-
-    # Set active rocket in config
-    # TODO: Make this customisable with launch parameters or something?
-    app.config["active"] = ROCKETS[active_rocket[0]]["configs"][active_rocket[1]]
-
-
-# Validate rocket configurations
-def validate_rocket_config(c):
-    # Test that required variables are defined
-    assert isinstance(c.ROCKET_NAME, str), "ROCKET_NAME not defined correctly"
-    assert isinstance(c.MODULES, list), "MODULES not defined correctly"
-    assert isinstance(c.PAGES, list), "PAGES not defined correctly"
-    assert isinstance(c.MODULE_PAGES, dict), "MODULE_PAGES not defined correctly"
-
-    # Test that MODULES exist
-    for m in c.MODULES:
-        assert os_path.exists(
-            os_path.join(os_path.dirname(__file__), "rockets/" + m).strip()
-        )
-
-    # Test PAGES formatting
-    for page in c.PAGES:
-        assert isinstance(page["name"], str)
-        assert isinstance(page["icon"], str)
-        assert isinstance(page["id"], str)
-
-    # Test MODULE_PAGES formatting
-    logos_count = 0
-    radio_count = 0
-    for key in c.MODULE_PAGES:
-        # Test modules are defined properly
-        assert key in [m.split("/")[-1].replace(".html", "") for m in c.MODULES], (
-            "Module " + key + " in MODULE_PAGES not in MODULES"
-        )
-        assert isinstance(c.MODULE_PAGES[key], list), "MODULE_PAGES must be a list"
-
-        # Test position format
-        for pos in c.MODULE_PAGES[key]:
-            if pos not in ("radio", "logos"):
-                assert isinstance(pos, tuple), "Module position must be a tuple"
-                assert len(pos) == 5, "Module position tuple must be length 5"
-                assert isinstance(pos[0], str)
-                assert isinstance(pos[1], int)
-                assert isinstance(pos[2], int)
-                assert isinstance(pos[3], int)
-                assert isinstance(pos[4], int)
-                assert pos[1] >= 0 and pos[1] < 12, "Module x out of bounds"
-                assert pos[2] >= 0 and pos[2] < 12, "Module y out of bounds"
-                assert pos[3] > 0 and pos[3] <= 12, "Module width invalid"
-                assert pos[4] > 0 and pos[4] <= 12, "Module height invalid"
-                assert pos[1] + pos[3] <= 12, "Module width out of bounds"
-                assert pos[2] + pos[4] <= 12, "Module height out of bounds"
-                assert pos[0] in [n["id"] for n in c.PAGES], "Module page not found"
-            elif pos == "logos":
-                logos_count += 1
-                assert logos_count <= 1, "More than one module in position 'logos'"
-            elif pos == "radio":
-                radio_count += 1
-                assert radio_count <= 1, "More than one module in position 'radio'"
-
 
 # Initialise flask app
 def create_app():
@@ -172,18 +37,14 @@ def create_app():
         __name__,
         template_folder=os_path.join(os_path.dirname(__file__), "."),
     )
-    # app.config.from_object("frontend.config." + frontend.config.rocket + "Config")
 
-    """
-    Load static files and rocket configs
-    """
     # Load static files
     DIR_STATIC = os_path.join(os_path.dirname(__file__), "static")
     assert os_path.isdir(DIR_STATIC)
 
-    # Load rockets
-    load_rockets(app)
-    app.config["rockets"] = ROCKETS
+    # Load rocket assets and configurations from /rockets dir
+    app.config["rockets"] = load_rockets(app, __name__)
+    app.config["active"] = app.config["rockets"][2].configs[0]
 
     """
     Logging
@@ -208,64 +69,6 @@ def create_app():
     # Render modular layout
     @app.route("/")
     def index():
-        # Parse app.config and pre-process modular layout information for CSS
-        # Generate CSS selectors for pages
-        """
-        app.config["CSS"] = (
-            ", ".join(["#{0} .{0}".format(page["id"]) for page in app.config["PAGES"]])
-            + " {display: flex;}"
-        )
-        """
-
-        # Generate positional classes for modules
-        grid = set()
-
-        for module in app.config["active"].MODULES:
-            module_id = module.split("/")[-1].split(".")[0]
-
-            # All modules are hidden by default
-            class_list = {"module", "hidden"}
-
-            # For each module, update visibility and position for each page
-            if module_id in app.config["active"].MODULE_PAGES:
-                for page in app.config["active"].MODULE_PAGES[module_id]:
-                    if isinstance(page, tuple):
-                        # Encode position and size in grid
-                        cols = "{}-c-{}-{}".format(page[0], page[1], page[3])
-                        rows = "{}-r-{}-{}".format(page[0], page[2], page[4])
-
-                        # Add classes to grid
-                        grid.add("#{} .{}".format(page[0], cols))
-                        grid.add("#{} .{}".format(page[0], rows))
-
-                        # Add classes to module
-                        class_list.add(page[0])
-                        class_list.add(cols)
-                        class_list.add(rows)
-                    elif page == "radio":
-                        app.config["active"].MODULE_RADIO = module_id + ".html"
-                        print(module_id, "radio")
-                    elif page == "logos":
-                        app.config["active"].MODULE_LOGOS = module_id + ".html"
-                        print(module_id, "logos")
-
-            # Assign generated classes to module
-            print(module_id, class_list)
-            app.config["active"].MODULE_CLASSES[module_id] = " ".join(class_list)
-
-        # Add optimised grid to CSS
-        for grid_class in grid:
-            grid_type, grid_start, grid_span = grid_class.split("-")[-3:]
-            """
-            app.config["CSS"] += "\n{} {{grid-{}: {} / span {};}} ".format(
-                grid_class,
-                "column" if grid_type == "c" else "row",
-                int(grid_start) + 1,
-                grid_span,
-            )
-            """
-
-        # Render the page
         return render_template("/templates/layout.html", config=app.config)
 
     """
@@ -277,6 +80,7 @@ def create_app():
     def serve_html(filename):
         # Absolute filepath of request
         filepath = os_path.join(DIR_STATIC, filename)
+        print(filepath)
 
         # Load files with valid extensions
         if filename.endswith(valid_file_extensions) and os_path.isfile(filepath):

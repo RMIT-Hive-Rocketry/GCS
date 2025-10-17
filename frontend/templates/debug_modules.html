@@ -24,11 +24,11 @@
         <main class="debug w-full flex flex-col gap-8">
             {% for rocket in config.rockets %}
             <section class="bg-zinc-900 p-4">
-                <h2 class="lowercase!">/rockets/{{ rocket }} modules</h2>
+                <h2 class="lowercase!">/rockets/{{ rocket.name }} modules</h2>
                 <div class="flex flex-col gap-4 py-4">
-                    {% for rocketconfig in config.rockets[rocket]["configs"] %}
-                    {% for module in rocketconfig.MODULES %} {% if
-                    module.split("/")[0] == rocket %}
+                    {% for rocketconfig in rocket.configs %} {% for module in
+                    rocketconfig.MODULES %} {% if module.split("/")[0] ==
+                    rocket.name %}
                     <div
                         class="border border-black bg-zinc-900 bg-hex text-white"
                     >

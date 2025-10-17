@@ -7,10 +7,10 @@ Defines default modules, pages, and layout
 
 # DEFAULT ROCKET CONFIGURATION
 class Config(object):
-    ROCKET_NAME = "None"
+    ROCKET_NAME = "Default"
 
     # List of modules used by the rocket
-    PATH = "default/modules/"
+    # PATH = "default/modules/"
     MODULES = [
         "default/modules/default_avionics.html",
         "default/modules/default_camera.html",

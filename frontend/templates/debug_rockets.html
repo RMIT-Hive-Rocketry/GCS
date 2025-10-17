@@ -67,27 +67,26 @@
         <main class="debug w-full flex flex-col gap-8 my-4">
             {% for rocket in config.rockets %}
             <section
-                id="{{ rocket }}"
+                id="{{ rocket.name }}"
                 class="flex flex-col gap-4 p-4 border border-black bg-zinc-900 bg-hex text-white"
             >
-                <h2 class="lowercase!">/rockets/{{ rocket }}</h2>
+                <h2 class="lowercase!">/rockets/{{ rocket.name }}</h2>
                 <table>
                     <tr>
                         <th>path</th>
-                        <td>{{ config.rockets[rocket]["path"] }}</td>
+                        <td>{{ rocket.path }}</td>
                     </tr>
                     <tr>
                         <th>package</th>
-                        <td>{{ config.rockets[rocket]["package"] }}</td>
+                        <td>{{ rocket.package }}</td>
                     </tr>
                     <tr>
                         <th>configs</th>
                         <td>
-                            {% for config in config.rockets[rocket]["configs"]
-                            %}
+                            {% for rocketconfig in rocket.configs %}
                             <details open>
                                 <summary class="text-legacy font-medium">
-                                    {{ config }}
+                                    {{ rocketconfig }}
                                 </summary>
 
                                 <div class="flex flex-row flex-nowrap">
@@ -95,7 +94,7 @@
                                         <tr>
                                             <th>ROCKET_NAME</th>
                                             <td style="font-weight: bold">
-                                                {{ config.ROCKET_NAME }}
+                                                {{ rocketconfig.ROCKET_NAME }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -103,11 +102,12 @@
                                             <td>
                                                 <table>
                                                     {% for module in
-                                                    config.MODULES %}
+                                                    rocketconfig.MODULES %}
                                                     <tr>
                                                         {% if
                                                         module.split("/")[-1].split(".")[0]
-                                                        in config.MODULE_PAGES
+                                                        in
+                                                        rocketconfig.MODULE_PAGES
                                                         %}
                                                         <td>
                                                             {{
@@ -134,8 +134,8 @@
                                                         <th>icon</th>
                                                         <th>id</th>
                                                     </tr>
-                                                    {% for page in config.PAGES
-                                                    %}
+                                                    {% for page in
+                                                    rocketconfig.PAGES %}
                                                     <tr>
                                                         <td>{{ page.name }}</td>
                                                         <td>{{ page.icon }}</td>
@@ -159,15 +159,15 @@
                                                     </tr>
 
                                                     {% for module in
-                                                    config.MODULE_PAGES %} {%
-                                                    for module_page in
-                                                    config.MODULE_PAGES[module]
+                                                    rocketconfig.MODULE_PAGES %}
+                                                    {% for module_page in
+                                                    rocketconfig.MODULE_PAGES[module]
                                                     %}
                                                     <tr>
                                                         {% if loop.first %}
                                                         <td
                                                             class="text-legacy-gold font-medium"
-                                                            rowspan="{{ config.MODULE_PAGES[module] | length }}"
+                                                            rowspan="{{ rocketconfig.MODULE_PAGES[module] | length }}"
                                                         >
                                                             {{module}}
                                                         </td>
@@ -228,7 +228,7 @@
                                     <div
                                         class="w-full h-full flex flex-row flex-wrap gap-4 px-4 justify-evenly align-baseline"
                                     >
-                                        {% for page in config.PAGES %}
+                                        {% for page in rocketconfig.PAGES %}
                                         <div>
                                             <p
                                                 class="text-hive font-medium text-center"
@@ -250,9 +250,9 @@
                                                     class="flex flex-row gap-0"
                                                 >
                                                     {% for module in
-                                                    config.MODULE_PAGES %} {%
-                                                    for module_page in
-                                                    config.MODULE_PAGES[module]
+                                                    rocketconfig.MODULE_PAGES %}
+                                                    {% for module_page in
+                                                    rocketconfig.MODULE_PAGES[module]
                                                     %} {% if module_page ==
                                                     "logos" %}
                                                     <div
@@ -264,9 +264,9 @@
                                                     endfor %}
                                                     <div class="grow"></div>
                                                     {% for module in
-                                                    config.MODULE_PAGES %} {%
-                                                    for module_page in
-                                                    config.MODULE_PAGES[module]
+                                                    rocketconfig.MODULE_PAGES %}
+                                                    {% for module_page in
+                                                    rocketconfig.MODULE_PAGES[module]
                                                     %} {% if module_page ==
                                                     "radio" %}
                                                     <div
@@ -286,9 +286,9 @@
                                                     class="grid grid-cols-12 grid-rows-12"
                                                 >
                                                     {% for module in
-                                                    config.MODULE_PAGES %} {%
-                                                    for module_page in
-                                                    config.MODULE_PAGES[module]
+                                                    rocketconfig.MODULE_PAGES %}
+                                                    {% for module_page in
+                                                    rocketconfig.MODULE_PAGES[module]
                                                     %} {% if module_page not in
                                                     ["logos", "radio"] and
                                                     module_page[0] == page.id %}
