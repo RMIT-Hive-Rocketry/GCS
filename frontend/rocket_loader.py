@@ -139,7 +139,7 @@ class Rocket(object):
                 \n   - Modules: {len(_config.MODULES)}"
         )
 
-    def generate_blueprint(self, _name):
+    def generate_blueprint(self):
         # Generate a flask blueprint for loading assets
         self.blueprint = Blueprint(
             self.name,
@@ -204,7 +204,7 @@ class Rocket(object):
                 )
 
 
-def load_rockets(flask_app, _name):
+def load_rockets(flask_app):
     # Loads all rockets in the /rockets directory
     rockets = []
 
@@ -218,7 +218,7 @@ def load_rockets(flask_app, _name):
         rocket = Rocket()
         rocket.set_flask_app(flask_app)
         rocket.load_from_module(module)
-        rocket.generate_blueprint(_name)
+        rocket.generate_blueprint()
 
         """
         # Add rule to flask app

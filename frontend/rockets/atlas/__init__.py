@@ -11,6 +11,7 @@ class ConfigAtlas(Config):
         super().__init__()
 
         self.ROCKET_NAME = "Atlas"
+        self.logo = "atlas/static/img/logo-atlas.png"
 
         # Load Atlas modules
         self.MODULES.extend(

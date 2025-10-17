@@ -1,0 +1,28 @@
+<!-- Example module -->
+<div class="module-default">
+    <h2>Rocket Selector</h2>
+    <div class="flex flex-col gap-12 w-full h-full justify-center items-center">
+        <p>Welcome to the RMIT High Velocity Rocket Monitoring Software</p>
+        <div>
+            <p class="font-bold text-hive w-full text-center mb-2">
+                SELECT CONFIGURATION
+            </p>
+            <div class="flex flex-row gap-4 justify-center items-center">
+                {% for rocket in config.rockets %} {% if rocket.name !=
+                "default" %}
+                <a
+                    href="/?rocket={{rocket.name}}"
+                    class="w-48 h-48 border-2 border-white/50 hover:border-hive hover:text-hive bg-black flex flex-col items-center p-2"
+                >
+                    <span>{{rocket.name}}</span>
+                    <img
+                        src="{{rocket.configs[0].logo}}"
+                        alt="{{rocket.name}} Logo"
+                        class="max-w-full max-h-32 mt-2 grow p-2"
+                    />
+                </a>
+                {% endif %} {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
