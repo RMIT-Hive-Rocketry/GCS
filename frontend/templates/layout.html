@@ -25,7 +25,9 @@
         <header
             class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50"
         >
-            <div class="w-3/10">{% include config.active.MODULE_LOGOS %}</div>
+            <div class="w-3/10">
+                {% include 'rockets/' ~ config.active.MODULE_LOGOS %}
+            </div>
             <nav
                 class="w-4/10 h-full grid grid-cols-{{config.active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
             >
@@ -36,7 +38,9 @@
                 </a>
                 {% endfor %}
             </nav>
-            <div class="w-3/10">{% include config.active.MODULE_RADIO %}</div>
+            <div class="w-3/10">
+                {% include 'rockets/' ~ config.active.MODULE_RADIO %}
+            </div>
         </header>
 
         <!-- Main grid (12x12) -->
@@ -50,7 +54,7 @@
             <div
                 class="{{config.active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
             >
-                {% include module.split('/')[-1] %}
+                {% include 'rockets/' ~ module %}
             </div>
             {% endfor %}
         </main>

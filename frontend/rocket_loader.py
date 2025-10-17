@@ -54,7 +54,7 @@ class Rocket(object):
                 and (obj.__name__ == "Config" or obj.__bases__[0].__name__ == "Config")
             ):
                 # Instantiate and validate rocket config
-                rocket_config = object.__new__(obj)
+                rocket_config = obj()  # object.__new__(obj)
                 rocket_config.MODULE = self.name
 
                 # Validate config then append to configs list
@@ -166,7 +166,7 @@ class Rocket(object):
             for module in config.MODULES:
                 module_id = module.split("/")[-1].split(".")[0]
 
-                # All modules are hidden by default
+                # Modules are hidden by default
                 class_list = {"module", "hidden"}
 
                 # For each module, update visibility and position for each page
@@ -186,9 +186,9 @@ class Rocket(object):
                             class_list.add(cols)
                             class_list.add(rows)
                         elif page == "radio":
-                            config.MODULE_RADIO = module_id + ".html"
+                            config.MODULE_RADIO = module
                         elif page == "logos":
-                            config.MODULE_LOGOS = module_id + ".html"
+                            config.MODULE_LOGOS = module
 
                 # Assign generated classes to module
                 config.MODULE_CLASSES[module_id] = " ".join(class_list)
