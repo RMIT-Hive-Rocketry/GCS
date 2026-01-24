@@ -15,8 +15,6 @@ def start_frontend_webserver(logger: logging.Logger):
     try:
         FRONTEND_COMMAND = [
             "flask",
-            "-e",
-            "./frontend/.flaskenv",
             "-A",
             "frontend.server",
             "run",

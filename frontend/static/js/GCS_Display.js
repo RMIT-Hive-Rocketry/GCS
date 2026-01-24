@@ -18,7 +18,7 @@ function displaySetValue(item, value, precision = 2, error = false) {
             console.debug(
                 `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
                 "color:orange",
-                "color:white"
+                "color:white",
             );
 
         // Use classes instead of IDs since IDs must be unique
@@ -47,7 +47,7 @@ function displaySetString(item, string) {
             console.debug(
                 `new string %c${item}%c ${string}`,
                 "color:orange",
-                "color:white"
+                "color:white",
             );
 
         // Update all instances of item
@@ -81,7 +81,7 @@ function displaySetState(item, value) {
         console.debug(
             `new state %c${item}%c ${value}`,
             "color:orange",
-            "color:white"
+            "color:white",
         );
 
     // Update all instances of item
@@ -176,7 +176,7 @@ function displayUpdateTime() {
     if (timestampLocal != undefined && timestampLocal != 0) {
         displaySetString(
             "fs-time-local",
-            `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`
+            `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
         );
     }
 }
@@ -256,7 +256,7 @@ function displayUpdateAuxData(data) {
     if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
         displaySetString(
             "aux-gasbottle-time",
-            `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`
+            `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`,
         );
     }
 
@@ -296,7 +296,7 @@ function displayUpdateAvionics(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 5 // green / error
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 5, // green / error
             );
         }
 
@@ -348,25 +348,25 @@ function displayUpdateSystemFlags(data) {
         if (data.stateFlags?.dualBoardConnectivityStateFlag) {
             displaySetState(
                 "sysflags-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0
+                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0,
             );
         }
         if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
             displaySetState(
                 "sysflags-state-recovery",
-                data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0
+                data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0,
             );
         }
         if (data.stateFlags?.payloadConnectionFlag) {
             displaySetState(
                 "sysflags-state-payload",
-                data.stateFlags.payloadConnectionFlag ? 1 : 0
+                data.stateFlags.payloadConnectionFlag ? 1 : 0,
             );
         }
         if (data.stateFlags?.cameraControllerConnectionFlag) {
             displaySetState(
                 "sysflags-state-camera",
-                data.stateFlags.cameraControllerConnectionFlag ? 1 : 0
+                data.stateFlags.cameraControllerConnectionFlag ? 1 : 0,
             );
         }
     }

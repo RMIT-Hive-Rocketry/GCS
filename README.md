@@ -2,8 +2,8 @@
 
 <p>
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
-    <img alt="Static Badge" src="https://img.shields.io/badge/status-Deployed_for_IREC-limegreen">
-    <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
+    <img alt="Static Badge" src="https://img.shields.io/badge/status-in_development-black">
+    <!-- <img src="https://github.com/RMIT-Competition-Rocketry/GCS/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem"> -->
     <!-- <img src="https://img.shields.io/github/v/release/RMIT-Competition-Rocketry/GCS?label=version" height="20rem"> -->
 </p>
 
@@ -21,7 +21,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
   <img src="docs/assets/irec2025stand.jpeg" height="250px"/>
 </p>
 
-© 2025 RMIT Competition Rocketry - Licensed under the MIT License    
+© 2026 RMIT Competition Rocketry - Licensed under the MIT License    
 
 ## Contents
 
@@ -32,6 +32,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 - [Pendant Emulator Quick Reference](docs/pendant_emulator.md)
 - [System Design & features](docs/system_design.md)
 - [Development](docs/development.md)
+- [Frontend](docs/frontend.md)
 - [Glossary](docs/glossary.md)
 
 <!-- ### Notes
@@ -48,15 +49,57 @@ The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, av
 
 GCS Software Team
 
-| Name | Role | Year |
-| --- | --- | --- |
-| [Freddy Mcloughlan](https://www.linkedin.com/in/freddy-mcloughlan/) (`mcloughlan`)  | GCS software lead & backend software engineer | 2025 |
-| [Amber Taylor](https://www.linkedin.com/in/amber-taylor-20bb63264/) (`s4105951`)  | GCS frontend lead & software engineer | 2025 |
-| [Caspar O'Neill](https://www.linkedin.com/in/caspar-oneill/) (`s3899921`)  | GCS frontend API engineer | 2025 |
-| [Anuk Jayasundara](https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/) (`s3899921`)  | GCS 6DOF rocket visualisation | 2025 |
-| Jonathan Do (`s4003025`)  | GCS frontend UI/UX design | 2025 |
-| Nathan La (`s4003562`)  | GCS data visualisation | 2025 |
-| [Tristan Le](https://www.linkedin.com/in/trist4nl3/) (`trist4nl3`) | GCS simulation integration | 2025 |
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Year</th>
+    </tr>
+    <tr>
+        <td rowspan=2><a href="https://www.linkedin.com/in/freddy-mcloughlan/">Freddy Mcloughlan</a> (<code>mcloughlan</code>)</td>
+        <td>IREC Lead</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>GCS software lead & backend software engineer</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
+        <td>GCS Lead</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>GCS frontend lead & software engineer</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/caspar-oneill/">Caspar O'Neill</a> (<code>s3899921</code>)</td>
+        <td>GCS frontend API engineer</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/">Anuk Jayasundara</a> (<code>SaviruA</code>)</td>
+        <td>GCS 6DOF rocket visualisation</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td>Jonathan Do (<code>J88error</code>)</td>
+        <td>GCS frontend UI/UX design</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td>Nathan La (<code>s4003562</code>)</td>
+        <td>GCS data visualisation</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/trist4nl3/">Tristan Le</a> (<code>trist4nl3</code>)</td>
+        <td>GCS simulation integration</td>
+        <td>2025</td>
+    </tr>
+</table>
+
 
 Special thanks
 
@@ -109,3 +152,4 @@ Attribution must be clearly displayed in any redistributed or derivative works.
 Please credit: **RMIT Competition Rocketry** and the **HIVE GCS Software Team**.
 
 See the [LICENSE](LICENSE) file for full terms.
+

@@ -23,7 +23,7 @@ Commands:
 > [!NOTE] 
 > The current *suggested* frontend dev command is as follows
 > ```
-> $ rocket simulation
+> $ rocket dev --interface test --frontend --nopendant
 > ```
 
 ## Using release binaries
@@ -75,6 +75,9 @@ By default for `dev` mode:
   - Unless `--gse-only` is passed
 
 ### Simulation Mode
+
+> [!WARNING]
+> Currently approaching deprecation. The `rocketpy` physics library has lots of limitations and is looking to be replaced. 
 
 Simulation mode can be run with 
 

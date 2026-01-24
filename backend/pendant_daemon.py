@@ -54,7 +54,7 @@ class StateTable():
         output = ""
         for k, v in printable_dict.items():
             assert isinstance(v, bool)
-            symbol = '🟩' if v else '🟥'
+            symbol = '[X]' if v else '[ ]'
             output += f"{k:<{MAX_KEY_LEN}} : {symbol}\n"
         return output
 
