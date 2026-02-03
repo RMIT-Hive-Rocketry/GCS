@@ -9,15 +9,17 @@ Defines default modules, pages, and layout
 class Config(object):
     def __init__(self):
         self.ROCKET_NAME = "Default"
-        self.logo = ""
+        self.LOGO = ""
+        self.GRID = (1,1)
+        self.STYLESHEETS = []
 
         # List of modules used by the rocket
         # PATH = "default/modules/"
         self.MODULES = [
+            "default/modules/rocket_selector.html",
             "default/modules/default_avionics.html",
             "default/modules/default_camera.html",
             "default/modules/default_errorlog.html",
-            "default/modules/rocket_selector.html",
             "default/modules/default_gse.html",
             "default/modules/default_logos.html",
             "default/modules/default_position.html",
@@ -37,22 +39,12 @@ class Config(object):
         # Can also be "logos" or "radio" to place in fixed positions
         self.MODULE_PAGES = {
             "rocket_selector": [
-                # Take up entire 12x12 grid on main page
-                ("page-main", 0, 0, 12, 12)
-            ],
-            "default_logos": [
-                # Logos position (top left)
-                "logos"
-            ],
-            "default_radio": [
-                # Radio position (top right)
-                "radio"
+                # Take up entire page
+                ("page-main", 0, 0, 1, 1)
             ],
         }
 
         self.MODULE_CLASSES = {}
-        self.MODULE_RADIO = ""
-        self.MODULE_LOGOS = ""
 
     ## Methods
     def print_modules(this):
