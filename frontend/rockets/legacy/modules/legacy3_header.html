@@ -1,0 +1,15 @@
+<!-- Header visible on all pages -->
+<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50">
+    <div class="w-3/10">{% include 'rockets/' ~ active.MODULE_LOGOS %}</div>
+    <nav
+        class="navbar w-4/10 h-full grid grid-cols-{{active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
+    >
+        {% for page in active.PAGES %}
+        <a href="#{{page['id']}}">
+            <div class="icon {{page['icon']}}"></div>
+            <span>{{page['name']}}</span>
+        </a>
+        {% endfor %}
+    </nav>
+    <div class="w-3/10">{% include 'rockets/' ~ active.MODULE_RADIO %}</div>
+</header>

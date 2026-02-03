@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
     <head>
         <meta charset="utf-8" />
@@ -16,27 +16,40 @@
         <style>
             {{ active.CSS }}
         </style>
-        {% for stylesheet in active.STYLESHEETS %}
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="{{stylesheet}}"
-            media="screen"
-        />
-        {% endfor %}
     </head>
 
     <body
-        class="legacy w-screen h-screen max-w-screen max-h-screen text-white border-hive border-2 flex flex-col overflow-hidden"
+        class="legacy bg-hex w-screen h-screen max-w-screen max-h-screen text-white border-hive border-2 flex flex-col overflow-hidden"
     >
-        <!-- Main body grid -->
-        <!-- Size is dynamically allocated depending on the config -->
-        <!-- For Legacy and Atlas it's 12x12 (secretly 12x13 but the header is static) -->
-        <!-- For Horizon etc, it's 24x12, with each grid section being 80x75 pixels -->
+        <!-- Header visible on all pages -->
+        <header
+            class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50"
+        >
+            <div class="w-3/10">
+                {% include 'rockets/' ~ active.MODULE_LOGOS %}
+            </div>
+            <nav
+                class="navbar w-4/10 h-full grid grid-cols-{{active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
+            >
+                {% for page in active.PAGES %}
+                <a href="#{{page['id']}}">
+                    <div class="icon {{page['icon']}}"></div>
+                    <span>{{page['name']}}</span>
+                </a>
+                {% endfor %}
+            </nav>
+            <div class="w-3/10">
+                {% include 'rockets/' ~ active.MODULE_RADIO %}
+            </div>
+        </header>
+
+        <!-- Main grid (12x12) -->
+        <!-- Modules are loaded from separate files in templates/modules/ -->
         <main
-            class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
+            class="w-full max-w-full h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden grid grid-cols-12 grid-rows-12 grid-flow-col gap-4 px-4 py-2"
             id="{{active.PAGES[0]['id']}}"
         >
+            <!-- Adjust modules in config.py -->
             {% for module in active.MODULES %}
             <div
                 class="{{active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
@@ -45,25 +58,6 @@
             </div>
             {% endfor %}
         </main>
-
-        <!-- Footer with navigation buttons -->
-        <!--
-        <nav
-            class="w-screen max-w-screen min-h-[80px] h-[80px] border border-black"
-        >
-            <div class="flex flex-row justify-start items-center">
-                {% for page in active.PAGES %}
-                <a
-                    class="h-[80px] w-[80px] border-black border-2 border-collapse"
-                    href="#{{page['id']}}"
-                >
-                    <div class="icon {{page['icon']}} w-8 h-8"></div>
-                    <span>{{page['name']}}</span>
-                </a>
-                {% endfor %}
-            </div>
-        </nav>
-        -->
 
         <script src="/js/GCS_API.js"></script>
         <script src="/js/GCS_Display.js"></script>

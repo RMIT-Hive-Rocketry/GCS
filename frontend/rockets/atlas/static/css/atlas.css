@@ -1,0 +1,14 @@
+/* Hex background */
+html,
+body {
+    background-position: inherit;
+    background-origin: inherit;
+    background-repeat: repeat;
+    background: black url("/img/bg-hex.svg");
+}
+
+/* Override grid spacing so header has enough height */
+main {
+    gap: calc(var(--spacing) * 2);
+    grid-template-rows: calc(var(--spacing) * 24) repeat(12, minmax(0, 1fr)) !important;
+}

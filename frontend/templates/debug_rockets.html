@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8" />
@@ -50,7 +50,8 @@
                 text-align: center;
             }
             #debug-page-grid {
-                background-image: linear-gradient(
+                background-image:
+                    linear-gradient(
                         var(--color-hive-dark) 0 2px,
                         transparent 2px 100%
                     ),
@@ -59,7 +60,6 @@
                         var(--color-hive-dark) 0 2px,
                         transparent 2px 100%
                     );
-                background-size: calc(384px / 12) calc(180px / 12);
                 background-position: -1px -1px;
             }
         </style>
@@ -223,6 +223,22 @@
                                                 </table>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th>CSS</th>
+                                            <td>
+                                                <details closed>
+                                                    <summary
+                                                        class="text-legacy font-medium"
+                                                    >
+                                                        Generated CSS
+                                                    </summary>
+                                                    {% for line in
+                                                    rocketconfig.CSS.split('\n')
+                                                    %} {{ line }}<br />
+                                                    {% endfor %}
+                                                </details>
+                                            </td>
+                                        </tr>
                                     </table>
 
                                     <div
@@ -235,72 +251,27 @@
                                             >
                                                 {{ page.id }}
                                             </p>
+
                                             <div
-                                                class="outline-hive outline-2"
-                                                style="
-                                                    width: 384px;
-                                                    height: 216px;
-                                                "
+                                                id="debug-page-grid"
+                                                class="outline-hive outline-2 grid grid-rows-{{rocketconfig.GRID[1]}}"
+                                                style="width: 384px; height: 216px; grid-template-columns: repeat({{rocketconfig.GRID[0]}}, minmax(0, 1fr)); grid-template-rows: repeat({{rocketconfig.GRID[1]}}, minmax(0, 1fr)); background-size: calc(384px / {{rocketconfig.GRID[0]}}) calc(216px / {{rocketconfig.GRID[1]}});"
                                             >
+                                                {% for module in
+                                                rocketconfig.MODULE_PAGES %} {%
+                                                for module_page in
+                                                rocketconfig.MODULE_PAGES[module]
+                                                %} {% if module_page not in
+                                                ["logos", "radio"] and
+                                                module_page[0] == page.id %}
                                                 <div
-                                                    style="
-                                                        width: 384px;
-                                                        height: 36px;
-                                                    "
-                                                    class="flex flex-row gap-0"
+                                                    class="border-legacy-medium border bg-legacy-dark/20 text-sm"
+                                                    style="word-break: break-all; grid-column:{{module_page[1] + 1}} / span {{module_page[3]}}; grid-row: {{module_page[2] + 1}} / span {{module_page[4]}};"
                                                 >
-                                                    {% for module in
-                                                    rocketconfig.MODULE_PAGES %}
-                                                    {% for module_page in
-                                                    rocketconfig.MODULE_PAGES[module]
-                                                    %} {% if module_page ==
-                                                    "logos" %}
-                                                    <div
-                                                        class="text-sm w-28 h-full border-legacy-medium border-1 bg-legacy-dark/20"
-                                                    >
-                                                        {{module}}
-                                                    </div>
-                                                    {% endif %} {% endfor %} {%
-                                                    endfor %}
-                                                    <div class="grow"></div>
-                                                    {% for module in
-                                                    rocketconfig.MODULE_PAGES %}
-                                                    {% for module_page in
-                                                    rocketconfig.MODULE_PAGES[module]
-                                                    %} {% if module_page ==
-                                                    "radio" %}
-                                                    <div
-                                                        class="self-end text-sm w-28 h-full border-legacy-medium border-1 bg-legacy-dark/20"
-                                                    >
-                                                        {{module}}
-                                                    </div>
-                                                    {% endif %} {% endfor %} {%
-                                                    endfor %}
+                                                    {{ module }}
                                                 </div>
-                                                <div
-                                                    id="debug-page-grid"
-                                                    style="
-                                                        width: 384px;
-                                                        height: 180px;
-                                                    "
-                                                    class="grid grid-cols-12 grid-rows-12"
-                                                >
-                                                    {% for module in
-                                                    rocketconfig.MODULE_PAGES %}
-                                                    {% for module_page in
-                                                    rocketconfig.MODULE_PAGES[module]
-                                                    %} {% if module_page not in
-                                                    ["logos", "radio"] and
-                                                    module_page[0] == page.id %}
-                                                    <div
-                                                        class="border-legacy-medium border-1 bg-legacy-dark/20 text-sm"
-                                                        style="word-break: break-all; grid-column:{{module_page[1] + 1}} / span {{module_page[3]}}; grid-row: {{module_page[2] + 1}} / span {{module_page[4]}};"
-                                                    >
-                                                        {{ module }}
-                                                    </div>
-                                                    {% endif %} {% endfor %} {%
-                                                    endfor %}
-                                                </div>
+                                                {% endif %} {% endfor %} {%
+                                                endfor %}
                                             </div>
                                         </div>
 

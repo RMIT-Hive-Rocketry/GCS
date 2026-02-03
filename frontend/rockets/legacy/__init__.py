@@ -10,7 +10,9 @@ class ConfigLegacy3(Config):
         super().__init__()
 
         self.ROCKET_NAME = "Legacy III"
-        self.logo = "legacy/static/img/logo-legacy3.svg"
+        self.LOGO = "legacy/static/img/logo-legacy3.svg"
+        self.STYLESHEETS.extend(["legacy/static/css/legacy3.css"])
+        self.GRID = (12,13)
 
         # Inherit default modules and add legacy ones
         self.MODULES.extend(
@@ -18,6 +20,7 @@ class ConfigLegacy3(Config):
                 "legacy/modules/legacy3_auxiliary_gse.html",
                 "legacy/modules/legacy3_avionics_position.html",
                 "legacy/modules/legacy3_avionics.html",
+                "legacy/modules/legacy3_header.html",
                 "legacy/modules/legacy3_hmi.html",
                 "legacy/modules/legacy3_live_launchpad.html",
                 "legacy/modules/legacy3_live_rocket.html",
@@ -49,37 +52,45 @@ class ConfigLegacy3(Config):
         # Define module placements on each page
         self.MODULE_PAGES = {
             "legacy3_auxiliary_gse": [
-                ("page-main", 8, 4, 4, 8),
-                ("page-live-launchpad", 8, 4, 4, 8),
+                ("page-main", 8, 5, 4, 8),
+                ("page-live-launchpad", 8, 5, 4, 8),
             ],
             "legacy3_avionics_position": [
-                ("page-main", 0, 0, 4, 12),
-                ("page-live-rocket", 0, 0, 4, 12),
+                ("page-main", 0, 1, 4, 12),
+                ("page-live-rocket", 0, 1, 4, 12),
             ],
-            "legacy3_hmi": [("page-hmi", 0, 0, 12, 12)],
+            "legacy3_header": [
+                ("page-main", 0, 0, 12, 1),
+                ("page-live-launchpad", 0, 0, 12, 1),
+                ("page-live-rocket", 0, 0, 12, 1),
+                ("page-live-all", 0, 0, 12, 1),
+                ("page-ops", 0, 0, 12, 1),
+                ("page-hmi", 0, 0, 12, 1),
+            ],
+            "legacy3_hmi": [("page-hmi", 0, 1, 12, 12)],
             "legacy3_live_launchpad": [
-                ("page-live-launchpad", 0, 0, 8, 9),
-                ("page-live-all", 0, 0, 6, 8),
+                ("page-live-launchpad", 0, 1, 8, 9),
+                ("page-live-all", 0, 1, 6, 8),
             ],
             "legacy3_live_rocket": [
-                ("page-live-rocket", 4, 0, 8, 9),
-                ("page-live-all", 6, 0, 6, 8),
+                ("page-live-rocket", 4, 1, 8, 9),
+                ("page-live-all", 6, 1, 6, 8),
             ],
             "legacy3_logos": ["logos"],
-            "legacy3_ops_auxcontrols": [("page-ops", 4, 6, 4, 6)],
-            "legacy3_ops_continuitycheck": [("page-ops", 0, 0, 4, 6)],
-            "legacy3_ops_poptest": [("page-ops", 0, 6, 4, 6)],
-            "legacy3_ops_systemflags": [("page-ops", 8, 0, 4, 12)],
-            "legacy3_rocket": [("page-main", 4, 0, 4, 9)],
+            "legacy3_ops_auxcontrols": [("page-ops", 4, 7, 4, 6)],
+            "legacy3_ops_continuitycheck": [("page-ops", 0, 1, 4, 6)],
+            "legacy3_ops_poptest": [("page-ops", 0, 7, 4, 6)],
+            "legacy3_ops_systemflags": [("page-ops", 8, 1, 4, 12)],
+            "legacy3_rocket": [("page-main", 4, 1, 4, 9)],
             "legacy3_timeline": [
-                ("page-main", 4, 9, 4, 3),
-                ("page-live-launchpad", 0, 9, 8, 3),
-                ("page-live-rocket", 4, 9, 8, 3),
-                ("page-live-all", 2, 8, 8, 4),
+                ("page-main", 4, 10, 4, 3),
+                ("page-live-launchpad", 0, 10, 8, 3),
+                ("page-live-rocket", 4, 10, 8, 3),
+                ("page-live-all", 2, 9, 8, 4),
             ],
             "default_errorlog": [
-                ("page-main", 8, 0, 4, 4),
-                ("page-live-launchpad", 8, 0, 4, 4),
+                ("page-main", 8, 1, 4, 4),
+                ("page-live-launchpad", 8, 1, 4, 4),
             ],
             "default_radio": ["radio"],
         }
