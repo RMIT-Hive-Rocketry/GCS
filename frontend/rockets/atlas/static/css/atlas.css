@@ -1,14 +1,18 @@
-/* Hex background */
-html,
-body {
+/* Apply to atlas rocket */
+body.atlas {
+    /* Hex background */
     background-position: inherit;
     background-origin: inherit;
     background-repeat: repeat;
     background: black url("/img/bg-hex.svg");
+
+    /* Border and text colour */
+    color: white;
+    border: 2px solid var(--color-atlas);
 }
 
 /* Override grid spacing so header has enough height */
-main {
+.atlas main {
     gap: calc(var(--spacing) * 2);
     grid-template-rows: calc(var(--spacing) * 24) repeat(12, minmax(0, 1fr)) !important;
 }

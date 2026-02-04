@@ -1,3 +1,19 @@
+<style>
+    /* Only apply to rocket selector page */
+    body.default {
+        color: white;
+        border: 2px solid var(--color-hive-dark);
+        padding: 8px;
+
+        /* Hex background */
+        background-position: inherit;
+        background-origin: inherit;
+        background-repeat: repeat;
+        background: black url("/img/bg-hex-orange.svg");
+        background-size: 100%;
+    }
+</style>
+
 <!-- Example module -->
 <div class="module-default">
     <h2>Rocket Selector</h2>
@@ -16,9 +32,9 @@
                 >
                     <span>{{rocket.name}}</span>
                     <img
-                        src="{{rocket.configs[0].logo}}"
+                        src="{{rocket.configs[0].LOGO}}"
                         alt="{{rocket.name}} Logo"
-                        class="max-w-full max-h-32 mt-2 grow p-2"
+                        class="max-w-full max-h-32 mt-2 grow p-2 object-contain"
                     />
                 </a>
                 {% endif %} {% endfor %}

@@ -11,7 +11,7 @@ class ConfigHorizon(Config):
         super().__init__()
 
         self.ROCKET_NAME = "Horizon"
-        self.LOGO = "horizon/static/img/logo-horizon.png"
+        self.LOGO = "horizon/static/img/logo-horizon-gradient.png"
         self.GRID = (24,12)
 
         # Load Atlas modules
