@@ -71,17 +71,19 @@ def create_app():
     def index():
         # Get active rocket config default
         active = app.config.get("default")
+        name = ""
 
         # Check for config override via URL parameter
-        rocket = request.args.get("rocket", None)
+        rocket = request.args.get("rocket", "default")
         if rocket != None:
             for r in app.config.get("rockets"):
                 if r.name == rocket:
                     active = r.configs[0]
+                    name = r.name
                     break
 
         return render_template(
-            "/templates/layout.html", config=app.config, active=active
+            "/templates/layout.html", config=app.config, active=active, name=name
         )
 
     """

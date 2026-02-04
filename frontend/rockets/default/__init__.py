@@ -8,10 +8,10 @@ Defines default modules, pages, and layout
 # DEFAULT ROCKET CONFIGURATION
 class Config(object):
     def __init__(self):
-        self.ROCKET_NAME = "Default"
+        self.ROCKET_NAME = "ROCKET SELECTOR"
         self.LOGO = ""
         self.GRID = (1,1)
-        self.STYLESHEETS = []
+        self.STYLESHEETS = ["default/static/css/rocket_selector.css"]
 
         # List of modules used by the rocket
         # PATH = "default/modules/"
