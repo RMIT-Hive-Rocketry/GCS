@@ -237,6 +237,8 @@ function graphResize(chart) {
 function graphRender(chart) {
     if (
         chart &&
+        chart?.initialized !== false &&
+        chart?.g &&
         chart?.x &&
         chart?.lines &&
         typeof timestampLocal !== "undefined"
@@ -372,6 +374,8 @@ function graphRender(chart) {
                     .attr("d", line);
             });
         }
+    } else {
+        console.log("graphRender: chart not ready", chart);
     }
 }
 
@@ -416,8 +420,8 @@ function graphAddValue(graph, line, timestamp, value) {
     //graph.lines[line].data.push({ x: timestamp, y: value});
 }
 
-window.addEventListener("DOMContentLoaded", function () {
-    // Build D3 chart
+function graphInit() {
+    // Build D3 charts
     graphCreateLine(GRAPH_AV_ACCEL, 3);
     graphCreateLine(GRAPH_AV_GYRO, 3);
     graphCreateLine(GRAPH_AV_VELOCITY, 1);
@@ -428,7 +432,17 @@ window.addEventListener("DOMContentLoaded", function () {
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES, 4);
     graphCreateLine(GRAPH_AUX_INTERNALTEMP, 1);
     graphCreateLine(GRAPH_AUX_GASBOTTLES, 2);
-});
+
+    window.graphsInitialized = true;
+
+    console.log("Graphs initialized");
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", graphInit);
+} else {
+    graphInit();
+}
 
 // Update modules
 function graphUpdateAvionics(data) {

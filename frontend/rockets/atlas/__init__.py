@@ -11,9 +11,9 @@ class ConfigAtlas(Config):
         super().__init__()
 
         self.ROCKET_NAME = "Atlas"
-        self.LOGO = "atlas/static/img/logo-atlas.png"
+        self.LOGO = "atlas/static/img/atlas-name.png"
         self.STYLESHEETS.extend(["atlas/static/css/atlas.css"])
-        self.GRID = (12,13)
+        self.GRID = (12, 13)
 
         # Load Atlas modules
         self.MODULES.extend(
