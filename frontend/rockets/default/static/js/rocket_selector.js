@@ -20,7 +20,7 @@ window.addEventListener("DOMContentLoaded", () => {
         },
         atlas: {
             model: "/atlas/static/assets/rocket_atlas.glb",
-            scale: 3.45,
+            scale: 3.42,
         },
         horizon: {
             model: "",

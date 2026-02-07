@@ -84,7 +84,7 @@ function graphCreateLine(chart, numLines) {
 
     // Make sure chart exists
     if (chart.svg.node() == null) {
-        return
+        return;
     }
 
     // Dynamic graph size initialisation
@@ -109,7 +109,7 @@ function graphCreateLine(chart, numLines) {
         .append("g")
         .attr(
             "transform",
-            `translate(${chart.margin.left},${chart.margin.top})`
+            `translate(${chart.margin.left},${chart.margin.top})`,
         );
 
     // Create and style the x and y axis
@@ -120,7 +120,7 @@ function graphCreateLine(chart, numLines) {
         .call(
             d3
                 .axisBottom(chart.x)
-                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
@@ -134,7 +134,7 @@ function graphCreateLine(chart, numLines) {
             d3
                 .axisLeft(chart.y)
                 .ticks(GRAPH_TICKS_Y)
-                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
@@ -162,12 +162,15 @@ function graphCreateLine(chart, numLines) {
     const resizeObserver = new ResizeObserver((entries) => {
         for (let entry of entries) {
             const { width, height } = entry.contentRect;
-            chart.width = width;
-            chart.height = height;
+            console.log(entry, entry.contentRect);
+            chart.width = 100; //Math.min(width, 1920);
+            chart.height = 100; //Math.min(height, 1080);
             graphResize(chart); // Call resize handler
         }
     });
     resizeObserver.observe(chart.svg.node().parentElement);
+
+    chart.initialised = true;
 }
 
 // Render static graph from CSV
@@ -214,7 +217,7 @@ function graphResize(chart) {
         .call(
             d3
                 .axisBottom(chart.x)
-                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         );
 
     chart.y.range([chart.graphHeight, 0]);
@@ -222,11 +225,11 @@ function graphResize(chart) {
         d3
             .axisLeft(chart.y)
             .ticks(GRAPH_TICKS_Y)
-            .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+            .tickFormat((d) => (Number.isInteger(d) ? d : "")),
     );
     chart.yAxisLabel.attr(
         "x",
-        -Math.round(chart.graphHeight / 2) - chart.margin.top
+        -Math.round(chart.graphHeight / 2) - chart.margin.top,
     );
 
     // Re-render
@@ -235,9 +238,21 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
+    /*
+    console.log("graphRender");
+    console.log("\tchart", chart);
+    console.log("\tchart.g", chart?.g);
+    console.log("\tchart.x", chart?.x);
+    console.log("\tchart.lines", chart?.lines);*/
+
+    if (!window.graphsInitialised) {
+        return;
+    }
+
     if (
         chart &&
-        chart?.initialized !== false &&
+        typeof chart?.initialised !== "undefined" &&
+        chart?.initialised !== false &&
         chart?.g &&
         chart?.x &&
         chart?.lines &&
@@ -247,20 +262,18 @@ function graphRender(chart) {
         const now = Math.max(
             d3.max(
                 chart.lines.flatMap((line) => line.data),
-                (d) => d.x
+                (d) => d.x,
             ),
-            timestampLocal + timestampApiConnect - timeDrift
+            timestampLocal + timestampApiConnect - timeDrift,
         );
 
         const windowStart = now - MAX_TIME;
 
         if (chart.lastRender != now) {
-            chart.lastRender = now;
-
             // Limit data to graph window
             chart.lines.forEach((line) => {
                 line.data = line.data.filter(
-                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE
+                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
                 );
             });
             const allPoints = chart.lines.flatMap((line) => line.data);
@@ -272,7 +285,7 @@ function graphRender(chart) {
                     d3.min(allPoints, (d) => d.y) - 1,
                     chart?.limits?.yBottomMax != undefined
                         ? chart?.limits?.yBottomMax
-                        : Infinity
+                        : Infinity,
                 ),
                 d3.max(allPoints, (d) => d.y) + 1,
             ]); //.nice();
@@ -290,7 +303,7 @@ function graphRender(chart) {
                     d3
                         .axisLeft(chart.y)
                         .ticks(GRAPH_TICKS_Y)
-                        .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                        .tickFormat((d) => (Number.isInteger(d) ? d : "")),
                 );
 
             // De-emphasize hidden non-integer axis values
@@ -327,11 +340,11 @@ function graphRender(chart) {
                                 .attr("d", symbolCircle)
                                 .attr(
                                     "transform",
-                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`
+                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`,
                                 )
                                 .attr(
                                     "fill",
-                                    lineData.color || LINE_COLOURS[index]
+                                    lineData.color || LINE_COLOURS[index],
                                 );
                         } else if (!d.next || !d.prev) {
                             chart.g
@@ -340,11 +353,11 @@ function graphRender(chart) {
                                 .attr("d", symbolCircle) // Make cross?
                                 .attr(
                                     "transform",
-                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`
+                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`,
                                 )
                                 .attr(
                                     "fill",
-                                    lineData.color || LINE_COLOURS[index]
+                                    lineData.color || LINE_COLOURS[index],
                                 );
                         }
                     }
@@ -363,8 +376,8 @@ function graphRender(chart) {
                     .append("path")
                     .datum(
                         lineData.data.filter(
-                            (d) => d.x >= windowStart && d.x <= now
-                        )
+                            (d) => d.x >= windowStart && d.x <= now,
+                        ),
                     )
                     .attr("class", "line-path")
                     .attr("fill", "none")
@@ -373,6 +386,9 @@ function graphRender(chart) {
                     .attr("stroke-linecap", "round")
                     .attr("d", line);
             });
+
+            // Update last render time
+            chart.lastRender = now;
         }
     } else {
         console.log("graphRender: chart not ready", chart);
@@ -433,9 +449,9 @@ function graphInit() {
     graphCreateLine(GRAPH_AUX_INTERNALTEMP, 1);
     graphCreateLine(GRAPH_AUX_GASBOTTLES, 2);
 
-    window.graphsInitialized = true;
+    window.graphsInitialised = true;
 
-    console.log("Graphs initialized");
+    console.log("Graphs initialised");
 }
 
 if (document.readyState === "loading") {
@@ -490,25 +506,25 @@ function graphUpdateAuxData(data) {
             GRAPH_AUX_THERMOCOUPLES,
             0,
             timestamp,
-            data.thermocouple1
+            data.thermocouple1,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             1,
             timestamp,
-            data.thermocouple2
+            data.thermocouple2,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             2,
             timestamp,
-            data.thermocouple3
+            data.thermocouple3,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             3,
             timestamp,
-            data.thermocouple4
+            data.thermocouple4,
         );
 
         // Internal temperature
@@ -519,13 +535,13 @@ function graphUpdateAuxData(data) {
             GRAPH_AUX_GASBOTTLES,
             0,
             timestamp,
-            data.gasBottleWeight1
+            data.gasBottleWeight1,
         );
         graphAddValue(
             GRAPH_AUX_GASBOTTLES,
             1,
             timestamp,
-            data.gasBottleWeight2
+            data.gasBottleWeight2,
         );
     }
 }

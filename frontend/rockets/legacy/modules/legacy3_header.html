@@ -1,6 +1,8 @@
 <!-- Header visible on all pages -->
 <header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50">
-    <div class="w-3/10">{% include 'rockets/' ~ active.MODULE_LOGOS %}</div>
+    <div class="w-3/10">
+        {% include 'rockets/legacy/modules/legacy3_logos.html' %}
+    </div>
     <nav
         class="navbar w-4/10 h-full grid grid-cols-{{active.PAGES|length}} bg-navbar px-[3%] p-2 gap-2 font-medium text-center items-center text-sm"
     >
@@ -11,5 +13,7 @@
         </a>
         {% endfor %}
     </nav>
-    <div class="w-3/10">{% include 'rockets/' ~ active.MODULE_RADIO %}</div>
+    <div class="w-3/10">
+        {% include 'rockets/default/modules/default_radio.html' %}
+    </div>
 </header>
