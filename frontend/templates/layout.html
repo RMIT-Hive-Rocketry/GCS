@@ -29,10 +29,9 @@
     <body
         class="{{name}} w-screen h-screen max-w-screen max-h-screen flex flex-col overflow-hidden"
     >
-        <!-- Main body grid -->
-        <!-- Size is dynamically allocated depending on the config -->
-        <!-- For Legacy and Atlas it's 12x12 (secretly 12x13 but the header is static) -->
-        <!-- For Horizon etc, it's 24x12, with each grid section being 80x75 pixels -->
+        <!-- Main body grid, size is dynamically allocated depending on the config -->
+        <!-- For Legacy3, Atlas it's 12x12 (secretly 12x13 but the header is static) -->
+        <!-- For Horizon it's 24x12, with each grid section being ~80x75 pixels -->
         <main
             class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
             id="{{active.PAGES[0]['id']}}"
@@ -65,6 +64,15 @@
         </nav>
         -->
 
+        <!--
+        I would like to eventually replace GCS_Display with code in the API 
+         for registering HTML elements to data key pairs, adding those to a big
+         list or something and then doing it computationally rather than hard-coding
+         everything in the display.js file.
+
+        This should vastly reduce the number of checks we need to make to see if
+         HTML elements exist and also reduce the need for so much repetition and monolithy.
+        -->
         <script src="/js/GCS_API.js"></script>
         <script src="/js/GCS_Display.js"></script>
         <script src="/js/GCS_Testing.js"></script>

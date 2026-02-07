@@ -10,15 +10,20 @@
     --color-atlas: #5bb4f0;
     --color-atlas-medium: #1a4374;
     --color-atlas-dark: #001540;
+    --color-horizon-yellow: #ffd931;
+    --color-horizon-pink: #f63356;
+    --color-horizon-mauve: #9e193c;
 }
 
 @keyframes pulseError {
-    0%, 100% {
+    0%,
+    100% {
         /* Darker colour */
         background-color: var(--color-red-800);
         border-color: var(--color-red-600);
         /*background-size: 80% 80%;*/
-        filter: drop-shadow(0 0 2px var(--color-red-700)) drop-shadow(0 0 5px var(--color-red-800));
+        filter: drop-shadow(0 0 2px var(--color-red-700))
+            drop-shadow(0 0 5px var(--color-red-800));
     }
 
     50% {
@@ -26,12 +31,13 @@
         background-color: var(--color-red-600);
         border-color: var(--color-white);
         /*background-size: 120% 120%;*/
-        filter: drop-shadow(0 0 5px var(--color-red-500)) drop-shadow(0 0 10px var(--color-red-600));
+        filter: drop-shadow(0 0 5px var(--color-red-500))
+            drop-shadow(0 0 10px var(--color-red-600));
     }
 }
 
 @layer base {
-    *[class^=module-] {
+    *[class^="module-"] {
         @apply w-full max-w-full h-full max-h-full relative flex flex-col gap-2 border-hive-dark text-white text-base font-mono;
 
         & h2:first-of-type {
@@ -42,14 +48,14 @@
     .module-legacy {
         & h2:first-of-type::after {
             @apply text-legacy-dark pl-2;
-            content: 'LEGACY III';
+            content: "LEGACY III";
         }
     }
 
     .module-atlas {
         & h2:first-of-type::after {
             @apply text-atlas-medium pl-2;
-            content: 'ATLAS';
+            content: "ATLAS";
         }
     }
 
@@ -71,7 +77,7 @@
 
         &::before {
             @apply text-hive;
-            content: '< ';
+            content: "< ";
         }
 
         &::after {
@@ -98,7 +104,6 @@
 }
 
 @layer components {
-
     /* Main layout components */
     .module {
         @apply flex justify-center items-center overflow-y-auto;
@@ -137,28 +142,28 @@
         mask-size: contain;
 
         &.icon-rocket {
-            -webkit-mask-image: url('/img/icons/rocket.svg');
-            mask-image: url('/img/icons/rocket.svg');
+            -webkit-mask-image: url("/img/icons/rocket.svg");
+            mask-image: url("/img/icons/rocket.svg");
         }
 
         &.icon-gamepad {
-            -webkit-mask-image: url('/img/icons/gamepad.svg');
-            mask-image: url('/img/icons/gamepad.svg');
+            -webkit-mask-image: url("/img/icons/gamepad.svg");
+            mask-image: url("/img/icons/gamepad.svg");
         }
 
         &.icon-video-camera {
-            -webkit-mask-image: url('/img/icons/video-camera.svg');
-            mask-image: url('/img/icons/video-camera.svg');
+            -webkit-mask-image: url("/img/icons/video-camera.svg");
+            mask-image: url("/img/icons/video-camera.svg");
         }
 
         &.icon-sitemap {
-            -webkit-mask-image: url('/img/icons/sitemap.svg');
-            mask-image: url('/img/icons/sitemap.svg');
+            -webkit-mask-image: url("/img/icons/sitemap.svg");
+            mask-image: url("/img/icons/sitemap.svg");
         }
 
         &.icon-dashboard {
-            -webkit-mask-image: url('/img/icons/dashboard.svg');
-            mask-image: url('/img/icons/dashboard.svg');
+            -webkit-mask-image: url("/img/icons/dashboard.svg");
+            mask-image: url("/img/icons/dashboard.svg");
         }
     }
 
@@ -172,22 +177,26 @@
 
         &.green {
             @apply bg-green-400 border-green-800;
-            filter: drop-shadow(0 0 5px var(--color-green-600)) drop-shadow(0 0 10px var(--color-green-600));
+            filter: drop-shadow(0 0 5px var(--color-green-600))
+                drop-shadow(0 0 10px var(--color-green-600));
         }
 
         &.yellow {
             @apply bg-yellow-400 border-yellow-800;
-            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
+            filter: drop-shadow(0 0 5px var(--color-yellow-600))
+                drop-shadow(0 0 10px var(--color-yellow-600));
         }
 
         &.red {
             @apply bg-red-600 border-red-900;
-            filter: drop-shadow(0 0 5px var(--color-red-600)) drop-shadow(0 0 10px var(--color-red-600));
+            filter: drop-shadow(0 0 5px var(--color-red-600))
+                drop-shadow(0 0 10px var(--color-red-600));
         }
 
         &.timeout {
             @apply bg-yellow-700 border-yellow-500 border-2 animate-[spin_5s_linear_infinite];
-            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
+            filter: drop-shadow(0 0 5px var(--color-yellow-600))
+                drop-shadow(0 0 10px var(--color-yellow-600));
             background-image: url("/img/icons/hourglass.svg");
             background-size: 50% 50%;
             background-position: center center;
@@ -209,7 +218,7 @@
 
         &::before {
             @apply absolute z-10 w-[calc(100%-2.25rem)] h-1/3 top-1/3 border-y border-green-500 bg-green-700;
-            content: '';
+            content: "";
         }
 
         &::before {
@@ -220,7 +229,7 @@
             @apply hidden;
         }
 
-        &.hidden+.indicator-flightstate::before {
+        &.hidden + .indicator-flightstate::before {
             @apply hidden;
         }
 
@@ -231,15 +240,20 @@
         &.active {
             & .indicator-state {
                 @apply w-12 h-12 max-w-12 max-h-12 my-0 bg-green-400 border-green-300 z-20;
-                filter: drop-shadow(0 0 5px var(--color-green-400)) drop-shadow(0 0 10px var(--color-green-400));
+                filter: drop-shadow(0 0 5px var(--color-green-400))
+                    drop-shadow(0 0 10px var(--color-green-400));
             }
 
             &::before {
-                background: linear-gradient(90deg, var(--color-green-700) 10%, var(--color-green-400) 100%);
+                background: linear-gradient(
+                    90deg,
+                    var(--color-green-700) 10%,
+                    var(--color-green-400) 100%
+                );
             }
         }
 
-        &.active~.indicator-flightstate {
+        &.active ~ .indicator-flightstate {
             & .indicator-state {
                 @apply z-5;
                 filter: none;
@@ -277,42 +291,42 @@
 
     .continuity-button {
         @apply cursor-pointer;
-        background-image: url('/legacy/static/img/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/button-continuity.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
 
         &:hover {
-            background-image: url('/legacy/static/img/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/legacy/static/img/single-operator/button-continuity-hover.svg#svgView(preserveAspectRatio(none))");
         }
 
         &:active {
-            background-image: url('/legacy/static/img/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/legacy/static/img/single-operator/button-continuity-active.svg#svgView(preserveAspectRatio(none))");
         }
     }
 
     .continuity-variables-middle {
-        @apply flex flex-row items-center justify-center border-r-1 border-hive-dark p-2
+        @apply flex flex-row items-center justify-center border-r-1 border-hive-dark p-2;
     }
 
     .continuity-variables-right {
-        @apply flex flex-row items-center justify-center p-2
+        @apply flex flex-row items-center justify-center p-2;
     }
 
     /* Pop Test (Single Operator) */
     .pop_selector {
-        background-image: url('/legacy/static/img/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/selector-active.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
         @apply cursor-pointer;
     }
 
-    input:checked+label.pop_selector {
+    input:checked + label.pop_selector {
         opacity: 100%;
     }
 
     .pop_button_inactive {
-        background-image: url('/legacy/static/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
@@ -320,23 +334,23 @@
 
     .pop_button_active {
         @apply cursor-pointer;
-        background-image: url('/legacy/static/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/button-pop.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 100%;
 
         &:hover {
-            background-image: url('/legacy/static/img/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/legacy/static/img/single-operator/button-pop-hover.svg#svgView(preserveAspectRatio(none))");
         }
 
         &:active {
-            background-image: url('/legacy/static/img/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/legacy/static/img/single-operator/button-pop-active.svg#svgView(preserveAspectRatio(none))");
         }
     }
 
     /* Aux System Buttons (Single Operator). Switche referenced from https://www.w3schools.com/howto/howto_css_switch.asp*/
     .solenoid_button_inactive {
-        background-image: url('/legacy/static/img/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/button-solenoid-disabled.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 60%;
@@ -345,17 +359,17 @@
 
     .solenoid_button_active {
         @apply cursor-pointer;
-        background-image: url('/legacy/static/img/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/button-solenoid.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
         opacity: 100%;
 
         &:hover {
-            background-image: url('/legacy/static/img/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/legacy/static/img/single-operator/button-solenoid-hover.svg#svgView(preserveAspectRatio(none))");
         }
 
         &:active {
-            background-image: url('/legacy/static/img/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))');
+            background-image: url("/legacy/static/img/single-operator/button-solenoid-active.svg#svgView(preserveAspectRatio(none))");
         }
     }
 
@@ -380,8 +394,8 @@
         right: 0;
         bottom: 0;
         background-color: #444;
-        -webkit-transition: .4s;
-        transition: .4s;
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
 
         &:before {
             position: absolute;
@@ -391,8 +405,8 @@
             left: 4px;
             bottom: 4px;
             background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
+            -webkit-transition: 0.4s;
+            transition: 0.4s;
         }
 
         /* Rounded sliders */
@@ -406,7 +420,7 @@
     }
 
     input {
-        &:checked+.slider {
+        &:checked + .slider {
             background-color: var(--color-emerald-500);
 
             &:before {
@@ -417,12 +431,12 @@
             }
         }
 
-        &:focus+.slider {
+        &:focus + .slider {
             box-shadow: 0 0 1px var(--color-emerald-500);
         }
 
         /* Disabled state */
-        &:disabled+.slider {
+        &:disabled + .slider {
             background-color: #444;
             cursor: not-allowed;
             opacity: 60%;
@@ -434,7 +448,7 @@
     }
 
     .aux_modal {
-        background-image: url('/legacy/static/img/single-operator/modal.svg#svgView(preserveAspectRatio(none))');
+        background-image: url("/legacy/static/img/single-operator/modal.svg#svgView(preserveAspectRatio(none))");
         background-size: 100% 100%;
         background-repeat: no-repeat;
     }
