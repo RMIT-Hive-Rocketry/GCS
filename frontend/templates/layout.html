@@ -27,7 +27,7 @@
     </head>
 
     <body
-        class="{{name}} w-screen h-screen max-w-screen max-h-screen flex flex-col overflow-hidden"
+        class="{{name}} max-w-screen max-h-screen w-screen h-screen flex flex-col overflow-hidden"
     >
         <!-- Main body grid, size is dynamically allocated depending on the config -->
         <!-- For Legacy3, Atlas it's 12x12 (secretly 12x13 but the header is static) -->
@@ -36,13 +36,14 @@
             class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
             id="{{active.PAGES[0]['id']}}"
         >
-            {% for module in active.MODULES %}
+            {% for module in active.MODULES %} {% if
+            module.split("/")[-1].split(".")[0] in active.MODULE_PAGES %}
             <div
                 class="{{active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
             >
                 {% include 'rockets/' ~ module %}
             </div>
-            {% endfor %}
+            {% endif %} {% endfor %}
         </main>
 
         <!-- Footer with navigation buttons -->

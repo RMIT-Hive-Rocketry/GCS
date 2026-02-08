@@ -75,6 +75,7 @@ const GRAPH_AUX_GASBOTTLES = {
     ylabel: "Mass (kg)",
 };
 
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
 
 // Create and initialise line graphs
@@ -160,15 +161,16 @@ function graphCreateLine(chart, numLines) {
 
     // ResizeObserver (for dynamic graph resizing)
     const resizeObserver = new ResizeObserver((entries) => {
+        console.log(entries);
         for (let entry of entries) {
             const { width, height } = entry.contentRect;
             console.log(entry, entry.contentRect);
-            chart.width = 100; //Math.min(width, 1920);
-            chart.height = 100; //Math.min(height, 1080);
+            chart.width = clamp(width, 50, 1920);
+            chart.height = clamp(height, 50, 1080);
             graphResize(chart); // Call resize handler
         }
     });
-    resizeObserver.observe(chart.svg.node().parentElement);
+    resizeObserver.observe(chart.svg.node());
 
     chart.initialised = true;
 }
