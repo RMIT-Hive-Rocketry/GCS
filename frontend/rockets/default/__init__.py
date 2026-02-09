@@ -10,21 +10,13 @@ class Config(object):
     def __init__(self):
         self.ROCKET_NAME = "ROCKET SELECTOR"
         self.LOGO = ""
-        self.GRID = (1,1)
+        self.GRID = (1, 1)
         self.STYLESHEETS = ["default/static/css/rocket_selector.css"]
 
         # List of modules used by the rocket
         # PATH = "default/modules/"
         self.MODULES = [
             "default/modules/rocket_selector.html",
-            "default/modules/default_avionics.html",
-            "default/modules/default_camera.html",
-            "default/modules/default_errorlog.html",
-            "default/modules/default_gse.html",
-            "default/modules/default_logos.html",
-            "default/modules/default_position.html",
-            "default/modules/default_radio.html",
-            "default/modules/default_timeline.html",
         ]
 
         # List of pages in the interface

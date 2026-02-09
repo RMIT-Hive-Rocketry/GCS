@@ -12,18 +12,16 @@ class ConfigHorizon(Config):
 
         self.ROCKET_NAME = "Horizon"
         self.LOGO = "horizon/static/img/logo-horizon-gradient.png"
-        self.GRID = (24,12)
+        self.STYLESHEETS = []
+        self.GRID = (24, 12)
 
-        # Load Atlas modules
-        self.MODULES.extend([])
+        # Load Horizon modules
+        self.MODULES = ["horizon/modules/horizon_logos.html"]
 
-        # Define pages for Atlas
+        # Define pages for Horizon
         self.PAGES = [
             {"name": "Main Interface", "icon": "icon-rocket", "id": "page-main"},
         ]
 
         # Module positioning on each page
-        self.MODULE_PAGES = {
-            "default_radio": ["radio"],
-            "default_logos": ["logos"],
-        }
+        self.MODULE_PAGES = {}

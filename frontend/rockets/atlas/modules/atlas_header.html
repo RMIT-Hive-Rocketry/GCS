@@ -15,7 +15,8 @@
                 src="/img/logo-hive.256.png"
                 width="256"
                 height="256"
-                class="max-h-20 w-auto h-auto"
+                class="max-h-20 w-auto h-auto cursor-pointer"
+                onclick="window.location.href = '/'"
             />
             <img
                 src="/atlas/static/img/logo-atlas.png"
@@ -35,6 +36,68 @@
         />
     </div>
     <div class="w-3/10">
-        {% include 'rockets/default/modules/default_radio.html' %}
+        <!-- Radio module -->
+        <div class="module-default p-2 gap-2 justify-center">
+            <div class="w-full flex gap-4 justify-start items-center">
+                <p class="font-bold text-hive">&nbsp;AV</p>
+                <div class="indicator-state mx-0 radio-av-state timeout"></div>
+                <div class="flex flex-row gap-2 grow justify-between">
+                    <label>
+                        RSSI:<input
+                            readonly
+                            autocomplete="off"
+                            class="radio-av-rssi text-right"
+                            size="4"
+                        />dBm
+                    </label>
+                    <label>
+                        SNR:<input
+                            readonly
+                            autocomplete="off"
+                            class="radio-av-snr"
+                            size="4"
+                        />
+                    </label>
+                    <label>
+                        Packets:<input
+                            readonly
+                            autocomplete="off"
+                            class="radio-av-packets text-right"
+                            size="11"
+                        />
+                    </label>
+                </div>
+            </div>
+            <div class="w-full flex gap-4 justify-between items-center">
+                <p class="font-bold text-hive">GSE</p>
+                <div class="indicator-state mx-0 radio-gse-state timeout"></div>
+                <div class="flex flex-row gap-2 grow justify-between">
+                    <label>
+                        RSSI:<input
+                            readonly
+                            autocomplete="off"
+                            class="radio-gse-rssi text-right"
+                            size="4"
+                        />dBm
+                    </label>
+                    <label>
+                        SNR:<input
+                            readonly
+                            autocomplete="off"
+                            class="radio-gse-snr"
+                            size="4"
+                        />
+                    </label>
+                    <label>
+                        Packets:<input
+                            readonly
+                            autocomplete="off"
+                            class="radio-gse-packets text-right"
+                            size="11"
+                        />
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 </header>
