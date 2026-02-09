@@ -161,10 +161,8 @@ function graphCreateLine(chart, numLines) {
 
     // ResizeObserver (for dynamic graph resizing)
     const resizeObserver = new ResizeObserver((entries) => {
-        console.log(entries);
         for (let entry of entries) {
             const { width, height } = entry.contentRect;
-            console.log(entry, entry.contentRect);
             chart.width = width;
             chart.height = height;
             graphResize(chart); // Call resize handler
@@ -382,7 +380,7 @@ function graphRender(chart) {
             chart.lastRender = now;
         }
     } else {
-        console.log("graphRender: chart not ready", chart);
+        //console.log("graphRender: chart not ready", chart);
     }
 }
 

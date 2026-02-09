@@ -49,25 +49,31 @@
             <div class="flex gap-4 items-center px-2 justify-evenly text-sm">
                 <label>
                     X:<input
+                        data-key="data.accelX"
+                        data-precision="1"
                         readonly
                         autocomplete="off"
-                        class="av-accel-x border-b-red-500 border-b-2 text-right"
+                        class="border-b-red-500 border-b-2 text-right"
                         size="6"
                     />
                 </label>
                 <label>
                     Y:<input
+                        data-key="data.accelY"
+                        data-precision="1"
                         readonly
                         autocomplete="off"
-                        class="av-accel-y border-b-green-500 border-b-2 text-right"
+                        class="border-b-green-500 border-b-2 text-right"
                         size="6"
                     />
                 </label>
                 <label>
                     Z:<input
+                        data-key="data.accelZ"
+                        data-precision="1"
                         readonly
                         autocomplete="off"
-                        class="av-accel-z border-b-blue-500 border-b-2 text-right"
+                        class="border-b-blue-500 border-b-2 text-right"
                         size="6"
                     />
                 </label>
@@ -88,23 +94,29 @@
             <div class="flex gap-4 items-center px-2 justify-evenly text-sm">
                 <label
                     >X:<input
+                        data-key="data.gyroX"
+                        data-precision="1"
                         readonly
                         autocomplete="off"
-                        class="av-gyro-x border-b-red-500 border-b-2 text-right"
+                        class="border-b-red-500 border-b-2 text-right"
                         size="6"
                 /></label>
                 <label
                     >Y:<input
+                        data-key="data.gyroY"
+                        data-precision="1"
                         readonly
                         autocomplete="off"
-                        class="av-gyro-y border-b-green-500 border-b-2 text-right"
+                        class="border-b-green-500 border-b-2 text-right"
                         size="6"
                 /></label>
                 <label
                     >Z:<input
+                        data-key="data.gyroZ"
+                        data-precision="1"
                         readonly
                         autocomplete="off"
-                        class="av-gyro-z border-b-blue-500 border-b-2 text-right"
+                        class="border-b-blue-500 border-b-2 text-right"
                         size="6"
                 /></label>
             </div>
@@ -125,23 +137,28 @@
         <div class="flex flex-row gap-4 grow justify-around px-2 items-center">
             <label>
                 Vertical Speed:&nbsp;<input
+                    data-key="data.velocity"
+                    data-precision="1"
                     readonly
                     size="10"
                     autocomplete="off"
-                    class="border-b-red-500 border-b-2 av-velocity"
+                    class="border-b-red-500 border-b-2"
                 />m/s&nbsp;&nbsp;<input
+                    data-key="data.velocityFeet"
+                    data-precision="0"
                     readonly
                     size="10"
                     autocomplete="off"
-                    class="text-center av-velocity-ft"
+                    class="text-center"
                 />ft/s
             </label>
             <label>
                 Mach:<input
+                    data-key="data.mach_number"
+                    data-precision="2"
                     readonly
                     size="6"
                     autocomplete="off"
-                    class="av-mach"
                 />
             </label>
         </div>

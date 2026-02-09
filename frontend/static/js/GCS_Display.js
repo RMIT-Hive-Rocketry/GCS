@@ -11,6 +11,68 @@ var verboseLogging = false;
 const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 const timeouts = {};
 
+// Register elements to listen for API updates
+const registry = {};
+window.addEventListener("load", (event) => {
+    document.querySelectorAll("[data-key]").forEach((elem) => {
+        let key = elem.getAttribute("data-key"),
+            prec = elem.getAttribute("data-precision"),
+            type = elem.getAttribute("data-type");
+
+        // Defaults
+        let rego = { e: elem, t: "value" };
+        if (prec != null) {
+            rego.p = prec;
+        }
+        if (type != null) {
+            rego.t = type;
+        }
+
+        // Register element
+        if (key in registry) {
+            registry[key].push(rego);
+        } else {
+            registry[key] = [rego];
+        }
+    });
+
+    console.log(registry);
+});
+
+function displayUpdateRegistry(apiData) {
+    // Flatten API data so that keys are in format data.a.b
+    let flat = {};
+    function flatten(prefix, obj) {
+        Object.entries(obj).forEach(([key, value]) => {
+            if (typeof value == "object") {
+                flatten(prefix + "." + key, value);
+            } else {
+                flat[prefix + "." + key] = value;
+            }
+        });
+    }
+    flatten("data", apiData);
+
+    // Loop through flattened keys and update registered element
+    Object.entries(flat).forEach(([key, value]) => {
+        if (key in registry) {
+            for (const reg of registry[key]) {
+                let elem = reg.e,
+                    prec = reg.p,
+                    type = reg.t;
+                switch (type) {
+                    case "value":
+                        displaySetValue(elem, value, prec);
+                        break;
+                    case "string":
+                        displaySetString(elem, value);
+                        break;
+                }
+            }
+        }
+    });
+}
+
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
@@ -23,7 +85,10 @@ function displaySetValue(item, value, precision = 2, error = false) {
 
         // Use classes instead of IDs since IDs must be unique
         // and some items occur on multiple pages
-        let elements = document.querySelectorAll(`.${item}`);
+        let elements = [item];
+        if (typeof item == "string") {
+            elements = document.querySelectorAll(`.${item}`);
+        }
         if (elements && elements.length > 0) {
             elements.forEach((elem) => {
                 // Update value
@@ -51,7 +116,10 @@ function displaySetString(item, string) {
             );
 
         // Update all instances of item
-        let elements = document.querySelectorAll(`.${item}`);
+        let elements = [item];
+        if (typeof item == "string") {
+            elements = document.querySelectorAll(`.${item}`);
+        }
         if (elements && elements.length > 0) {
             elements.forEach((elem) => {
                 // Update string
@@ -161,8 +229,6 @@ function displaySetErrorFlightState() {
 function displayUpdateTime() {
     /// SYSTEM TIME
     if (timestampApi != 0) {
-        displaySetValue("fs-time-api", timestampApi, 1);
-
         // Rocket launch time
         // TODO: Find somewhere nicer to put this in the code, this is so jank
         if (timers?.launchTimestamp != undefined) {
@@ -186,22 +252,16 @@ function displayUpdateAuxData(data) {
     // Transducers (Bar)
     if (data?.transducer1) {
         // N2O in pressure
-        displaySetValue("aux-transducer-1", data.transducer1, 1);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("hmi-pressure-1", data.transducer1);
     }
     if (data?.transducer2) {
         // N2O out pressure
-        displaySetValue("aux-transducer-2", data.transducer2, 1);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("hmi-pressure-2", data.transducer2);
     }
     if (data?.transducer3) {
         // O2 pressure
-        displaySetValue("aux-transducer-3", data.transducer3, 1);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("hmi-pressure-3", data.transducer3);
     }
@@ -209,47 +269,23 @@ function displayUpdateAuxData(data) {
     // Thermocouples (degrees Celsius)
     if (data?.thermocouple1) {
         // n2o (int) temperature
-        displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
     }
     if (data?.thermocouple2) {
         // n2o #1 pressure
-        displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
     }
     if (data?.thermocouple3) {
         // n2o #2 pressure
-        displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
     }
     if (data?.thermocouple4) {
         // o2 pressure
-        displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
-
         if (typeof hmiUpdateValue === "function")
             hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
-    }
-
-    // GSE enclosure thermocouple
-    if (data?.internalTemp) {
-        // internal temperature
-        displaySetValue("aux-internaltemp", data.internalTemp, 1);
-    }
-
-    // Gas bottle weights
-    if (data?.gasBottleWeight1) {
-        // n2o #1 weight
-        displaySetValue("aux-gasbottle-1", data.gasBottleWeight1, 1);
-    }
-    if (data?.gasBottleWeight2) {
-        // n2o #2 weight
-        displaySetValue("aux-gasbottle-2", data.gasBottleWeight2, 1);
     }
 
     // Gas fill timer
@@ -258,11 +294,6 @@ function displayUpdateAuxData(data) {
             "aux-gasbottle-time",
             `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`,
         );
-    }
-
-    // Rocket mass
-    if (data?.analogVoltageInput1) {
-        displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
 
     // Solenoids
@@ -299,46 +330,6 @@ function displayUpdateAvionics(data) {
                 data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 5, // green / error
             );
         }
-
-        // TODO: Pyro 1,2,3,4
-    }
-
-    // Acceleration (_g_)
-    // accelLow has higher resolution, so we use that if the values are within [-16,16]
-    if (data.accelX != undefined) {
-        displaySetValue("av-accel-x", data.accelX, 1);
-    }
-
-    if (data.accelY != undefined) {
-        displaySetValue("av-accel-y", data.accelY, 1);
-    }
-
-    if (data.accelZ != undefined) {
-        displaySetValue("av-accel-z", data.accelZ, 1);
-    }
-
-    // Gyro (deg/s)
-    if (data.gyroX != undefined) {
-        displaySetValue("av-gyro-x", data.gyroX, 1);
-    }
-
-    if (data.gyroY != undefined) {
-        displaySetValue("av-gyro-y", data.gyroY, 1);
-    }
-
-    if (data.gyroZ != undefined) {
-        displaySetValue("av-gyro-z", data.gyroZ, 1);
-    }
-
-    // Velocity
-    if (data.velocity != undefined) {
-        displaySetValue("av-velocity", data.velocity, 1);
-        displaySetValue("av-velocity-ft", metresToFeet(data.velocity), 0);
-    }
-
-    // Mach speed
-    if (data.mach_number != undefined) {
-        displaySetValue("av-mach", data.mach_number);
     }
 }
 
@@ -420,45 +411,6 @@ function displayUpdateFlightState(data) {
     }
 }
 
-function displayUpdatePosition(data) {
-    /// MODULE POSITION
-    // Altitude
-    if (data.altitude != undefined) {
-        displaySetValue("pos-alt-m", data.altitude, 0);
-        displaySetValue("pos-alt-ft", metresToFeet(data.altitude), 0);
-    }
-
-    // Max altitude
-    if (data.altitudeMax != undefined) {
-        displaySetValue("pos-maxalt-m", data.altitudeMax, 0);
-        displaySetValue("pos-maxalt-ft", metresToFeet(data.altitudeMax), 0);
-    }
-
-    // GPS
-    if (data.GPSLatitude != undefined) {
-        // Only update if reading isn't 0
-        if (data.GPSLatitude != 0) {
-            displaySetValue("pos-gps-lat", data.GPSLatitude, 6);
-        } else {
-            // Mark as stale?
-        }
-    }
-
-    if (data.GPSLongitude != undefined) {
-        // Only update if reading isn't 0
-        if (data.GPSLongitude != 0) {
-            displaySetValue("pos-gps-lon", data.GPSLongitude, 6);
-        } else {
-            // Mark as stale?
-        }
-    }
-
-    // Nav state
-    if (data?.navigationStatus) {
-        displaySetString("pos-navstate", data.navigationStatus);
-    }
-}
-
 function displayUpdateRadio(data) {
     /// MODULE RADIO
     if (data?.meta?.radio) {
@@ -481,22 +433,10 @@ function displayUpdateRadio(data) {
                 }, 10000);
             }
 
-            // Update avionics radio data
-            if (data?.meta?.rssi) {
-                displaySetValue("radio-av-rssi", data.meta.rssi, 0);
-            }
-
-            if (data?.meta?.snr) {
-                displaySetValue("radio-av-snr", data.meta.snr, 0);
-            }
-
             if (data?.meta?.packets) {
                 // Lost packets calculation
                 let lostPackets =
                     data.meta.totalPacketCountAv - data.meta.packets;
-
-                // Display number of packets
-                displaySetValue("radio-av-packets", data.meta.packets, 0);
             }
         } else if (data.meta.radio == "gse") {
             // GSE DATA
@@ -517,22 +457,10 @@ function displayUpdateRadio(data) {
                 }, 10000);
             }
 
-            // Update GSE radio data
-            if (data?.meta?.rssi) {
-                displaySetValue("radio-gse-rssi", data.meta.rssi, 0);
-            }
-
-            if (data?.meta?.snr) {
-                displaySetValue("radio-gse-snr", data.meta.snr, 0);
-            }
-
             if (data?.meta?.packets) {
                 // Lost packets calculation
                 let lostPackets =
                     data.meta.totalPacketCountGse - data.meta.packets;
-
-                // Display number of packets
-                displaySetValue("radio-gse-packets", data.meta.packets, 0);
             }
         }
     }

@@ -179,7 +179,7 @@ function scheduleReconnect() {
         API_socketConnect();
         reconnectInterval = Math.min(
             reconnectInterval * 2,
-            maxReconnectInterval
+            maxReconnectInterval,
         );
     }, reconnectInterval);
 }
@@ -318,7 +318,7 @@ function API_socketConnect() {
                 code: event.code,
                 reason: event.reason,
             },
-            "Attempting to reconnect automatically"
+            "Attempting to reconnect automatically",
         );
 
         // Log on page
@@ -350,6 +350,7 @@ function API_OnMessage(event) {
 
         // Process data for display
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
+        displayUpdateRegistry(apiData);
 
         // Handle different packet types
         if (apiData.id == 2) {
@@ -363,9 +364,6 @@ function API_OnMessage(event) {
             }
             if (typeof displayUpdateAvionics === "function") {
                 displayUpdateAvionics(apiData);
-            }
-            if (typeof displayUpdatePosition === "function") {
-                displayUpdatePosition(apiData);
             }
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
@@ -490,7 +488,7 @@ function checkErrorConditions(apiData) {
                         // Check for discards
                         logMessage(
                             `Discarded ${id} (${apiData[id]})`,
-                            "warning"
+                            "warning",
                         );
                         apiData[id] = apiDataType == "number" ? null : ""; // Flag invalid value
                     }
@@ -501,7 +499,7 @@ function checkErrorConditions(apiData) {
                             // If error, log error and raise flag
                             logMessage(
                                 `${errorKey} ${errorCondition.errorMessage}`,
-                                "error"
+                                "error",
                             );
                             errors.push(errorKey);
                         } else if (!isError && errors.indexOf(errorKey) != -1) {
@@ -557,7 +555,11 @@ function processDataForDisplay(apiData, apiId) {
             }
 
             processedData.meta.radio = "av1";
-            processedData.meta.packets = ++packetsAV1;
+            processedData.meta.av = {
+                rssi: apiData.meta.rssi,
+                snr: apiData.meta.snr,
+                packets: ++packetsAV1,
+            };
         } else if ([6, 7].includes(apiId)) {
             if (apiData.meta?.totalPacketCountGse) {
                 if (packetsGSE == 0) {
@@ -568,7 +570,11 @@ function processDataForDisplay(apiData, apiId) {
             }
 
             processedData.meta.radio = "gse";
-            processedData.meta.packets = ++packetsGSE;
+            processedData.meta.gse = {
+                rssi: apiData.meta.rssi,
+                snr: apiData.meta.snr,
+                packets: ++packetsAV1,
+            };
         }
     }
 
@@ -596,6 +602,8 @@ function processDataForDisplay(apiData, apiId) {
     // Altitude
     // Track previous altitudes
     if (apiData.altitude != undefined) {
+        processedData.altitudeFeet = metresToFeet(apiData.altitude);
+
         altitudeHistory.push(apiData.altitude);
         if (altitudeHistory.length > 5) {
             altitudeHistory.shift();
@@ -622,7 +630,13 @@ function processDataForDisplay(apiData, apiId) {
         }
         if (altitudeMax != undefined && altitudeMax > 0) {
             processedData.altitudeMax = altitudeMax;
+            processedData.altitudeMaxFeet = metresToFeet(altitudeMax);
         }
+    }
+
+    // Feet
+    if (apiData.velocity != undefined) {
+        processedData.velocityFeet = metresToFeet(apiData.velocity);
     }
 
     // GPS position
