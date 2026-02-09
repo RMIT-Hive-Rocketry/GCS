@@ -11,20 +11,19 @@ class ConfigLegacy3(Config):
 
         self.ROCKET_NAME = "Legacy III"
         self.LOGO = "legacy/static/img/logo-legacy3.svg"
-        self.STYLESHEETS.extend(["legacy/static/css/legacy3.css"])
+        self.STYLESHEETS = ["legacy/static/css/legacy3.css"]
         self.GRID = (12,13)
 
-        # Inherit default modules and add legacy ones
-        self.MODULES.extend(
-            [
+        # Load legacy modules
+        self.MODULES = [
                 "legacy/modules/legacy3_auxiliary_gse.html",
                 "legacy/modules/legacy3_avionics_position.html",
                 "legacy/modules/legacy3_avionics.html",
+                "legacy/modules/legacy3_errorlog.html",
                 "legacy/modules/legacy3_header.html",
                 "legacy/modules/legacy3_hmi.html",
                 "legacy/modules/legacy3_live_launchpad.html",
                 "legacy/modules/legacy3_live_rocket.html",
-                "legacy/modules/legacy3_logos.html",
                 "legacy/modules/legacy3_ops_auxcontrols.html",
                 "legacy/modules/legacy3_ops_continuitycheck.html",
                 "legacy/modules/legacy3_ops_poptest.html",
@@ -33,7 +32,7 @@ class ConfigLegacy3(Config):
                 "legacy/modules/legacy3_rocket.html",
                 "legacy/modules/legacy3_timeline.html",
             ]
-        )
+        
 
         # Define pages for Legacy III
         self.PAGES = [
@@ -76,7 +75,6 @@ class ConfigLegacy3(Config):
                 ("page-live-rocket", 4, 1, 8, 9),
                 ("page-live-all", 6, 1, 6, 8),
             ],
-            "legacy3_logos": ["logos"],
             "legacy3_ops_auxcontrols": [("page-ops", 4, 7, 4, 6)],
             "legacy3_ops_continuitycheck": [("page-ops", 0, 1, 4, 6)],
             "legacy3_ops_poptest": [("page-ops", 0, 7, 4, 6)],
@@ -88,9 +86,8 @@ class ConfigLegacy3(Config):
                 ("page-live-rocket", 4, 10, 8, 3),
                 ("page-live-all", 2, 9, 8, 4),
             ],
-            "default_errorlog": [
+            "legacy3_errorlog": [
                 ("page-main", 8, 1, 4, 4),
                 ("page-live-launchpad", 8, 1, 4, 4),
             ],
-            "default_radio": ["radio"],
         }

@@ -165,14 +165,12 @@ function graphCreateLine(chart, numLines) {
         for (let entry of entries) {
             const { width, height } = entry.contentRect;
             console.log(entry, entry.contentRect);
-            chart.width = clamp(width, 50, 1920);
-            chart.height = clamp(height, 50, 1080);
+            chart.width = width;
+            chart.height = height;
             graphResize(chart); // Call resize handler
         }
     });
-    resizeObserver.observe(chart.svg.node());
-
-    chart.initialised = true;
+    resizeObserver.observe(chart.svg.node().parentElement);
 }
 
 // Render static graph from CSV
@@ -240,21 +238,12 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    /*
-    console.log("graphRender");
-    console.log("\tchart", chart);
-    console.log("\tchart.g", chart?.g);
-    console.log("\tchart.x", chart?.x);
-    console.log("\tchart.lines", chart?.lines);*/
-
     if (!window.graphsInitialised) {
         return;
     }
 
     if (
         chart &&
-        typeof chart?.initialised !== "undefined" &&
-        chart?.initialised !== false &&
         chart?.g &&
         chart?.x &&
         chart?.lines &&

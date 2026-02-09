@@ -93,8 +93,6 @@ class Rocket(object):
             assert isinstance(page["id"], str)
 
         # Test MODULE_PAGES formatting
-        logos_count = 0
-        radio_count = 0
         for key in _config.MODULE_PAGES:
             # Test modules are defined properly
             assert key in [
@@ -106,29 +104,22 @@ class Rocket(object):
 
             # Test position format
             for pos in _config.MODULE_PAGES[key]:
-                if pos not in ("radio", "logos"):
-                    assert isinstance(pos, tuple), "Module position must be a tuple"
-                    assert len(pos) == 5, "Module position tuple must be length 5"
-                    assert isinstance(pos[0], str)
-                    assert isinstance(pos[1], int)
-                    assert isinstance(pos[2], int)
-                    assert isinstance(pos[3], int)
-                    assert isinstance(pos[4], int)
-                    assert pos[1] >= 0 and pos[1] < _config.GRID[0], "Module x out of bounds"
-                    assert pos[2] >= 0 and pos[2] < _config.GRID[1], "Module y out of bounds"
-                    assert pos[3] > 0 and pos[3] <= _config.GRID[0], "Module width invalid"
-                    assert pos[4] > 0 and pos[4] <= _config.GRID[1], "Module height invalid"
-                    assert pos[1] + pos[3] <= _config.GRID[0], "Module width out of bounds"
-                    assert pos[2] + pos[4] <= _config.GRID[1], "Module height out of bounds"
-                    assert pos[0] in [
-                        n["id"] for n in _config.PAGES
-                    ], "Module page not found"
-                elif pos == "logos":
-                    logos_count += 1
-                    assert logos_count <= 1, "More than one module in position 'logos'"
-                elif pos == "radio":
-                    radio_count += 1
-                    assert radio_count <= 1, "More than one module in position 'radio'"
+                assert isinstance(pos, tuple), "Module position must be a tuple"
+                assert len(pos) == 5, "Module position tuple must be length 5"
+                assert isinstance(pos[0], str)
+                assert isinstance(pos[1], int)
+                assert isinstance(pos[2], int)
+                assert isinstance(pos[3], int)
+                assert isinstance(pos[4], int)
+                assert pos[1] >= 0 and pos[1] < _config.GRID[0], "Module x out of bounds"
+                assert pos[2] >= 0 and pos[2] < _config.GRID[1], "Module y out of bounds"
+                assert pos[3] > 0 and pos[3] <= _config.GRID[0], "Module width invalid"
+                assert pos[4] > 0 and pos[4] <= _config.GRID[1], "Module height invalid"
+                assert pos[1] + pos[3] <= _config.GRID[0], "Module width out of bounds"
+                assert pos[2] + pos[4] <= _config.GRID[1], "Module height out of bounds"
+                assert pos[0] in [
+                    n["id"] for n in _config.PAGES
+                ], "Module page not found"
 
     def print_rocket_configs(self):
         # Print out loaded rocket information from configs
@@ -196,10 +187,6 @@ class Rocket(object):
                             class_list.add(page[0])
                             class_list.add(cols)
                             class_list.add(rows)
-                        elif page == "radio":
-                            config.MODULE_RADIO = module
-                        elif page == "logos":
-                            config.MODULE_LOGOS = module
 
                 # Assign generated classes to module
                 config.MODULE_CLASSES[module_id] = " ".join(class_list)
