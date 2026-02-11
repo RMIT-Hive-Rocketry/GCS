@@ -190,7 +190,6 @@ function startAnimating() {
     then = window.performance.now();
     animate();
 }
-startAnimating();
 function animate(newtime) {
     // Calculate time since last loop
     let now = newtime;
@@ -207,13 +206,31 @@ function animate(newtime) {
 
         // Increment time (so if we stop getting packets, time moves forward)
         timestampLocal = (Date.now() - timestampLocalLoad) / 1000;
-        if (displayUpdateTime != undefined) {
-            displayUpdateTime();
-        }
+        updateTime();
     }
 
     // Request next animation frame
     requestAnimationFrame(animate);
+}
+startAnimating();
+
+function updateTime() {
+    /// SYSTEM TIME
+    // Rocket launch timer
+    if (timestampApi != 0 && timers?.launchTimestamp != undefined) {
+        let launchTime = 0;
+        if (timers.launchTimestamp != 0) {
+            launchTime = timestampApi - timers.launchTimestamp;
+        }
+        sendDataToRegistry({ launchTime: `T+${launchTime.toFixed(1)}` });
+    }
+
+    // Local time
+    if (timestampLocal != undefined && timestampLocal != 0) {
+        sendDataToRegistry({
+            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
+        });
+    }
 }
 
 // Logging code
@@ -350,7 +367,11 @@ function API_OnMessage(event) {
 
         // Process data for display
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
-        displayUpdateRegistry(apiData);
+        sendDataToRegistry(apiData);
+
+        if (typeof hmiUpdate === "function") {
+            hmiUpdate(apiData);
+        }
 
         // Handle different packet types
         if (apiData.id == 2) {
@@ -362,16 +383,10 @@ function API_OnMessage(event) {
             if (typeof displayUpdateRadio === "function") {
                 displayUpdateRadio(apiData);
             }
-            if (typeof displayUpdateAvionics === "function") {
-                displayUpdateAvionics(apiData);
-            }
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
             }
-            if (typeof displayUpdateSystemFlags === "function") {
-                displayUpdateSystemFlags(apiData);
-            }
-
+            
             // Graphs
             if (typeof graphUpdateAvionics === "function") {
                 graphUpdateAvionics(apiData);
@@ -386,19 +401,12 @@ function API_OnMessage(event) {
                     rocketUpdate(apiData);
                 }
             }
-        } else if (apiData.id == 5) {
-            ///// ----- PAYLOAD PACKETS ----- /////
-            //
         } else if (apiData.id == 6 || apiData.id == 7) {
             ///// ----- GSE PACKETS ----- /////
             // Display values
             if (typeof displayUpdateRadio === "function") {
                 displayUpdateRadio(apiData);
             }
-            if (typeof displayUpdateAuxData === "function") {
-                displayUpdateAuxData(apiData);
-            }
-
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
@@ -518,6 +526,10 @@ function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData }; // Shallow copy
     processedData.id = apiId;
+
+    if (processedData.state == undefined) {
+        processedData.state = {};
+    }
 
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
@@ -666,6 +678,54 @@ function processDataForDisplay(apiData, apiId) {
             timers.gasTimestamp = 0;
             timers.gasFillTimerTotal += timers.gasFillTimer;
             timers.gasFillTimer = 0;
+        }
+
+        if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
+            processedData.gasBottleTime = `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`;
+        }
+    }
+
+    // State flags
+    // GPS fix (navigation state)
+    if (apiData.navigationStatus != undefined) {
+        if (["NF"].includes(apiData.navigationStatus)) {
+            processedData.state.gpsFix = 3; // Red
+        } else if (["DR", "TT"].includes(apiData.navigationStatus)) {
+            processedData.state.gpsFix = 2; // Yellow
+        } else if (
+            ["D2", "D3", "G2", "G3", "RK"].includes(apiData.navigationStatus)
+        ) {
+            processedData.state.gpsFix = 1; // Green
+        }
+    }
+
+    if (apiData.stateFlags != undefined) {
+        // Dual board connectivity
+        if (apiData.stateFlags.dualBoardConnectivityStateFlag != undefined) {
+            processedData.state.dualBoard = apiData.stateFlags
+                .dualBoardConnectivityStateFlag
+                ? 1
+                : 5; // green / error
+        }
+        // Recovery checks
+        if (apiData.stateFlags.recoveryChecksCompleteAndFlightReady) {
+            processedData.state.recoveryCheck = apiData.stateFlags
+                .recoveryChecksCompleteAndFlightReady
+                ? 1
+                : 0;
+        }
+        // Payload
+        if (apiData.stateFlags.payloadConnectionFlag) {
+            processedData.state.payload = data.stateFlags.payloadConnectionFlag
+                ? 1
+                : 0;
+        }
+        // Camera controller
+        if (apiData.stateFlags.cameraControllerConnectionFlag) {
+            processedData.state.camera = data.stateFlags
+                .cameraControllerConnectionFlag
+                ? 1
+                : 0;
         }
     }
 

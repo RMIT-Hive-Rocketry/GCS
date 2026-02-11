@@ -1,109 +1,55 @@
-
 # Frontend developer documentation
 
-*Developer notes and documentation for working on the GCS frontend.*
+_Developer notes and documentation for working on the GCS frontend._
 
 ## Libraries
+
 We're using the following libraries for frontend:
+
 - Tailwind v4.0.17
 - D3.js v7.9.0
 - Three.js v0.175.0
 
-These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN. 
+These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN.
 
 Unless updating them is absolutely necessary, we will be using these specific versions throughout the capstone project. Updating in the middle of development can add a lot of work and cause weird glitches.
 
 ### Tailwind
+
 **Tailwind v4.0.17 is used for stylesheets.**
 
-The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development. 
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to _tailwindcss_, and place it INSIDE `/third_party/` for development.
 
 The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
 
-- *tailwind_dev.sh* will update tailwind.css in realtime, as you make changes to the html. Use this while developing the webpage.
-- *tailwind_build.sh* will build an optimised and minified version of tailwind.css for production. This probably isn't necessary since it's a fairly small website, but we'll take any optimisations we can get.
+- _tailwind_dev.sh_ will update tailwind.css in realtime, as you make changes to the html. Use this while developing the webpage.
+- _tailwind_build.sh_ will build an optimised and minified version of tailwind.css for production. This probably isn't necessary since it's a fairly small website, but we'll take any optimisations we can get.
 
 ### D3.js
+
 **D3.js v7.9.0 is used for data visualisation.**
 
 It lets us make pretty graphs
 
 ### Three.js
+
 **Three.js v0.175.0 is used to render the 3D model of the rocket.**
 
 Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
 
 ## Interface items
+
 ### Display item keys and IDs
 
 > These are out of date, and were documented during development of the GCS-2025 system.
-> 
+>
 > TODO: Incorporate this into the API standardisation, which makes all keys and values consistently handled across the entire system, instead of having to do a bunch of processing/handling on each interface
 
 ### Module tables
-These are the item IDs for updating values with JavaScript.
 
-**Aux Data (aux)**
-| Name | Unit | API ID | API key | ID | Error ID | Error Key |
-| --- | --- | --- | --- | --- | --- | --- |
-| Transducer 1 - N2O In | Bar | 6 | `transducer1` | `aux-transducer-1` | 6,7 | `errorFlags.transducer1Error` |
-| Transducer 2 - N2O Out | Bar | 6 | `transducer2` | `aux-transducer-2` | 6,7 | `errorFlags.transducer2Error` |
-| Transducer 3 - O2 | Bar | 6 | `transducer3` | `aux-transducer-3` | 6,7 | `errorFlags.transducer3Error` |
-| Thermocouple 1 - N2O (int) | degC | 6 | `thermocouple1` | `aux-thermocouple-1` | 6,7 | `errorFlags.thermocouple1Error` |
-| Thermocouple 2 - N2O #1 | degC | 6 | `thermocouple2` | `aux-thermocouple-2` | 6,7 | `errorFlags.thermocouple2Error` |
-| Thermocouple 3 - N2O #2| degC | 6 | `thermocouple3` | `aux-thermocouple-3` | 6,7 | `errorFlags.thermocouple3Error` |
-| Thermocouple 4 - O2 | degC | 6 | `thermocouple4` | `aux-thermocouple-4` | 6,7 | `errorFlags.thermocouple4Error` |
-| Internal temperature | degC | 7 | `internalTemp` | `aux-internaltemp` |  |  |
-| Gas bottle 1 - N2O #1 | kg | 7 | `gasBottleWeight1` | `aux-gasbottle-1` |  |  |
-| Gas bottle 2 - N2O #2 | kg | 7 | `gasBottleWeight2` | `aux-gasbottle-2` |  |  |
-| Rocket mass | kg | 7 | `analogVoltageInput1` | `aux-loadcell` |  |  |
+These are the item IDs for updating values with JavaScript:
 
-**Avionics (av)**
-| Name | Unit | API ID | API key | ID |
-| --- | --- | --- | --- | --- |
-| GPS fix | bool | 3,4,5 | `stateFlags.GPSFixFlag` | `av-state-gpsfix` |
-| Dual board state | bool | 3,4,5 | `stateFlags.dualBoardConnectivityStateFlag` | `av-state-dualboard` |
-| Pyro 1 |  |  |  |`av-state-pyro-1` |
-| Pyro 2 |  |  |  |`av-state-pyro-2` |
-| Pyro 3 |  |  |  |`av-state-pyro-3` |
-| Pyro 4 |  |  |  |`av-state-pyro-4` |
-| Velocity | m/s | 3 | `velocity` | `av-velocity` |
-| Mach |  | 3 | `mach_number` | `av-mach` |
-| Accel X | *g* | 3 | `accelLowX, accelHighX` | `av-accel-x` |
-| Accel Y | *g* | 3 | `accelLowY, accelHighY` | `av-accel-y` |
-| Accel Z | *g* | 3 | `accelLowZ, accelHighZ` | `av-accel-z` |
-| Gyro X | deg/s | 3 | `gyroX` | `av-gyro-x` |
-| Gyro Y | deg/s | 3 | `gyroY` | `av-gyro-y` |
-| Gyro Z | deg/s | 3 | `gyroZ` | `av-gyro-z` |
-
-**Flight State (fs)**
-| Name | Unit | API ID | API key | ID |
-| --- | --- | --- | --- | --- |
-| Flight state |  | 3,4,5 | `flightState` | `fs-flightstate` |
-| Time |  |  |  | `fs-time` |
-
-**Position (pos)**
-| Name | Unit | API ID | API key | ID |
-| --- | --- | --- | --- | --- |
-| Altitude | m | 3 | `altitude` | `pos-alt-m` |
-| Altitude | ft |  |  | `pos-alt-ft` |
-| Max altitude | m |  |  | `pos-maxalt-m` |
-| Max altitude | ft |  |  | `pos-maxalt-f` |
-| GPS latitude |  | 4 | `GPSLatitude` | `pos-gps-lat` |
-| GPS longitude |  | 4 | `GPSLongitude` | `pos-gps-lon` |
-| Nav state |  |  | `navigationStatus` | `pos-navstate` |
-
-**Radio (radio)**
-| Name | Unit | API ID | API key | ID |
-| --- | --- | --- | --- | --- |
-| AV comms state | *bool* |  |  | `radio-av-state` |
-| AV RSSI | dBm [0,255] | 3,4,5 | `meta.rssi` | `radio-av-rssi` |
-| AV SNR | dB | 3,4,5 | `meta.snr` | `radio-av-snr` |
-| AV Packets | *int* | 3,4,5 | `meta.packets` | `radio-av-packets` |
-| GSE comms state | *bool* |  |  | `radio-gse-state` |
-| GSE RSSI | dBm [0,255] | 6,7 | `meta.rssi` | `radio-gse-rssi` |
-| GSE SNR | dB | 6,7 | `meta.snr` | `radio-gse-snr` |
-| GSE Packets | *int* | 6,7 | `meta.packets` | `radio-gse-packets` |
+(Tables have been removed due to being outdated. Please put new tables here when you get a chance.)
 
 ---
 

@@ -21,65 +21,73 @@ const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
-    data: [],
     ylabel: "Acceleration (g)",
+    numLines: 3,
+    data: [],
 };
 const GRAPH_AV_GYRO = {
     selector: "#graph-av-gyro",
-    data: [],
     ylabel: "Rotation Rate (°/s)",
+    numLines: 3,
+    data: [],
 };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
-    data: [],
     ylabel: "Vertical Speed (m/s)",
+    numLines: 1,
     limits: {
         yBottomMax: 0,
     },
+    data: [],
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
-    data: [],
     ylabel: "Altitude (ft)",
+    numLines: 1,
     limits: {
         yBottomMax: 0,
     },
+    data: [],
 };
 const GRAPH_AUX_TRANSDUCERS = {
     selector: "#graph-aux-transducers",
-    data: [],
     ylabel: "Pressure (bar)",
+    numLines: 3,
     limits: {
         yBottomMax: 0,
     },
+    data: [],
 };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
-    data: [],
     ylabel: "Temperature (°C)",
+    numLines: 4,
     limits: {
         yBottomMax: 0,
     },
+    data: [],
 };
 const GRAPH_AUX_INTERNALTEMP = {
     selector: "#graph-aux-internaltemp",
-    data: [],
     ylabel: "Temperature (°C)",
+    numLines: 1,
     limits: {
         yBottomMax: 0,
     },
+    data: [],
 };
 const GRAPH_AUX_GASBOTTLES = {
     selector: "#graph-aux-gasbottles",
-    data: [],
     ylabel: "Mass (kg)",
+    numLines: 2,
+    data: [],
 };
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
 
 // Create and initialise line graphs
-function graphCreateLine(chart, numLines) {
+function graphCreateLine(chart) {
     // Select SVG
     chart.svg = d3.select(chart.selector);
 
@@ -155,7 +163,7 @@ function graphCreateLine(chart, numLines) {
 
     // Lines array to hold multiple line data sets
     chart.lines = [];
-    for (let i = 0; i < numLines; i++) {
+    for (let i = 0; i < chart.numLines; i++) {
         chart.lines.push({ data: [], color: LINE_COLOURS[i] });
     }
 
@@ -427,19 +435,16 @@ function graphAddValue(graph, line, timestamp, value) {
 
 function graphInit() {
     // Build D3 charts
-    graphCreateLine(GRAPH_AV_ACCEL, 3);
-    graphCreateLine(GRAPH_AV_GYRO, 3);
-    graphCreateLine(GRAPH_AV_VELOCITY, 1);
-
-    graphCreateLine(GRAPH_POS_ALT, 1);
-
-    graphCreateLine(GRAPH_AUX_TRANSDUCERS, 3);
-    graphCreateLine(GRAPH_AUX_THERMOCOUPLES, 4);
-    graphCreateLine(GRAPH_AUX_INTERNALTEMP, 1);
-    graphCreateLine(GRAPH_AUX_GASBOTTLES, 2);
+    graphCreateLine(GRAPH_AV_ACCEL);
+    graphCreateLine(GRAPH_AV_GYRO);
+    graphCreateLine(GRAPH_AV_VELOCITY);
+    graphCreateLine(GRAPH_POS_ALT);
+    graphCreateLine(GRAPH_AUX_TRANSDUCERS);
+    graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
+    graphCreateLine(GRAPH_AUX_INTERNALTEMP);
+    graphCreateLine(GRAPH_AUX_GASBOTTLES);
 
     window.graphsInitialised = true;
-
     console.log("Graphs initialised");
 }
 

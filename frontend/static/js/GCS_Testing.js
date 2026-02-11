@@ -10,12 +10,12 @@
 function testing_updateAllDisplayValues() {
     verboseLogging = true;
 
-    TESTING_DISPLAY_STATES.forEach((item, i) => {
+    /*TESTING_DISPLAY_STATES.forEach((item, i) => {
         displaySetState(item, i);
     });
     TESTING_DISPLAY_ITEMS.forEach((item, i) => {
         displaySetValue(item, i);
-    });
+    });*/
 
     verboseLogging = false;
 }
@@ -36,59 +36,6 @@ function testing_mockApi() {
 /// ROCKET
 
 // TEST DATA
-const TESTING_DISPLAY_STATES = [
-    "av-state-gpsfix",
-    "av-state-dualboard",
-    "av-state-pyro-1",
-    "av-state-pyro-2",
-    "av-state-pyro-3",
-    "av-state-pyro-4",
-
-    "radio-av-state",
-    "radio-gse-state",
-];
-
-const TESTING_DISPLAY_ITEMS = [
-    "aux-transducer-1",
-    "aux-transducer-2",
-    "aux-transducer-3",
-    "aux-thermocouple-1",
-    "aux-thermocouple-2",
-    "aux-thermocouple-3",
-    "aux-thermocouple-4",
-    "aux-internaltemp",
-    "aux-gasbottle-1",
-    "aux-gasbottle-2",
-    "aux-loadcell",
-
-    "av-velocity",
-    "av-velocity-ft",
-    "av-mach",
-    "av-accel-x",
-    "av-accel-y",
-    "av-accel-z",
-    "av-gyro-x",
-    "av-gyro-y",
-    "av-gyro-z",
-
-    "fs-flightstate",
-    "fs-time",
-
-    "pos-alt-m",
-    "pos-alt-ft",
-    "pos-maxalt-m",
-    "pos-maxalt-ft",
-    "pos-gps-lat",
-    "pos-gps-lon",
-
-    "radio-av-rssi",
-    "radio-av-snr",
-    "radio-av-packets",
-    "radio-gse-rssi",
-    "radio-gse-snr",
-    "radio-gse-packets",
-];
-
 const TESTING_API = [
     {
         id: 3,

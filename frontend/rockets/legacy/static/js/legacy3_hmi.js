@@ -19,6 +19,47 @@ function changecolor(objectid) {
     }
 }
 
+function hmiUpdate(data) {
+    // Transducers (Bar)
+    if (data?.transducer1) {
+        // N2O in pressure
+        hmiUpdateValue("hmi-pressure-1", data.transducer1);
+    }
+    if (data?.transducer2) {
+        // N2O out pressure
+        hmiUpdateValue("hmi-pressure-2", data.transducer2);
+    }
+    if (data?.transducer3) {
+        // O2 pressure
+        hmiUpdateValue("hmi-pressure-3", data.transducer3);
+    }
+
+    // Thermocouples (degrees Celsius)
+    if (data?.thermocouple1) {
+        // n2o (int) temperature
+        hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
+    }
+    if (data?.thermocouple2) {
+        // n2o #1 pressure
+        hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
+    }
+    if (data?.thermocouple3) {
+        // n2o #2 pressure
+        hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
+    }
+    if (data?.thermocouple4) {
+        // o2 pressure
+        hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
+    }
+
+    // Solenoids
+    if (data?.stateFlags) {
+        hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
+        hmiUpdateSolenoid("solenoidsV6", data.stateFlags.o2FillActivated);
+        hmiUpdateSolenoid("solenoidsV7", data.stateFlags.manualPurgeActivated); // Normally open
+    }
+}
+
 function hmiUpdateValue(id, value) {
     if (value != undefined && !Number.isNaN(value)) {
         let elem = document.getElementById(id).firstElementChild;
