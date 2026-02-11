@@ -39,19 +39,27 @@ window.addEventListener("load", (event) => {
     console.log(registry);
 });
 
-function displayUpdateRegistry(apiData) {
-    // Flatten API data so that keys are in format data.a.b
+function sendDataToRegistry(apiData) {
+    //console.log(apiData);
+
+    // Flatten API data so that keys are in format a.b
     let flat = {};
     function flatten(prefix, obj) {
+        if (prefix != "") {
+            prefix = prefix + ".";
+        }
         Object.entries(obj).forEach(([key, value]) => {
             if (typeof value == "object") {
-                flatten(prefix + "." + key, value);
+                flatten(prefix + key, value);
             } else {
-                flat[prefix + "." + key] = value;
+                flat[prefix + key] = value;
             }
         });
     }
-    flatten("data", apiData);
+    flatten("", apiData);
+
+    // TODO: Store last datapoint for every key
+    //       and only update elements if it changes
 
     // Loop through flattened keys and update registered element
     Object.entries(flat).forEach(([key, value]) => {
@@ -66,6 +74,9 @@ function displayUpdateRegistry(apiData) {
                         break;
                     case "string":
                         displaySetString(elem, value);
+                        break;
+                    case "state":
+                        displaySetState(elem, value);
                         break;
                 }
             }
@@ -153,7 +164,10 @@ function displaySetState(item, value) {
         );
 
     // Update all instances of item
-    let elements = document.querySelectorAll(`.${item}`);
+    let elements = [item];
+    if (typeof item == "string") {
+        elements = document.querySelectorAll(`.${item}`);
+    }
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
@@ -226,143 +240,6 @@ function displaySetErrorFlightState() {
 }
 
 // FUNCTIONS FOR UPDATING MODULES
-function displayUpdateTime() {
-    /// SYSTEM TIME
-    if (timestampApi != 0) {
-        // Rocket launch time
-        // TODO: Find somewhere nicer to put this in the code, this is so jank
-        if (timers?.launchTimestamp != undefined) {
-            const launchTime =
-                timers.launchTimestamp == 0
-                    ? 0
-                    : timestampApi - timers.launchTimestamp;
-            displaySetString("fs-launch-time", `T+${launchTime.toFixed(1)}`);
-        }
-    }
-    if (timestampLocal != undefined && timestampLocal != 0) {
-        displaySetString(
-            "fs-time-local",
-            `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
-        );
-    }
-}
-
-function displayUpdateAuxData(data) {
-    /// MODULE AUXDATA
-    // Transducers (Bar)
-    if (data?.transducer1) {
-        // N2O in pressure
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("hmi-pressure-1", data.transducer1);
-    }
-    if (data?.transducer2) {
-        // N2O out pressure
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("hmi-pressure-2", data.transducer2);
-    }
-    if (data?.transducer3) {
-        // O2 pressure
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("hmi-pressure-3", data.transducer3);
-    }
-
-    // Thermocouples (degrees Celsius)
-    if (data?.thermocouple1) {
-        // n2o (int) temperature
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
-    }
-    if (data?.thermocouple2) {
-        // n2o #1 pressure
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
-    }
-    if (data?.thermocouple3) {
-        // n2o #2 pressure
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
-    }
-    if (data?.thermocouple4) {
-        // o2 pressure
-        if (typeof hmiUpdateValue === "function")
-            hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
-    }
-
-    // Gas fill timer
-    if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
-        displaySetString(
-            "aux-gasbottle-time",
-            `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`,
-        );
-    }
-
-    // Solenoids
-    if (data?.stateFlags && typeof hmiUpdateSolenoid === "function") {
-        hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
-        hmiUpdateSolenoid("solenoidsV6", data.stateFlags.o2FillActivated);
-        hmiUpdateSolenoid("solenoidsV7", data.stateFlags.manualPurgeActivated); // Normally open
-    }
-}
-
-function displayUpdateAvionics(data) {
-    /// MODULE AVIONICS
-    // Indicators
-    if (data?.navigationStatus) {
-        // Nav state
-        if (["NF"].includes(data.navigationStatus)) {
-            // Red
-            displaySetState("av-state-gpsfix", 3);
-        } else if (["DR", "TT"].includes(data.navigationStatus)) {
-            // Yellow
-            displaySetState("av-state-gpsfix", 2);
-        } else if (
-            ["D2", "D3", "G2", "G3", "RK"].includes(data.navigationStatus)
-        ) {
-            // Green
-            displaySetState("av-state-gpsfix", 1);
-        }
-    }
-
-    if (data?.stateFlags) {
-        if (data.stateFlags?.dualBoardConnectivityStateFlag) {
-            displaySetState(
-                "av-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 5, // green / error
-            );
-        }
-    }
-}
-
-function displayUpdateSystemFlags(data) {
-    // green : off
-    if (data?.stateFlags) {
-        if (data.stateFlags?.dualBoardConnectivityStateFlag) {
-            displaySetState(
-                "sysflags-state-dualboard",
-                data.stateFlags.dualBoardConnectivityStateFlag ? 1 : 0,
-            );
-        }
-        if (data.stateFlags?.recoveryChecksCompleteAndFlightReady) {
-            displaySetState(
-                "sysflags-state-recovery",
-                data.stateFlags.recoveryChecksCompleteAndFlightReady ? 1 : 0,
-            );
-        }
-        if (data.stateFlags?.payloadConnectionFlag) {
-            displaySetState(
-                "sysflags-state-payload",
-                data.stateFlags.payloadConnectionFlag ? 1 : 0,
-            );
-        }
-        if (data.stateFlags?.cameraControllerConnectionFlag) {
-            displaySetState(
-                "sysflags-state-camera",
-                data.stateFlags.cameraControllerConnectionFlag ? 1 : 0,
-            );
-        }
-    }
-}
-
 function displayUpdateFlightState(data) {
     /// MODULE FLIGHTSTATE
     if (data?.flightState) {
