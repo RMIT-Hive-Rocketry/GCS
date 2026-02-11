@@ -386,7 +386,7 @@ function API_OnMessage(event) {
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
             }
-            
+
             // Graphs
             if (typeof graphUpdateAvionics === "function") {
                 graphUpdateAvionics(apiData);
@@ -716,13 +716,14 @@ function processDataForDisplay(apiData, apiId) {
         }
         // Payload
         if (apiData.stateFlags.payloadConnectionFlag) {
-            processedData.state.payload = data.stateFlags.payloadConnectionFlag
+            processedData.state.payload = apiData.stateFlags
+                .payloadConnectionFlag
                 ? 1
                 : 0;
         }
         // Camera controller
         if (apiData.stateFlags.cameraControllerConnectionFlag) {
-            processedData.state.camera = data.stateFlags
+            processedData.state.camera = apiData.stateFlags
                 .cameraControllerConnectionFlag
                 ? 1
                 : 0;
