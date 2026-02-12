@@ -17,7 +17,8 @@ window.addEventListener("load", (event) => {
     document.querySelectorAll("[data-key]").forEach((elem) => {
         let key = elem.getAttribute("data-key"),
             prec = elem.getAttribute("data-precision"),
-            type = elem.getAttribute("data-type");
+            type = elem.getAttribute("data-type"),
+            timeout = elem.getAttribute("data-timeout");
 
         // Defaults
         let rego = { e: elem, t: "value" };
@@ -26,6 +27,10 @@ window.addEventListener("load", (event) => {
         }
         if (type != null) {
             rego.t = type;
+        }
+        if (timeout != null) {
+            console.log(timeout);
+            rego.to = JSON.parse(timeout);
         }
 
         // Register element
@@ -67,7 +72,8 @@ function sendDataToRegistry(apiData) {
             for (const reg of registry[key]) {
                 let elem = reg.e,
                     prec = reg.p,
-                    type = reg.t;
+                    type = reg.t,
+                    timeout = reg.to;
                 switch (type) {
                     case "value":
                         displaySetValue(elem, value, prec);
@@ -76,7 +82,7 @@ function sendDataToRegistry(apiData) {
                         displaySetString(elem, value);
                         break;
                     case "state":
-                        displaySetState(elem, value);
+                        displaySetState(elem, value, timeout);
                         break;
                 }
             }
@@ -154,7 +160,7 @@ function displaySetError(item, error) {
     }
 }
 
-function displaySetState(item, value) {
+function displaySetState(item, value, timeout = {}) {
     // Updates the state of an indicator
     if (verboseLogging)
         console.debug(
@@ -180,6 +186,15 @@ function displaySetState(item, value) {
             // Get indicator state from value
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
+            }
+
+            if (timeout != undefined && Object.keys(timeout).length > 0) {
+                Object.entries(timeout).forEach(([ms, state]) => {
+                    clearTimeout(timeouts[[elem, ms]]);
+                    timeouts[[elem, ms]] = setTimeout(() => {
+                        displaySetState(elem, state); // timeout
+                    }, parseInt(ms));
+                });
             }
         });
     }
@@ -285,60 +300,5 @@ function displayUpdateFlightState(data) {
         }
 
         displaySetString("fs-flightstate", stateName);
-    }
-}
-
-function displayUpdateRadio(data) {
-    /// MODULE RADIO
-    if (data?.meta?.radio) {
-        if (data.meta.radio == "av1") {
-            // AVIONICS DATA
-            // Connection indicators
-            displaySetState("radio-av-state", 1); // green
-
-            if (timeouts != undefined) {
-                // Show idle timeout error after 3 seconds
-                clearTimeout(timeouts?.radioAv1Idle);
-                timeouts.radioAv1Idle = setTimeout(() => {
-                    displaySetState("radio-av-state", 4); // timeout
-                }, 3000);
-
-                // Show error after 10 seconds
-                clearTimeout(timeouts?.radioAv1Error);
-                timeouts.radioAv1Error = setTimeout(() => {
-                    displaySetState("radio-av-state", 5); // error
-                }, 10000);
-            }
-
-            if (data?.meta?.packets) {
-                // Lost packets calculation
-                let lostPackets =
-                    data.meta.totalPacketCountAv - data.meta.packets;
-            }
-        } else if (data.meta.radio == "gse") {
-            // GSE DATA
-            // Connection indicators
-            displaySetState("radio-gse-state", 1);
-
-            if (timeouts != undefined) {
-                // Show idle timeout error after 3 seconds
-                clearTimeout(timeouts?.radioGseIdle);
-                timeouts.radioGseIdle = setTimeout(() => {
-                    displaySetState("radio-gse-state", 4); // timeout
-                }, 3000);
-
-                // Show error after 10 seconds
-                clearTimeout(timeouts?.radioGseError);
-                timeouts.radioGseError = setTimeout(() => {
-                    displaySetState("radio-gse-state", 5); // error
-                }, 10000);
-            }
-
-            if (data?.meta?.packets) {
-                // Lost packets calculation
-                let lostPackets =
-                    data.meta.totalPacketCountGse - data.meta.packets;
-            }
-        }
     }
 }

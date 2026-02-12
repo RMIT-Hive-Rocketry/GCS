@@ -2,6 +2,37 @@
 
 _Developer notes and documentation for working on the GCS frontend._
 
+## Interface items
+
+Certain elements on the page can be made to update when data is received. Previously, this was done by hardcoding into JavaScript which DOM elements would be updated (and how), but it's recently been changed with the inclusion of a registry.
+
+### Registry
+
+A registry is generated on page load to store all the elements that are live updated with data. All registry information relevant for updating elements is stored directly in the HTML, to reduce redundancy and make it easier for someone to edit the behaviour of the interface.
+
+The registry is created by scanning for all HTML elements with the `data-key=""` field, then checking which type (or rather, function) they have on the page as stored in the `data-type=""` field.
+
+The key refers to the name of the variable that updates that HTML element, for instance the element `<input data-key="localTime" data-type="string" readonly>` would have its value updated whenever localTime is received from the data stream, and it would be updated as a string type.
+
+Further optional fields may be added to augment the behaviour. All fields and respective behaviour is in the table below.
+
+| Name             | Values                                         | Description                                                                                                                                    |
+| ---------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-key`\*     | Any alphanumeric string delineated by '.'      | Refers to a key in the incoming data stream                                                                                                    |
+| `data-type`\*    | "value", "string", "state"                     | Changes how incoming data is handled by the element                                                                                            |
+| `data-precision` | Positive integer                               | Number of decimal places to render "value" data type with.                                                                                     |
+| `data-timeout`   | JSON dictionary in format of `{time_ms:state}` | Denotes timeout behaviour for the "state" data type. For each entry in the dictionary, a timer is started which sets a new state upon timeout. |
+
+\*Required.
+
+### Data types
+
+| Type     | Description                                                                  |
+| -------- | ---------------------------------------------------------------------------- |
+| "value"  | Numerical value, most common type of data to be shown on a page.             |
+| "string" | Text string, for displaying text or specific number formatting.              |
+| "state"  | State indicator, small lights which change colour depending on system state. |
+
 ## Libraries
 
 We're using the following libraries for frontend:
@@ -12,7 +43,7 @@ We're using the following libraries for frontend:
 
 These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN.
 
-Unless updating them is absolutely necessary, we will be using these specific versions throughout the capstone project. Updating in the middle of development can add a lot of work and cause weird glitches.
+These are likely to be updated before IREC 2026, probably in March after our first test launch.
 
 ### Tailwind
 
@@ -36,20 +67,6 @@ It lets us make pretty graphs
 **Three.js v0.175.0 is used to render the 3D model of the rocket.**
 
 Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
-
-## Interface items
-
-### Display item keys and IDs
-
-> These are out of date, and were documented during development of the GCS-2025 system.
->
-> TODO: Incorporate this into the API standardisation, which makes all keys and values consistently handled across the entire system, instead of having to do a bunch of processing/handling on each interface
-
-### Module tables
-
-These are the item IDs for updating values with JavaScript:
-
-(Tables have been removed due to being outdated. Please put new tables here when you get a chance.)
 
 ---
 

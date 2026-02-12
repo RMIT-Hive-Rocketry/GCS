@@ -40,7 +40,12 @@
         <div class="module-default p-2 gap-2 justify-center">
             <div class="w-full flex gap-4 justify-start items-center">
                 <p class="font-bold text-hive">&nbsp;AV</p>
-                <div class="indicator-state mx-0 radio-av-state timeout"></div>
+                <div
+                    data-key="state.av.radio"
+                    data-type="state"
+                    data-timeout='{"3000":4,"10000":5}'
+                    class="indicator-state mx-0 timeout"
+                ></div>
                 <div class="flex flex-row gap-2 grow justify-between">
                     <label>
                         RSSI:<input
@@ -75,7 +80,12 @@
             </div>
             <div class="w-full flex gap-4 justify-between items-center">
                 <p class="font-bold text-hive">GSE</p>
-                <div class="indicator-state mx-0 radio-gse-state timeout"></div>
+                <div
+                    data-key="state.gse.radio"
+                    data-type="state"
+                    data-timeout='{"3000":4,"10000":5}'
+                    class="indicator-state mx-0 timeout"
+                ></div>
                 <div class="flex flex-row gap-2 grow justify-between">
                     <label>
                         RSSI:<input
