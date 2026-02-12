@@ -369,20 +369,15 @@ function API_OnMessage(event) {
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
         sendDataToRegistry(apiData);
 
+        // Legacy Legacy support
         if (typeof hmiUpdate === "function") {
             hmiUpdate(apiData);
         }
 
         // Handle different packet types
-        if (apiData.id == 2) {
-            ///// ----- SINGLE OPERATOR PACKETS ----- /////
-            //
-        } else if (apiData.id == 3 || apiData.id == 4) {
+        if (apiData.id == 3 || apiData.id == 4) {
             ///// ----- AVIONICS PACKETS ----- /////
             // Display values
-            if (typeof displayUpdateRadio === "function") {
-                displayUpdateRadio(apiData);
-            }
             if (typeof displayUpdateFlightState === "function") {
                 displayUpdateFlightState(apiData);
             }
@@ -403,10 +398,6 @@ function API_OnMessage(event) {
             }
         } else if (apiData.id == 6 || apiData.id == 7) {
             ///// ----- GSE PACKETS ----- /////
-            // Display values
-            if (typeof displayUpdateRadio === "function") {
-                displayUpdateRadio(apiData);
-            }
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
@@ -530,6 +521,9 @@ function processDataForDisplay(apiData, apiId) {
     if (processedData.state == undefined) {
         processedData.state = {};
     }
+    if (processedData.meta == undefined) {
+        processedData.meta = {};
+    }
 
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
@@ -571,7 +565,9 @@ function processDataForDisplay(apiData, apiId) {
                 rssi: apiData.meta.rssi,
                 snr: apiData.meta.snr,
                 packets: ++packetsAV1,
+                lostPackets: processedData.meta.totalPacketCountAv - packetsAV1,
             };
+            processedData.state.av = { radio: 1 };
         } else if ([6, 7].includes(apiId)) {
             if (apiData.meta?.totalPacketCountGse) {
                 if (packetsGSE == 0) {
@@ -585,8 +581,11 @@ function processDataForDisplay(apiData, apiId) {
             processedData.meta.gse = {
                 rssi: apiData.meta.rssi,
                 snr: apiData.meta.snr,
-                packets: ++packetsAV1,
+                packets: ++packetsGSE,
+                lostPackets:
+                    processedData.meta.totalPacketCountGse - packetsGSE,
             };
+            processedData.state.gse = { radio: 1 };
         }
     }
 
