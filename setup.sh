@@ -108,7 +108,11 @@ install_protobuf() {
         return 1
     fi
     
-    sudo ldconfig
+    if command -v ldconfig &>/dev/null; then
+        sudo ldconfig
+    elif command -v update_dyld_shared_cache &>/dev/null; then
+        sudo update_dyld_shared_cache
+    fi
     echo "Protobuf v$PROTOBUF_VERSION installation completed successfully."
     
     # Return to original directory

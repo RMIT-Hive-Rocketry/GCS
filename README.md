@@ -32,6 +32,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 - [Pendant Emulator Quick Reference](docs/pendant_emulator.md)
 - [System Design & features](docs/system_design.md)
 - [Development](docs/development.md)
+- [Frontend](docs/frontend.md)
 - [Glossary](docs/glossary.md)
 
 <!-- ### Notes
@@ -56,7 +57,7 @@ GCS Software Team
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/freddy-mcloughlan/">Freddy Mcloughlan</a> (<code>mcloughlan</code>)</td>
-        <td>new role</td>
+        <td>IREC Lead</td>
         <td>2026</td>
     </tr>
     <tr>
@@ -65,7 +66,7 @@ GCS Software Team
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
-        <td>new role</td>
+        <td>GCS Lead</td>
         <td>2026</td>
     </tr>
     <tr>
@@ -151,3 +152,4 @@ Attribution must be clearly displayed in any redistributed or derivative works.
 Please credit: **RMIT Competition Rocketry** and the **HIVE GCS Software Team**.
 
 See the [LICENSE](LICENSE) file for full terms.
+
