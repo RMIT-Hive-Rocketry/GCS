@@ -94,7 +94,14 @@ install_protobuf() {
     fi
     
     mkdir -p build && cd build
-    cmake -Dprotobuf_BUILD_TESTS=OFF ..
+    # make sure protobuf compiles with C++17
+    cmake -Dprotobuf_BUILD_TESTS=OFF \
+        -Dprotobuf_BUILD_TESTS=OFF \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_CXX_EXTENSIONS=OFF \
+        ..
+        
     if [ $? -ne 0 ]; then
         echo "Error: CMAKE configuration failed." >&2
         cd - > /dev/null
