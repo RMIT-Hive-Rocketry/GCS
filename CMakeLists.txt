@@ -11,13 +11,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    # For CMake 3.12+
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "18.0.0")
         message(STATUS "Using Clang compiler (${CMAKE_CXX_COMPILER_VERSION}) - enforcing ABI compatibility with version 17")
         message(STATUS "Clang compiler forcing version 17 compatability")
-        add_compile_options(-fclang-abi-compat=17)
-
-        # For older CMake versions
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fclang-abi-compat=17>)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fclang-abi-compat=17")
     endif()
 endif()

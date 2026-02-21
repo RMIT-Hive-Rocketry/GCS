@@ -483,5 +483,5 @@
             "description": "Enter the psuedoterminal /dev path",
             "default": "/dev/ttys..."
         }
-    ],
+    ]
 }
