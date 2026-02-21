@@ -10,6 +10,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Disable tests in all FetchContent dependencies (libzmq, cppzmq, protobuf, abseil, googletest).
+# We only build and run our own backend and Python tests.
+set(BUILD_TESTING OFF CACHE BOOL "Disable dependency tests" FORCE)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "18.0.0")
         message(STATUS "Using Clang compiler (${CMAKE_CXX_COMPILER_VERSION}) - enforcing ABI compatibility with version 17")
@@ -293,6 +297,8 @@ if(BUILD_TESTS)
             GIT_REPOSITORY https://github.com/google/googletest.git
             GIT_TAG v1.16.0
         )
+        set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+        set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(googletest)
     else()
         message(STATUS "GoogleTest found at: ${GTest_DIR}")
