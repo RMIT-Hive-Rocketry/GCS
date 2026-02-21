@@ -94,14 +94,14 @@ install_protobuf() {
     fi
     
     mkdir -p build && cd build
-    cmake -Dprotobuf_BUILD_TESTS=OFF ..
+    cmake -Dprotobuf_BUILD_TESTS=OFF .. 
     if [ $? -ne 0 ]; then
         echo "Error: CMAKE configuration failed." >&2
         cd - > /dev/null
         return 1
     fi
     
-    sudo make install
+    sudo make install -j$(nproc)
     if [ $? -ne 0 ]; then
         echo "Error: Failed to install protobuf. Make sure you have sudo privileges." >&2
         cd - > /dev/null
