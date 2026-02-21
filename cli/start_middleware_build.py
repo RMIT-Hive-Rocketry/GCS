@@ -70,7 +70,8 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         # ---- Start make ----
 
         MIDDLEWARE_BUILD_COMMAND_MAKE = [
-            "make"
+            "make",
+            "-j$(nproc)"
         ]
 
         logger.debug(

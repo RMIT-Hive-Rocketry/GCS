@@ -448,6 +448,26 @@
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
             }
+        },
+        {
+            "label": "Act: Local Build (Release/g++)",
+            "type": "shell",
+            "command": "act",
+            "args": [
+                "--matrix",
+                "build_type:Release",
+                "--matrix",
+                "cpp_compiler:g++",
+                "--secret-file",
+                ".secrets",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ],
     "inputs": [
@@ -463,5 +483,5 @@
             "description": "Enter the psuedoterminal /dev path",
             "default": "/dev/ttys..."
         }
-    ]
+    ],
 }
