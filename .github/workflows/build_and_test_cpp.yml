@@ -228,6 +228,6 @@ jobs:
         working-directory: ${{ github.workspace }}/build
         run: |
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/build/backend/proto/generated
-          ctest --output-on-failure --verbose 2>ctest.error
+          ctest -R 'RunAllC\+\+Tests|PythonTests' --output-on-failure --verbose 2>ctest.error
           cat ctest.error
           [ -s ctest.error ] && exit 1 || exit 0
