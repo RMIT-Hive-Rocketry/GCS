@@ -50,16 +50,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Caching
+      # Caching: prepare build dir and restore CMake FetchContent deps (abseil, protobuf, libzmq, cppzmq, googletest)
       - name: Prepare build directory for cache
         run: mkdir -p build
-      - name: Cache CMake dependencies
+      - name: Cache CMake FetchContent dependencies
+        id: cache-cmake-deps
         uses: actions/cache@v4
         with:
           path: build/_deps
           key: cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', 'backend/tests/CMakeLists.txt') }}
           restore-keys: |
             cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
+
+      - name: Cache setup.sh protobuf
+        id: cache-protobuf
+        uses: actions/cache@v4
+        with:
+          path: ~/protobuf
+          key: protobuf-${{ runner.os }}-30.1-v1
+          restore-keys: protobuf-${{ runner.os }}-
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -102,6 +111,11 @@ jobs:
         run: |
           source .venv/bin/activate
           bash setup.sh
+      - name: Run setup.sh (venv/symlink only; protobuf already installed from cache)
+        if: steps.cache-protobuf.outputs.cache-hit == 'true' && steps.protobuf-from-cache.outputs.installed == 'true'
+        run: |
+          source .venv/bin/activate
+          CI_PROTOBUF_CACHED=1 bash setup.sh
 
       # --- Python dependencies  ---
       - name: Install Python requirements
@@ -137,10 +151,16 @@ jobs:
           CMAKE_CXX_COMPILER_LAUNCHER: ccache
           CMAKE_C_COMPILER_LAUNCHER: ccache
         run: |
+          CMAKE_EXTRA=""
+          if [ "${{ steps.cache-cmake-deps.outputs.cache-hit }}" = "true" ] && [ -d "build/_deps" ] && [ -n "$(ls -A build/_deps 2>/dev/null)" ]; then
+            CMAKE_EXTRA="-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
+            echo "Using cached CMake deps (FETCHCONTENT_FULLY_DISCONNECTED=ON)"
+          fi
           cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
                 -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
                 -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
                 -DBUILD_TESTS=ON \
+                $CMAKE_EXTRA \
                 -S "${{ github.workspace }}"
 
       # --- Build the project ---
