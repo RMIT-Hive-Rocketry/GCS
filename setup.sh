@@ -6,7 +6,7 @@ PROTOBUF_VERSION="30.1"
 PROTOBUF_MAJOR_VERSION="30"
 
 # Check if python is installed and meets the required version (>= 3.11)
-python_version=$(python --version 2>&1 | awk '{print $2}')
+python_version=$(python3 --version 2>&1 | awk '{print $2}')
 required_version="3.11"
 
 if [[ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]]; then
