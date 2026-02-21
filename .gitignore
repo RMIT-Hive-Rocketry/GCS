@@ -1,3 +1,6 @@
+# yeah don't share this one
+.secrets
+
 # Local notes that don't need to be shared
 notes/local.txt
 notes/visualParadigm/*
