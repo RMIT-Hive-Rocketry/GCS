@@ -94,7 +94,7 @@ install_protobuf() {
     fi
     
     mkdir -p build && cd build
-    cmake -Dprotobuf_BUILD_TESTS=OFF .. 
+    cmake -Dprotobuf_BUILD_TESTS=OFF ..
     if [ $? -ne 0 ]; then
         echo "Error: CMAKE configuration failed." >&2
         cd - > /dev/null

@@ -38,6 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Do not add mac to here. It has a 10x cost to linux runtimes
         os: [ubuntu-latest]
         build_type: [Release, Debug]
         cpp_compiler: [g++, clang++]
@@ -45,7 +46,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # TODO Add caching where needed
+      # Caching
+      - name: Prepare build directory for cache
+        run: mkdir -p build
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', 'backend/tests/CMakeLists.txt') }}
+          restore-keys: |
+            cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
 
       # Instructions are based off of [docs/setup.md]
       # --- System dependencies ---
@@ -55,6 +72,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake \
+            ccache \
             git \
             socat \
             python3.11 \
@@ -95,6 +113,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake
 
+      # Cache ccache to speed up recompilation when only some files change
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('backend/**', 'CMakeLists.txt') }}
+          restore-keys: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
+
       # --- Set reusable strings for build output directory ---
       - name: Set reusable strings
         id: strings
@@ -103,6 +129,9 @@ jobs:
 
       # --- Configure CMake ---
       - name: Configure CMake
+        env:
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          CMAKE_C_COMPILER_LAUNCHER: ccache
         run: |
           cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
                 -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
@@ -147,6 +176,13 @@ jobs:
       CI_BUILD_ENV: ${{ matrix.build_type }}
     steps:
       - uses: actions/checkout@v4 # Needed for scripts
+
+      - name: Cache pip (test job)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
 
       # --- Download main build artifacts ---
       - name: Download Build Artifacts
