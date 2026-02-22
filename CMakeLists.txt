@@ -268,19 +268,21 @@ execute_process(
 # Same as $ uname -m -> "arm64"
 set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
-# Clean up old binaries with different names before building
-file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/middleware_*")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(MIDDLEWARE_NAME_PREFIX "middleware_release")
+else()
+    set(MIDDLEWARE_NAME_PREFIX "middleware_debug")
+endif()
+
+# Delete either debug or release based on what you're compiling right now
+file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/${MIDDLEWARE_NAME_PREFIX}_*")
 
 if(OLD_BINARIES)
-    message(STATUS "Cleaning up old binaries: ${OLD_BINARIES}")
+    message(STATUS "Cleaning up old ${MIDDLEWARE_NAME_PREFIX} binaries: ${OLD_BINARIES}")
     file(REMOVE ${OLD_BINARIES})
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_release_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
-else()
-    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_debug_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
-endif()
+set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "${MIDDLEWARE_NAME_PREFIX}_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
 
 install(TARGETS middleware_server DESTINATION bin)
 

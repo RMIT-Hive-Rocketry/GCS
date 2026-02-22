@@ -41,13 +41,17 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
             f"BUILD_FLAG must be a CMakeBuildModes value, got: {BUILD_FLAG} as type {type(BUILD_FLAG)}")
     SERVICE_NAME = "middleware"
     try:
-        build_flag_string = BUILD_FLAG.value
+        if BUILD_FLAG == CMakeBuildModes.DEBUG:
+            BUILD_DIR = "build-debug"
+        elif BUILD_FLAG == CMakeBuildModes.RELEASE:
+            BUILD_DIR = "build-release"
 
-        os.makedirs("build", exist_ok=True)
-        os.chdir("build")
+        os.makedirs(BUILD_DIR, exist_ok=True)
+        os.chdir(BUILD_DIR)
+
         MIDDLEWARE_BUILD_COMMAND_CMAKE = [
             "cmake",
-            f"-DCMAKE_BUILD_TYPE={build_flag_string}",
+            f"-DCMAKE_BUILD_TYPE={BUILD_FLAG.value}",
             ".."]
 
         logger.debug(
