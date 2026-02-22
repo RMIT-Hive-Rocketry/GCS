@@ -40,4 +40,5 @@ execute_process(COMMAND chmod +x ${PYTHON_TEST_SCRIPT_PATH})
 add_test(NAME PythonTests COMMAND ${PYTHON_TEST_SCRIPT_PATH})
 set_tests_properties(PythonTests PROPERTIES
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    DEPENDS RunAllC++Tests
 )
