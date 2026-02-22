@@ -2,6 +2,7 @@
     "[markdown]": {
         "editor.wordWrap": "on"
     },
+    "cmake.buildDirectory": "${workspaceFolder}/build-${buildType}",
     "files.associations": {
         "iosfwd": "cpp",
         "vector": "cpp",

@@ -106,6 +106,22 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(EXPECTED_BUILD_DIR_SUFFIX "build-release")
+else()
+    set(EXPECTED_BUILD_DIR_SUFFIX "build-debug")
+endif()
+
+get_filename_component(BINARY_DIR_NAME "${CMAKE_BINARY_DIR}" NAME)
+
+if(NOT BINARY_DIR_NAME STREQUAL EXPECTED_BUILD_DIR_SUFFIX)
+    message(FATAL_ERROR
+        "Build directory mismatch!\n"
+        "  For ${CMAKE_BUILD_TYPE} builds, please configure from '${EXPECTED_BUILD_DIR_SUFFIX}/'.\n"
+        "  Run: cmake -B ${EXPECTED_BUILD_DIR_SUFFIX} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+    )
+endif()
+
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
 
 file(GLOB_RECURSE LIB_SRCS
@@ -274,7 +290,6 @@ else()
     set(MIDDLEWARE_NAME_PREFIX "middleware_debug")
 endif()
 
-# Delete either debug or release based on what you're compiling right now
 file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/${MIDDLEWARE_NAME_PREFIX}_*")
 
 if(OLD_BINARIES)
