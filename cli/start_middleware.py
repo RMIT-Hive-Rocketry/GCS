@@ -53,13 +53,18 @@ def middleware_started_callback(line: str, stream_name: str):
         return True
 
 
-def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
+def get_middleware_path(BINARY_NAME_PREFIX: str, RELEASE: bool) -> Optional[str]:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
     """
 
+    if RELEASE:
+        BUILD_DIR = "build-release"
+    else:
+        BUILD_DIR = "build-debug"
+
     # Cmake folder
-    BUILD_PATH_ABS = os.path.join(os.getcwd(), "build")
+    BUILD_PATH_ABS = os.path.join(os.getcwd(), BUILD_DIR)
     build_path_files = [os.path.join(BUILD_PATH_ABS, x)
                         for x in os.listdir(BUILD_PATH_ABS)]
     build_path_files = [x for x in build_path_files if os.path.isfile(x)]
@@ -84,12 +89,12 @@ def get_middleware_path(BINARY_NAME_PREFIX: str) -> Optional[str]:
     BINARY_PATH = file_matches[0]
 
     with open("VERSION", "r") as f:
-        version = f.read().strip()
+        VERSION_STRING = f.read().strip()
 
     # Actual file may have build metadata in it. Substring match is fine
-    if version not in os.path.basename(BINARY_PATH):
+    if VERSION_STRING not in os.path.basename(BINARY_PATH):
         raise RuntimeError(
-            f"Middleware binary version mismatch. Expected substring: {version}, found: {os.path.basename(BINARY_PATH)}. The repository branch VERSION file does not match the binary version found")
+            f"Middleware binary version mismatch. Expected prefix: {VERSION_STRING}, found: {os.path.basename(BINARY_PATH)}. The repository branch VERSION file does not match the binary version found")
 
     return file_matches[0]
 
@@ -110,16 +115,16 @@ def start_middleware(logger: logging.Logger,
     try:
 
         BINARY_NAME = "middleware_release" if release else "middleware_debug"
-        MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME)
+        MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME, release)
 
         if MIDDLEWARE_BINARY_PATH is None:
             logger.debug(f"WORKING DIRECTORY: {os.getcwd()}")
             raise FileNotFoundError(
-                f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build/ or root folder. Please run $ bash scripts/release.sh")
+                f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build folders or root folder. Please run $ bash scripts/release.sh")
 
         middleware_command = [
             # Should always be relative to cwd. Just use the (.):
-            # ./middleware/build/middleware_server {args}
+            # ./middleware/something-build/middleware_server {args}
             # See args in main.cpp
             MIDDLEWARE_BINARY_PATH,
             INTERFACE_TYPE.value,
