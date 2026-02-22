@@ -141,6 +141,21 @@
         -webkit-mask-size: contain;
         mask-size: contain;
 
+        &.icon-ban {
+            -webkit-mask-image: url("/img/icons/ban.svg");
+            mask-image: url("/img/icons/ban.svg");
+        }
+
+        &.icon-bar-chart {
+            -webkit-mask-image: url("/img/icons/bar-chart.svg");
+            mask-image: url("/img/icons/bar-chart.svg");
+        }
+
+        &.icon-tasks {
+            -webkit-mask-image: url("/img/icons/tasks.svg");
+            mask-image: url("/img/icons/tasks.svg");
+        }
+
         &.icon-rocket {
             -webkit-mask-image: url("/img/icons/rocket.svg");
             mask-image: url("/img/icons/rocket.svg");
