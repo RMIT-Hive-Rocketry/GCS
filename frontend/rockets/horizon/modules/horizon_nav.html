@@ -1,0 +1,13 @@
+<nav class="w-screen max-w-screen min-h-[80px] h-[80px] border border-black">
+    <div class="flex flex-row justify-start items-center">
+        {% for page in active.PAGES %}
+        <a
+            class="h-[80px] w-[80px] border-black border-2 border-collapse"
+            href="#{{page['id']}}"
+        >
+            <div class="icon {{page['icon']}} w-8 h-8"></div>
+            <span>{{page['name']}}</span>
+        </a>
+        {% endfor %}
+    </div>
+</nav>
