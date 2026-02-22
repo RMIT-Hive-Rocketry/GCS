@@ -55,8 +55,11 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
 endfunction()
 
 # Abseil libraries for protobuf
+set(ABSL_RUN_TESTS OFF CACHE BOOL "Disable Abseil tests" FORCE)
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
+
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
+set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "Disable Protobuf Exmaples" FORCE)
 
 # Prevent Protobuf from exporting abseil-linked targets
 set(protobuf_BUILD_EXPORT OFF CACHE BOOL "Disable protobuf target exports" FORCE)

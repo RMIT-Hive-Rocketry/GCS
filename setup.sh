@@ -123,7 +123,6 @@ install_protobuf() {
 # Check and install protobuf if needed
 if ! check_protobuf_installed; then
     echo "Could not find correct protobuf."
-    echo "Installing protobuf v$PROTOBUF_VERSION"
     install_protobuf
     if [ $? -ne 0 ]; then
         echo "Warning: Protobuf installation failed. Some features may not work correctly."
