@@ -71,7 +71,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
 
         MIDDLEWARE_BUILD_COMMAND_MAKE = [
             "make",
-            "-j$(nproc)"
+            f"-j{os.cpu_count()}"
         ]
 
         logger.debug(
