@@ -1,5 +1,4 @@
 # Auto installation and error validation is handled by parent CMake
-find_package(GTest REQUIRED)
 
 set(CPP_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpp_tests")
 
@@ -10,9 +9,10 @@ add_executable(runC++Tests
 )
 
 # Link against the middleware library and GTest
+# When GTest is fetched via FetchContent it exposes GTest::gtest and GTest::gtest_main (lowercase)
 target_link_libraries(runC++Tests PRIVATE
-    GTest::GTest
-    GTest::Main
+    GTest::gtest
+    GTest::gtest_main
     middleware_lib
 )
 
