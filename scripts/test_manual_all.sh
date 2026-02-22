@@ -1,6 +1,6 @@
 set -e;
-mkdir -p build
-cd build;
+mkdir -p build-debug
+cd build-debug;
 
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON  ..;
 make;
