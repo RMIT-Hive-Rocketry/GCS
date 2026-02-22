@@ -46,25 +46,6 @@
             {% endif %} {% endfor %}
         </main>
 
-        <!-- Footer with navigation buttons -->
-        <!--
-        <nav
-            class="w-screen max-w-screen min-h-[80px] h-[80px] border border-black"
-        >
-            <div class="flex flex-row justify-start items-center">
-                {% for page in active.PAGES %}
-                <a
-                    class="h-[80px] w-[80px] border-black border-2 border-collapse"
-                    href="#{{page['id']}}"
-                >
-                    <div class="icon {{page['icon']}} w-8 h-8"></div>
-                    <span>{{page['name']}}</span>
-                </a>
-                {% endfor %}
-            </div>
-        </nav>
-        -->
-
         <!--
         I would like to eventually replace GCS_Display with code in the API 
          for registering HTML elements to data key pairs, adding those to a big
@@ -73,9 +54,11 @@
 
         This should vastly reduce the number of checks we need to make to see if
          HTML elements exist and also reduce the need for so much repetition and monolithy.
+
+
+         UPDATE: This is in progress!!!!
         -->
         <script src="/js/GCS_API.js"></script>
-        <script src="/js/GCS_Display.js"></script>
         <script src="/js/GCS_Testing.js"></script>
 
         <script src="/js/libraries/d3.min.js"></script>
