@@ -11,7 +11,7 @@
 
 ![banner](docs/assets/banner.png)
 
-Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**). 
+Repository for RMIT Hive's rocketry GCS (**Ground Control Station**). 
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
 
@@ -48,7 +48,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
 ## Description
 
-The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, avionics communication, and data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. All OSI layers in our networking stack above the physical protocol are SRAD for use with our Australis (avionics) ecosystem. The software converts raw serial input from physical radio interfaces into human-readable output for efficient system monitoring by the GCS operator and visualisations for observers. We use a WebSocket and a protocol buffer based IPC API to communicate with our GCS services. Our web frontend is fully SRAD aside from industry-standard libraries. The GCS operator can see if any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO call quickly. Spectators and other team members have access to several different views detailing all telemetry from both the GSE and avionics systems
+The GCS, known as SOTERIA, is Hive's computer control system for GSE control, avionics communication, and data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. All OSI layers in our networking stack above the physical protocol are SRAD for use with our Australis (avionics) ecosystem. The software converts raw serial input from physical radio interfaces into human-readable output for efficient system monitoring by the GCS operator and visualisations for observers. We use a WebSocket and a protocol buffer based IPC API to communicate with our GCS services. Our web frontend is fully SRAD aside from industry-standard libraries. The GCS operator can see if any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO call quickly. Spectators and other team members have access to several different views detailing all telemetry from both the GSE and avionics systems
 
 ## Credit
 
@@ -113,7 +113,7 @@ Special thanks
 - [Matthew Ricci](https://www.linkedin.com/in/matthewricci-embedded/)
     - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
 
-And to all those at RMIT HIVE!
+And to all those at RMIT Hive!
 
 ## Software Development Components
 
@@ -154,7 +154,7 @@ notice and license in all copies or substantial portions of the Software.
 
 Attribution must be clearly displayed in any redistributed or derivative works.
 
-Please credit: **RMIT Competition Rocketry** and the **HIVE GCS Software Team**.
+Please credit: **RMIT Competition Rocketry** and the **Hive GCS Software Team**.
 
 See the [LICENSE](LICENSE) file for full terms.
 

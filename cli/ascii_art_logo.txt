@@ -34,6 +34,6 @@ oo     .d8P `88b    d88'      888       888       o  888  `88b.   888   .8'     
 
 
 
-RMIT High Velocity (HIVE)
+RMIT High Velocity (Hive)
 Copyright (c) 2025 RMIT Competition Rocketry
 Melbourne, Australia
