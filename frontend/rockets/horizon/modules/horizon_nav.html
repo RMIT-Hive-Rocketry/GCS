@@ -1,11 +1,13 @@
-<nav class="w-screen max-w-screen min-h-[80px] h-[80px] border border-black">
-    <div class="flex flex-row justify-start items-center">
+<nav
+    class="module-horizon w-full max-w-screen h-full border-t-2 border-orange-900"
+>
+    <div class="h-full grid grid-cols-24 justify-items-center text-sm">
         {% for page in active.PAGES %}
         <a
-            class="h-[80px] w-[80px] border-black border-2 border-collapse"
+            class="h-full col-span-1 w-full grid whitespace-nowrap place-items-center border-2 border-white border-collapse"
             href="#{{page['id']}}"
         >
-            <div class="icon {{page['icon']}} w-8 h-8"></div>
+            <div class="icon {{page['icon']}} w-10 h-10"></div>
             <span>{{page['name']}}</span>
         </a>
         {% endfor %}
