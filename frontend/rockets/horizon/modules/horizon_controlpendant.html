@@ -1,0 +1,171 @@
+<!-- Horizon hybrid control pendant -->
+<style>
+    .module-horizon.hybridcontrolpendant img {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        grid-row: 1;
+        grid-column: 1;
+    }
+</style>
+<script>
+    const states = [
+        [],
+        [],
+        ["pendant.hybrid.active", "pendant.hybrid.standby"],
+        ["pendant.hybrid.active", "pendant.hybrid.standby"],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.fill",
+            "pendant.hybrid.fill_neutral",
+        ],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.fill",
+            "pendant.hybrid.fill_n2o",
+        ],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.fill",
+            "pendant.hybrid.fill_neutral",
+        ],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.fill",
+            "pendant.hybrid.fill_purge",
+        ],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.fill",
+            "pendant.hybrid.fill_neutral",
+        ],
+        ["pendant.hybrid.active", "pendant.hybrid.standby"],
+        ["pendant.hybrid.active", "pendant.hybrid.standby"],
+        ["pendant.hybrid.active", "pendant.hybrid.ignition"],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.ignition",
+            "pendant.hybrid.ignition_o2",
+        ],
+        [
+            "pendant.hybrid.active",
+            "pendant.hybrid.ignition",
+            "pendant.hybrid.ignition_o2",
+            "pendant.hybrid.ignition_fire",
+        ],
+        ["pendant.hybrid.active", "pendant.hybrid.ignition"],
+        ["pendant.hybrid.active", "pendant.hybrid.standby"],
+        ["pendant.hybrid.active", "pendant.hybrid.standby"],
+    ];
+    var counter = 0;
+    function togglePendant(counter) {
+        // Turn off all images
+        document
+            .querySelectorAll("[data-key^='pendant.hybrid']")
+            .forEach((elem) => {
+                elem.classList.add("hidden");
+            });
+
+        // Turn on specific ones
+        for (let state of states[counter % states.length]) {
+            document
+                .querySelector(`[data-key='${state}']`)
+                .classList.remove("hidden");
+        }
+    }
+    setInterval(() => {
+        togglePendant(counter++);
+    }, 800);
+</script>
+<div
+    class="module-horizon hybridcontrolpendant p-2 w-full h-full min-h-0 min-w-0 flex"
+>
+    <h2>Hybrid Control Pendant</h2>
+    <div class="flex min-w-0 min-h-0 grow">
+        <div
+            class="w-full h-full max-w-full max-h-full"
+            style="
+                display: grid;
+                grid-template-columns: 100%;
+                grid-template-rows: 100%;
+            "
+        >
+            <img
+                src="/horizon/static/img/pendant/pendant-off.png"
+                width="1176"
+                height="1034"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-system-active.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.active"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-fill-active.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.fill"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-fill-n2o.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.fill_n2o"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-fill-neutral.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.fill_neutral"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-fill-purge.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.fill_purge"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-standby.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.standby"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-ignition-active.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.ignition"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-ignition-o2.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.ignition_o2"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-ignition-fire.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.ignition_fire"
+                data-type="img"
+            />
+            <img
+                src="/horizon/static/img/pendant/pendant-estop.png"
+                width="1176"
+                height="1034"
+                data-key="pendant.hybrid.estop"
+                data-type="img"
+            />
+        </div>
+    </div>
+</div>
