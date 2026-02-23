@@ -21,6 +21,7 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_nav.html",
             "horizon/modules/horizon_overview.html",
             "horizon/modules/horizon_radio.html",
+            "horizon/modules/horizon_controlpendant.html",
         ]
 
         # Define pages for Horizon
@@ -48,4 +49,5 @@ class ConfigHorizon(Config):
                 ("page-control", 0, 11, 24, 1),
             ],
             "horizon_overview": [("page-main", 0, 1, 24, 10)],
+            "horizon_controlpendant": [("page-control", 0, 1, 24, 10)]
         }
