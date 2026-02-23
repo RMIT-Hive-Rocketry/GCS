@@ -1,3 +1,9 @@
+'''
+export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
+'''
+
+import hid
+
 import zmq
 import backend.includes_python.process_logging as slogger
 import os
@@ -6,6 +12,7 @@ import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 import config.config as config
 import threading
+from typing import List
 from abc import ABC, abstractmethod
 try:
     from gpiozero import Button
@@ -231,10 +238,81 @@ class RPI_GPIO_Device(ControlDevice):
         self.state_table = StateTable(**states)
 
 
+class HID_Button:
+    byte: int # [0, 1]
+    bit: int # [0, 7]
+    bitmask: int
+    safety_factor: int # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    safety_count: int
+    MAX_SAFETY_COUNT: int = 5
+    USEFULL_BYTE_OFFSET: int = 10
+    
+    def __init__(self, byte, bit, safety_factor = .8):
+        self.byte = byte
+        self.bit = bit
+        self.bitmask = 1 << bit
+        self.safety_factor = safety_factor
+    
+    def is_pressed(self, hid_bytes: List[int]) -> bool:
+        byte_index = HID_Button.USEFULL_BYTE_OFFSET + self.byte
+        hid_byte = hid_bytes[byte_index]
+
+        if hid_byte & self.bitmask:
+            safety_count = min(safety_count + 1, HID_Button.MAX_SAFETY_COUNT)
+        else:
+            safety_count = max(safety_count - 1, 0)
+
+        return safety_count == self.safety_factor
+
+class HID_Device(ControlDevice):
+    """Parent class for HID devices on Raspberry Pi."""
+
+    HID_VENDOR_ID = 0x0079
+    HID_PRODUCT_ID = 0x0006
+
+    BITMAP = {
+
+    }
+
+    device: hid.Device
+    device_is_connected: bool = False
+
+    def _try_connect_device(self):
+        try:
+            self.device = hid.Device()
+            self.device.open(HID_Device.HID_VENDOR_ID, HID_Device.HID_PRODUCT_ID)
+            self.device_is_connected = True
+        except IOError as e:
+            slogger.warning(f"Control Pendant is not connected, error: `{e}`")
+            self.device_is_connected == False
+
+    def _setup_device(self):
+        self._try_connect_device()
+
+
+    def __init__(self):
+        super().__init__()
+
+    def _update_state_table(self):
+        """Updates instance attributes and returns a dictionary of the current states."""
+
+        if not self.device_is_connected: self._try_connect_device()
+        if not self.device_is_connected: return
+
+        try:
+            pass
+        except IOError as e:
+            self.device_is_connected = False
+
+    def cleanup(self):
+        self.device.close()
+
+
 def get_control_device(key: str) -> ControlDevice:
     key = key.lower().strip()
     return {
         'rpi_gpio_device': RPI_GPIO_Device,
+        'hid_device': HID_Device
     }.get(key, None)
 
 
