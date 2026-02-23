@@ -50,14 +50,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set build directory
+        id: build-dir
+        run: |
+          if [ "${{ matrix.build_type }}" = "Release" ]; then
+            echo "dir=build-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=build-debug" >> "$GITHUB_OUTPUT"
+          fi
+
       # Caching: prepare build dir and restore CMake FetchContent deps (abseil, protobuf, libzmq, cppzmq, googletest)
       - name: Prepare build directory for cache
-        run: mkdir -p build
+        run: mkdir -p ${{ steps.build-dir.outputs.dir }}
       - name: Cache CMake FetchContent dependencies
         id: cache-cmake-deps
         uses: actions/cache@v4
         with:
-          path: build/_deps
+          path: ${{ steps.build-dir.outputs.dir }}/_deps
           key: cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', 'backend/tests/CMakeLists.txt') }}
           restore-keys: |
             cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
@@ -66,14 +75,14 @@ jobs:
         id: cache-protobuf
         uses: actions/cache@v4
         with:
-          path: ~/protobuf
+          path: "$HOME/protobuf"
           key: protobuf-${{ runner.os }}-30.1-v1
           restore-keys: protobuf-${{ runner.os }}-
 
       - name: Cache pip
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
+          path: "$HOME/.cache/pip"
           key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
           restore-keys: pip-${{ runner.os }}-
 
@@ -135,7 +144,7 @@ jobs:
       - name: Cache ccache
         uses: actions/cache@v4
         with:
-          path: ~/.ccache
+          path: "$HOME/.ccache"
           key: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('backend/**', 'CMakeLists.txt') }}
           restore-keys: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
 
@@ -143,7 +152,7 @@ jobs:
       - name: Set reusable strings
         id: strings
         shell: bash
-        run: echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+        run: echo "build-output-dir=${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}" >> "$GITHUB_OUTPUT"
 
       # --- Configure CMake ---
       - name: Configure CMake
@@ -151,11 +160,13 @@ jobs:
           CMAKE_CXX_COMPILER_LAUNCHER: ccache
           CMAKE_C_COMPILER_LAUNCHER: ccache
         run: |
+          BUILD_DIR="${{ steps.build-dir.outputs.dir }}"
           CMAKE_EXTRA=""
-          if [ "${{ steps.cache-cmake-deps.outputs.cache-hit }}" = "true" ] && [ -d "build/_deps" ] && [ -n "$(ls -A build/_deps 2>/dev/null)" ]; then
+          if [ "${{ steps.cache-cmake-deps.outputs.cache-hit }}" = "true" ] && [ -d "$BUILD_DIR/_deps" ] && [ -n "$(ls -A $BUILD_DIR/_deps 2>/dev/null)" ]; then
             CMAKE_EXTRA="-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
             echo "Using cached CMake deps (FETCHCONTENT_FULLY_DISCONNECTED=ON)"
           fi
+          echo $CMAKE_EXTRA
           cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
                 -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
                 -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
@@ -178,7 +189,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-          path: build
+          path: ${{ steps.build-dir.outputs.dir }}
 
       # --- Specifically upload proto generated files as a separate artifact ---
       - name: Upload Proto Generated Files
@@ -201,10 +212,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4 # Needed for scripts
 
+      - name: Set build directory
+        id: build-dir
+        run: |
+          if [ "${{ matrix.build_type }}" = "Release" ]; then
+            echo "dir=build-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=build-debug" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Cache pip (test job)
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
+          path: "$HOME/.cache/pip"
           key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
           restore-keys: pip-${{ runner.os }}-
 
@@ -213,7 +233,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-          path: build
+          path: ${{ steps.build-dir.outputs.dir }}
 
       # --- Download proto generated files as well (redundant but ensures they're explicitly available) ---
       - name: Download Proto Generated Files
@@ -239,19 +259,19 @@ jobs:
           echo "Listing proto generated files in backend/proto/generated:"
           find backend/proto/generated -type f | sort
           echo "Complete build directory structure:"
-          tree build
+          tree ${{ steps.build-dir.outputs.dir }}
 
       # --- Set executable permissions for tests and binaries ---
       - name: Set executable permissions for tests
-        run: chmod +x build/backend/tests/runC++Tests
+        run: chmod +x ${{ steps.build-dir.outputs.dir }}/backend/tests/runC++Tests
 
       - name: Set executable permissions for main binary
-        run: find build -name "middleware*" -type f -exec chmod +x {} \;
+        run: find ${{ steps.build-dir.outputs.dir }} -name "middleware*" -type f -exec chmod +x {} \;
 
       - name: Run Tests
-        working-directory: ${{ github.workspace }}/build
+        working-directory: ${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}
         run: |
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/build/backend/proto/generated
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}/backend/proto/generated
           ctest -R 'RunAllC\+\+Tests|PythonTests' --output-on-failure --verbose 2>ctest.error
           cat ctest.error
           [ -s ctest.error ] && exit 1 || exit 0
