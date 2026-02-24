@@ -227,7 +227,7 @@ class RPI_GPIO_Device(ControlDevice):
             attr: getattr(self, attr) for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
         # Temporary fix for neutral state which isn't wired
-        self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+        self.states["NEUTRAL_ACTIVE"] = self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
         self.state_table = StateTable(**states)
 
 
