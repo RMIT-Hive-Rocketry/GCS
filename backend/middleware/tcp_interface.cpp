@@ -13,6 +13,7 @@
 #include <system_error>
 #include <thread>
 
+#include "debug_functions.hpp"
 #include "subprocess_logging.hpp"
 
 namespace {
@@ -66,6 +67,7 @@ bool TcpInterface::initialize() {
   return true;
 }
 
+// NOTE we are not using OML or anything. Raw TCP bytes only
 ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (sock_fd_ < 0) {
@@ -76,6 +78,9 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
   const uint8_t* buf = data.data();
   size_t total = 0;
   while (total < data.size()) {
+    std::string hex_output =
+        debug::vectorToHexString(data, static_cast<ssize_t>(data.size()));
+    slogger::info("Sending data (Hex): " + hex_output);
     ssize_t n = ::send(sock_fd_, buf + total, data.size() - total, 0);
     if (n < 0) {
       if (errno == EINTR) continue;

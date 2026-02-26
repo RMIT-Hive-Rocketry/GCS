@@ -243,6 +243,9 @@ def start_services(COMMAND: Command,
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
             devices = run_pseudoterm_setup(COMMAND)
+        case InterfaceType.TCP:
+            logger.info("Starting TCP interface")
+            devices = ("127.0.0.1", None)
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
