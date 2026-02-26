@@ -241,6 +241,8 @@ std::shared_ptr<RadioInterface> create_interface(
     interface = std::make_shared<TestInterface>(DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST_UART") {
     interface = std::make_shared<TestUartInterface>(DEVICE_PATH);
+  } else if (INTERFACE_NAME == "TCP") {
+    interface = std::make_shared<TcpInterface>(DEVICE_PATH);
   } else {
     throw std::runtime_error("Error: Invalid interface type");
   }
