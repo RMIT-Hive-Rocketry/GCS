@@ -22,6 +22,7 @@
 #include "debug_functions.hpp"
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
+#include "tcp_interface.hpp"
 #include "test_interface.hpp"
 #include "test_uart_interface.hpp"
 #include "uart_interface.hpp"
