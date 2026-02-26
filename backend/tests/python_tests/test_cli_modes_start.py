@@ -177,8 +177,6 @@ class TestDevStartups(CliStartup):
 
 
 @pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
-# See logs from https://github.com/RMIT-Hive-Rocketry/GCS-2026/commit/dcd83d77b575807498cad0bbb10d35e56eecb06c
-@pytest.mark.skip(reason="Skipped until rocketpy supports new API format")
 class TestReplaySimulationStartups(CliStartup):
     def get_rocket_args(self) -> List[str]:
         return ["replay", "--mode", "simulation", "--simulation", "test", "--nobuild"]
