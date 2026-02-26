@@ -220,18 +220,18 @@ class TestReplayMissionStartups(CliStartup):
 
 
 @pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
-@pytest.mark.skip(reason="Skipped until rocketpy supports
+@pytest.mark.skip(reason="Skipped until rocketpy supports")
 class TestDemoMissionStartups(CliStartup):
     def get_rocket_args(self) -> List[str]:
         return ["replay", "--mode", "simulation", "--simulation", "demo", "--nobuild"]
 
     def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
-        proc, scanner=process_and_scanner
-        fail_patterns=CliStartup.DEFAULT_FAIL_PATTERNS
-        success_patterns=CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"replay system: \[STDOUT] STARTING UP DEMO MODE, THIS WILL RUN UNTIL STOPPED",
         ]
-        success, output_lines=scanner.scan_for_patterns(
+        success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns,
             success_all=success_patterns,
             timeout=30.0
