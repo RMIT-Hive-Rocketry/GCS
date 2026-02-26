@@ -14,7 +14,7 @@ class TcpInterface : public RadioInterface {
   // If ENDPOINT is non-empty, it may be of the form "ip" or "ip:port".
   // Otherwise a built-in static IP/port is used.
   explicit TcpInterface(const std::string& endpoint = "127.0.0.1",
-                        const std::string& port = "5000");
+                        uint16_t port = 5000);
   ~TcpInterface() override;
 
   bool initialize() override;
