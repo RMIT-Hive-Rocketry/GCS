@@ -199,6 +199,7 @@ class TestReplaySimulationStartups(CliStartup):
 
 
 @pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+@pytest.mark.skip(reason="Skipped until rocketpy supports new API format")
 class TestReplayMissionStartups(CliStartup):
     def get_rocket_args(self) -> List[str]:
         return ["replay", "--mode", "mission", "--mission", "20250504", "--nobuild"]
