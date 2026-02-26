@@ -16,13 +16,8 @@
 #include "debug_functions.hpp"
 #include "subprocess_logging.hpp"
 
-namespace {
-constexpr const char* kDefaultIp = "127.0.0.1";  // Static IP
-constexpr uint16_t kDefaultPort = 5000;          // Static port
-}  // namespace
-
-TcpInterface::TcpInterface(const std::string& ip, const std::string& port)
-    : ip_(kDefaultIp), port_(kDefaultPort) {}
+TcpInterface::TcpInterface(const std::string& ip, uint16_t port)
+    : ip_(ip), port_(port) {}
 
 TcpInterface::~TcpInterface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
