@@ -31,7 +31,6 @@ except (ImportError, RuntimeError):
 # ==============================
 
 
-
 class StateTable():
     """
     Stores the states (argument) for the GSE to GCS packet. bonza cunt
@@ -175,7 +174,7 @@ class ControlDevice(ABC):
                 "No inputs received from control device, using fallback state")
             state_table = StateTable.get_fallback_table()
         return self.state_table
-    
+
     def get_states_dict(self) -> dict:
         state_table = self.get_state_table()
         return state_table.get_states_dict()
