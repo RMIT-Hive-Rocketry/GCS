@@ -17,12 +17,12 @@ class AV_TO_GCS_DATA_1 {
   static constexpr ssize_t SIZE = 31;  // 32 including ID and TBC byte
   // Size + Internal additions of RSSI/SNR
   static constexpr ssize_t INTERNAL_SIZE = SIZE + 8;
-  static constexpr const char *PACKET_NAME = "AV_TO_GCS_DATA_1";
+  static constexpr const char* PACKET_NAME = "AV_TO_GCS_DATA_1";
   static constexpr int8_t ID = 0x03;  // 8 bits reserved in packet
 
   /// @brief See LoRa packet structure spreadsheet for more information.
   /// @param DATA
-  AV_TO_GCS_DATA_1(const uint8_t *DATA) {
+  AV_TO_GCS_DATA_1(const uint8_t* DATA) {
     ByteParser parser(DATA, INTERNAL_SIZE);
 
     // DON'T EXTRACT BITS FOR ID!!!!
@@ -159,7 +159,7 @@ class AV_TO_GCS_DATA_1 {
                                        const int64_t COUNTER_GCS) const {
     payload::AV_TO_GCS_DATA_1 proto_data;
 
-    common::PacketMeta *packet_meta = new common::PacketMeta();
+    common::PacketMeta* packet_meta = new common::PacketMeta();
     SET_SUB_PROTO_FIELD(packet_meta, rssi);
     SET_SUB_PROTO_FIELD(packet_meta, snr);
     packet_meta->set_timestamp_s(TIMESTAMP_S);
@@ -169,7 +169,7 @@ class AV_TO_GCS_DATA_1 {
 
     proto_data.set_flightstate(flight_state_);
 
-    common::AVStateFlags *state_flags = new common::AVStateFlags();
+    common::AVStateFlags* state_flags = new common::AVStateFlags();
     SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);
     SET_SUB_PROTO_FIELD(state_flags, recovery_checks_complete_and_flight_ready);
     SET_SUB_PROTO_FIELD(state_flags, gps_fix_flag);

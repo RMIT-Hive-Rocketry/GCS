@@ -8,16 +8,16 @@
 #include <string>
 #include <vector>
 
-#include "lora_interface.hpp"
+#include "radio_interface.hpp"
 
-class TestUartInterface : public LoraInterface {
+class TestUartInterface : public RadioInterface {
  public:
-  TestUartInterface(const std::string &device_path, int baud_rate = B115200);
+  TestUartInterface(const std::string& device_path, int baud_rate = B115200);
   virtual ~TestUartInterface();
 
   bool initialize() override;
-  ssize_t read_data(std::vector<uint8_t> &buffer) override;
-  ssize_t write_data(const std::vector<uint8_t> &data) override;
+  ssize_t read_data(std::vector<uint8_t>& buffer) override;
+  ssize_t write_data(const std::vector<uint8_t>& data) override;
 
  private:
   std::recursive_mutex io_mutex_;

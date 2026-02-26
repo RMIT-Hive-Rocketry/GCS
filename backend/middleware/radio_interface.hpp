@@ -9,13 +9,13 @@
 #include <cstring>
 #include <vector>
 
-class LoraInterface {
+class RadioInterface {
  public:
-  virtual ~LoraInterface() = default;
+  virtual ~RadioInterface() = default;
 
   virtual bool initialize() = 0;
-  virtual ssize_t read_data(std::vector<uint8_t> &buffer) = 0;
-  virtual ssize_t write_data(const std::vector<uint8_t> &data) = 0;
+  virtual ssize_t read_data(std::vector<uint8_t>& buffer) = 0;
+  virtual ssize_t write_data(const std::vector<uint8_t>& data) = 0;
 
  protected:
   /// @brief Convert native float value to big-endian byte array.
