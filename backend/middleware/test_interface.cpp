@@ -11,7 +11,7 @@
 #include "debug_functions.hpp"
 #include "subprocess_logging.hpp"
 
-TestInterface::TestInterface(const std::string &device_path, int baud_rate)
+TestInterface::TestInterface(const std::string& device_path, int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
 
 TestInterface::~TestInterface() {
@@ -56,7 +56,7 @@ void TestInterface::configure_test_interface() {
   }
 }
 
-ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer) {
+ssize_t TestInterface::read_data(std::vector<uint8_t>& buffer) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("TEST UART file descriptor is invalid");
@@ -70,7 +70,7 @@ ssize_t TestInterface::read_data(std::vector<uint8_t> &buffer) {
   return count;
 }
 
-ssize_t TestInterface::write_data(const std::vector<uint8_t> &data) {
+ssize_t TestInterface::write_data(const std::vector<uint8_t>& data) {
   // Write to the Aether. This doesn't actually do anything
   // slogger::info(
   //     "TEST write data: " +

@@ -16,12 +16,12 @@ class AV_TO_GCS_DATA_2 {
   // Amount of bytes in this payload
   static constexpr ssize_t SIZE = 27;  // 32 including ID and TBC byte
   static constexpr ssize_t INTERNAL_SIZE = SIZE + 8;
-  static constexpr const char *PACKET_NAME = "AV_TO_GCS_DATA_2";
+  static constexpr const char* PACKET_NAME = "AV_TO_GCS_DATA_2";
   static constexpr int8_t ID = 0x04;  // 8 bits reserved in packet
 
   /// @brief See LoRa packet structure spreadsheet for more information.
   /// @param DATA
-  AV_TO_GCS_DATA_2(const uint8_t *DATA) {
+  AV_TO_GCS_DATA_2(const uint8_t* DATA) {
     ByteParser meta_parser(DATA, 8);
 
     // DON'T EXTRACT BITS FOR ID!!!!
@@ -50,7 +50,7 @@ class AV_TO_GCS_DATA_2 {
     try {
       // Skip 2 bytes for nav
       navigation_status_ = parser.extract_string(2);
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       slogger::error(e.what());
     }
 
@@ -93,7 +93,7 @@ class AV_TO_GCS_DATA_2 {
                                        const int64_t COUNTER_AV,
                                        const int64_t COUNTER_GCS) const {
     payload::AV_TO_GCS_DATA_2 proto_data;
-    common::PacketMeta *packet_meta = new common::PacketMeta();
+    common::PacketMeta* packet_meta = new common::PacketMeta();
     SET_SUB_PROTO_FIELD(packet_meta, rssi);
     SET_SUB_PROTO_FIELD(packet_meta, snr);
     packet_meta->set_timestamp_s(TIMESTAMP_S);
@@ -104,7 +104,7 @@ class AV_TO_GCS_DATA_2 {
     // Use the macro for simple fields with same name
     // proto_data.set_flightstate(flight_state_);
 
-    common::AVStateFlags *state_flags = new common::AVStateFlags();
+    common::AVStateFlags* state_flags = new common::AVStateFlags();
     SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);
     SET_SUB_PROTO_FIELD(state_flags, recovery_checks_complete_and_flight_ready);
     SET_SUB_PROTO_FIELD(state_flags, gps_fix_flag);
@@ -118,7 +118,7 @@ class AV_TO_GCS_DATA_2 {
 
     try {
       SET_PROTO_FIELD(proto_data, navigation_status);
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       slogger::error(e.what());
     }
 
