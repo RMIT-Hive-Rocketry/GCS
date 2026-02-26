@@ -17,7 +17,7 @@
 
 #include "subprocess_logging.hpp"
 
-UartInterface::UartInterface(const std::string &device_path, int baud_rate)
+UartInterface::UartInterface(const std::string& device_path, int baud_rate)
     : baud_rate_(baud_rate),
       device_path_(device_path),
       current_modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
@@ -147,7 +147,7 @@ std::vector<uint8_t> UartInterface::read_with_timeout(int timeout_ms) {
   return buffer;
 }
 
-static std::string bytes_to_hex(const std::vector<uint8_t> &data) {
+static std::string bytes_to_hex(const std::vector<uint8_t>& data) {
   std::ostringstream oss;
   oss << std::hex << std::uppercase << std::setfill('0');
   for (uint8_t byte : data) {
@@ -160,7 +160,7 @@ static std::string bytes_to_hex(const std::vector<uint8_t> &data) {
 /// which writes data to the LoRa band though this function
 /// @param data raw serial data
 /// @return amount of bytes written
-ssize_t UartInterface::write_serial(const std::vector<uint8_t> &data) {
+ssize_t UartInterface::write_serial(const std::vector<uint8_t>& data) {
   if (uart_fd_ < 0) return -1;
 
   ssize_t written = write(uart_fd_, data.data(), data.size());
@@ -172,8 +172,8 @@ ssize_t UartInterface::write_serial(const std::vector<uint8_t> &data) {
   return written;
 }
 
-bool UartInterface::at_send_command(const std::string &command,
-                                    const std::string &expected_response,
+bool UartInterface::at_send_command(const std::string& command,
+                                    const std::string& expected_response,
                                     const int timeout_ms,
                                     const ModemContinuousState modem_state) {
   // Optimisation. Do not enter mode if already in it
@@ -265,7 +265,7 @@ bool UartInterface::at_send_command(const std::string &command,
 /// @brief
 /// @param buffer
 /// @return Returns amount of bytes read. -1 if failed
-ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
+ssize_t UartInterface::read_data(std::vector<uint8_t>& buffer) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("UART file descriptor is invalid");
@@ -334,7 +334,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
           if (snr > SNR_THRESHOLD) {
             slogger::warning("High SNR: " + std::to_string(snr));
           }
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
           slogger::error("Failed to parse metrics: " + std::string(e.what()));
         }
       }
@@ -367,7 +367,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
           }
 
           payload_size = payload.size();
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
           slogger::error("Payload conversion failed: " + std::string(e.what()));
         }
       }
@@ -381,7 +381,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
         buffer.resize(payload_size);
       }
       std::copy(payload.begin(), payload.end(), buffer.begin());
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       slogger::error("Buffer copy failed: " + std::string(e.what()));
       return -1;
     }
@@ -391,7 +391,7 @@ ssize_t UartInterface::read_data(std::vector<uint8_t> &buffer) {
 }
 
 std::vector<uint8_t> UartInterface::hex_string_to_bytes(
-    const std::string &hex) {
+    const std::string& hex) {
   std::vector<uint8_t> bytes;
   for (size_t i = 0; i < hex.length(); i += 2) {
     std::string byte_str = hex.substr(i, 2);
@@ -404,7 +404,7 @@ std::vector<uint8_t> UartInterface::hex_string_to_bytes(
 /// @brief Write serial data to the LoRa band through the LoRa interface
 /// @param data Binary data bytes
 /// @return
-ssize_t UartInterface::write_data(const std::vector<uint8_t> &data) {
+ssize_t UartInterface::write_data(const std::vector<uint8_t>& data) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("Uart device unavailable for write");

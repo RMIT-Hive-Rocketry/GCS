@@ -34,7 +34,7 @@ volatile bool debugger_attached = false;
 // Thread safe signal handler
 void signal_handler(int) { running = false; }
 
-inline void set_thread_name([[maybe_unused]] const char *name) {
+inline void set_thread_name([[maybe_unused]] const char* name) {
 #ifdef __APPLE__
   pthread_setname_np(name);
 #endif
@@ -42,10 +42,10 @@ inline void set_thread_name([[maybe_unused]] const char *name) {
 
 template <typename PacketType>
 std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
-                                           std::vector<uint8_t> &buffer,
-                                           zmq::socket_t &pub_socket,
+                                           std::vector<uint8_t>& buffer,
+                                           zmq::socket_t& pub_socket,
                                            const auto READER_BOOT_TIME,
-                                           Sequence &sequence) {
+                                           Sequence& sequence) {
   // SIZE does not include ID byte that's already been read
   if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
     try {
@@ -79,7 +79,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
         return nullptr;
       }
       return payload;
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       slogger::error(std::string(PacketType::PACKET_NAME) +
                      ": Error processing payload: " + e.what());
     } catch (...) {
@@ -97,7 +97,7 @@ std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
   return nullptr;
 }
 
-void post_process_av(Sequence &sequence,
+void post_process_av(Sequence& sequence,
                      const common::FlightState FLIGHT_STATE) {
   sequence.received_av();
   if (FLIGHT_STATE == common::FlightState::LAUNCH) {
@@ -119,8 +119,8 @@ void post_process_av(Sequence &sequence,
   }
 }
 
-void input_read_loop(std::shared_ptr<LoraInterface> interface,
-                     zmq::socket_t &pub_socket, Sequence &sequence) {
+void input_read_loop(std::shared_ptr<RadioInterface> interface,
+                     zmq::socket_t& pub_socket, Sequence& sequence) {
   set_thread_name("input_read_loop");
   std::vector<uint8_t> buffer(1024);
   auto READER_BOOT_TIME = std::chrono::steady_clock::now();
@@ -230,9 +230,9 @@ void input_read_loop(std::shared_ptr<LoraInterface> interface,
   }
 }
 
-std::shared_ptr<LoraInterface> create_interface(
+std::shared_ptr<RadioInterface> create_interface(
     const std::string INTERFACE_NAME, const std::string DEVICE_PATH) {
-  std::shared_ptr<LoraInterface> interface;
+  std::shared_ptr<RadioInterface> interface;
 
   if (INTERFACE_NAME == "UART") {
     // This will sent AT setup commands as well in constructor
@@ -248,18 +248,18 @@ std::shared_ptr<LoraInterface> create_interface(
   return interface;
 }
 
-std::vector<uint8_t> collect_pull_data(const zmq::message_t &last_pendant_msg) {
+std::vector<uint8_t> collect_pull_data(const zmq::message_t& last_pendant_msg) {
   // Process command (echo bytes verbatim to LoRa)
   // slogger::critical("HELLO DATA IS STILL COMING THROUGH");
   std::vector<uint8_t> cmd_data(
-      static_cast<const uint8_t *>(last_pendant_msg.data()),
-      static_cast<const uint8_t *>(last_pendant_msg.data()) +
+      static_cast<const uint8_t*>(last_pendant_msg.data()),
+      static_cast<const uint8_t*>(last_pendant_msg.data()) +
           last_pendant_msg.size());
   return cmd_data;
 }
 
 std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
-                                           Sequence &sequence) {
+                                           Sequence& sequence) {
   std::vector<uint8_t> data;
 
   const bool camera_power = sequence.get_camera_power();
@@ -288,7 +288,7 @@ std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
   return data;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   slogger::info("Starting middleware server");
@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
   const std::string WEB_CONTROL_SOCKET_PATH = std::string(argv[4]);
   // One per device object. If you're using 2 devices, best to have 2
   // interfaces
-  std::shared_ptr<LoraInterface> interface =
+  std::shared_ptr<RadioInterface> interface =
       create_interface(std::string(argv[1]), DEVICE_PATH);
 
   interface->initialize();
@@ -361,8 +361,8 @@ int main(int argc, char *argv[]) {
   // Can add multiple push pull sockets here. Useful for when front end is
   // integrated
   std::vector<zmq::pollitem_t> items = {
-      {static_cast<void *>(pendant_pull_socket), 0, ZMQ_POLLIN, 0},
-      {static_cast<void *>(web_control_pull_socket), 0, ZMQ_POLLIN, 0}};
+      {static_cast<void*>(pendant_pull_socket), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(web_control_pull_socket), 0, ZMQ_POLLIN, 0}};
   std::vector<uint8_t> pendant_data;
   std::vector<uint8_t> web_control_data;
 
@@ -541,17 +541,17 @@ int main(int argc, char *argv[]) {
       }
     }
     slogger::info("Middleware shutdown starting");
-  } catch (const zmq::error_t &e) {
+  } catch (const zmq::error_t& e) {
     // EINTR (signal interrupt) is expected on shutdown
     if (e.num() != EINTR) {
       slogger::error("ZeroMQ.1 error (" + std::to_string(e.num()) +
                      "): " + std::string(e.what()));
       throw;
     }
-  } catch (const std::runtime_error &e) {
+  } catch (const std::runtime_error& e) {
     slogger::error("Runtime error: " + std::string(e.what()));
     throw;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     slogger::error("Generic error on main: " + std::string(e.what()));
     throw;
   }
@@ -563,7 +563,7 @@ int main(int argc, char *argv[]) {
     web_control_pull_socket.close();
     context.close();
     google::protobuf::ShutdownProtobufLibrary();
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     slogger::error("Error during cleanup");
     slogger::error(std::string(e.what()));
   }
