@@ -2,17 +2,21 @@
 export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
 '''
 
-import hid
+import backend.includes_python.process_logging as slogger
+
+try:
+    import hid
+except (ImportError, RuntimeError) as e:
+    slogger.error(f"hid is not correctly installed: {e}")
 
 import zmq
-import backend.includes_python.process_logging as slogger
 import os
 import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 import config.config as config
 import threading
-from typing import List
+from typing import List, Dict, Tuple
 from abc import ABC, abstractmethod
 try:
     from gpiozero import Button
@@ -239,40 +243,89 @@ class RPI_GPIO_Device(ControlDevice):
 
 
 class HID_Button:
+    MAX_SAFETY_COUNT: int = 10
+    USEFUL_BYTE_OFFSET: int = 5
+    MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
+    SAFETY_FACTOR: float = 0.5 # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+
     byte: int # [0, 1]
     bit: int # [0, 7]
     bitmask: int
-    safety_factor: int # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
-    safety_count: int
-    MAX_SAFETY_COUNT: int = 5
-    USEFULL_BYTE_OFFSET: int = 10
     
-    def __init__(self, byte, bit, safety_factor = .8):
+    safety_count: int = 0
+    time_of_last_state_change: float
+    button_is_pressed: bool = False
+    
+    def __init__(self, byte, bit):
         self.byte = byte
         self.bit = bit
         self.bitmask = 1 << bit
-        self.safety_factor = safety_factor
-    
-    def is_pressed(self, hid_bytes: List[int]) -> bool:
-        byte_index = HID_Button.USEFULL_BYTE_OFFSET + self.byte
+        self.time_of_last_state_change = time.time()
+
+
+    def update_state(self, hid_bytes: List[int]) -> None:
+        if len(hid_bytes) < 7:
+            slogger.error(f"hid_bytes is too small, expected 7, got {len(hid_bytes)}")
+            return
+
+        byte_index = HID_Button.USEFUL_BYTE_OFFSET + self.byte
         hid_byte = hid_bytes[byte_index]
 
         if hid_byte & self.bitmask:
-            safety_count = min(safety_count + 1, HID_Button.MAX_SAFETY_COUNT)
+            self.safety_count = min(self.safety_count + 1, HID_Button.MAX_SAFETY_COUNT)
         else:
-            safety_count = max(safety_count - 1, 0)
+            self.safety_count = max(self.safety_count - 1, 0)
 
-        return safety_count == self.safety_factor
+        time_since_last_state_change = time.time() - self.time_of_last_state_change
+
+        if time_since_last_state_change < HID_Button.MIN_TIME_BETWEEN_STATE_CHANGE:
+            return
+        
+        safety_check = self.safety_count / HID_Button.MAX_SAFETY_COUNT > HID_Button.SAFETY_FACTOR
+        
+        if safety_check and not self.button_is_pressed:
+            self.button_is_pressed = True
+            self.time_of_last_state_change = time.time()
+        elif not safety_check and self.button_is_pressed:
+            self.button_is_pressed = False
+            self.time_of_last_state_change = time.time()
+
+    def is_pressed(self) -> bool:
+        return self.button_is_pressed
+
 
 class HID_Device(ControlDevice):
     """Parent class for HID devices on Raspberry Pi."""
+    # this could be done with pygame but this gives more control and also if we ever make an srad
+
+    '''
+    name of input i was given to what i think its supposed to be
+        "system_key":           SYS_ON
+        "e_stop":               ESTOP - NOT USED FOR NOW 
+        "sys_select_pos_up":    FILL_SELECTED
+        "sys_select_pos_down":  IGNITION_SELECTED
+        "fill_switch_pos_up":   N2O_ACTIVE
+        "fill_switch_pos_down": PURGE_ACTIVE
+        "o2_fill_button":       O2_MOMENT_ACTIVE
+        "ignition_button":      IGNITION_MOMENT_ACTIVE
+    '''
 
     HID_VENDOR_ID = 0x0079
     HID_PRODUCT_ID = 0x0006
 
-    BITMAP = {
-
+    # name: (byte, bit)
+    BITMAP: Dict[str, Tuple[int, int]] = {
+        "SYS_ON":                   (1, 5),
+       #"ESTOP":                    (1, 6),
+        "FILL_SELECTED":            (0, 2),
+        "IGNITION_SELECTED":        (0, 1),
+        "N2O_ACTIVE":               (0, 0),
+        "PURGE_ACTIVE":             (1, 7),
+        "O2_MOMENT_ACTIVE":         (1, 4),
+        "IGNITION_MOMENT_ACTIVE":   (1, 3),
     }
+
+    buttons: Dict[str, HID_Button]
 
     device: hid.Device
     device_is_connected: bool = False
@@ -283,26 +336,42 @@ class HID_Device(ControlDevice):
             self.device.open(HID_Device.HID_VENDOR_ID, HID_Device.HID_PRODUCT_ID)
             self.device_is_connected = True
         except IOError as e:
+            # TODO: stop spamming the slogger
             slogger.warning(f"Control Pendant is not connected, error: `{e}`")
-            self.device_is_connected == False
+            self.device_is_connected = False
 
     def _setup_device(self):
         self._try_connect_device()
 
+        for btn_name in HID_Device.BITMAP:
+            self.buttons[btn_name] = HID_Button(*HID_Device.BITMAP[btn_name])
+            
 
     def __init__(self):
         super().__init__()
+        self.buttons = {}
 
     def _update_state_table(self):
-        """Updates instance attributes and returns a dictionary of the current states."""
-
-        if not self.device_is_connected: self._try_connect_device()
-        if not self.device_is_connected: return
-
+        """Updates instance attributes"""
         try:
-            pass
+            if not self.device_is_connected: self._try_connect_device()
+            if not self.device_is_connected: return None
+
+            bytes = self.device.read(9999)
+
+            for _, btn in self.buttons.items():
+                btn.update_state(bytes)
+
+            state_dict: Dict[str: bool] = {btn_name : btn.is_pressed() for btn_name, btn in self.buttons.items()}
+            # Temporary fix for neutral state which isn't wired
+            state_dict["NEUTRAL_ACTIVE"] = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+            
+            self.state_table = StateTable(**state_dict)
+                
         except IOError as e:
             self.device_is_connected = False
+
+            self.state_table = StateTable.FALLBACK_DICT
 
     def cleanup(self):
         self.device.close()
@@ -369,7 +438,6 @@ def main():
     # packet_thread = threading.Thread(target=send_packet)
     # packet_thread.start()
     send_packet()
-
 
 if __name__ == "__main__":
     main()
