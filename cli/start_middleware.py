@@ -11,6 +11,7 @@ class InterfaceType(enum.Enum):
     UART = "UART"
     TEST = "TEST"
     TEST_UART = "TEST_UART"
+    TCP = "TCP"
 
 
 def get_interface_type(interface: Optional[str]) -> InterfaceType:
