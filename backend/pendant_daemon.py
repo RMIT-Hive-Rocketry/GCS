@@ -7,8 +7,17 @@ import backend.includes_python.process_logging as slogger
 try:
     import hid
 except (ImportError, RuntimeError) as e:
-    slogger.error(f"hid is not correctly installed: {e}")
+    '''
+    if the hid module fails to import and you dont want to use a hid controller, then no harm so just warn in slogger
+    if you want the hid device (controller = rpi_gpio_device)
+    '''
+    error_message = "This should not have run, make sure you set controller = rpi_gpio_device or pygame_device (config.ini) or check your hid install is correct"
+    slogger.error(f"hid is not correctly installed: {e}. This is okay if your using rpi_gpio_device or pygame_device (check config.ini)")
+    class hid:
+        def Device():
+            raise NotImplementedError(error_message)
 
+import pygame
 import zmq
 import os
 import time
@@ -296,7 +305,6 @@ class HID_Button:
 
 class HID_Device(ControlDevice):
     """Parent class for HID devices on Raspberry Pi."""
-    # this could be done with pygame but this gives more control and also if we ever make an srad
 
     '''
     name of input i was given to what i think its supposed to be
@@ -313,6 +321,7 @@ class HID_Device(ControlDevice):
     HID_VENDOR_ID = 0x0079
     HID_PRODUCT_ID = 0x0006
 
+    # THESE ARE PROB WRONG, wiring has changed since i got these
     # name: (byte, bit)
     BITMAP: Dict[str, Tuple[int, int]] = {
         "SYS_ON":                   (1, 5),
@@ -350,6 +359,7 @@ class HID_Device(ControlDevice):
     def __init__(self):
         super().__init__()
         self.buttons = {}
+        slogger.warning("HID_Device is not tested, dont use it untill lab testing has been done")
 
     def _update_state_table(self):
         """Updates instance attributes"""
@@ -375,6 +385,168 @@ class HID_Device(ControlDevice):
 
     def cleanup(self):
         self.device.close()
+
+
+class Pygame_Device(ControlDevice):
+    """
+        Parent class for Pygame devices on Raspberry Pi.
+        Handles all pygame setup and shutdown
+    """
+
+    CONTROLLER_MAP = {
+        "BTN_A": 0,
+        "BTN_B": 1,
+        "BTN_X": 2,
+        "BTN_Y": 3,
+        "BTN_LB": 4,
+        "BTN_RB": 5,
+        "BTN_BACK": 6,
+        "BTN_START": 7,
+        "BTN_LOGITECH": 8,
+        "BTN_LEFT_JOYSTICK": 9,
+        "BTN_RIGHT_JOYSTICK": 10
+    }
+
+    KEY_MAP = {
+        "SYSTEM_SELECT_TOGGLE_GAS": ("BTN_LEFT_JOYSTICK", False),
+        "SYSTEM_SELECT_TOGGLE_IGNITION": ("BTN_RIGHT_JOYSTICK", False),
+        "SYSTEM_SELECT_TOGGLE_NEUTRAL": ("BTN_BACK", False),  # NEW
+        "GAS_DEADMAN": ("BTN_LB", True),
+        "GAS_SELECTION_ROTARY_PURGE": ("BTN_LOGITECH", False),
+        "GAS_SELECTION_ROTARY_N2O": ("BTN_X", False),
+        "GAS_SELECTION_ROTARY_NEUTRAL": ("BTN_Y", False),  # CHANGED
+        "O2_MOMENTARY": ("BTN_B", True),
+        "IGNITION_DEADMAN": ("BTN_RB", True),
+        "IGNITION_FIRE": ("BTN_A", True),
+        "TOGGLE_SYSTEM_ACTIVE": ("BTN_START", False),
+    }
+
+    # Used for printing names
+    # 'BTN_??': SELECTGION_TOGGLE_GAS???
+    KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
+    # fml again
+    BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
+
+    CONTROLLER_NAME: str = "idk yet"
+
+    joystick: pygame.joystick.JoystickType
+    is_connected: bool = False
+
+    def _try_connect_device(self):
+        # Attempt controller connection
+        if pygame.joystick.get_count() == 0:
+            slogger.warning("No Controllers Connected")
+            return
+
+        self.is_connected = False
+
+        found_names = ""
+
+        for i in range(pygame.joystick.get_count()):
+            temp_joystick = pygame.joystick.Joystick(i)
+            temp_joystick.init()
+            found_names += temp_joystick.get_name()
+            found_names += ", "
+            if temp_joystick.get_name() == Pygame_Device.CONTROLLER_NAME:
+                self.is_connected = True
+                self.joystick = temp_joystick
+            
+        
+        if not self.is_connected:
+            slogger.warning("Did not find controller '" + Pygame_Device.CONTROLLER_NAME + "'" + " found controllers '" + found_names + "'")
+            return
+
+        slogger.info(f"Controller initialized: {self.joystick.get_name()}")
+
+
+    def _setup_device(self):
+        pygame.init()
+        pygame.mixer.quit()  # https: // stackoverflow.com/a/50552161/14141223
+        pygame.joystick.init()
+
+        self._try_connect_device()
+
+        
+    def __init__(self):
+        super().__init__()
+
+    def handle_button_press(button_id, pressed):
+        global pressed_states
+        button_name = None
+        for name, btn_id in Pygame_Device.CONTROLLER_MAP.items():
+            if btn_id == button_id:
+                button_name = name
+                break
+
+        if button_name and button_name in pressed_states:
+            action = None
+            try:
+                toggle_state = Pygame_Device.BTN_TOGGLE_MAP[button_name]
+            except KeyError:
+                # Pressed an unmpapped button
+                return
+            if toggle_state == False:
+                # This is a toggle switch
+                if pressed:
+                    # Only operate this on a press, not on a release
+                    if Pygame_Device.KEY_MAP_INVERSE[button_name] == "TOGGLE_SYSTEM_ACTIVE":
+                        # Repeated press toggle logic for SPST
+                        pressed_states[button_name] = not pressed_states[button_name]
+                    else:
+                        # Set state to true, set others to false logic. for non SPST
+                        pressed_states[button_name] = True
+                    action = "toggled " + \
+                        ("on" if pressed_states[button_name] else "off")
+                    # Now if you operated on the SPDT, or rotary, you need to turn off the other options
+                    # A SPST switch doesn't need this because it only has one state
+                    system_rotary_options = [KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0],
+                                            KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0],
+                                            KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]]
+
+                    gas_rotary_options = [KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0],
+                                        KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0],
+                                        KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]]
+
+                    if button_name in gas_rotary_options:
+                        gas_rotary_options.remove(button_name)
+                        for reminaing_option in gas_rotary_options:
+                            pressed_states[reminaing_option] = False
+
+                    if button_name in system_rotary_options:
+                        system_rotary_options.remove(button_name)
+                        for reminaing_option in system_rotary_options:
+                            pressed_states[reminaing_option] = False
+            else:
+                # This is a momentary button
+                pressed_states[button_name] = pressed
+                action = "pressed" if pressed else "released"
+
+            # if action is not None: slogger.debug(f"Controller {button_name} {action}")
+
+
+    def _update_state_table(self):
+        """Updates instance attributes"""
+
+        pygame.event.pump() # seg fault on mac if i dont do this
+
+        events = pygame.event.get()
+
+        for event in events:
+            match event.type:
+                case pygame.JOYBUTTONDOWN:
+                    self.handle_button_press(event.button, True)
+                case pygame.JOYBUTTONUP:
+                    self.handle_button_press(event.button, False)
+
+        # Temporary fix for neutral state which isn't wired
+        self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+        self.state_table = StateTable(**states)
+    
+    def cleanup(self):
+        """Internal cleaup code"""
+        slogger.info("Quitting pygame...")
+        pygame.quit()
+        slogger.info("Pygame killed. Done...")
 
 
 def get_control_device(key: str) -> ControlDevice:
