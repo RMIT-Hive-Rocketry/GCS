@@ -271,16 +271,8 @@ class HID_Button:
         self.bitmask = 1 << bit
         self.time_of_last_state_change = time.time()
 
-
-    def update_state(self, hid_bytes: List[int]) -> None:
-        if len(hid_bytes) < 7:
-            slogger.error(f"hid_bytes is too small, expected 7, got {len(hid_bytes)}")
-            return
-
-        byte_index = HID_Button.USEFUL_BYTE_OFFSET + self.byte
-        hid_byte = hid_bytes[byte_index]
-
-        if hid_byte & self.bitmask:
+    def _try_update_state(self, new_state: bool):
+        if new_state:
             self.safety_count = min(self.safety_count + 1, HID_Button.MAX_SAFETY_COUNT)
         else:
             self.safety_count = max(self.safety_count - 1, 0)
@@ -298,6 +290,17 @@ class HID_Button:
         elif not safety_check and self.button_is_pressed:
             self.button_is_pressed = False
             self.time_of_last_state_change = time.time()
+
+    def update_state(self, hid_bytes: List[int]) -> None:
+        if len(hid_bytes) < 7:
+            slogger.error(f"hid_bytes is too small, expected 7, got {len(hid_bytes)}")
+            return
+
+        byte_index = HID_Button.USEFUL_BYTE_OFFSET + self.byte
+        hid_byte = hid_bytes[byte_index]
+
+        self._try_update_state(hid_byte & self.bitmask)
+
 
     def is_pressed(self) -> bool:
         return self.button_is_pressed
@@ -386,6 +389,25 @@ class HID_Device(ControlDevice):
     def cleanup(self):
         self.device.close()
 
+class Pygame_Button:
+    MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
+
+    time_of_last_state_change: float
+    button_is_pressed: bool = False
+
+    def _try_update_state(self, new_state: bool):
+        time_since_last_state_change = time.time() - self.time_of_last_state_change
+
+        if time_since_last_state_change < Pygame_Button.MIN_TIME_BETWEEN_STATE_CHANGE:
+            return
+
+        if new_state and not self.button_is_pressed:
+            self.button_is_pressed = True
+            self.time_of_last_state_change = time.time()
+        elif not new_state and self.button_is_pressed:
+            self.button_is_pressed = False
+            self.time_of_last_state_change = time.time()
+
 
 class Pygame_Device(ControlDevice):
     """
@@ -393,39 +415,16 @@ class Pygame_Device(ControlDevice):
         Handles all pygame setup and shutdown
     """
 
-    CONTROLLER_MAP = {
-        "BTN_A": 0,
-        "BTN_B": 1,
-        "BTN_X": 2,
-        "BTN_Y": 3,
-        "BTN_LB": 4,
-        "BTN_RB": 5,
-        "BTN_BACK": 6,
-        "BTN_START": 7,
-        "BTN_LOGITECH": 8,
-        "BTN_LEFT_JOYSTICK": 9,
-        "BTN_RIGHT_JOYSTICK": 10
+    BUTTON_MAP: Dict[str, int] = {
+        "SYS_ON":                   1,
+       #"ESTOP":                    idk
+        "FILL_SELECTED":            2,
+        "IGNITION_SELECTED":        3,
+        "N2O_ACTIVE":               4,
+        "PURGE_ACTIVE":             5,
+        "O2_MOMENT_ACTIVE":         6,
+        "IGNITION_MOMENT_ACTIVE":   7,
     }
-
-    KEY_MAP = {
-        "SYSTEM_SELECT_TOGGLE_GAS": ("BTN_LEFT_JOYSTICK", False),
-        "SYSTEM_SELECT_TOGGLE_IGNITION": ("BTN_RIGHT_JOYSTICK", False),
-        "SYSTEM_SELECT_TOGGLE_NEUTRAL": ("BTN_BACK", False),  # NEW
-        "GAS_DEADMAN": ("BTN_LB", True),
-        "GAS_SELECTION_ROTARY_PURGE": ("BTN_LOGITECH", False),
-        "GAS_SELECTION_ROTARY_N2O": ("BTN_X", False),
-        "GAS_SELECTION_ROTARY_NEUTRAL": ("BTN_Y", False),  # CHANGED
-        "O2_MOMENTARY": ("BTN_B", True),
-        "IGNITION_DEADMAN": ("BTN_RB", True),
-        "IGNITION_FIRE": ("BTN_A", True),
-        "TOGGLE_SYSTEM_ACTIVE": ("BTN_START", False),
-    }
-
-    # Used for printing names
-    # 'BTN_??': SELECTGION_TOGGLE_GAS???
-    KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
-    # fml again
-    BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
     CONTROLLER_NAME: str = "idk yet"
 
@@ -470,59 +469,6 @@ class Pygame_Device(ControlDevice):
     def __init__(self):
         super().__init__()
 
-    def handle_button_press(button_id, pressed):
-        global pressed_states
-        button_name = None
-        for name, btn_id in Pygame_Device.CONTROLLER_MAP.items():
-            if btn_id == button_id:
-                button_name = name
-                break
-
-        if button_name and button_name in pressed_states:
-            action = None
-            try:
-                toggle_state = Pygame_Device.BTN_TOGGLE_MAP[button_name]
-            except KeyError:
-                # Pressed an unmpapped button
-                return
-            if toggle_state == False:
-                # This is a toggle switch
-                if pressed:
-                    # Only operate this on a press, not on a release
-                    if Pygame_Device.KEY_MAP_INVERSE[button_name] == "TOGGLE_SYSTEM_ACTIVE":
-                        # Repeated press toggle logic for SPST
-                        pressed_states[button_name] = not pressed_states[button_name]
-                    else:
-                        # Set state to true, set others to false logic. for non SPST
-                        pressed_states[button_name] = True
-                    action = "toggled " + \
-                        ("on" if pressed_states[button_name] else "off")
-                    # Now if you operated on the SPDT, or rotary, you need to turn off the other options
-                    # A SPST switch doesn't need this because it only has one state
-                    system_rotary_options = [KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0],
-                                            KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0],
-                                            KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]]
-
-                    gas_rotary_options = [KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0],
-                                        KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0],
-                                        KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]]
-
-                    if button_name in gas_rotary_options:
-                        gas_rotary_options.remove(button_name)
-                        for reminaing_option in gas_rotary_options:
-                            pressed_states[reminaing_option] = False
-
-                    if button_name in system_rotary_options:
-                        system_rotary_options.remove(button_name)
-                        for reminaing_option in system_rotary_options:
-                            pressed_states[reminaing_option] = False
-            else:
-                # This is a momentary button
-                pressed_states[button_name] = pressed
-                action = "pressed" if pressed else "released"
-
-            # if action is not None: slogger.debug(f"Controller {button_name} {action}")
-
 
     def _update_state_table(self):
         """Updates instance attributes"""
@@ -533,10 +479,11 @@ class Pygame_Device(ControlDevice):
 
         for event in events:
             match event.type:
+
                 case pygame.JOYBUTTONDOWN:
-                    self.handle_button_press(event.button, True)
+                    event.button
                 case pygame.JOYBUTTONUP:
-                    self.handle_button_press(event.button, False)
+                    event.button
 
         # Temporary fix for neutral state which isn't wired
         self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
