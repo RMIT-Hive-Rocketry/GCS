@@ -1,9 +1,15 @@
 import backend.pendant_daemon as pendant_daemon
 import backend.includes_python.service_helper as service_helper
 
+import faulthandler
+import signal
+
+faulthandler.enable(all_threads=True)
+# Optional: dump traceback on SIGUSR1 (mac: kill -USR1 <pid>)
+faulthandler.register(signal.SIGUSR1, all_threads=True)
 
 def main():
-    controller = pendant_daemon.RPI_GPIO_Device()
+    controller = pendant_daemon.Pygame_Device()
     last_state = None
     updates = 0
     while not service_helper.time_to_stop():
@@ -13,6 +19,8 @@ def main():
             print(f"===== UPDATE [{updates}] =====")
             print(repr(states))
         last_state = states
+
+    print("service done")
 
 
 if __name__ == "__main__":
