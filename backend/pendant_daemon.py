@@ -375,11 +375,11 @@ class HID_Device(ControlDevice):
             for _, btn in self.buttons.items():
                 btn.update_state(bytes)
 
-            state_dict: Dict[str: bool] = {btn_name : btn.is_pressed() for btn_name, btn in self.buttons.items()}
+            states: Dict[str: bool] = {btn_name : btn.is_pressed() for btn_name, btn in self.buttons.items()}
             # Temporary fix for neutral state which isn't wired
-            state_dict["NEUTRAL_ACTIVE"] = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+            states["NEUTRAL_ACTIVE"] = not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
             
-            self.state_table = StateTable(**state_dict)
+            self.state_table = StateTable(**states)
                 
         except IOError as e:
             self.device_is_connected = False
@@ -389,11 +389,15 @@ class HID_Device(ControlDevice):
     def cleanup(self):
         self.device.close()
 
+
 class Pygame_Button:
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
 
     time_of_last_state_change: float
     button_is_pressed: bool = False
+
+    def __init__(self):
+        self.time_of_last_state_change = time.time()
 
     def _try_update_state(self, new_state: bool):
         time_since_last_state_change = time.time() - self.time_of_last_state_change
@@ -408,6 +412,23 @@ class Pygame_Button:
             self.button_is_pressed = False
             self.time_of_last_state_change = time.time()
 
+    # will update state if safe to do so
+    def update_state(self, new_state: bool):
+        self._try_update_state(new_state)
+    
+    def is_pressed(self):
+        return self.button_is_pressed
+
+_TA320_BUTTON_NAME_ID_MAP: Dict[str, int] = {
+    "SYS_ON":                   16, # thrust
+    #"ESTOP":                    idk
+    "FILL_SELECTED":            1, # top trigger
+    "IGNITION_SELECTED":        0, # bottom trigger
+    "N2O_ACTIVE":               7, # bottom left button on right side
+    "PURGE_ACTIVE":             2, # spherical button
+    "O2_MOMENT_ACTIVE":         6, # top left button on right side
+    "IGNITION_MOMENT_ACTIVE":   3, # red button
+}
 
 class Pygame_Device(ControlDevice):
     """
@@ -415,21 +436,22 @@ class Pygame_Device(ControlDevice):
         Handles all pygame setup and shutdown
     """
 
-    BUTTON_MAP: Dict[str, int] = {
-        "SYS_ON":                   1,
-       #"ESTOP":                    idk
-        "FILL_SELECTED":            2,
-        "IGNITION_SELECTED":        3,
-        "N2O_ACTIVE":               4,
-        "PURGE_ACTIVE":             5,
-        "O2_MOMENT_ACTIVE":         6,
-        "IGNITION_MOMENT_ACTIVE":   7,
-    }
+    BUTTON_NAME_ID_MAP: Dict[str, int] = _TA320_BUTTON_NAME_ID_MAP
 
-    CONTROLLER_NAME: str = "idk yet"
+    BUTTON_ID_NAME_MAP: Dict[int, str] = {v: k for k, v in BUTTON_NAME_ID_MAP.items()}
 
-    joystick: pygame.joystick.JoystickType
+    buttons: Dict[str, Pygame_Button]
+
+    CONTROLLER_NAME: str = "Thrustmaster T.A320 Pilot"
+
+    joystick: pygame.joystick.JoystickType | None = None
     is_connected: bool = False
+
+    def __init__(self):
+        super().__init__()
+        self.buttons = {}
+        for but_name, _ in Pygame_Device.BUTTON_NAME_ID_MAP.items():
+            self.buttons[but_name] = Pygame_Button()
 
     def _try_connect_device(self):
         # Attempt controller connection
@@ -437,18 +459,21 @@ class Pygame_Device(ControlDevice):
             slogger.warning("No Controllers Connected")
             return
 
+        # this should only be called when these are junt (controller disconnected, startup etc)
         self.is_connected = False
+        self.joystick = None
 
         found_names = ""
 
         for i in range(pygame.joystick.get_count()):
-            temp_joystick = pygame.joystick.Joystick(i)
-            temp_joystick.init()
-            found_names += temp_joystick.get_name()
+            jstk = pygame.joystick.Joystick(i)
+            jstk.init()
+            found_names += jstk.get_name()
             found_names += ", "
-            if temp_joystick.get_name() == Pygame_Device.CONTROLLER_NAME:
+            if jstk.get_name() == Pygame_Device.CONTROLLER_NAME:
                 self.is_connected = True
-                self.joystick = temp_joystick
+                self.joystick = jstk
+                break
             
         
         if not self.is_connected:
@@ -460,33 +485,42 @@ class Pygame_Device(ControlDevice):
 
     def _setup_device(self):
         pygame.init()
-        pygame.mixer.quit()  # https: // stackoverflow.com/a/50552161/14141223
+        #pygame.mixer.quit() # https: // stackoverflow.com/a/50552161/14141223
         pygame.joystick.init()
 
         self._try_connect_device()
 
-        
-    def __init__(self):
-        super().__init__()
-
 
     def _update_state_table(self):
         """Updates instance attributes"""
-
         pygame.event.pump() # seg fault on mac if i dont do this
 
-        events = pygame.event.get()
+        if not self.is_connected:
+            self._try_connect_device()
+        
+        if self.is_connected and self.joystick is not None:
+            # polling events on mac gave me segfaults
+            for btn_name, btn_id in Pygame_Device.BUTTON_NAME_ID_MAP.items():
+                try:
+                    pressed = bool(self.joystick.get_button(btn_id))
+                except Exception:
+                    self.is_connected = False
+                    self.joystick = None
+                    pressed = False
+                self.buttons[btn_name].update_state(pressed)
 
-        for event in events:
-            match event.type:
+            states = {btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()}
+        else:
+            states = StateTable.FALLBACK_DICT.copy()
 
-                case pygame.JOYBUTTONDOWN:
-                    event.button
-                case pygame.JOYBUTTONUP:
-                    event.button
+        states = {}
+        if self.is_connected:
+            states = {btn_name : btn.is_pressed() for btn_name, btn in self.buttons.items()}
+        else:
+            states = StateTable.FALLBACK_DICT.copy()
 
         # Temporary fix for neutral state which isn't wired
-        self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+        states["NEUTRAL_ACTIVE"] = not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
         self.state_table = StateTable(**states)
     
     def cleanup(self):
@@ -500,7 +534,8 @@ def get_control_device(key: str) -> ControlDevice:
     key = key.lower().strip()
     return {
         'rpi_gpio_device': RPI_GPIO_Device,
-        'hid_device': HID_Device
+        'hid_device': HID_Device,
+        'pygame_device': Pygame_Device
     }.get(key, None)
 
 

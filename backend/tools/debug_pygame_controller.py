@@ -3,6 +3,7 @@ import time
 
 pygame.init()
 pygame.joystick.init()
+pygame.display.init()
 
 while pygame.joystick.get_count() == 0:
     print("No controllers detected.")
@@ -21,9 +22,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.JOYAXISMOTION:
-            print(f"Joystick Axis: {event.axis}, Value: {event.value}")
+            #print(f"Joystick Axis: {event.axis}, Value: {event.value}")
+            pass
         elif event.type == pygame.JOYBALLMOTION:
-            print(f"Joystick Ball: {event.ball}, Value: {event.rel}")
+            #print(f"Joystick Ball: {event.ball}, Value: {event.rel}")
+            pass
         elif event.type == pygame.JOYHATMOTION:
             print(f"Joystick Hat: {event.hat}, Value: {event.value}")
         elif event.type == pygame.JOYBUTTONDOWN:
