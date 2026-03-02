@@ -50,7 +50,9 @@ class ControllerTypes(enum.Enum):
     """Nomenclature: this is also called a pendant"""
     F710 = enum.auto()
     RPI_GPIO_DEVICE = enum.auto()
-
+    HID_DEVICE = enum.auto()
+    PYGAME_DEVICE = enum.auto()
+    NOT_IMPLIMENTED = enum.auto()
 
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
     """Factory function to create decorators based on the selector"""
@@ -166,9 +168,12 @@ def get_controller_enum() -> ControllerTypes:
             return ControllerTypes.F710
         case "rpi_gpio_device":
             return ControllerTypes.RPI_GPIO_DEVICE
+        case "hid_device":
+            return ControllerTypes.HID_DEVICE
+        case "pygame_device":
+            return ControllerTypes.PYGAME_DEVICE
         case _:
-            raise RuntimeError(
-                "Pendant controller option not found in config.ini")
+            return ControllerTypes.NOT_IMPLIMENTED
 
 
 def start_services(COMMAND: Command,
@@ -292,12 +297,13 @@ def start_services(COMMAND: Command,
     # 6. Start the pendent emulator
     if not nopendant:
         controller_enum = get_controller_enum()
+
         if controller_enum == ControllerTypes.F710:
             start_pendant_emulator(logger)
-        elif controller_enum == ControllerTypes.RPI_GPIO_DEVICE:
-            start_pendant_daemon(logger)
-        else:
+        elif controller_enum == ControllerTypes.NOT_IMPLIMENTED:
             raise NotImplementedError("Controller service not supported")
+        else:
+            start_pendant_daemon(logger)
 
     if frontend:
         # 7. Start the websocket / frontend API
