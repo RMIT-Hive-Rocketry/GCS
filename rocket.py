@@ -111,6 +111,10 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
     OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
         click.option('-i', '--interface', type=_INTERFACE_CHOICES,
                      help="Hardware interface type. Overrides config parameter"),
+        click.option('--tcp-ip', type=str, default=None,
+                     help="TCP interface: server IP (required when --interface TCP)"),
+        click.option('--tcp-port', type=int, default=None,
+                     help="TCP interface: server port (required when --interface TCP)"),
         click.option('--nopendant', is_flag=True,
                      help="Do not run the pendant emulator"),
         click.option('--frontend', is_flag=True,
@@ -174,6 +178,8 @@ def get_controller_enum() -> ControllerTypes:
 def start_services(COMMAND: Command,
                    DOCKER: bool = False,
                    INTERFACE_ARG: Optional[InterfaceType] = None,
+                   tcp_ip: Optional[str] = None,
+                   tcp_port: Optional[int] = None,
                    nobuild: bool = False,
                    logpkt: bool = False,
                    nopendant: bool = False,
@@ -190,6 +196,8 @@ def start_services(COMMAND: Command,
         COMMAND (Command): Summoning command for context.
         DOCKER (bool, optional): Start in docker?. Defaults to False.
         INTERFACE_ARG (Optional[InterfaceType], optional): Hardware interface to use. Defaults to None.
+        tcp_ip (Optional[str], optional): For TCP interface: server IP. Required when interface is TCP.
+        tcp_port (Optional[int], optional): For TCP interface: server port. Required when interface is TCP.
         nobuild (bool, optional): Skip cmake build?. Defaults to False.
         logpkt (bool, optional): Log recieved packets?. Defaults to False.
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
@@ -245,7 +253,14 @@ def start_services(COMMAND: Command,
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TCP:
             logger.info("Starting TCP interface")
-            devices = ("192.168.0.150", None)
+            if tcp_ip is None or tcp_port is None:
+                raise click.UsageError(
+                    "TCP interface requires --tcp-ip and --tcp-port "
+                    "(e.g. rocket dev --interface TCP --tcp-ip 192.168.0.150 --tcp-port 5000)"
+                )
+            if not (1 <= tcp_port <= 65535):
+                raise click.UsageError("--tcp-port must be between 1 and 65535")
+            devices = (f"{tcp_ip}:{tcp_port}", None)
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
@@ -349,11 +364,13 @@ def run(gse_only):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
+def dev(docker, interface, tcp_ip, tcp_port, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
     """Start software in development mode"""
     start_services(Command.DEV,
                    DOCKER=docker,
                    INTERFACE_ARG=interface,
+                   tcp_ip=tcp_ip,
+                   tcp_port=tcp_port,
                    nobuild=nobuild,
                    logpkt=logpkt,
                    nopendant=nopendant,
