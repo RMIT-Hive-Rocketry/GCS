@@ -30,6 +30,12 @@ TcpInterface::~TcpInterface() {
 bool TcpInterface::initialize() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
 
+  if (ip_.empty()) {
+    throw std::runtime_error(
+        "TCP interface requires IP and port to be passed from the command line "
+        "(e.g. from rocket.py). No default is allowed.");
+  }
+
   sock_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
   if (sock_fd_ < 0) {
     throw std::system_error(errno, std::system_category(),

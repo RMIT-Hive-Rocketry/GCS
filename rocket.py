@@ -153,36 +153,22 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         ),
     ]
 
-    OPTIONS_ALL_DEV = (
-        OPTIONS_SIM
-        + OPTIONS_GSE_ONLY
-        + [
-            click.option(
-                "-i",
-                "--interface",
-                type=_INTERFACE_CHOICES,
-                help="Hardware interface type. Overrides config parameter",
-            ),
-            click.option(
-                "--nopendant",
-                is_flag=True,
-                help="Do not run the pendant emulator",
-            ),
-            click.option(
-                "--frontend", is_flag=True, help="Run GSC front end server"
-            ),
-            click.option(
-                "--experimental",
-                is_flag=True,
-                help="Simulate ALL values over all possible domains",
-            ),
-            click.option(
-                "--corruption",
-                is_flag=True,
-                help="Simulate heavy bit corruption",
-            ),
-        ]
-    )
+    OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
+        click.option('-i', '--interface', type=_INTERFACE_CHOICES,
+                     help="Hardware interface type. Overrides config parameter"),
+        click.option('--tcp-ip', type=str, default=None,
+                     help="TCP interface: server IP (required when --interface TCP)"),
+        click.option('--tcp-port', type=int, default=None,
+                     help="TCP interface: server port (required when --interface TCP)"),
+        click.option('--nopendant', is_flag=True,
+                     help="Do not run the pendant emulator"),
+        click.option('--frontend', is_flag=True,
+                     help="Run GSC front end server"),
+        click.option('--experimental', is_flag=True,
+                     help="Simulate ALL values over all possible domains"),
+        click.option('--corruption', is_flag=True,
+                     help="Simulate heavy bit corruption"),
+    ]
 
     if SELECTOR == DecoratorSelector.ALL_DEV:
         OPTIONS = OPTIONS_ALL_DEV
@@ -248,27 +234,29 @@ def get_controller_enum() -> ControllerTypes:
             return ControllerTypes.NOT_IMPLIMENTED
 
 
-def start_services(
-    COMMAND: Command,
-    DOCKER: bool = False,
-    INTERFACE_ARG: Optional[InterfaceType] = None,
-    nobuild: bool = False,
-    logpkt: bool = False,
-    nopendant: bool = False,
-    gse_only: bool = False,
-    frontend: bool = False,
-    replay_mode: Optional[str] = None,
-    MISSION_ARG: Optional[str] = None,
-    SIMULATION_ARG: Optional[str] = None,
-    experimental: bool = False,
-    corruption: bool = False,
-):
+def start_services(COMMAND: Command,
+                   DOCKER: bool = False,
+                   INTERFACE_ARG: Optional[InterfaceType] = None,
+                   tcp_ip: Optional[str] = None,
+                   tcp_port: Optional[int] = None,
+                   nobuild: bool = False,
+                   logpkt: bool = False,
+                   nopendant: bool = False,
+                   gse_only: bool = False,
+                   frontend: bool = False,
+                   replay_mode: Optional[str] = None,
+                   MISSION_ARG: Optional[str] = None,
+                   SIMULATION_ARG: Optional[str] = None,
+                   experimental: bool = False,
+                   corruption: bool = False):
     """Starts all services required for the given command.
 
     Args:
         COMMAND (Command): Summoning command for context.
         DOCKER (bool, optional): Start in docker?. Defaults to False.
         INTERFACE_ARG (Optional[InterfaceType], optional): Hardware interface to use. Defaults to None.
+        tcp_ip (Optional[str], optional): For TCP interface: server IP. Required when interface is TCP.
+        tcp_port (Optional[int], optional): For TCP interface: server port. Required when interface is TCP.
         nobuild (bool, optional): Skip cmake build?. Defaults to False.
         logpkt (bool, optional): Log recieved packets?. Defaults to False.
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
@@ -326,7 +314,14 @@ def start_services(
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TCP:
             logger.info("Starting TCP interface")
-            devices = ("192.168.0.150", None)
+            if tcp_ip is None or tcp_port is None:
+                raise click.UsageError(
+                    "TCP interface requires --tcp-ip and --tcp-port "
+                    "(e.g. rocket dev --interface TCP --tcp-ip 192.168.0.150 --tcp-port 5000)"
+                )
+            if not (1 <= tcp_port <= 65535):
+                raise click.UsageError("--tcp-port must be between 1 and 65535")
+            devices = (f"{tcp_ip}:{tcp_port}", None)
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
@@ -442,30 +437,21 @@ def run(gse_only):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(
-    docker,
-    interface,
-    nobuild,
-    logpkt,
-    nopendant,
-    gse_only,
-    frontend,
-    experimental,
-    corruption,
-):
+def dev(docker, interface, tcp_ip, tcp_port, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
     """Start software in development mode"""
-    start_services(
-        Command.DEV,
-        DOCKER=docker,
-        INTERFACE_ARG=interface,
-        nobuild=nobuild,
-        logpkt=logpkt,
-        nopendant=nopendant,
-        gse_only=gse_only,
-        frontend=frontend,
-        experimental=experimental,
-        corruption=corruption,
-    )
+    start_services(Command.DEV,
+                   DOCKER=docker,
+                   INTERFACE_ARG=interface,
+                   tcp_ip=tcp_ip,
+                   tcp_port=tcp_port,
+                   nobuild=nobuild,
+                   logpkt=logpkt,
+                   nopendant=nopendant,
+                   gse_only=gse_only,
+                   frontend=frontend,
+                   experimental=experimental,
+                   corruption=corruption,
+                   )
 
 
 @click.command()

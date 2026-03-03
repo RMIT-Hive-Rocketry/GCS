@@ -4,8 +4,11 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 #include <mutex>
+#include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
 #include <zmq.hpp>
@@ -231,6 +234,30 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
   }
 }
 
+// Parses "ip:port" (e.g. "192.168.0.150:5000"). Throws if format is invalid.
+// TCP endpoint must be passed from the launcher (e.g. rocket.py); no defaults.
+static std::pair<std::string, uint16_t> parse_tcp_endpoint(
+    const std::string& endpoint) {
+  const size_t colon = endpoint.find(':');
+  if (colon == std::string::npos || colon == 0 || colon == endpoint.size() - 1) {
+    throw std::runtime_error(
+        "TCP interface requires device path in the form ip:port (e.g. "
+        "192.168.0.150:5000). Pass --tcp-ip and --tcp-port from rocket.py.");
+  }
+  const std::string ip = endpoint.substr(0, colon);
+  const std::string port_str = endpoint.substr(colon + 1);
+  if (ip.empty() || port_str.empty()) {
+    throw std::runtime_error(
+        "TCP interface requires non-empty IP and port. Pass --tcp-ip and "
+        "--tcp-port from rocket.py.");
+  }
+  const unsigned long port_val = std::stoul(port_str);
+  if (port_val > 65535) {
+    throw std::runtime_error("TCP port must be in range 1-65535");
+  }
+  return {ip, static_cast<uint16_t>(port_val)};
+}
+
 std::shared_ptr<RadioInterface> create_interface(
     const std::string INTERFACE_NAME, const std::string DEVICE_PATH) {
   std::shared_ptr<RadioInterface> interface;
@@ -243,7 +270,8 @@ std::shared_ptr<RadioInterface> create_interface(
   } else if (INTERFACE_NAME == "TEST_UART") {
     interface = std::make_shared<TestUartInterface>(DEVICE_PATH);
   } else if (INTERFACE_NAME == "TCP") {
-    interface = std::make_shared<TcpInterface>(DEVICE_PATH);
+    const auto [ip, port] = parse_tcp_endpoint(DEVICE_PATH);
+    interface = std::make_shared<TcpInterface>(ip, port);
   } else {
     throw std::runtime_error("Error: Invalid interface type");
   }
