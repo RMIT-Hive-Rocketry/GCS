@@ -8,7 +8,7 @@ frontend/static/js/libraries/GLTFLoader.js linguist-vendored
 frontend/static/css/*.tailwind.css linguist-generated
 
 # Exclude reference code as well
-notes/old_esp32_rx_code.cpp linguist-documentation
+notes/old_* linguist-documentation 
 
 docker/Dockerfile.dev linguist-language=Dockerfile
 
