@@ -85,7 +85,7 @@ KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
 # fml again
 BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
-LOCK_FILE_GSE_RESPONSE_PATH: str = config.load_config(
+LOCK_FILE_GSE_RESPONSE_PATH: str = config.get_config(
 )["locks"]["lock_file_gse_response_path"]
 
 pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
@@ -603,7 +603,7 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()['emulation'])
+        config.get_config()['emulation'])
     slogger.debug("Starting pendant emulator")
 
     signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C

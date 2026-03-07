@@ -270,7 +270,7 @@ def main():
         sys.exit(1)
 
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()['emulation'])
+        config.get_config()['emulation'])
 
     try:
         asyncio.run(amain())

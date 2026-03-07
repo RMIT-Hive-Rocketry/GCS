@@ -1,5 +1,5 @@
 import logging
-from config.config import load_config
+from config.config import get_config
 import time
 from typing import Optional
 import os
@@ -99,7 +99,7 @@ def initialise():
             "Logger has been initialised before. Stop intialising it again please")
         logger.handlers.clear()
 
-    config = load_config()
+    config = get_config()
     LOG_LEVEL = config['logging']['level'].strip()
 
     # Get log file path from config or use default

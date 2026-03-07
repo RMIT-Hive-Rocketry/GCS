@@ -242,7 +242,7 @@ def send_packet():
     context = zmq.Context()
     try:
         push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.load_config()
+        CONFIG = config.get_config()
         SOCKET_PATH = os.path.abspath(os.path.join(
             os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
         )
@@ -284,7 +284,7 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()['emulation'])
+        config.get_config()['emulation'])
     slogger.debug("Starting pendant emulator")
 
     # global packet_thread

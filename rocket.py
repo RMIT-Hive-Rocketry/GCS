@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from functools import cache
+
 import click
 import cli.rocket_logging as rocket_logging
 import cli.proccess as process
@@ -11,7 +13,7 @@ import time
 import os
 import signal
 import enum
-from typing import Optional, Callable
+from typing import Dict, Optional, Callable
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -161,7 +163,7 @@ def start_docker_container(logger):
 
 
 def get_controller_enum() -> ControllerTypes:
-    pedant_config = config.load_config()["hardware"].get("controller")
+    pedant_config = config.get_config()["hardware"].get("controller")
     if pedant_config is None or len(pedant_config) == 0:
         # Nothing specified
         raise RuntimeError("Pendant controller option not found in config.ini")
@@ -259,7 +261,8 @@ def start_services(COMMAND: Command,
                     "(e.g. rocket dev --interface TCP --tcp-ip 192.168.0.150 --tcp-port 5000)"
                 )
             if not (1 <= tcp_port <= 65535):
-                raise click.UsageError("--tcp-port must be between 1 and 65535")
+                raise click.UsageError(
+                    "--tcp-port must be between 1 and 65535")
             devices = (f"{tcp_ip}:{tcp_port}", None)
         case _:
             logger.error("Invalid interface type")

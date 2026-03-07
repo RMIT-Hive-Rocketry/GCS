@@ -400,7 +400,7 @@ def main():
                 "No packets have been received, replay data is empty")
 
         MockPacket.initialize_settings(
-            config.load_config()[
+            config.get_config()[
                 'emulation'], FAKE_DEVICE_NAME=args.device_rocket
         )
 
