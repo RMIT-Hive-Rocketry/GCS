@@ -459,7 +459,7 @@
                 "--matrix",
                 "cpp_compiler:g++",
                 "--secret-file",
-                ".secrets",
+                ".secrets"
             ],
             "group": {
                 "kind": "build",
@@ -468,6 +468,23 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "start TCP interface loopback debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_tcp_interface_packets.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
         }
     ],
     "inputs": [

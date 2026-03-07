@@ -31,7 +31,6 @@ except (ImportError, RuntimeError):
 # ==============================
 
 
-
 class StateTable():
     """
     Stores the states (argument) for the GSE to GCS packet. bonza cunt
@@ -175,7 +174,7 @@ class ControlDevice(ABC):
                 "No inputs received from control device, using fallback state")
             state_table = StateTable.get_fallback_table()
         return self.state_table
-    
+
     def get_states_dict(self) -> dict:
         state_table = self.get_state_table()
         return state_table.get_states_dict()
@@ -188,6 +187,7 @@ class ControlDevice(ABC):
 class RPI_GPIO_Device(ControlDevice):
     """Parent class for GPIO devices on Raspberry Pi."""
     # MAPPING FROM DB15 PINS
+    # From https://github.com/RMIT-Hive-Rocketry/GCS-2026/blob/main/docs/assets/pendant_wiring.png
     # PIN1 -> POWER (5V)?
     # DB_PIN_GPIO_0 -> (SYS_ACTIVE)
     # DB_PIN_GPIO_1 -> (FILL_SELECTED)

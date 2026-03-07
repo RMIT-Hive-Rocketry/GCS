@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - "setup.sh"
       - "**/CMakeLists.txt"
       - "backend/**"
       - "**.c"
@@ -20,6 +21,7 @@ on:
     branches:
       - main
     paths:
+      - "setup.sh"
       - "**/CMakeLists.txt"
       - "backend/**"
       - "**.c"

@@ -13,12 +13,12 @@ class GSE_TO_GCS_DATA_1 {
   // Amount of bytes in this payload
   static constexpr ssize_t SIZE = 31;  // 32 including ID and TBC byte
   static constexpr ssize_t INTERNAL_SIZE = SIZE + 8;
-  static constexpr const char *PACKET_NAME = "GSE_TO_GCS_DATA_1";
+  static constexpr const char* PACKET_NAME = "GSE_TO_GCS_DATA_1";
   static constexpr int8_t ID = 0x06;  // 8 bits reserved in packet
 
   /// @brief See LoRa packet structure spreadsheet for more information.
   /// @param DATA
-  GSE_TO_GCS_DATA_1(const uint8_t *DATA) {
+  GSE_TO_GCS_DATA_1(const uint8_t* DATA) {
     ByteParser parser(DATA, INTERNAL_SIZE);
 
     // DON'T EXTRACT BITS FOR ID!!!!
@@ -117,7 +117,7 @@ class GSE_TO_GCS_DATA_1 {
                                         const int64_t COUNTER_GCS) const {
     payload::GSE_TO_GCS_DATA_1 proto_data;
 
-    common::PacketMeta *packet_meta = new common::PacketMeta();
+    common::PacketMeta* packet_meta = new common::PacketMeta();
     SET_SUB_PROTO_FIELD(packet_meta, rssi);
     SET_SUB_PROTO_FIELD(packet_meta, snr);
     packet_meta->set_timestamp_s(TIMESTAMP_S);
@@ -125,7 +125,7 @@ class GSE_TO_GCS_DATA_1 {
     packet_meta->set_total_packet_count_gse(COUNTER_GCS);
     proto_data.set_allocated_meta(packet_meta);
 
-    common::GSEStateFlags *gse_state_flags = new common::GSEStateFlags();
+    common::GSEStateFlags* gse_state_flags = new common::GSEStateFlags();
     SET_SUB_PROTO_FIELD(gse_state_flags, manual_purge_activated);
     SET_SUB_PROTO_FIELD(gse_state_flags, o2_fill_activated);
     SET_SUB_PROTO_FIELD(gse_state_flags, selector_switch_neutral_position);
@@ -145,7 +145,7 @@ class GSE_TO_GCS_DATA_1 {
     SET_PROTO_FIELD(proto_data, thermocouple_3);
     SET_PROTO_FIELD(proto_data, thermocouple_4);
 
-    common::GSEErrors *gse_errors = new common::GSEErrors();
+    common::GSEErrors* gse_errors = new common::GSEErrors();
     SET_SUB_PROTO_FIELD(gse_errors, ignition_error);
     SET_SUB_PROTO_FIELD(gse_errors, relay_3_error);
     SET_SUB_PROTO_FIELD(gse_errors, relay_2_error);

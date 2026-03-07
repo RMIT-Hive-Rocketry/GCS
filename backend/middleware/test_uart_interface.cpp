@@ -18,7 +18,7 @@
 #include "subprocess_logging.hpp"
 #include "uart_interface.hpp"
 
-TestUartInterface::TestUartInterface(const std::string &device_path,
+TestUartInterface::TestUartInterface(const std::string& device_path,
                                      int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
 
@@ -72,7 +72,7 @@ void TestUartInterface::configure_test_uart() {
 /// @brief
 /// @param buffer
 /// @return Returns amount of bytes read. -1 if failed
-ssize_t TestUartInterface::read_data(std::vector<uint8_t> &buffer) {
+ssize_t TestUartInterface::read_data(std::vector<uint8_t>& buffer) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("UART file descriptor is invalid");
@@ -133,7 +133,7 @@ ssize_t TestUartInterface::read_data(std::vector<uint8_t> &buffer) {
           if (snr > SNR_THRESHOLD) {
             slogger::warning("High SNR: " + std::to_string(snr));
           }
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
           slogger::error("Failed to parse metrics: " + std::string(e.what()));
         }
       }
@@ -167,7 +167,7 @@ ssize_t TestUartInterface::read_data(std::vector<uint8_t> &buffer) {
           }
 
           payload_size = payload.size();
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
           slogger::error("Payload conversion failed: " + std::string(e.what()));
         }
       }
@@ -181,7 +181,7 @@ ssize_t TestUartInterface::read_data(std::vector<uint8_t> &buffer) {
         buffer.resize(payload_size);
       }
       std::copy(payload.begin(), payload.end(), buffer.begin());
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       slogger::error("Buffer copy failed: " + std::string(e.what()));
       return -1;
     }
@@ -193,7 +193,7 @@ ssize_t TestUartInterface::read_data(std::vector<uint8_t> &buffer) {
 /// @brief Write serial data to the LoRa band through the LoRa interface
 /// @param data Binary data bytes
 /// @return
-ssize_t TestUartInterface::write_data(const std::vector<uint8_t> &data) {
+ssize_t TestUartInterface::write_data(const std::vector<uint8_t>& data) {
   // Write to the Aether. This doesn't actually do anything
   return static_cast<ssize_t>(data.size());
 }
