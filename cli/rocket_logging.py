@@ -1,5 +1,5 @@
 import logging
-from config.config import load_config
+from config.config import get_config
 import time
 from typing import Optional
 import os
@@ -100,8 +100,8 @@ def initialise():
         )
         logger.handlers.clear()
 
-    config = load_config()
-    LOG_LEVEL = config["logging"]["level"].strip()
+    config = get_config()
+    LOG_LEVEL = config['logging']['level'].strip()
 
     # Get log file path from config or use default
     LOG_DIR_PATH = config["logging"]["cli_log_dir"].strip()

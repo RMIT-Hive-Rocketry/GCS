@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from functools import cache
 from typing import Dict
 import os
 
@@ -19,7 +20,10 @@ def get_default_config_path():
     return os.path.join(os.getcwd(), "config", "config.ini")
 
 
-def load_config(file_path=get_default_config_path()) -> Dict[str, str]:
+# Cache/Singleton this. The config file does not chang during runtime.
+# You should only read the config once at startup anyway
+@cache
+def get_config(file_path=get_default_config_path()) -> Dict[str, str]:
     """Loads configuration settings from an INI file.
 
     Args:

@@ -644,9 +644,9 @@ def send_packet():
 
     try:
         push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.load_config()
-        SOCKET_PATH = os.path.abspath(
-            os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
+        CONFIG = config.get_config()
+        SOCKET_PATH = os.path.abspath(os.path.join(
+            os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
         )
         CONTROL_TYPE = CONFIG["hardware"]["controller"]
         controller: ControlDevice = get_control_device(CONTROL_TYPE)()
@@ -687,9 +687,8 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()["emulation"]
-    )
-    slogger.debug("Starting pendant daemon")
+        config.get_config()['emulation'])
+    slogger.debug("Starting pendant emulator")
 
     # global packet_thread
     # packet_thread = threading.Thread(target=send_packet)

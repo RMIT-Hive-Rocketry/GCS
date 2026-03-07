@@ -892,7 +892,7 @@ def main():
     corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
-        config.load_config()["emulation"],
+        config.get_config()['emulation'],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
         INTERFACE_TYPE=INTERFACE_TYPE,
     )
@@ -901,9 +901,9 @@ def main():
     # They are not recieved by the GCS
 
     # Used for the sequence lock class GSE debugging
-    CONFIG_LOADED = config.load_config()
-    GSE_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_gse_response_path"]
-    AV_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_av_response_path"]
+    CONFIG_LOADED = config.get_config()
+    GSE_LOCK_PATH = CONFIG_LOADED['locks']['lock_file_gse_response_path']
+    AV_LOCK_PATH = CONFIG_LOADED['locks']['lock_file_av_response_path']
 
     START_TIME = time.monotonic()
     last_time_gse_written = START_TIME
