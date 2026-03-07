@@ -17,9 +17,11 @@
 
 #include "subprocess_logging.hpp"
 
-UartInterface::UartInterface(const std::string& device_path, int baud_rate)
+UartInterface::UartInterface(LoraConfig lora_cfg,
+                             const std::string& device_path, int baud_rate)
     : baud_rate_(baud_rate),
       device_path_(device_path),
+      lora_cfg_(lora_cfg),
       current_modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
 
 UartInterface::~UartInterface() {
@@ -98,8 +100,13 @@ void UartInterface::at_setup() {
   // Returns like:
   // +TEST: RFCFG F:915000000, SF9, BW500K, TXPR:12, RXPR:16, POW:22dBm,
   // CRC:OFF, IQ:OFF, NET:OFF
-  at_send_command("AT+TEST=RFCFG,928,SF9,500,12,16,22,OFF,OFF,OFF",
-                  "+TEST: RFCFG", AT_TIMEOUT_MS);
+  const std::string rfcfg_cmd =
+      "AT+TEST=RFCFG," + lora_cfg_.frequency + "," + lora_cfg_.spread_factor +
+      "," + lora_cfg_.bandwidth + "," + lora_cfg_.tx_preamble + "," +
+      lora_cfg_.rx_preamble + "," + lora_cfg_.power + "," + lora_cfg_.crc +
+      "," + lora_cfg_.iq + "," + lora_cfg_.net;
+  // Example: AT+TEST=RFCFG,928,SF9,500,12,16,22,OFF,OFF,OFF
+  at_send_command(rfcfg_cmd, "+TEST: RFCFG", AT_TIMEOUT_MS);
 
   // Uncomment to change baud rate (requires module reset)
   // if (at_send_command("AT+UART=BR, 230400", "+UART=BR, 230400", 1000)) {

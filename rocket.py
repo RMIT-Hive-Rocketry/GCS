@@ -246,11 +246,25 @@ def start_services(COMMAND: Command,
 
     # 2. Intialise devices and parameters
     INTERFACE_TYPE = get_interface_type(INTERFACE_ARG)
+    lora_config = {}
     match INTERFACE_TYPE:
         case InterfaceType.UART:
             logger.info("Starting UART interface")
             # Just leave second (emulator) device as None
             devices = ("/dev/serial0", None)
+            lora_section = config.get_config()["lora"]
+            lora_config = {
+                "frequency":     str(lora_section.get("frequency")),
+                "spread_factor": str(lora_section.get("spread_factor")),
+                "bandwidth":     str(lora_section.get("bandwidth")),
+                "tx_preamble":   str(lora_section.get("tx_preamble")),
+                "rx_preamble":   str(lora_section.get("rx_preamble")),
+                "power":         str(lora_section.get("power")),
+                "crc":           str(lora_section.get("crc")),
+                "iq":            str(lora_section.get("iq")),
+                "net":           str(lora_section.get("net")),
+            }
+            large_radio_config_print(lora_section)
         case InterfaceType.TEST_UART:
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
@@ -285,7 +299,8 @@ def start_services(COMMAND: Command,
                          WEB_CONTROL_SOCKET_PATH=os.path.abspath(os.path.join(
                              os.path.sep, 'tmp', 'gcs_rocket_web_pull.sock')
                          ),
-                         opt_arg=optional_arg)
+                         opt_arg=optional_arg,
+                         lora_config=lora_config)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error")

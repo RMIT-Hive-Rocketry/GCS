@@ -10,10 +10,22 @@
 
 #include "radio_interface.hpp"
 
+struct LoraConfig {
+  std::string frequency;
+  std::string spread_factor;
+  std::string bandwidth;
+  std::string tx_preamble;
+  std::string rx_preamble;
+  std::string power;
+  std::string crc;
+  std::string iq;
+  std::string net;
+};
+
 class UartInterface : public RadioInterface {
  public:
   UartInterface(
-      const std::string& device_path = "/dev/serial0",
+      LoraConfig lora_cfg, const std::string& device_path = "/dev/serial0",
       int baud_rate = B230400);  // Default to RPi ttyAMA0 and 230400 baud
   virtual ~UartInterface();
 
@@ -28,6 +40,7 @@ class UartInterface : public RadioInterface {
   int uart_fd_ = -1;
   std::string device_path_;
   std::string response_buffer_;
+  LoraConfig lora_cfg_;
 
   constexpr static int AT_TIMEOUT_MS = 1000;
 

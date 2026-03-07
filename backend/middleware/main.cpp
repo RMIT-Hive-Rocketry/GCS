@@ -239,7 +239,8 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
 static std::pair<std::string, uint16_t> parse_tcp_endpoint(
     const std::string& endpoint) {
   const size_t colon = endpoint.find(':');
-  if (colon == std::string::npos || colon == 0 || colon == endpoint.size() - 1) {
+  if (colon == std::string::npos || colon == 0 ||
+      colon == endpoint.size() - 1) {
     throw std::runtime_error(
         "TCP interface requires device path in the form ip:port (e.g. "
         "192.168.0.150:5000). Pass --tcp-ip and --tcp-port from rocket.py.");
@@ -259,12 +260,12 @@ static std::pair<std::string, uint16_t> parse_tcp_endpoint(
 }
 
 std::shared_ptr<RadioInterface> create_interface(
-    const std::string INTERFACE_NAME, const std::string DEVICE_PATH) {
+    const std::string INTERFACE_NAME, const std::string DEVICE_PATH,
+    const LoraConfig& lora_cfg = {}) {
   std::shared_ptr<RadioInterface> interface;
 
   if (INTERFACE_NAME == "UART") {
-    // This will sent AT setup commands as well in constructor
-    interface = std::make_shared<UartInterface>(DEVICE_PATH);
+    interface = std::make_shared<UartInterface>(lora_cfg, DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST") {
     interface = std::make_shared<TestInterface>(DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST_UART") {
@@ -324,32 +325,48 @@ int main(int argc, char* argv[]) {
 
   slogger::info("Starting middleware server");
 
-  // Pick interface based on the first argument
-  if (argc < 5) {
-    slogger::error("Not enough arugments provided.");
-    // Optional modes (string):
-    // -  --GSE_ONLY
+  const std::string INTERFACE_NAME = std::string(argv[1]);
+  const bool IS_UART = (INTERFACE_NAME == "UART");
+
+  const int MIN_ARGS = IS_UART ? 14 : 5;  // 4 base + 9 lora + program name
+
+  if (argc < MIN_ARGS) {
+    slogger::error("Not enough arguments provided.");
     slogger::error(
-        "Usage: ./file <interface type> <device path> <pendent socket path> "
-        "<web control socket path> <optional mode>");
-    // Throw error silenced by main
-    throw std::runtime_error("Error: Not enough arugments provided");
+        "Usage: ./file <interface type> <device path> <pendant socket path> "
+        "<web control socket path> [optional mode]\n"
+        "  UART also requires: <frequency> <spread_factor> <bandwidth> "
+        "<tx_preamble> <rx_preamble> <power> <crc> <iq> <net>");
+    throw std::runtime_error("Error: Not enough arguments provided");
     return EXIT_FAILURE;
-  } else if (argc > 6) {
-    slogger::warning("Too many arugments provided: " + std::to_string(argc));
+  } else if (argc > MIN_ARGS + 1) {
+    slogger::warning("Too many arguments provided: " + std::to_string(argc));
   }
 
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
 
-  // Create an interface
   const std::string DEVICE_PATH = std::string(argv[2]);
   const std::string PENDANT_SOCKET_PATH = std::string(argv[3]);
   const std::string WEB_CONTROL_SOCKET_PATH = std::string(argv[4]);
-  // One per device object. If you're using 2 devices, best to have 2
-  // interfaces
+
+  LoraConfig lora_cfg;
+  if (IS_UART) {
+    lora_cfg = {
+        .frequency = argv[5],
+        .spread_factor = argv[6],
+        .bandwidth = argv[7],
+        .tx_preamble = argv[8],
+        .rx_preamble = argv[9],
+        .power = argv[10],
+        .crc = argv[11],
+        .iq = argv[12],
+        .net = argv[13],
+    };
+  }
+
   std::shared_ptr<RadioInterface> interface =
-      create_interface(std::string(argv[1]), DEVICE_PATH);
+      create_interface(INTERFACE_NAME, DEVICE_PATH, lora_cfg);
 
   interface->initialize();
   slogger::info("Interface initialised for type: " + std::string(argv[1]));
