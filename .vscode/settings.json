@@ -102,5 +102,5 @@
         "__config": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "python.languageServer": "None",
+    "python.languageServer": "Default",
 }
