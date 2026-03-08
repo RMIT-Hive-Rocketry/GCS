@@ -123,6 +123,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+build-debug/
+build-release/
 develop-eggs/
 dist/
 downloads/
