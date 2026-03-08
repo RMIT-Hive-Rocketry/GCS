@@ -1,3 +1,10 @@
+# yeah don't share this one
+.secrets
+
+# Custom build directory
+build-debug/
+build-release/
+
 # Local notes that don't need to be shared
 notes/local.txt
 notes/visualParadigm/*

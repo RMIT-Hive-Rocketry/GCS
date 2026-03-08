@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 #include "subprocess_logging.hpp"
 
@@ -23,7 +24,7 @@ class ByteParser {
   /// @throws std::out_of_range if you don't read the amount of bytes specified
   /// in the constructor
 
-  ByteParser(const uint8_t *data, size_t num_bytes,
+  ByteParser(const uint8_t* data, size_t num_bytes,
              ByteOrder endianness = ByteOrder::BIG_ENDIAN_ORDER)
 
       : data_(data),
@@ -87,7 +88,16 @@ class ByteParser {
   }
 
   /// @brief Swaps byte order for multi-byte values.
+  /// @param value 32-bit value to swap (only the lowest num_bytes bytes are
+  /// used).
+  /// @param num_bytes Number of bytes to swap (1-4); must not exceed
+  /// sizeof(uint32_t).
   static uint32_t swap_byte_order(uint32_t value, uint8_t num_bytes) {
+    if (num_bytes == 0 || num_bytes > sizeof(uint32_t)) {
+      throw std::invalid_argument(
+          "swap_byte_order: num_bytes must be 1-4, got " +
+          std::to_string(num_bytes));
+    }
     uint32_t result = 0;
     for (uint8_t i = 0; i < num_bytes; ++i) {
       result |= ((value >> (PROTOCOL_BYTE_SIZE * i)) & 0xFF)
@@ -133,7 +143,7 @@ class ByteParser {
   }
 
  private:
-  const uint8_t *data_;  // Data to be parsed
+  const uint8_t* data_;  // Data to be parsed
   size_t size_;          // Total number of bytes in the data
   size_t byte_index_;    // Index of the current byte in data_
   uint8_t bit_offset_;   // Bit offset within the current byte

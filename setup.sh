@@ -6,7 +6,7 @@ PROTOBUF_VERSION="30.1"
 PROTOBUF_MAJOR_VERSION="30"
 
 # Check if python is installed and meets the required version (>= 3.11)
-python_version=$(python --version 2>&1 | awk '{print $2}')
+python_version=$(python3 --version 2>&1 | awk '{print $2}')
 required_version="3.11"
 
 if [[ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]]; then
@@ -96,7 +96,6 @@ install_protobuf() {
     mkdir -p build && cd build
     # make sure protobuf compiles with C++17
     cmake -Dprotobuf_BUILD_TESTS=OFF \
-        -Dprotobuf_BUILD_TESTS=OFF \
         -DCMAKE_CXX_STANDARD=17 \
         -DCMAKE_CXX_STANDARD_REQUIRED=ON \
         -DCMAKE_CXX_EXTENSIONS=OFF \
@@ -108,7 +107,7 @@ install_protobuf() {
         return 1
     fi
     
-    sudo make install
+    sudo make install -j$(nproc)
     if [ $? -ne 0 ]; then
         echo "Error: Failed to install protobuf. Make sure you have sudo privileges." >&2
         cd - > /dev/null
@@ -129,10 +128,13 @@ install_protobuf() {
 
 # Check and install protobuf if needed
 if ! check_protobuf_installed; then
+    echo "Could not find correct protobuf."
     install_protobuf
     if [ $? -ne 0 ]; then
         echo "Warning: Protobuf installation failed. Some features may not work correctly."
     fi
+else
+    echo "Protobuf v$PROTOBUF_VERSION detected"
 fi
 
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "darwin"* ]]; then

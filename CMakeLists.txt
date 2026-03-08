@@ -10,14 +10,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Disable tests in all FetchContent dependencies (libzmq, cppzmq, protobuf, abseil, googletest).
+# We only build and run our own backend and Python tests.
+set(BUILD_TESTING OFF CACHE BOOL "Disable dependency tests" FORCE)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    # For CMake 3.12+
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "18.0.0")
         message(STATUS "Using Clang compiler (${CMAKE_CXX_COMPILER_VERSION}) - enforcing ABI compatibility with version 17")
         message(STATUS "Clang compiler forcing version 17 compatability")
-        add_compile_options(-fclang-abi-compat=17)
-
-        # For older CMake versions
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fclang-abi-compat=17>)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fclang-abi-compat=17")
     endif()
 endif()
@@ -54,8 +55,11 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
 endfunction()
 
 # Abseil libraries for protobuf
+set(ABSL_RUN_TESTS OFF CACHE BOOL "Disable Abseil tests" FORCE)
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
+
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
+set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "Disable Protobuf Exmaples" FORCE)
 
 # Prevent Protobuf from exporting abseil-linked targets
 set(protobuf_BUILD_EXPORT OFF CACHE BOOL "Disable protobuf target exports" FORCE)
@@ -103,6 +107,22 @@ set(PROTO_FILE "${PROTO_DIR}/AV_TO_GCS_DATA_1.proto")
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(EXPECTED_BUILD_DIR_SUFFIX "build-release")
+else()
+    set(EXPECTED_BUILD_DIR_SUFFIX "build-debug")
+endif()
+
+get_filename_component(BINARY_DIR_NAME "${CMAKE_BINARY_DIR}" NAME)
+
+if(NOT BINARY_DIR_NAME STREQUAL EXPECTED_BUILD_DIR_SUFFIX)
+    message(FATAL_ERROR
+        "Build directory mismatch!\n"
+        "  For ${CMAKE_BUILD_TYPE} builds, please configure from '${EXPECTED_BUILD_DIR_SUFFIX}/'.\n"
+        "  Run: cmake -B ${EXPECTED_BUILD_DIR_SUFFIX} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+    )
 endif()
 
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
@@ -267,19 +287,20 @@ execute_process(
 # Same as $ uname -m -> "arm64"
 set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
-# Clean up old binaries with different names before building
-file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/middleware_*")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(MIDDLEWARE_NAME_PREFIX "middleware_release")
+else()
+    set(MIDDLEWARE_NAME_PREFIX "middleware_debug")
+endif()
+
+file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/${MIDDLEWARE_NAME_PREFIX}_*")
 
 if(OLD_BINARIES)
-    message(STATUS "Cleaning up old binaries: ${OLD_BINARIES}")
+    message(STATUS "Cleaning up old ${MIDDLEWARE_NAME_PREFIX} binaries: ${OLD_BINARIES}")
     file(REMOVE ${OLD_BINARIES})
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_release_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
-else()
-    set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "middleware_debug_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
-endif()
+set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "${MIDDLEWARE_NAME_PREFIX}_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
 
 install(TARGETS middleware_server DESTINATION bin)
 
@@ -296,6 +317,8 @@ if(BUILD_TESTS)
             GIT_REPOSITORY https://github.com/google/googletest.git
             GIT_TAG v1.16.0
         )
+        set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+        set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(googletest)
     else()
         message(STATUS "GoogleTest found at: ${GTest_DIR}")

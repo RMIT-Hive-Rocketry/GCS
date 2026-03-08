@@ -233,7 +233,9 @@ TEST(ByteParserExtractUBitsTest, ExtractBitsLittleSIGNED) {
 TEST(ByteParserSwapBytes, SwapBytes1) {
   uint8_t data[] = {0xFF, 0xFF, 0xFF, 0x00};
   uint8_t data_expected[] = {0x00, 0xFF, 0xFF, 0xFF};
-  uint32_t *data32 = (uint32_t *)data;
-  uint32_t *data_expected32 = (uint32_t *)data_expected;
-  EXPECT_EQ(ByteParser::swap_byte_order(*data32, 32), *data_expected32);
+  uint32_t* data32 = (uint32_t*)data;
+  uint32_t* data_expected32 = (uint32_t*)data_expected;
+  EXPECT_EQ(ByteParser::swap_byte_order(*data32, 4), *data_expected32);
+  EXPECT_THROW(ByteParser::swap_byte_order(*data32, 5), std::invalid_argument);
+  EXPECT_THROW(ByteParser::swap_byte_order(*data32, 0), std::invalid_argument);
 }

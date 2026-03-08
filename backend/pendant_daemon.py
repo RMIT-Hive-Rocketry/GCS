@@ -59,7 +59,7 @@ except (ImportError, RuntimeError):
 # ==============================
 
 
-class StateTable:
+class StateTable():
     """
     Stores the states (argument) for the GSE to GCS packet. bonza cunt
     """
@@ -226,6 +226,7 @@ class RPI_GPIO_Device(ControlDevice):
     """Parent class for GPIO devices on Raspberry Pi."""
 
     # MAPPING FROM DB15 PINS
+    # From https://github.com/RMIT-Hive-Rocketry/GCS-2026/blob/main/docs/assets/pendant_wiring.png
     # PIN1 -> POWER (5V)?
     # DB_PIN_GPIO_0 -> (SYS_ACTIVE)
     # DB_PIN_GPIO_1 -> (FILL_SELECTED)
