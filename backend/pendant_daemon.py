@@ -1,21 +1,25 @@
-'''
+"""
 export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
-'''
+"""
 
 import backend.includes_python.process_logging as slogger
 
 try:
     import hid
 except (ImportError, RuntimeError) as e:
-    '''
+    """
     if the hid module fails to import and you dont want to use a hid controller, then no harm so just warn in slogger
     if you want the hid device (controller = rpi_gpio_device)
-    '''
+    """
     error_message = "This should not have run, make sure you set controller = rpi_gpio_device or pygame_device (config.ini) or check your hid install is correct"
-    slogger.error(f"hid is not correctly installed: {e}. This is okay if your using rpi_gpio_device or pygame_device (check config.ini)")
+    slogger.error(
+        f"hid is not correctly installed: {e}. This is okay if your using rpi_gpio_device or pygame_device (check config.ini)"
+    )
+
     class hid:
         def Device():
             raise NotImplementedError(error_message)
+
 
 import pygame
 import zmq
@@ -27,6 +31,7 @@ import config.config as config
 import threading
 from typing import List, Dict, Tuple
 from abc import ABC, abstractmethod
+
 try:
     from gpiozero import Button
 except (ImportError, RuntimeError):
@@ -39,9 +44,12 @@ except (ImportError, RuntimeError):
     slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     class Button:
-        def __init__(self, pin, pull_up=False): self.pin = pin
+        def __init__(self, pin, pull_up=False):
+            self.pin = pin
+
         @property
-        def is_pressed(self): return False
+        def is_pressed(self):
+            return False
 
 
 # ==============================
@@ -51,8 +59,7 @@ except (ImportError, RuntimeError):
 # ==============================
 
 
-
-class StateTable():
+class StateTable:
     """
     Stores the states (argument) for the GSE to GCS packet. bonza cunt
     """
@@ -74,7 +81,7 @@ class StateTable():
         output = ""
         for k, v in printable_dict.items():
             assert isinstance(v, bool)
-            symbol = '[X]' if v else '[ ]'
+            symbol = "[X]" if v else "[ ]"
             output += f"{k:<{MAX_KEY_LEN}} : {symbol}\n"
         return output
 
@@ -97,7 +104,7 @@ class StateTable():
         # Get string of outputs
         output = StateTable._bool_table_str(debug_attributes)
         # Get string if calculated packet states
-        output += '\n'
+        output += "\n"
         output += self.__str__()
         return output
 
@@ -109,16 +116,18 @@ class StateTable():
     def __ne__(self, other):
         return not self == other
 
-    def __init__(self,
-                 SYS_ON: bool = True,
-                 FILL_SELECTED: bool = True,
-                 IGNITION_SELECTED: bool = True,
-                 N2O_ACTIVE: bool = True,
-                 NEUTRAL_ACTIVE: bool = True,
-                 PURGE_ACTIVE: bool = True,
-                 O2_MOMENT_ACTIVE: bool = True,
-                 IGNITION_MOMENT_ACTIVE: bool = True,
-                 ):
+    def __init__(
+        self,
+        SYS_ON: bool = True,
+        FILL_SELECTED: bool = True,
+        IGNITION_SELECTED: bool = True,
+        N2O_ACTIVE: bool = True,
+        NEUTRAL_ACTIVE: bool = True,
+        PURGE_ACTIVE: bool = True,
+        O2_MOMENT_ACTIVE: bool = True,
+        IGNITION_MOMENT_ACTIVE: bool = True,
+        ESTOP: bool = False,
+    ):
         self.SYS_ON = SYS_ON
         self.FILL_SELECTED = FILL_SELECTED
         self.IGNITION_SELECTED = IGNITION_SELECTED
@@ -127,17 +136,23 @@ class StateTable():
         self.PURGE_ACTIVE = PURGE_ACTIVE
         self.O2_MOMENT_ACTIVE = O2_MOMENT_ACTIVE
         self.IGNITION_MOMENT_ACTIVE = IGNITION_MOMENT_ACTIVE
+        self.ESTOP = ESTOP
 
     def get_states_dict(self) -> dict:
-        """returns argument dictionary for use in GCS to GSE packet
-        """
+        """returns argument dictionary for use in GCS to GSE packet"""
         # You should also check these states electronically where applicable
         states = {
             "MANUAL_PURGE": self.SYS_ON and self.FILL_SELECTED and self.PURGE_ACTIVE,
-            "O2_FILL_ACTIVATE": self.SYS_ON and self.IGNITION_SELECTED and self.O2_MOMENT_ACTIVE,
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON and self.FILL_SELECTED and self.NEUTRAL_ACTIVE,
+            "O2_FILL_ACTIVATE": self.SYS_ON
+            and self.IGNITION_SELECTED
+            and self.O2_MOMENT_ACTIVE,
+            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON
+            and self.FILL_SELECTED
+            and self.NEUTRAL_ACTIVE,
             "N2O_FILL_ACTIVATE": self.SYS_ON and self.FILL_SELECTED and self.N2O_ACTIVE,
-            "IGNITION_FIRE": self.SYS_ON and self.IGNITION_SELECTED and self.IGNITION_MOMENT_ACTIVE,
+            "IGNITION_FIRE": self.SYS_ON
+            and self.IGNITION_SELECTED
+            and self.IGNITION_MOMENT_ACTIVE,
             "IGNITION_SELECTED": self.SYS_ON and self.IGNITION_SELECTED,
             "GAS_FILL_SELECTED": self.SYS_ON and self.FILL_SELECTED,
             "SYSTEM_ACTIVATE": self.SYS_ON,
@@ -151,7 +166,8 @@ class StateTable():
         # Nonsensical states that should not exist. GSE will complain if any true
         nonsensical_conditions = {
             "purge and fill": states["MANUAL_PURGE"] and states["O2_FILL_ACTIVATE"],
-            "purge on neutral": states["MANUAL_PURGE"] and states["SELECTOR_SWITCH_NEUTRAL_POSITION"],
+            "purge on neutral": states["MANUAL_PURGE"]
+            and states["SELECTOR_SWITCH_NEUTRAL_POSITION"],
             # states["MANUAL_PURGE"] and states["SELECTOR_SWITCH_NEUTRAL_POSITION"]
             # add more. please do this automatically
         }
@@ -192,10 +208,11 @@ class ControlDevice(ABC):
             slogger.warning("Failed to update pendant states")
         if not self.state_table:
             slogger.warning(
-                "No inputs received from control device, using fallback state")
-            state_table = StateTable.get_fallback_table()
+                "No inputs received from control device, using fallback state"
+            )
+            self.state_table = StateTable.get_fallback_table()
         return self.state_table
-    
+
     def get_states_dict(self) -> dict:
         state_table = self.get_state_table()
         return state_table.get_states_dict()
@@ -207,6 +224,7 @@ class ControlDevice(ABC):
 
 class RPI_GPIO_Device(ControlDevice):
     """Parent class for GPIO devices on Raspberry Pi."""
+
     # MAPPING FROM DB15 PINS
     # PIN1 -> POWER (5V)?
     # DB_PIN_GPIO_0 -> (SYS_ACTIVE)
@@ -233,7 +251,8 @@ class RPI_GPIO_Device(ControlDevice):
 
     def _setup_device(self):
         self.buttons = {
-            pin: Button(pin, pull_up=False, bounce_time=0.05) for pin in RPI_GPIO_Device.PIN_MAP
+            pin: Button(pin, pull_up=False, bounce_time=0.05)
+            for pin in RPI_GPIO_Device.PIN_MAP
         }
 
     def __init__(self):
@@ -247,7 +266,9 @@ class RPI_GPIO_Device(ControlDevice):
             attr: getattr(self, attr) for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
         # Temporary fix for neutral state which isn't wired
-        self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+        states["NEUTRAL_ACTIVE"] = (
+            self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+        )
         self.state_table = StateTable(**states)
 
 
@@ -255,16 +276,18 @@ class HID_Button:
     MAX_SAFETY_COUNT: int = 10
     USEFUL_BYTE_OFFSET: int = 5
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
-    SAFETY_FACTOR: float = 0.5 # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    SAFETY_FACTOR: float = (
+        0.5  # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    )
 
-    byte: int # [0, 1]
-    bit: int # [0, 7]
+    byte: int  # [0, 1]
+    bit: int  # [0, 7]
     bitmask: int
-    
+
     safety_count: int = 0
     time_of_last_state_change: float
     button_is_pressed: bool = False
-    
+
     def __init__(self, byte, bit):
         self.byte = byte
         self.bit = bit
@@ -281,9 +304,11 @@ class HID_Button:
 
         if time_since_last_state_change < HID_Button.MIN_TIME_BETWEEN_STATE_CHANGE:
             return
-        
-        safety_check = self.safety_count / HID_Button.MAX_SAFETY_COUNT > HID_Button.SAFETY_FACTOR
-        
+
+        safety_check = (
+            self.safety_count / HID_Button.MAX_SAFETY_COUNT > HID_Button.SAFETY_FACTOR
+        )
+
         if safety_check and not self.button_is_pressed:
             self.button_is_pressed = True
             self.time_of_last_state_change = time.time()
@@ -301,7 +326,6 @@ class HID_Button:
 
         self._try_update_state(hid_byte & self.bitmask)
 
-
     def is_pressed(self) -> bool:
         return self.button_is_pressed
 
@@ -309,7 +333,7 @@ class HID_Button:
 class HID_Device(ControlDevice):
     """Parent class for HID devices on Raspberry Pi."""
 
-    '''
+    """
     name of input i was given to what i think its supposed to be
         "system_key":           SYS_ON
         "e_stop":               ESTOP - NOT USED FOR NOW 
@@ -319,7 +343,7 @@ class HID_Device(ControlDevice):
         "fill_switch_pos_down": PURGE_ACTIVE
         "o2_fill_button":       O2_MOMENT_ACTIVE
         "ignition_button":      IGNITION_MOMENT_ACTIVE
-    '''
+    """
 
     HID_VENDOR_ID = 0x0079
     HID_PRODUCT_ID = 0x0006
@@ -327,14 +351,14 @@ class HID_Device(ControlDevice):
     # THESE ARE PROB WRONG, wiring has changed since i got these
     # name: (byte, bit)
     BITMAP: Dict[str, Tuple[int, int]] = {
-        "SYS_ON":                   (1, 5),
-       #"ESTOP":                    (1, 6),
-        "FILL_SELECTED":            (0, 2),
-        "IGNITION_SELECTED":        (0, 1),
-        "N2O_ACTIVE":               (0, 0),
-        "PURGE_ACTIVE":             (1, 7),
-        "O2_MOMENT_ACTIVE":         (1, 4),
-        "IGNITION_MOMENT_ACTIVE":   (1, 3),
+        "SYS_ON": (1, 5),
+        # "ESTOP":                    (1, 6),
+        "FILL_SELECTED": (0, 2),
+        "IGNITION_SELECTED": (0, 1),
+        "N2O_ACTIVE": (0, 0),
+        "PURGE_ACTIVE": (1, 7),
+        "O2_MOMENT_ACTIVE": (1, 4),
+        "IGNITION_MOMENT_ACTIVE": (1, 3),
     }
 
     buttons: Dict[str, HID_Button]
@@ -357,33 +381,39 @@ class HID_Device(ControlDevice):
 
         for btn_name in HID_Device.BITMAP:
             self.buttons[btn_name] = HID_Button(*HID_Device.BITMAP[btn_name])
-            
 
     def __init__(self):
         super().__init__()
         self.buttons = {}
-        slogger.warning("HID_Device is not tested, dont use it untill lab testing has been done")
+        slogger.warning(
+            "HID_Device is not tested, dont use it untill lab testing has been done"
+        )
 
     def _update_state_table(self):
         """Updates instance attributes"""
         try:
-            if not self.device_is_connected: self._try_connect_device()
-            if not self.device_is_connected: return None
+            if not self.device_is_connected:
+                self._try_connect_device()
+            if not self.device_is_connected:
+                return None
 
             bytes = self.device.read(9999)
 
             for _, btn in self.buttons.items():
                 btn.update_state(bytes)
 
-            states: Dict[str: bool] = {btn_name : btn.is_pressed() for btn_name, btn in self.buttons.items()}
+            states: Dict[str:bool] = {
+                btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()
+            }
             # Temporary fix for neutral state which isn't wired
-            states["NEUTRAL_ACTIVE"] = not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
-            
+            states["NEUTRAL_ACTIVE"] = (
+                self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+            )
+
             self.state_table = StateTable(**states)
-                
+
         except IOError as e:
             self.device_is_connected = False
-
             self.state_table = StateTable.FALLBACK_DICT
 
     def cleanup(self):
@@ -415,36 +445,48 @@ class Pygame_Button:
     # will update state if safe to do so
     def update_state(self, new_state: bool):
         self._try_update_state(new_state)
-    
+
     def is_pressed(self):
         return self.button_is_pressed
 
+
 _TA320_BUTTON_NAME_ID_MAP: Dict[str, int] = {
-    "SYS_ON":                   16, # thrust
-    #"ESTOP":                    idk
-    "FILL_SELECTED":            1, # top trigger
-    "IGNITION_SELECTED":        0, # bottom trigger
-    "N2O_ACTIVE":               7, # bottom left button on right side
-    "PURGE_ACTIVE":             2, # spherical button
-    "O2_MOMENT_ACTIVE":         6, # top left button on right side
-    "IGNITION_MOMENT_ACTIVE":   3, # red button
+    "SYS_ON": 16,  # thrust
+    # "ESTOP":                    idk
+    "FILL_SELECTED": 1,  # top trigger
+    "IGNITION_SELECTED": 0,  # bottom trigger
+    "N2O_ACTIVE": 7,  # bottom left button on right side
+    "PURGE_ACTIVE": 2,  # spherical button
+    "O2_MOMENT_ACTIVE": 6,  # top left button on right side
+    "IGNITION_MOMENT_ACTIVE": 3,  # red button
 }
+
 
 class Pygame_Device(ControlDevice):
     """
-        Parent class for Pygame devices on Raspberry Pi.
-        Handles all pygame setup and shutdown
+    Parent class for Pygame devices on Raspberry Pi.
+    Handles all pygame setup and shutdown
     """
 
-    BUTTON_NAME_ID_MAP: Dict[str, int] = _TA320_BUTTON_NAME_ID_MAP
+    BUTTON_NAME_ID_MAP: Dict[str, int] = {
+        "SYS_ON": 0,
+        "ESTOP": 5,
+        "FILL_SELECTED": 6,
+        "IGNITION_SELECTED": 4,
+        "N2O_ACTIVE": 8,
+        "PURGE_ACTIVE": 3,
+        "O2_MOMENT_ACTIVE": 1,
+        "IGNITION_MOMENT_ACTIVE": 2,
+    }
 
     BUTTON_ID_NAME_MAP: Dict[int, str] = {v: k for k, v in BUTTON_NAME_ID_MAP.items()}
 
     buttons: Dict[str, Pygame_Button]
 
-    CONTROLLER_NAME: str = "Thrustmaster T.A320 Pilot"
+    CONTROLLER_NAME: str = "DragonRise Inc. Generic USB Joystick"
 
     joystick: pygame.joystick.JoystickType | None = None
+
     is_connected: bool = False
 
     def __init__(self):
@@ -459,10 +501,13 @@ class Pygame_Device(ControlDevice):
             slogger.warning("No Controllers Connected")
             return
 
-        # this should only be called when these are junt (controller disconnected, startup etc)
-        self.is_connected = False
-        self.joystick = None
+        # Don't re-attempt connection if device is already connected
+        if Pygame_Device.is_connected:
+            return
 
+        # this should only be called when these are junt (controller disconnected, startup etc)
+        # Pygame_Device.is_connected = False
+        # Pygame_Device.joystick = None
         found_names = ""
 
         for i in range(pygame.joystick.get_count()):
@@ -471,58 +516,73 @@ class Pygame_Device(ControlDevice):
             found_names += jstk.get_name()
             found_names += ", "
             if jstk.get_name() == Pygame_Device.CONTROLLER_NAME:
-                self.is_connected = True
-                self.joystick = jstk
+                Pygame_Device.is_connected = True
+                Pygame_Device.joystick = jstk
+                slogger.info(
+                    f"Controller initialized: {Pygame_Device.joystick.get_name()}"
+                )
                 break
-            
-        
-        if not self.is_connected:
-            slogger.warning("Did not find controller '" + Pygame_Device.CONTROLLER_NAME + "'" + " found controllers '" + found_names + "'")
+
+        if not Pygame_Device.is_connected:
+            slogger.warning(
+                "Did not find controller '"
+                + Pygame_Device.CONTROLLER_NAME
+                + "'"
+                + " found controllers '"
+                + found_names
+                + "'"
+            )
             return
-
-        slogger.info(f"Controller initialized: {self.joystick.get_name()}")
-
 
     def _setup_device(self):
         pygame.init()
-        #pygame.mixer.quit() # https: // stackoverflow.com/a/50552161/14141223
+        # pygame.mixer.quit() # https: // stackoverflow.com/a/50552161/14141223
         pygame.joystick.init()
-
         self._try_connect_device()
-
 
     def _update_state_table(self):
         """Updates instance attributes"""
-        pygame.event.pump() # seg fault on mac if i dont do this
+        pygame.event.pump()  # seg fault on mac if i dont do this
 
-        if not self.is_connected:
+        if not Pygame_Device.is_connected:
             self._try_connect_device()
-        
-        if self.is_connected and self.joystick is not None:
+
+        if Pygame_Device.is_connected and Pygame_Device.joystick is not None:
             # polling events on mac gave me segfaults
             for btn_name, btn_id in Pygame_Device.BUTTON_NAME_ID_MAP.items():
                 try:
-                    pressed = bool(self.joystick.get_button(btn_id))
+                    pressed = bool(Pygame_Device.joystick.get_button(btn_id))
                 except Exception:
-                    self.is_connected = False
-                    self.joystick = None
+                    # Don't automatically disconnect device when an unexpected button is pressed
+                    # Since the joystick sends noisy/useless data, it causes it to reconnect endlessly
+                    # Pygame_Device.is_connected = False
+                    # Pygame_Device.joystick = None
                     pressed = False
                 self.buttons[btn_name].update_state(pressed)
 
-            states = {btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()}
+            states = {
+                btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()
+            }
         else:
             states = StateTable.FALLBACK_DICT.copy()
 
+        """
         states = {}
-        if self.is_connected:
-            states = {btn_name : btn.is_pressed() for btn_name, btn in self.buttons.items()}
+        if Pygame_Device.is_connected:
+            states = {
+                btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()
+            }
         else:
             states = StateTable.FALLBACK_DICT.copy()
+        """
 
         # Temporary fix for neutral state which isn't wired
-        states["NEUTRAL_ACTIVE"] = not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
+        states["SYS_ON"] = not states["ESTOP"]
+        states["NEUTRAL_ACTIVE"] = (
+            states["SYS_ON"] and not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
+        )
         self.state_table = StateTable(**states)
-    
+
     def cleanup(self):
         """Internal cleaup code"""
         slogger.info("Quitting pygame...")
@@ -533,24 +593,26 @@ class Pygame_Device(ControlDevice):
 def get_control_device(key: str) -> ControlDevice:
     key = key.lower().strip()
     return {
-        'rpi_gpio_device': RPI_GPIO_Device,
-        'hid_device': HID_Device,
-        'pygame_device': Pygame_Device
+        "rpi_gpio_device": RPI_GPIO_Device,
+        "hid_device": HID_Device,
+        "pygame_device": Pygame_Device,
     }.get(key, None)
 
 
 def send_packet():
     context = zmq.Context()
+
+    # Wait LINGER_TIME_MS before giving up on push request
+    LINGER_TIME_MS = 300
+
     try:
         push_socket = context.socket(zmq.PUSH)
         CONFIG = config.load_config()
-        SOCKET_PATH = os.path.abspath(os.path.join(
-            os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
+        SOCKET_PATH = os.path.abspath(
+            os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
-        CONTROL_TYPE = CONFIG['hardware']['controller']
+        CONTROL_TYPE = CONFIG["hardware"]["controller"]
         controller: ControlDevice = get_control_device(CONTROL_TYPE)()
-        # Wait LINGER_TIME_MS before giving up on push request
-        LINGER_TIME_MS = 300
 
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
@@ -563,11 +625,13 @@ def send_packet():
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
                 push_socket.send(
-                    state_command.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK)
+                    state_command.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK
+                )
             except zmq.ZMQError:
                 # Queue is likely full
                 slogger.warning(
-                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping")
+                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping"
+                )
                 time.sleep(1)
             # No need to go full blast.
             time.sleep(0.05)
@@ -584,14 +648,14 @@ def send_packet():
 
 
 def main():
-    device_emulator.MockPacket.initialize_settings(
-        config.load_config()['emulation'])
-    slogger.debug("Starting pendant emulator")
+    device_emulator.MockPacket.initialize_settings(config.load_config()["emulation"])
+    slogger.debug("Starting pendant daemon")
 
     # global packet_thread
     # packet_thread = threading.Thread(target=send_packet)
     # packet_thread.start()
     send_packet()
+
 
 if __name__ == "__main__":
     main()
