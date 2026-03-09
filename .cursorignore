@@ -3,6 +3,9 @@
 
 # .gitignore is included by default by cursor
 
-# Don't touch or attempt to index old notes, refference code or excalidraw files
+# Don't touch or attempt to index old notes, refference code
 notes/
+# Or excalidraw files
+*.excalidraw
 
+*.svg
