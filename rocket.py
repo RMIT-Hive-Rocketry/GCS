@@ -157,7 +157,11 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
 
     OPTIONS_ALL_DEV = OPTIONS_SIM + OPTIONS_GSE_ONLY + [
         click.option('-i', '--interface', type=_INTERFACE_CHOICES,
-                     help="Hardware interface type. Overrides config parameter"),
+                     help="Hardware interface type (single link). Overrides config. Mutually exclusive with --interface-av/--interface-gse."),
+        click.option('--interface-av', type=_INTERFACE_CHOICES,
+                     help="AV link interface type (dual-link mode). Must be used together with --interface-gse."),
+        click.option('--interface-gse', type=_INTERFACE_CHOICES,
+                     help="GSE link interface type (dual-link mode). Must be used together with --interface-av."),
         click.option('--nopendant', is_flag=True,
                      help="Do not run the pendant emulator"),
         click.option('--frontend', is_flag=True,
@@ -242,7 +246,6 @@ def large_radio_config_print(params):
     logger.info("----------# RADIO PARAMETERS #----------")
 
 
-# TODO use this in cli functions when ready for different interfaces
 def _validate_interface_options(
     interface: Optional[str],
     interface_av: Optional[str],
@@ -474,8 +477,14 @@ def run(gse_only):
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
-def dev(docker, interface, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
+def dev(docker, interface, interface_av, interface_gse, nobuild, logpkt, nopendant, gse_only, frontend, experimental, corruption):
     """Start software in development mode"""
+    _validate_interface_options(interface, interface_av, interface_gse)
+    # WIP for this commit, remove this later
+    if interface_av is not None and interface_gse is not None:
+        raise NotImplementedError(
+            "Dual interface mode (--interface-av/--interface-gse) is not yet supported; use --interface for single link."
+        )
     start_services(Command.DEV,
                    DOCKER=docker,
                    INTERFACE_ARG=interface,
