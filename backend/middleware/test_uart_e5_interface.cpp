@@ -1,5 +1,5 @@
-// uart_test_interface.cpp
-#include "test_uart_interface.hpp"
+// test_uart_e5_interface.cpp
+#include "test_uart_e5_interface.hpp"
 
 #include <fcntl.h>
 #include <sys/select.h>
@@ -16,19 +16,19 @@
 #include <thread>
 
 #include "subprocess_logging.hpp"
-#include "uart_interface.hpp"
+#include "uart_e5_interface.hpp"
 
-TestUartInterface::TestUartInterface(const std::string& device_path,
-                                     int baud_rate)
+TestUartE5Interface::TestUartE5Interface(const std::string& device_path,
+                                         int baud_rate)
     : baud_rate_(baud_rate), device_path_(device_path) {}
 
-TestUartInterface::~TestUartInterface() {
+TestUartE5Interface::~TestUartE5Interface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   // If file descriptor indicates it is open, close it
   if (uart_fd_ >= 0) close(uart_fd_);
 }
 
-bool TestUartInterface::initialize() {
+bool TestUartE5Interface::initialize() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
   if (uart_fd_ < 0) {
@@ -42,7 +42,7 @@ bool TestUartInterface::initialize() {
   return true;
 }
 
-void TestUartInterface::configure_test_uart() {
+void TestUartE5Interface::configure_test_uart() {
   struct termios tty;
   if (tcgetattr(uart_fd_, &tty) != 0) {
     throw std::system_error(errno, std::system_category(), "tcgetattr failed");
@@ -60,10 +60,6 @@ void TestUartInterface::configure_test_uart() {
   tty.c_cc[VMIN] = 0;   // read doesn't block
   tty.c_cc[VTIME] = 5;  // 0.5 seconds read timeout
 
-  // Timeout configuration (0.5s)
-  tty.c_cc[VMIN] = 0;
-  tty.c_cc[VTIME] = 5;
-
   if (tcsetattr(uart_fd_, TCSANOW, &tty) != 0) {
     throw std::system_error(errno, std::system_category(), "tcsetattr failed");
   }
@@ -72,25 +68,12 @@ void TestUartInterface::configure_test_uart() {
 /// @brief
 /// @param buffer
 /// @return Returns amount of bytes read. -1 if failed
-ssize_t TestUartInterface::read_data(std::vector<uint8_t>& buffer) {
+ssize_t TestUartE5Interface::read_data(std::vector<uint8_t>& buffer) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
   if (uart_fd_ < 0) {
     slogger::error("UART file descriptor is invalid");
     return -1;
   }
-
-  // Responses looks like this
-  // ...
-
-  // +TEST: LEN:32, RSSI:-46, SNR:10
-  // +TEST: RX
-  // "0400FFEA0838001FFFDA0400FFC1FFEB0007FFA73C6DAABE0000000000000000"
-
-  // +TEST: LEN:32, RSSI:-45, SNR:10
-  // +TEST: RX
-  // "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
-
-  // ...
 
   int rssi = 0;
   int snr = 0;
@@ -146,7 +129,7 @@ ssize_t TestUartInterface::read_data(std::vector<uint8_t>& buffer) {
         try {
           std::string hex_str =
               message.substr(payload_start, payload_end - payload_start);
-          payload = UartInterface::hex_string_to_bytes(hex_str);
+          payload = UartE5Interface::hex_string_to_bytes(hex_str);
 
           float rssi_float = static_cast<float>(rssi);
           float snr_float = static_cast<float>(snr);
@@ -193,7 +176,7 @@ ssize_t TestUartInterface::read_data(std::vector<uint8_t>& buffer) {
 /// @brief Write serial data to the LoRa band through the LoRa interface
 /// @param data Binary data bytes
 /// @return
-ssize_t TestUartInterface::write_data(const std::vector<uint8_t>& data) {
+ssize_t TestUartE5Interface::write_data(const std::vector<uint8_t>& data) {
   // Write to the Aether. This doesn't actually do anything
   return static_cast<ssize_t>(data.size());
 }

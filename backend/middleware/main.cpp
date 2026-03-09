@@ -31,8 +31,8 @@
 #include "subprocess_logging.hpp"
 #include "tcp_interface.hpp"
 #include "test_interface.hpp"
-#include "test_uart_interface.hpp"
-#include "uart_interface.hpp"
+#include "test_uart_e5_interface.hpp"
+#include "uart_e5_interface.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
 

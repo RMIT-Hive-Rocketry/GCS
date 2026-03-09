@@ -8,9 +8,9 @@ from typing import List, Optional
 
 class InterfaceType(enum.Enum):
     # Reference the main middleware cpp file
-    UART = "UART"
+    UART_E5 = "UART_E5"
     TEST = "TEST"
-    TEST_UART = "TEST_UART"
+    TEST_UART_E5 = "TEST_UART_E5"
     TCP = "TCP"
 
 
@@ -124,9 +124,9 @@ def build_middleware_argv(
         PENDANT_SOCKET_PATH,
         WEB_CONTROL_SOCKET_PATH,
     ]
-    if INTERFACE_TYPE == InterfaceType.UART:
+    if INTERFACE_TYPE == InterfaceType.UART_E5:
         if lora_config is None:
-            raise ValueError("UART interface requires lora_config")
+            raise ValueError("UART_E5 interface requires lora_config")
         argv.extend([
             lora_config["frequency"],
             lora_config["spread_factor"],

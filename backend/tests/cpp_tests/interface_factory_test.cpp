@@ -6,17 +6,17 @@
 
 #include "tcp_interface.hpp"
 #include "test_interface.hpp"
-#include "test_uart_interface.hpp"
-#include "uart_interface.hpp"
+#include "test_uart_e5_interface.hpp"
+#include "uart_e5_interface.hpp"
 
 using namespace std;
 
-TEST(InterfaceFactoryTest, CreateUart) {
+TEST(InterfaceFactoryTest, CreateUartE5) {
   LoraConfig lora_cfg{};
   shared_ptr<RadioInterface> interface =
-      create_interface("UART", "/dev/null", lora_cfg);
+      create_interface("UART_E5", "/dev/null", lora_cfg);
   ASSERT_NE(interface, nullptr);
-  EXPECT_NE(dynamic_pointer_cast<UartInterface>(interface), nullptr);
+  EXPECT_NE(dynamic_pointer_cast<UartE5Interface>(interface), nullptr);
 }
 
 TEST(InterfaceFactoryTest, CreateTest) {
@@ -25,11 +25,11 @@ TEST(InterfaceFactoryTest, CreateTest) {
   EXPECT_NE(dynamic_pointer_cast<TestInterface>(interface), nullptr);
 }
 
-TEST(InterfaceFactoryTest, CreateTestUart) {
+TEST(InterfaceFactoryTest, CreateTestUartE5) {
   shared_ptr<RadioInterface> interface =
-      create_interface("TEST_UART", "/dev/null");
+      create_interface("TEST_UART_E5", "/dev/null");
   ASSERT_NE(interface, nullptr);
-  EXPECT_NE(dynamic_pointer_cast<TestUartInterface>(interface), nullptr);
+  EXPECT_NE(dynamic_pointer_cast<TestUartE5Interface>(interface), nullptr);
 }
 
 TEST(InterfaceFactoryTest, CreateTcp) {

@@ -56,26 +56,26 @@ def test_build_middleware_argv_single_test():
     assert len(argv) == 5
 
 
-def test_build_middleware_argv_single_test_uart():
+def test_build_middleware_argv_single_test_uart_e5():
     argv = build_middleware_argv(
         FAKE_BINARY,
         release=False,
-        INTERFACE_TYPE=InterfaceType.TEST_UART,
+        INTERFACE_TYPE=InterfaceType.TEST_UART_E5,
         DEVICE_PATH="/dev/pts/2",
         PENDANT_SOCKET_PATH=PENDANT,
         WEB_CONTROL_SOCKET_PATH=WEB,
     )
-    assert argv[1] == "TEST_UART"
+    assert argv[1] == "TEST_UART_E5"
     assert argv[2] == "/dev/pts/2"
     assert len(argv) == 5
 
 
-def test_build_middleware_argv_single_uart_requires_lora_config():
-    with pytest.raises(ValueError, match="UART interface requires lora_config"):
+def test_build_middleware_argv_single_uart_e5_requires_lora_config():
+    with pytest.raises(ValueError, match="UART_E5 interface requires lora_config"):
         build_middleware_argv(
             FAKE_BINARY,
             release=False,
-            INTERFACE_TYPE=InterfaceType.UART,
+            INTERFACE_TYPE=InterfaceType.UART_E5,
             DEVICE_PATH="/dev/serial0",
             PENDANT_SOCKET_PATH=PENDANT,
             WEB_CONTROL_SOCKET_PATH=WEB,
@@ -83,22 +83,22 @@ def test_build_middleware_argv_single_uart_requires_lora_config():
         )
 
 
-def test_build_middleware_argv_single_uart_with_lora():
+def test_build_middleware_argv_single_uart_e5_with_lora():
     argv = build_middleware_argv(
         FAKE_BINARY,
         release=False,
-        INTERFACE_TYPE=InterfaceType.UART,
+        INTERFACE_TYPE=InterfaceType.UART_E5,
         DEVICE_PATH="/dev/serial0",
         PENDANT_SOCKET_PATH=PENDANT,
         WEB_CONTROL_SOCKET_PATH=WEB,
         lora_config=LORA_CONFIG,
     )
     assert argv[0] == FAKE_BINARY
-    assert argv[1] == "UART"
+    assert argv[1] == "UART_E5"
     assert argv[2] == "/dev/serial0"
     assert argv[3] == PENDANT
     assert argv[4] == WEB
-    # UART adds 9 lora params in order
+    # UART_E5 adds 9 lora params in order
     assert argv[5] == LORA_CONFIG["frequency"]
     assert argv[6] == LORA_CONFIG["spread_factor"]
     assert argv[7] == LORA_CONFIG["bandwidth"]
@@ -125,11 +125,11 @@ def test_build_middleware_argv_opt_arg_gse_only():
     assert len(argv) == 6
 
 
-def test_build_middleware_argv_uart_plus_opt_arg():
+def test_build_middleware_argv_uart_e5_plus_opt_arg():
     argv = build_middleware_argv(
         FAKE_BINARY,
         release=False,
-        INTERFACE_TYPE=InterfaceType.UART,
+        INTERFACE_TYPE=InterfaceType.UART_E5,
         DEVICE_PATH="/dev/serial0",
         PENDANT_SOCKET_PATH=PENDANT,
         WEB_CONTROL_SOCKET_PATH=WEB,
