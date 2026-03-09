@@ -4,6 +4,7 @@ import pytest
 
 from cli.start_middleware import (
     InterfaceType,
+    MiddlewareConfig,
     build_middleware_argv,
 )
 
@@ -25,134 +26,156 @@ LORA_CONFIG = {
 }
 
 
-def test_build_middleware_argv_single_tcp():
-    argv = build_middleware_argv(
-        FAKE_BINARY,
+def _cfg(
+    gse_type: InterfaceType,
+    gse_path: str,
+    av_type: InterfaceType,
+    av_path: str,
+    opt_arg: str | None = None,
+    lora_config: dict | None = None,
+) -> MiddlewareConfig:
+    return MiddlewareConfig(
         release=False,
-        INTERFACE_TYPE=InterfaceType.TCP,
-        DEVICE_PATH="192.168.1.1:9000",
-        PENDANT_SOCKET_PATH=PENDANT,
-        WEB_CONTROL_SOCKET_PATH=WEB,
+        interface_gse_type=gse_type,
+        device_path_gse=gse_path,
+        interface_av_type=av_type,
+        device_path_av=av_path,
+        pendant_socket_path=PENDANT,
+        web_control_socket_path=WEB,
+        opt_arg=opt_arg,
+        lora_config=lora_config,
     )
+
+
+def test_build_middleware_argv_gse_av_tcp():
+    """Single link (same gse and av): TCP."""
+    cfg = _cfg(
+        InterfaceType.TCP,
+        "192.168.1.1:9000",
+        InterfaceType.TCP,
+        "192.168.1.1:9000",
+    )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv[0] == FAKE_BINARY
     assert argv[1] == "TCP"
     assert argv[2] == "192.168.1.1:9000"
-    assert argv[3] == PENDANT
-    assert argv[4] == WEB
-    assert len(argv) == 5
+    assert argv[3] == "TCP"
+    assert argv[4] == "192.168.1.1:9000"
+    assert argv[5] == PENDANT
+    assert argv[6] == WEB
+    assert len(argv) == 7
 
 
-def test_build_middleware_argv_single_test():
-    argv = build_middleware_argv(
-        FAKE_BINARY,
-        release=False,
-        INTERFACE_TYPE=InterfaceType.TEST,
-        DEVICE_PATH="/dev/pts/1",
-        PENDANT_SOCKET_PATH=PENDANT,
-        WEB_CONTROL_SOCKET_PATH=WEB,
+def test_build_middleware_argv_gse_av_test():
+    """Single link: TEST."""
+    cfg = _cfg(
+        InterfaceType.TEST,
+        "/dev/pts/1",
+        InterfaceType.TEST,
+        "/dev/pts/1",
     )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv[1] == "TEST"
     assert argv[2] == "/dev/pts/1"
-    assert len(argv) == 5
+    assert argv[3] == "TEST"
+    assert argv[4] == "/dev/pts/1"
+    assert len(argv) == 7
 
 
-def test_build_middleware_argv_single_test_uart_e5():
-    argv = build_middleware_argv(
-        FAKE_BINARY,
-        release=False,
-        INTERFACE_TYPE=InterfaceType.TEST_UART_E5,
-        DEVICE_PATH="/dev/pts/2",
-        PENDANT_SOCKET_PATH=PENDANT,
-        WEB_CONTROL_SOCKET_PATH=WEB,
+def test_build_middleware_argv_gse_av_test_uart_e5():
+    """Single link: TEST_UART_E5."""
+    cfg = _cfg(
+        InterfaceType.TEST_UART_E5,
+        "/dev/pts/2",
+        InterfaceType.TEST_UART_E5,
+        "/dev/pts/2",
     )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv[1] == "TEST_UART_E5"
     assert argv[2] == "/dev/pts/2"
-    assert len(argv) == 5
+    assert argv[3] == "TEST_UART_E5"
+    assert argv[4] == "/dev/pts/2"
+    assert len(argv) == 7
 
 
-def test_build_middleware_argv_single_uart_e5_requires_lora_config():
-    with pytest.raises(ValueError, match="UART_E5 interface requires lora_config"):
-        build_middleware_argv(
-            FAKE_BINARY,
-            release=False,
-            INTERFACE_TYPE=InterfaceType.UART_E5,
-            DEVICE_PATH="/dev/serial0",
-            PENDANT_SOCKET_PATH=PENDANT,
-            WEB_CONTROL_SOCKET_PATH=WEB,
-            lora_config=None,
-        )
+def test_build_middleware_argv_uart_e5_requires_lora_config():
+    cfg = _cfg(
+        InterfaceType.UART_E5,
+        "/dev/serial0",
+        InterfaceType.UART_E5,
+        "/dev/serial0",
+        lora_config=None,
+    )
+    with pytest.raises(ValueError, match="UART_E5 GSE interface requires lora_config"):
+        build_middleware_argv(cfg, FAKE_BINARY)
 
 
-def test_build_middleware_argv_single_uart_e5_with_lora():
-    argv = build_middleware_argv(
-        FAKE_BINARY,
-        release=False,
-        INTERFACE_TYPE=InterfaceType.UART_E5,
-        DEVICE_PATH="/dev/serial0",
-        PENDANT_SOCKET_PATH=PENDANT,
-        WEB_CONTROL_SOCKET_PATH=WEB,
+def test_build_middleware_argv_uart_e5_with_lora():
+    cfg = _cfg(
+        InterfaceType.UART_E5,
+        "/dev/serial0",
+        InterfaceType.UART_E5,
+        "/dev/serial0",
         lora_config=LORA_CONFIG,
     )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv[0] == FAKE_BINARY
     assert argv[1] == "UART_E5"
     assert argv[2] == "/dev/serial0"
-    assert argv[3] == PENDANT
-    assert argv[4] == WEB
-    # UART_E5 adds 9 lora params in order
-    assert argv[5] == LORA_CONFIG["frequency"]
-    assert argv[6] == LORA_CONFIG["spread_factor"]
-    assert argv[7] == LORA_CONFIG["bandwidth"]
-    assert argv[8] == LORA_CONFIG["tx_preamble"]
-    assert argv[9] == LORA_CONFIG["rx_preamble"]
-    assert argv[10] == LORA_CONFIG["power"]
-    assert argv[11] == LORA_CONFIG["crc"]
-    assert argv[12] == LORA_CONFIG["iq"]
-    assert argv[13] == LORA_CONFIG["net"]
-    assert len(argv) == 14
+    assert argv[3] == "UART_E5"
+    assert argv[4] == "/dev/serial0"
+    assert argv[5] == PENDANT
+    assert argv[6] == WEB
+    assert argv[7] == LORA_CONFIG["frequency"]
+    assert argv[15] == LORA_CONFIG["net"]
+    assert len(argv) == 16
 
 
 def test_build_middleware_argv_opt_arg_gse_only():
-    argv = build_middleware_argv(
-        FAKE_BINARY,
-        release=False,
-        INTERFACE_TYPE=InterfaceType.TCP,
-        DEVICE_PATH="127.0.0.1:9000",
-        PENDANT_SOCKET_PATH=PENDANT,
-        WEB_CONTROL_SOCKET_PATH=WEB,
+    cfg = _cfg(
+        InterfaceType.TCP,
+        "127.0.0.1:9000",
+        InterfaceType.TCP,
+        "127.0.0.1:9000",
         opt_arg="--GSE_ONLY",
     )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv[-1] == "--GSE_ONLY"
-    assert len(argv) == 6
+    assert len(argv) == 8
 
 
 def test_build_middleware_argv_uart_e5_plus_opt_arg():
-    argv = build_middleware_argv(
-        FAKE_BINARY,
-        release=False,
-        INTERFACE_TYPE=InterfaceType.UART_E5,
-        DEVICE_PATH="/dev/serial0",
-        PENDANT_SOCKET_PATH=PENDANT,
-        WEB_CONTROL_SOCKET_PATH=WEB,
-        lora_config=LORA_CONFIG,
+    cfg = _cfg(
+        InterfaceType.UART_E5,
+        "/dev/serial0",
+        InterfaceType.UART_E5,
+        "/dev/serial0",
         opt_arg="--GSE_ONLY",
+        lora_config=LORA_CONFIG,
     )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv[-1] == "--GSE_ONLY"
-    assert len(argv) == 15
+    assert len(argv) == 17
 
 
 def test_build_middleware_argv_ordering():
-    """Assert fixed order: binary, type, device, pendant, web, [lora], [opt]."""
-    argv = build_middleware_argv(
-        FAKE_BINARY,
+    """Order: binary, gse_type, gse_path, av_type, av_path, pendant, web, [lora], [opt]."""
+    cfg = MiddlewareConfig(
         release=True,
-        INTERFACE_TYPE=InterfaceType.TEST,
-        DEVICE_PATH="/dev/pty/0",
-        PENDANT_SOCKET_PATH="pendant_sock",
-        WEB_CONTROL_SOCKET_PATH="web_sock",
+        interface_gse_type=InterfaceType.TEST,
+        device_path_gse="/dev/pty/0",
+        interface_av_type=InterfaceType.TEST,
+        device_path_av="/dev/pty/0",
+        pendant_socket_path="pendant_sock",
+        web_control_socket_path="web_sock",
         opt_arg="--GSE_ONLY",
+        lora_config=None,
     )
+    argv = build_middleware_argv(cfg, FAKE_BINARY)
     assert argv == [
         FAKE_BINARY,
+        "TEST",
+        "/dev/pty/0",
         "TEST",
         "/dev/pty/0",
         "pendant_sock",
@@ -162,12 +185,14 @@ def test_build_middleware_argv_ordering():
 
 
 def test_build_middleware_argv_rejects_non_interface_type():
-    with pytest.raises(ValueError, match="INTERFACE_TYPE must be a InterfaceType"):
-        build_middleware_argv(
-            FAKE_BINARY,
-            release=False,
-            INTERFACE_TYPE="TCP",  # type: ignore[arg-type]
-            DEVICE_PATH="/dev/null",
-            PENDANT_SOCKET_PATH=PENDANT,
-            WEB_CONTROL_SOCKET_PATH=WEB,
-        )
+    bad_cfg = MiddlewareConfig(
+        release=False,
+        interface_gse_type="TCP",  # type: ignore[arg-type]
+        device_path_gse="/dev/null",
+        interface_av_type=InterfaceType.TCP,
+        device_path_av="/dev/null",
+        pendant_socket_path=PENDANT,
+        web_control_socket_path=WEB,
+    )
+    with pytest.raises(ValueError, match="must be InterfaceType"):
+        build_middleware_argv(bad_cfg, FAKE_BINARY)

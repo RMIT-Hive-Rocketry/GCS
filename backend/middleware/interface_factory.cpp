@@ -49,6 +49,10 @@ std::shared_ptr<RadioInterface> create_interface(
     const LoraConfig& lora_cfg) {
   std::shared_ptr<RadioInterface> interface;
 
+  if (!is_valid_interface_type(INTERFACE_NAME)) {
+    throw std::invalid_argument(INTERFACE_NAME + " is an invalid interface");
+  }
+
   if (INTERFACE_NAME == "UART_E5") {
     interface = std::make_shared<UartE5Interface>(lora_cfg, DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST") {
@@ -63,4 +67,9 @@ std::shared_ptr<RadioInterface> create_interface(
   }
 
   return interface;
+}
+
+bool is_valid_interface_type(const std::string& name) {
+  return name == "UART_E5" || name == "TEST" || name == "TEST_UART_E5" ||
+         name == "TCP";
 }
