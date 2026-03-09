@@ -115,6 +115,22 @@
             ]
         },
         {
+            "name": "Python Debugger: cli dev test uarte5",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface-av",
+                "test",
+                "--interface-gse",
+                "uart_e5",
+                "--nopendant",
+            ],
+        },
+        {
             "name": "Python Debugger: emulator",
             "type": "debugpy",
             "request": "launch",

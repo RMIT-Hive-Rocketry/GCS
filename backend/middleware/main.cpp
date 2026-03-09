@@ -165,58 +165,69 @@ int main(int argc, char* argv[]) {
 
   slogger::info("Starting middleware server");
 
-  const std::string INTERFACE_NAME = std::string(argv[1]);
-  const bool IS_UART = (INTERFACE_NAME == "UART");
-
-  const int MIN_ARGS = IS_UART ? 14 : 5;  // 4 base + 9 lora + program name
-
+  // Argv: <gse_type> <gse_path> <av_type> <av_path> <pendant> <web>
+  //       [9x lora if gse_type==UART_E5] [--GSE_ONLY]
+  // Validation is done on the Python side; C++ only parses.
+  const int MIN_ARGS = 7;
   if (argc < MIN_ARGS) {
-    slogger::error("Not enough arguments provided.");
+    slogger::error("Not enough arguments.");
     slogger::error(
-        "Usage: ./file <interface type> <device path> <pendant socket path> "
-        "<web control socket path> [optional mode]\n"
-        "  UART also requires: <frequency> <spread_factor> <bandwidth> "
-        "<tx_preamble> <rx_preamble> <power> <crc> <iq> <net>");
+        "Usage: ./file <gse_type> <gse_path> <av_type> <av_path> "
+        "<pendant socket path> <web control socket path> "
+        "[lora params if gse_type=UART_E5] [--GSE_ONLY]");
     throw std::runtime_error("Error: Not enough arguments provided");
-    return EXIT_FAILURE;
-  } else if (argc > MIN_ARGS + 1) {
-    slogger::warning("Too many arguments provided: " + std::to_string(argc));
+  }
+
+  const std::string gse_type(argv[1]);
+  const std::string gse_path(argv[2]);
+  const std::string av_type(argv[3]);
+  const std::string av_path(argv[4]);
+  const std::string PENDANT_SOCKET_PATH(argv[5]);
+  const std::string WEB_CONTROL_SOCKET_PATH(argv[6]);
+
+  LoraConfig lora_cfg{};
+  int optional_arg_index = -1;
+  if (gse_type == "UART_E5") {
+    const int UART_ARGS = 9;
+    if (argc < MIN_ARGS + UART_ARGS) {
+      slogger::error("UART_E5 GSE requires 9 lora args after the 6 base args.");
+      throw std::runtime_error("Error: Not enough arguments for UART_E5");
+    }
+    lora_cfg = {
+        .frequency = argv[7],
+        .spread_factor = argv[8],
+        .bandwidth = argv[9],
+        .tx_preamble = argv[10],
+        .rx_preamble = argv[11],
+        .power = argv[12],
+        .crc = argv[13],
+        .iq = argv[14],
+        .net = argv[15],
+    };
+    if (argc >= 17 && std::string(argv[16]) == "--GSE_ONLY") {
+      optional_arg_index = 16;
+    }
+  } else {
+    if (argc >= 8 && std::string(argv[7]) == "--GSE_ONLY") {
+      optional_arg_index = 7;
+    }
   }
 
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
 
-  const std::string DEVICE_PATH = std::string(argv[2]);
-  const std::string PENDANT_SOCKET_PATH = std::string(argv[3]);
-  const std::string WEB_CONTROL_SOCKET_PATH = std::string(argv[4]);
-
-  LoraConfig lora_cfg;
-  if (IS_UART) {
-    lora_cfg = {
-        .frequency = argv[5],
-        .spread_factor = argv[6],
-        .bandwidth = argv[7],
-        .tx_preamble = argv[8],
-        .rx_preamble = argv[9],
-        .power = argv[10],
-        .crc = argv[11],
-        .iq = argv[12],
-        .net = argv[13],
-    };
-  }
-
   std::shared_ptr<RadioInterface> interface =
-      create_interface(INTERFACE_NAME, DEVICE_PATH, lora_cfg);
+      create_interface(gse_type, gse_path, lora_cfg);
 
   interface->initialize();
-  slogger::info("Interface initialised for type: " + std::string(argv[1]));
+  slogger::info("Interface initialised for type: " + gse_type);
 
   // Create sequence handler singleton
   Sequence sequence;
 
-  if (argc == 6) {
-    std::string mode = std::string(argv[5]);
-    sequence.set_gse_only_mode(mode == "--GSE_ONLY");
+  if (optional_arg_index >= 0 &&
+      std::string(argv[optional_arg_index]) == "--GSE_ONLY") {
+    sequence.set_gse_only_mode(true);
   }
 
   zmq::context_t context(1);

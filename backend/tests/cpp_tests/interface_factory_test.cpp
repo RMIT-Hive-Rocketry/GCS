@@ -40,7 +40,7 @@ TEST(InterfaceFactoryTest, CreateTcp) {
 }
 
 TEST(InterfaceFactoryTest, InvalidTypeThrows) {
-  EXPECT_THROW(create_interface("INVALID", "/dev/null"), std::runtime_error);
+  EXPECT_THROW(create_interface("INVALID", "/dev/null"), std::invalid_argument);
 }
 
 TEST(InterfaceFactoryTest, InvalidTcpEndpointThrows) {
