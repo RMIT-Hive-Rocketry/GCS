@@ -20,7 +20,9 @@
 
 TestUartE5Interface::TestUartE5Interface(const std::string& device_path,
                                          int baud_rate)
-    : baud_rate_(baud_rate), device_path_(device_path) {}
+    : RadioInterface(DuplexMode::HALF_DUPLEX),
+      baud_rate_(baud_rate),
+      device_path_(device_path) {}
 
 TestUartE5Interface::~TestUartE5Interface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);

@@ -12,7 +12,9 @@
 #include "subprocess_logging.hpp"
 
 TestInterface::TestInterface(const std::string& device_path, int baud_rate)
-    : baud_rate_(baud_rate), device_path_(device_path) {}
+    : RadioInterface(DuplexMode::HALF_DUPLEX),
+      baud_rate_(baud_rate),
+      device_path_(device_path) {}
 
 TestInterface::~TestInterface() {
   // If file descriptor indicates it is open, close it

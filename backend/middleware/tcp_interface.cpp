@@ -17,7 +17,7 @@
 #include "subprocess_logging.hpp"
 
 TcpInterface::TcpInterface(const std::string& ip, uint16_t port)
-    : ip_(ip), port_(port) {}
+    : RadioInterface(DuplexMode::FULL_DUPLEX), ip_(ip), port_(port) {}
 
 TcpInterface::~TcpInterface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
