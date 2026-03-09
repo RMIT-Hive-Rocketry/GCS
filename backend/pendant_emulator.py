@@ -153,7 +153,7 @@ def setup_controller() -> Optional[pygame.joystick.JoystickType]:
             f"Invalid controller detected. Please use F710 controller. Found: {joystick.get_name()}")
         raise RuntimeError("Invalid controller type")
 
-    slogger.info(f"Controller initialized: {joystick.get_name()}")
+    slogger.info(f"Controller emulator initialized: {joystick.get_name()}")
     return joystick
 
 
