@@ -25,6 +25,7 @@
 #include "debug_functions.hpp"
 #include "gcs_commands.hpp"
 #include "interface_factory.hpp"
+#include "middleware_timing.hpp"
 #include "packet_handling.hpp"
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
@@ -137,11 +138,9 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
         }
       }
     } else {
-      // CPU sleeper
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      // Timeout warning
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(middleware_timing::READ_LOOP_SLEEP_MS));
       auto now = std::chrono::steady_clock::now();
-      // Amount of seconds since last read total
       int seconds_waited =
           std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time)
               .count();
@@ -149,10 +148,13 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
           std::chrono::duration_cast<std::chrono::seconds>(
               now - last_timeout_warning_time)
               .count();
-      if (seconds_waited >= 3 && seconds_waited_timeout >= 3) {
+      if (seconds_waited >=
+              middleware_timing::READ_LOOP_NO_DATA_WARNING_SECONDS &&
+          seconds_waited_timeout >=
+              middleware_timing::TIMEOUT_WARNING_INTERVAL_SECONDS) {
         slogger::warning("No data received for " +
                          std::to_string(seconds_waited) + " seconds.");
-        last_timeout_warning_time = now;  // Wait another 3 seconds
+        last_timeout_warning_time = now;
       }
     }
   }
@@ -223,18 +225,18 @@ int main(int argc, char* argv[]) {
   zmq::socket_t pub_socket(context, ZMQ_PUB);
   pub_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH + "_pub.sock");
 
+  // Only keep this many messages in buffer.
+  constexpr int PULL_SOCKET_HWM = 1;
+
   // PULL socket for fowarding commands to LoRa
   zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
-  constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
-  pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
-  // Only keep last message
+  pendant_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   pendant_pull_socket.set(zmq::sockopt::conflate, 1);
   pendant_pull_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH +
                            "_pendant_pull.sock");
 
   zmq::socket_t web_control_pull_socket(context, ZMQ_PULL);
-  constexpr int WEB_CONTROL_HWM = 1;  // Only keep 1 message in buffer
-  web_control_pull_socket.set(zmq::sockopt::rcvhwm, WEB_CONTROL_HWM);
+  web_control_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   // Only keep last message
   web_control_pull_socket.set(zmq::sockopt::conflate, 1);
   web_control_pull_socket.bind("ipc://" + WEB_CONTROL_SOCKET_PATH);
@@ -261,7 +263,8 @@ int main(int argc, char* argv[]) {
   slogger::info("Middleware server started successfully");
   try {
     while (running) {
-      zmq::poll(items, std::chrono::milliseconds(300));  // 300ms timeout
+      zmq::poll(items, std::chrono::milliseconds(
+                           middleware_timing::COMMAND_LOOP_POLL_MS));
 
       int pendant_socket_more_intbool =
           1;  // http://api.zeromq.org/2-2:zmq-getsockopt
@@ -287,9 +290,10 @@ int main(int argc, char* argv[]) {
             std::chrono::duration_cast<std::chrono::seconds>(
                 now - last_timeout_warning_time)
                 .count();
-        constexpr int PENDANT_FALLBACK_TIMEOUT_SECONDS = 5;
-        if (seconds_waited >= PENDANT_FALLBACK_TIMEOUT_SECONDS &&
-            seconds_waited_timeout >= 3) {
+        if (seconds_waited >=
+                middleware_timing::PENDANT_FALLBACK_TIMEOUT_SECONDS &&
+            seconds_waited_timeout >=
+                middleware_timing::TIMEOUT_WARNING_INTERVAL_SECONDS) {
           if (!SUPPRESS_PENDANT_WARNING) {
             slogger::warning(
                 "Failed to get any new pendant data from pendant service "
@@ -297,7 +301,7 @@ int main(int argc, char* argv[]) {
                 std::to_string(seconds_waited) + " seconds");
           }
           pendant_data = FALLBACK_PENDANT_DATA;
-          last_timeout_warning_time = now;  // Wait another 3 seconds
+          last_timeout_warning_time = now;
         }
       }
 
