@@ -1,5 +1,6 @@
 #include "interface_factory.hpp"
 
+#include <iostream>
 #include <stdexcept>
 
 #include "tcp_interface.hpp"
@@ -18,18 +19,27 @@ std::pair<std::string, uint16_t> parse_tcp_endpoint(
         "TCP interface requires device path in the form ip:port (e.g. "
         "192.168.0.150:5000). Pass --tcp-ip and --tcp-port from rocket.py.");
   }
-  const std::string ip = endpoint.substr(0, colon);
+
+  const std::string ip_str = endpoint.substr(0, colon);
   const std::string port_str = endpoint.substr(colon + 1);
-  if (ip.empty() || port_str.empty()) {
-    throw std::runtime_error(
-        "TCP interface requires non-empty IP and port. Pass --tcp-ip and "
-        "--tcp-port from rocket.py.");
+
+  struct sockaddr_in sa;
+  // inet_pton returns 1 on success, 0 for invalid format, -1 for system errors
+  if (inet_pton(AF_INET, ip_str.c_str(), &(sa.sin_addr)) != 1) {
+    throw std::runtime_error("Invalid IPv4 address: " + ip_str);
   }
-  const unsigned long port_val = std::stoul(port_str);
-  if (port_val > 65535) {
-    throw std::runtime_error("TCP port must be in range 1-65535");
-  }
-  return {ip, static_cast<uint16_t>(port_val)};
+
+  const unsigned long port_val = [port_str]() {
+    try {
+      unsigned long v = std::stoul(port_str);
+      if (v > 65535) throw std::out_of_range("Port out of 16-bit range");
+      return v;
+    } catch (const std::exception& e) {
+      throw std::runtime_error("Invalid port '" + port_str + "': " + e.what());
+    }
+  }();
+
+  return {ip_str, static_cast<uint16_t>(port_val)};
 }
 
 }  // namespace
