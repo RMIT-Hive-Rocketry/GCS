@@ -16,3 +16,6 @@ websockets>=15.0.1
 # Frontend
 flask>=3.1
 python-dotenv
+
+# Formatter
+black
