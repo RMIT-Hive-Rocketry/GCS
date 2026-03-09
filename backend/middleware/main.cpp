@@ -23,9 +23,11 @@
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
 #include "debug_functions.hpp"
+#include "gcs_commands.hpp"
+#include "interface_factory.hpp"
+#include "packet_handling.hpp"
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
-#include "interface_factory.hpp"
 #include "tcp_interface.hpp"
 #include "test_interface.hpp"
 #include "test_uart_interface.hpp"
@@ -43,85 +45,6 @@ inline void set_thread_name([[maybe_unused]] const char* name) {
 #ifdef __APPLE__
   pthread_setname_np(name);
 #endif
-}
-
-template <typename PacketType>
-std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
-                                           std::vector<uint8_t>& buffer,
-                                           zmq::socket_t& pub_socket,
-                                           const auto READER_BOOT_TIME,
-                                           Sequence& sequence) {
-  // SIZE does not include ID byte that's already been read
-  if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
-    try {
-      // Construct the packet object (skipping the ID byte)
-      std::unique_ptr<PacketType> payload =
-          std::make_unique<PacketType>(&buffer[1]);
-
-      // Convert to protobuf and serialize to a string
-      float TIMESTAMP = std::chrono::duration<float>(
-                            std::chrono::steady_clock::now() - READER_BOOT_TIME)
-                            .count();
-      auto proto_msg =
-          payload->toProtobuf(TIMESTAMP, sequence.get_packet_count_av(),
-                              sequence.get_packet_count_gse());
-      if (!proto_msg.IsInitialized()) {
-        std::string missing_info = proto_msg.InitializationErrorString();
-        slogger::warning(std::string(PacketType::PACKET_NAME) +
-                         ": Not all fields are initialized in the protobuf "
-                         "message. Missing: " +
-                         missing_info);
-      }
-      // Run sequence related updates
-      std::string serialized;
-      if (proto_msg.SerializeToString(&serialized)) {
-        zmq::message_t msg(serialized.data(), serialized.size());
-        pub_socket.send(msg, zmq::send_flags::none);
-      } else {
-        slogger::error(
-            std::string(PacketType::PACKET_NAME) +
-            ": Failed to serialize and send to string with protobuf");
-        return nullptr;
-      }
-      return payload;
-    } catch (const std::exception& e) {
-      slogger::error(std::string(PacketType::PACKET_NAME) +
-                     ": Error processing payload: " + e.what());
-    } catch (...) {
-      slogger::error("Caught unknown exception while processing payload");
-    }
-  } else {
-    // This may be fixed 32 bytes every time. Not sure if can be different
-    slogger::error(std::string(PacketType::PACKET_NAME) +
-                   ": Incorrect packet size. Expected: " +
-                   std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
-                   std::to_string(BUFFER_BYTE_COUNT) + " bytes");
-    slogger::debug("Buffer contents: " +
-                   debug::vectorToHexString(buffer, BUFFER_BYTE_COUNT));
-  }
-  return nullptr;
-}
-
-void post_process_av(Sequence& sequence,
-                     const common::FlightState FLIGHT_STATE) {
-  sequence.received_av();
-  if (FLIGHT_STATE == common::FlightState::LAUNCH) {
-    sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
-  }
-  switch (FLIGHT_STATE) {
-    case common::FlightState::OH_NO:
-    case common::FlightState::PRE_FLIGHT_NO_FLIGHT_READY:
-    case common::FlightState::PRE_FLIGHT_FLIGHT_READY:
-      break;
-    case common::FlightState::LAUNCH:
-    case common::FlightState::COAST:
-    case common::FlightState::APOGEE:
-    case common::FlightState::DESCENT:
-    case common::FlightState::LANDED:
-      sequence.set_start_sending_broadcast_flag(true);
-    default:
-      break;
-  }
 }
 
 void input_read_loop(std::shared_ptr<RadioInterface> interface,
@@ -233,46 +156,6 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
       }
     }
   }
-}
-
-std::vector<uint8_t> collect_pull_data(const zmq::message_t& last_pendant_msg) {
-  // Process command (echo bytes verbatim to LoRa)
-  // slogger::critical("HELLO DATA IS STILL COMING THROUGH");
-  std::vector<uint8_t> cmd_data(
-      static_cast<const uint8_t*>(last_pendant_msg.data()),
-      static_cast<const uint8_t*>(last_pendant_msg.data()) +
-          last_pendant_msg.size());
-  return cmd_data;
-}
-
-std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
-                                           Sequence& sequence) {
-  std::vector<uint8_t> data;
-
-  const bool camera_power = sequence.get_camera_power();
-
-  // Byte 0: Packet ID
-  data.push_back(0x01);  // ID
-
-  // Byte 1: camera_power command
-  // [7:5] type = 0b101
-  // [4]   value = camera_power
-  // [3:0] padding/reserved = 0
-  uint8_t byte1 = (0b101 << 5) | (camera_power << 4);
-  data.push_back(byte1);
-
-  // Byte 2: camera_power disable command
-  // [7:5] type = 0b010
-  // [4]   value = !camera_power
-  // [3:0] padding/reserved = 0b1111
-  uint8_t byte2 = (0b010 << 5) | ((!camera_power) << 4) | 0b1111;
-  data.push_back(byte2);
-
-  // Byte 3: broadcast flag
-  // Set broadcast indicator
-  data.push_back(BROADCAST ? 0b10101010 : 0b00000000);
-
-  return data;
 }
 
 int main(int argc, char* argv[]) {
