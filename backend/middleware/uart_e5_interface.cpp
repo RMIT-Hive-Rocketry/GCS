@@ -19,7 +19,8 @@
 
 UartE5Interface::UartE5Interface(LoraConfig lora_cfg,
                                  const std::string& device_path, int baud_rate)
-    : baud_rate_(baud_rate),
+    : RadioInterface(DuplexMode::HALF_DUPLEX),
+      baud_rate_(baud_rate),
       device_path_(device_path),
       lora_cfg_(lora_cfg),
       current_modem_state_(ModemContinuousState::NOT_CONTINUOUS) {}
@@ -180,9 +181,9 @@ ssize_t UartE5Interface::write_serial(const std::vector<uint8_t>& data) {
 }
 
 bool UartE5Interface::at_send_command(const std::string& command,
-                                    const std::string& expected_response,
-                                    const int timeout_ms,
-                                    const ModemContinuousState modem_state) {
+                                      const std::string& expected_response,
+                                      const int timeout_ms,
+                                      const ModemContinuousState modem_state) {
   // Optimisation. Do not enter mode if already in it
   switch (modem_state) {
     case ModemContinuousState::RXLRPKT:
