@@ -9,14 +9,14 @@ We're using the following libraries for frontend:
 - D3.js v7.9.0
 - Three.js v0.175.0
 
-These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN. 
+These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN.
 
 Unless updating them is absolutely necessary, we will be using these specific versions throughout the capstone project. Updating in the middle of development can add a lot of work and cause weird glitches.
 
 ### Tailwind
 **Tailwind v4.0.17 is used for stylesheets.**
 
-The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development. 
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development.
 
 The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
 
@@ -37,7 +37,7 @@ Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and
 ### Display item keys and IDs
 
 > These are out of date, and were documented during development of the GCS-2025 system.
-> 
+>
 > TODO: Incorporate this into the API standardisation, which makes all keys and values consistently handled across the entire system, instead of having to do a bunch of processing/handling on each interface
 
 ### Module tables

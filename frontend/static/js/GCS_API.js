@@ -250,7 +250,7 @@ function logMessage(message, type = "") {
 document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
         // Clear timeouts when tabbed away from
-        clearTimeout(reconnectTimeout); 
+        clearTimeout(reconnectTimeout);
     } else {
         // Attempt reconnecting again
         if (connected == false) {
@@ -334,7 +334,7 @@ function API_OnMessage(event) {
         if (apiData.id == 2) {
             ///// ----- SINGLE OPERATOR PACKETS ----- /////
             //
-            
+
         } else if (apiData.id == 3 || apiData.id == 4) {
             ///// ----- AVIONICS PACKETS ----- /////
             // Display values
@@ -416,7 +416,7 @@ function checkErrorConditions(apiData) {
                 const apiDataValue = apiData[id];
                 const apiDataType = typeof apiDataValue;
                 if (apiDataValue != undefined) {
-                    
+
                     // Define error key
                     const errorKey = `${id}Error`;
                     let isError = false;
@@ -458,7 +458,7 @@ function checkErrorConditions(apiData) {
                         logMessage(`Discarded ${id} (${apiData[id]})`, "warning");
                         apiData[id] = apiDataType == "number" ? null : ""; // Flag invalid value
                     }
-                    
+
                     if (!isDiscard || isErrorApi) {
                         // Check errors against current system status
                         if (isError && errors.indexOf(errorKey) == -1) {
@@ -528,7 +528,7 @@ function processDataForDisplay(apiData, apiId) {
 
             processedData.meta.radio = "gse";
             processedData.meta.packets = ++packetsGSE;
-            
+
         }
     }
 
@@ -552,7 +552,7 @@ function processDataForDisplay(apiData, apiId) {
                 ? apiData.accelLowZ
                 : apiData.accelHighZ;
     }
-    
+
     // Altitude
     // Track previous altitudes
     if (apiData.altitude != undefined) {
@@ -628,7 +628,7 @@ function gpsToDecimal(gps) {
 
     // Split string into parts
     let [intPart, decPart] = gps.toString().split('.');
-    
+
     // Get sign (positive or negative)
     let sign = intPart >= 0 ? 1 : -1;
 

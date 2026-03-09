@@ -239,7 +239,7 @@ function graphRender(chart) {
         const now = Math.max(
             d3.max(chart.lines.flatMap(line => line.data), d => d.x),
             timestampLocal + timestampApiConnect - timeDrift);
-            
+
         const windowStart = now - MAX_TIME;
 
         if (chart.lastRender != now) {
@@ -250,7 +250,7 @@ function graphRender(chart) {
                 line.data = line.data.filter(d => d.x >= (windowStart - GRAPH_GAP_SIZE));
             });
             const allPoints = chart.lines.flatMap(line => line.data);
-            
+
             // Update x and y domains
             chart.x.domain([windowStart, now]);
             chart.y.domain([
@@ -276,7 +276,7 @@ function graphRender(chart) {
                         .tickFormat((d) => (Number.isInteger(d) ? d : ""))
                 );
 
-            // De-emphasize hidden non-integer axis values 
+            // De-emphasize hidden non-integer axis values
             chart.g
                 .selectAll(".tick")
                 .filter((d) => !Number.isInteger(d))
@@ -317,7 +317,7 @@ function graphRender(chart) {
                                 .attr("fill", lineData.color || LINE_COLOURS[index]);
                         }
                     }
-                    
+
                 });
 
                 // Add path for each line

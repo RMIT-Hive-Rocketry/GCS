@@ -18,8 +18,11 @@ def get_available_missions():
     if not os.path.exists(MISSION_PATH):
         return []
 
-    return [d for d in os.listdir(MISSION_PATH)
-            if os.path.isdir(os.path.join(MISSION_PATH, d))]
+    return [
+        d
+        for d in os.listdir(MISSION_PATH)
+        if os.path.isdir(os.path.join(MISSION_PATH, d))
+    ]
 
 
 def get_mission_path(mission: Optional[str]) -> str:
@@ -38,7 +41,12 @@ def get_mission_path(mission: Optional[str]) -> str:
     return mission
 
 
-def start_replay_system(logger: logging.Logger, DEVICE: str, MISSION: Optional[str] = None, SIMULATION: Optional[str] = None):
+def start_replay_system(
+    logger: logging.Logger,
+    DEVICE: str,
+    MISSION: Optional[str] = None,
+    SIMULATION: Optional[str] = None,
+):
     """Starts the replay system either in simulation mode or mission mode
 
     Args:
@@ -55,19 +63,20 @@ def start_replay_system(logger: logging.Logger, DEVICE: str, MISSION: Optional[s
         if not MISSION and not SIMULATION:
             raise ValueError("Must have either mission or simulation type")
         REPLAY_COMMAND = [
-            "python3", "-u", os.path.join("backend",
-                                          "replay_system", "replay_engine.py"),
-            "--device-rocket", DEVICE,
+            "python3",
+            "-u",
+            os.path.join("backend", "replay_system", "replay_engine.py"),
+            "--device-rocket",
+            DEVICE,
         ]
         if MISSION:
             REPLAY_COMMAND.extend(["--mode", "mission", "--mission", MISSION])
         elif SIMULATION:
             REPLAY_COMMAND.extend(
-                ["--mode", "simulation", "--simulation", SIMULATION])
+                ["--mode", "simulation", "--simulation", SIMULATION]
+            )
 
-        logger.debug(
-            f"Starting {SERVICE_NAME} module with: {REPLAY_COMMAND}"
-        )
+        logger.debug(f"Starting {SERVICE_NAME} module with: {REPLAY_COMMAND}")
 
         # Set up the PYTHONPATH to the project root to ensure the imports will work
         env = os.environ.copy()
@@ -84,7 +93,5 @@ def start_replay_system(logger: logging.Logger, DEVICE: str, MISSION: Optional[s
         emulator_process.start()
 
     except Exception as e:
-        logger.error(
-            f"An error occured while starting {SERVICE_NAME}: {e}"
-        )
+        logger.error(f"An error occured while starting {SERVICE_NAME}: {e}")
         return None, None

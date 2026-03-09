@@ -24,7 +24,7 @@ Many primitive monitoring applications show everything. Our system understands t
 
 This is a bit of a mid level explanation of how the service manager operates
 
-<!-- 
+<!--
 This is also in /assets as a .excalidraw file
 -->
 
