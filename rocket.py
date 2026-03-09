@@ -332,8 +332,8 @@ def start_services(COMMAND: Command,
     INTERFACE_TYPE = get_interface_type(INTERFACE_ARG)
     lora_config = {}
     match INTERFACE_TYPE:
-        case InterfaceType.UART:
-            logger.info("Starting UART interface")
+        case InterfaceType.UART_E5:
+            logger.info("Starting UART E5 interface")
             # Just leave second (emulator) device as None
             devices = ("/dev/serial0", None)
             lora_section = config.get_config()["lora"]
@@ -349,7 +349,7 @@ def start_services(COMMAND: Command,
                 "net":           str(lora_section.get("net")),
             }
             large_radio_config_print(lora_section)
-        case InterfaceType.TEST_UART:
+        case InterfaceType.TEST_UART_E5:
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
             devices = run_pseudoterm_setup(COMMAND)
@@ -394,17 +394,12 @@ def start_services(COMMAND: Command,
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    if (
-        INTERFACE_TYPE in [InterfaceType.TEST, InterfaceType.TEST_UART]
-        and COMMAND == Command.DEV
-    ):
-        start_fake_serial_device_emulator(
-            logger,
-            devices[1],
-            INTERFACE_TYPE,
-            experimental=experimental,
-            corruption=corruption,
-        )
+    if INTERFACE_TYPE in [InterfaceType.TEST, InterfaceType.TEST_UART_E5] \
+            and COMMAND == Command.DEV:
+        start_fake_serial_device_emulator(logger, devices[1],
+                                          INTERFACE_TYPE,
+                                          experimental=experimental,
+                                          corruption=corruption)
     elif COMMAND == Command.SIMULATION:
         start_simulator(logger, devices[1])
     elif COMMAND == Command.REPLAY:

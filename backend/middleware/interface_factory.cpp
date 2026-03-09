@@ -5,8 +5,8 @@
 
 #include "tcp_interface.hpp"
 #include "test_interface.hpp"
-#include "test_uart_interface.hpp"
-#include "uart_interface.hpp"
+#include "test_uart_e5_interface.hpp"
+#include "uart_e5_interface.hpp"
 
 namespace {
 
@@ -49,12 +49,12 @@ std::shared_ptr<RadioInterface> create_interface(
     const LoraConfig& lora_cfg) {
   std::shared_ptr<RadioInterface> interface;
 
-  if (INTERFACE_NAME == "UART") {
-    interface = std::make_shared<UartInterface>(lora_cfg, DEVICE_PATH);
+  if (INTERFACE_NAME == "UART_E5") {
+    interface = std::make_shared<UartE5Interface>(lora_cfg, DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST") {
     interface = std::make_shared<TestInterface>(DEVICE_PATH);
-  } else if (INTERFACE_NAME == "TEST_UART") {
-    interface = std::make_shared<TestUartInterface>(DEVICE_PATH);
+  } else if (INTERFACE_NAME == "TEST_UART_E5") {
+    interface = std::make_shared<TestUartE5Interface>(DEVICE_PATH);
   } else if (INTERFACE_NAME == "TCP") {
     const auto [ip, port] = parse_tcp_endpoint(DEVICE_PATH);
     interface = std::make_shared<TcpInterface>(ip, port);

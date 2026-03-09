@@ -1,4 +1,4 @@
-// uart_interface.hpp
+// uart_e5_interface.hpp
 #pragma once
 
 #include <termios.h>
@@ -22,12 +22,12 @@ struct LoraConfig {
   std::string net;
 };
 
-class UartInterface : public RadioInterface {
+class UartE5Interface : public RadioInterface {
  public:
-  UartInterface(
+  UartE5Interface(
       LoraConfig lora_cfg, const std::string& device_path = "/dev/serial0",
       int baud_rate = B230400);  // Default to RPi ttyAMA0 and 230400 baud
-  virtual ~UartInterface();
+  virtual ~UartE5Interface();
 
   bool initialize() override;
   ssize_t read_data(std::vector<uint8_t>& buffer) override;
