@@ -242,6 +242,29 @@ def large_radio_config_print(params):
     logger.info("----------# RADIO PARAMETERS #----------")
 
 
+# TODO use this in cli functions when ready for different interfaces
+def _validate_interface_options(
+    interface: Optional[str],
+    interface_av: Optional[str],
+    interface_gse: Optional[str],
+) -> None:
+    """Validate mutual exclusivity of --interface vs --interface-av/--interface-gse.
+    Raises click.UsageError for invalid combinations.
+    """
+    has_single = interface is not None
+    has_av = interface_av is not None
+    has_gse = interface_gse is not None
+    if has_single and (has_av or has_gse):
+        raise click.UsageError(
+            "Do not specify both --interface and --interface-av/--interface-gse. "
+            "Use either --interface (single link) or both --interface-av and --interface-gse (separate links)."
+        )
+    if (has_av and not has_gse) or (has_gse and not has_av):
+        raise click.UsageError(
+            "When using separate links, both --interface-av and --interface-gse must be specified."
+        )
+
+
 def start_services(COMMAND: Command,
                    DOCKER: bool = False,
                    INTERFACE_ARG: Optional[InterfaceType] = None,

@@ -3,7 +3,7 @@ import cli.proccess as process
 import os
 import enum
 import config.config as config
-from typing import Optional
+from typing import List, Optional
 
 
 class InterfaceType(enum.Enum):
@@ -107,6 +107,49 @@ def get_middleware_path(
     return file_matches[0]
 
 
+def build_middleware_argv(
+    binary_path: str,
+    release: bool,
+    INTERFACE_TYPE: InterfaceType,
+    DEVICE_PATH: str,
+    PENDANT_SOCKET_PATH: str,
+    WEB_CONTROL_SOCKET_PATH: str,
+    opt_arg: Optional[str] = None,
+    lora_config: Optional[dict] = None,
+) -> List[str]:
+    """Build the argv list for the middleware process. No filesystem or side effects.
+    Order: binary_path, interface_type, device_path, pendant_socket, web_socket,
+    [lora params if UART], [opt_arg if present].
+    """
+    if not isinstance(INTERFACE_TYPE, InterfaceType):
+        raise ValueError(
+            f"INTERFACE_TYPE must be a InterfaceType value, got: {INTERFACE_TYPE} as type {type(INTERFACE_TYPE)}")
+    argv = [
+        binary_path,
+        INTERFACE_TYPE.value,
+        DEVICE_PATH,
+        PENDANT_SOCKET_PATH,
+        WEB_CONTROL_SOCKET_PATH,
+    ]
+    if INTERFACE_TYPE == InterfaceType.UART:
+        if lora_config is None:
+            raise ValueError("UART interface requires lora_config")
+        argv.extend([
+            lora_config["frequency"],
+            lora_config["spread_factor"],
+            lora_config["bandwidth"],
+            lora_config["tx_preamble"],
+            lora_config["rx_preamble"],
+            lora_config["power"],
+            lora_config["crc"],
+            lora_config["iq"],
+            lora_config["net"],
+        ])
+    if opt_arg is not None:
+        argv.append(opt_arg)
+    return argv
+
+
 def start_middleware(logger: logging.Logger,
                      release: bool,
                      INTERFACE_TYPE: InterfaceType,
@@ -117,49 +160,29 @@ def start_middleware(logger: logging.Logger,
                      lora_config: Optional[dict] = None,
                      ):
 
-    if not isinstance(INTERFACE_TYPE, InterfaceType):
-        raise ValueError(
-            f"INTERFACE_TYPE must be a InterfaceType value, got: {INTERFACE_TYPE} as type {type(INTERFACE_TYPE)}"
-        )
     SERVICE_NAME = "middleware_server"
     try:
-
         BINARY_NAME = "middleware_release" if release else "middleware_debug"
+        MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME, release)
         # Should always be relative to cwd. Just use the (.):
         # ./middleware/something-build/middleware_server {args}
         # See args in main.cpp
-        MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME, release)
         if MIDDLEWARE_BINARY_PATH is None:
             logger.debug(f"WORKING DIRECTORY: {os.getcwd()}")
             raise FileNotFoundError(
                 f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build folders or root folder. Please run $ bash scripts/release.sh"
             )
 
-        middleware_command = [
+        middleware_command = build_middleware_argv(
             MIDDLEWARE_BINARY_PATH,
-            INTERFACE_TYPE.value,
+            release,
+            INTERFACE_TYPE,
             DEVICE_PATH,
             PENDANT_SOCKET_PATH,
             WEB_CONTROL_SOCKET_PATH,
-        ]
-
-        if INTERFACE_TYPE == InterfaceType.UART:
-            if lora_config is None:
-                raise ValueError("UART interface requires lora_config")
-            middleware_command.extend([
-                lora_config["frequency"],
-                lora_config["spread_factor"],
-                lora_config["bandwidth"],
-                lora_config["tx_preamble"],
-                lora_config["rx_preamble"],
-                lora_config["power"],
-                lora_config["crc"],
-                lora_config["iq"],
-                lora_config["net"],
-            ])
-
-        if opt_arg is not None:
-            middleware_command.append(opt_arg)
+            opt_arg=opt_arg,
+            lora_config=lora_config,
+        )
 
         logger.debug(f"Starting {SERVICE_NAME} with: {middleware_command}")
 
