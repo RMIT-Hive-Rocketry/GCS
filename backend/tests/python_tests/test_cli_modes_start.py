@@ -42,7 +42,7 @@ class ProcessOutputScanner:
             try:
                 line = self.output_queue.get(timeout=0.1)
                 self.captured_lines.append(line)
-                print(line)  # debugging / action logs. Prints on fail only
+                print(line)  # debugging: stream process output
 
                 for fail_regex in fail_regexes:
                     if fail_regex.search(line):
@@ -66,10 +66,8 @@ class ProcessOutputScanner:
                 continue
         else:
             print("Timeout reached without matching all success patterns.")
+            print("Remaining success patterns:", success_targets)
             return False, self.captured_lines
-
-        print("Remaining success patterns:", success_targets)
-        return len(success_targets) == 0, self.captured_lines
 
 
 class CliStartup(ABC):
@@ -81,7 +79,8 @@ class CliStartup(ABC):
                                 "socat: Stopping socat callbacks",  # found devices
                                 r"middleware_server: \[STDOUT] Starting middleware server",
                                 r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
-                                r"event viewer: \[STDOUT] Listening for messages\.\.\."]
+                                r"event viewer: \[STDOUT] Listening for messages\.\.\.",
+                                r"event viewer: \[STDOUT] Supersonic flight detected"]
 
     # Protected
     def _start_process(self, ROCKET_ARGS: list):
