@@ -6,6 +6,8 @@ add_executable(runC++Tests
     main.cpp
     ${CPP_TEST_DIR}/dummy.cpp
     ${CPP_TEST_DIR}/byteparser.cpp
+    ${CPP_TEST_DIR}/sequence_test.cpp
+    ${CPP_TEST_DIR}/interface_factory_test.cpp
 )
 
 # Link against the middleware library and GTest
@@ -20,6 +22,7 @@ target_link_libraries(runC++Tests PRIVATE
 target_include_directories(runC++Tests PRIVATE
     ${UTF8_RANGE_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/backend/include
+    ${CMAKE_SOURCE_DIR}/backend/middleware
     ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )
 
