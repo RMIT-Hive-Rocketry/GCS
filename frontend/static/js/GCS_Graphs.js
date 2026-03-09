@@ -257,12 +257,8 @@ function graphRender(chart) {
     ) {
         // Get timestamp of data
         const now = Math.max(
-            d3.max(
-                chart.lines.flatMap((line) => line.data),
-                (d) => d.x,
-            ),
-            timestampLocal + timestampApiConnect - timeDrift,
-        );
+            d3.max(chart.lines.flatMap(line => line.data), d => d.x),
+            timestampLocal + timestampApiConnect - timeDrift);
 
         const windowStart = now - MAX_TIME;
 
@@ -273,7 +269,7 @@ function graphRender(chart) {
                     (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
                 );
             });
-            const allPoints = chart.lines.flatMap((line) => line.data);
+            const allPoints = chart.lines.flatMap(line => line.data);
 
             // Update x and y domains
             chart.x.domain([windowStart, now]);
@@ -358,6 +354,7 @@ function graphRender(chart) {
                                 );
                         }
                     }
+
                 });
 
                 // Add path for each line

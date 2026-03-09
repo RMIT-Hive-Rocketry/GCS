@@ -75,7 +75,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     lights[5].position.set(10, 2, 5);
 
-    lights.forEach((light) => scene.add(light));
+    lights.forEach(light => scene.add(light));
 
     // === Load and Setup Rocket Model ===
     new GLTFLoader().load(

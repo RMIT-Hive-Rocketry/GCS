@@ -375,7 +375,11 @@ function API_OnMessage(event) {
         }
 
         // Handle different packet types
-        if (apiData.id == 3 || apiData.id == 4) {
+        if (apiData.id == 2) {
+            ///// ----- SINGLE OPERATOR PACKETS ----- /////
+            //
+
+        } else if (apiData.id == 3 || apiData.id == 4) {
             ///// ----- AVIONICS PACKETS ----- /////
             // Display values
             if (typeof displayUpdateFlightState === "function") {
@@ -432,6 +436,7 @@ function checkErrorConditions(apiData) {
                 const apiDataValue = apiData[id];
                 const apiDataType = typeof apiDataValue;
                 if (apiDataValue != undefined) {
+
                     // Define error key
                     const errorKey = `${id}Error`;
                     let isError = false;
@@ -578,14 +583,8 @@ function processDataForDisplay(apiData, apiId) {
             }
 
             processedData.meta.radio = "gse";
-            processedData.meta.gse = {
-                rssi: apiData.meta.rssi,
-                snr: apiData.meta.snr,
-                packets: ++packetsGSE,
-                lostPackets:
-                    processedData.meta.totalPacketCountGse - packetsGSE,
-            };
-            processedData.state.gse = { radio: 1 };
+            processedData.meta.packets = ++packetsGSE;
+
         }
     }
 
@@ -749,7 +748,7 @@ function gpsToDecimal(gps) {
     if (gps == undefined || isNaN(gps) || gps == 0) return 0;
 
     // Split string into parts
-    let [intPart, decPart] = gps.toString().split(".");
+    let [intPart, decPart] = gps.toString().split('.');
 
     // Get sign (positive or negative)
     let sign = intPart >= 0 ? 1 : -1;

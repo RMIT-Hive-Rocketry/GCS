@@ -11,7 +11,7 @@
 
 ![banner](docs/assets/banner.png)
 
-Repository for RMIT Hive's rocketry GCS (**Ground Control Station**). 
+Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
 
@@ -26,7 +26,7 @@ Repository for RMIT Hive's rocketry GCS (**Ground Control Station**).
   <img src="docs/assets/irec2025stand.jpeg" height="250px"/>
 </p>
 
-© 2026 RMIT Competition Rocketry - Licensed under the MIT License    
+© 2026 RMIT Competition Rocketry - Licensed under the MIT License
 
 ## Contents
 
@@ -157,4 +157,3 @@ Attribution must be clearly displayed in any redistributed or derivative works.
 Please credit: **RMIT Competition Rocketry** and the **Hive GCS Software Team**.
 
 See the [LICENSE](LICENSE) file for full terms.
-

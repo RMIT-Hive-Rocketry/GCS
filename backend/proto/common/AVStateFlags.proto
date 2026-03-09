@@ -10,4 +10,3 @@ message AVStateFlags {
     optional bool payload_connection_flag = 4;
     optional bool camera_controller_connection_flag = 5;
 }
-

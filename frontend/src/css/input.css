@@ -198,8 +198,7 @@
 
         &.yellow {
             @apply bg-yellow-400 border-yellow-800;
-            filter: drop-shadow(0 0 5px var(--color-yellow-600))
-                drop-shadow(0 0 10px var(--color-yellow-600));
+            filter: drop-shadow(0 0 5px var(--color-yellow-600)) drop-shadow(0 0 10px var(--color-yellow-600));
         }
 
         &.red {

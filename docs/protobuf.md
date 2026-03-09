@@ -1,6 +1,6 @@
 # Custom protobuf setup guide
 
-This is for if you have a different version of protobuf installed 
+This is for if you have a different version of protobuf installed
 globally than whats required and dont want to override it.
 
 # Build protobuf and protoc

@@ -8,6 +8,7 @@ faulthandler.enable(all_threads=True)
 # Optional: dump traceback on SIGUSR1 (mac: kill -USR1 <pid>)
 faulthandler.register(signal.SIGUSR1, all_threads=True)
 
+
 def main():
     controller = pendant_daemon.Pygame_Device()
     last_state = None

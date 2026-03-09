@@ -99,14 +99,11 @@
                         });
                         elem.classList.add("selected");
 
-                        // Update URL
-                        history.replaceState(null, "", `#${selected}`);
-
-                        // Dispatch page resize event (since elements are moving around)
-                        window.dispatchEvent(new Event("resize"));
-                    });
-                });
-            }
-        </script>
-    </body>
+					// Dispatch page resize event (since elements are moving around)
+					window.dispatchEvent(new Event("resize"));
+				});
+			});
+		}
+	</script>
+</body>
 </html>
