@@ -197,10 +197,29 @@ class TestDevStartups(CliStartup):
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
 
-@pytest.mark.skipif(
-    os.getenv("CI_BUILD_ENV") != "Debug",
-    reason="CI_BUILD_ENV undefined or not Debug",
-)
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+class TestInterfaceUART_E5(CliStartup):
+    def get_rocket_args(self) -> List[str]:
+        return ["dev", "--interface", "TEST_UART_E5", "--nopendant", "--nobuild", "--frontend"]
+
+    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+        proc, scanner = process_and_scanner
+        fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
+        success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
+            r"device emulator: \[STDOUT] Emulator starting",
+            r"WebSocket server started at",
+            r"\* Serving Flask app 'frontend\.server'"
+        ]
+        success, output_lines = scanner.scan_for_patterns(
+            fail_any=fail_patterns,
+            success_all=success_patterns,
+            timeout=30.0
+        )
+        assert success, f"System failed to match patterns"
+        print(f"System ran successfully. Captured {len(output_lines)} lines")
+
+
+@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
 # See logs from https://github.com/RMIT-Hive-Rocketry/GCS-2026/commit/dcd83d77b575807498cad0bbb10d35e56eecb06c
 @pytest.mark.skip(reason="Skipped until rocketpy supports new API format")
 class TestReplaySimulationStartups(CliStartup):
