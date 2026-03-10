@@ -596,7 +596,7 @@ class Pygame_Device(ControlDevice):
                 for btn_name, btn in self.buttons.items()
             }
         else:
-            states = {btn_name : false for btn_name, _ in self.buttons.items()}
+            states = {btn_name : False for btn_name, _ in self.buttons.items()}
 
         """
         states = {}
