@@ -212,8 +212,11 @@ class ControlDevice(ABC):
         """Updates and gets the current states from the control device."""
         try:
             self._update_state_table()
-        except Exception:
-            slogger.warning("Failed to update pendant states")
+        except Exception as e:
+            slogger.warning(f"Failed to update pendant states : {e}")
+            # import traceback
+            # traceback.print_exc()
+            # exit()
         if not self.state_table:
             slogger.warning(
                 "No inputs received from control device, using fallback state"
@@ -370,7 +373,7 @@ class HID_Device(ControlDevice):
     # name: (byte, bit)
     BITMAP: Dict[str, Tuple[int, int]] = {
         "SYS_ON": (1, 5),
-        # "ESTOP":                    (1, 6),
+        # "ESTOP": (1, 6),
         "FILL_SELECTED": (0, 2),
         "IGNITION_SELECTED": (0, 1),
         "N2O_ACTIVE": (0, 0),
@@ -533,7 +536,7 @@ class Pygame_Device(ControlDevice):
         if Pygame_Device.is_connected:
             return
 
-        # this should only be called when these are junt (controller disconnected, startup etc)
+        # this should only be called when these are junk (controller disconnected, startup etc)
         # Pygame_Device.is_connected = False
         # Pygame_Device.joystick = None
         found_names = ""
@@ -593,7 +596,7 @@ class Pygame_Device(ControlDevice):
                 for btn_name, btn in self.buttons.items()
             }
         else:
-            states = StateTable.FALLBACK_DICT.copy()
+            states = {btn_name : false for btn_name, _ in self.buttons.items()}
 
         """
         states = {}
