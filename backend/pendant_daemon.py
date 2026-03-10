@@ -529,7 +529,7 @@ class Pygame_Device(ControlDevice):
     def _try_connect_device(self):
         # Attempt controller connection
         if pygame.joystick.get_count() == 0:
-            slogger.warning("No Controllers Connected")
+            # slogger.warning("No Controllers Connected")
             return
 
         # Don't re-attempt connection if device is already connected
@@ -555,14 +555,14 @@ class Pygame_Device(ControlDevice):
                 break
 
         if not Pygame_Device.is_connected:
-            slogger.warning(
-                "Did not find controller '"
-                + Pygame_Device.CONTROLLER_NAME
-                + "'"
-                + " found controllers '"
-                + found_names
-                + "'"
-            )
+            # slogger.warning(
+            #     "Did not find controller '"
+            #     + Pygame_Device.CONTROLLER_NAME
+            #     + "'"
+            #     + " found controllers '"
+            #     + found_names
+            #     + "'"
+            # )
             return
 
     def _setup_device(self):
