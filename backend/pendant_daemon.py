@@ -286,7 +286,8 @@ class HID_Button:
     MAX_SAFETY_COUNT: int = 10
     USEFUL_BYTE_OFFSET: int = 5
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
-    SAFETY_FACTOR: float = 0.5  # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    SAFETY_FACTOR: float = 0.5
 
     byte: int  # [0, 1]
     bit: int  # [0, 7]
