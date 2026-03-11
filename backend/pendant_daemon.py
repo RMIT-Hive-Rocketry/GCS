@@ -431,14 +431,14 @@ class HID_Device(ControlDevice):
             }
             # Temporary fix for neutral state which isn't wired
             states["NEUTRAL_ACTIVE"] = (
-                self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+                states["SYS_ON"] and not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
             )
 
             self.state_table = StateTable(**states)
 
-        except IOError as e:
+        except IOError:
             self.device_is_connected = False
-            self.state_table = StateTable.FALLBACK_DICT
+            self.state_table = StateTable.get_fallback_table()
 
     def cleanup(self):
         self.device.close()
@@ -595,8 +595,15 @@ class Pygame_Device(ControlDevice):
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
+
+            # Temporary fix for neutral state which isn't wired
+            states["SYS_ON"] = not states["ESTOP"]
+            states["NEUTRAL_ACTIVE"] = (
+                states["SYS_ON"] and not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
+            )
+            self.state_table = StateTable(**states)
         else:
-            states = {btn_name : False for btn_name, _ in self.buttons.items()}
+            self.state_table = StateTable.get_fallback_table()
 
         """
         states = {}
@@ -607,15 +614,6 @@ class Pygame_Device(ControlDevice):
         else:
             states = StateTable.FALLBACK_DICT.copy()
         """
-
-        # Temporary fix for neutral state which isn't wired
-        states["SYS_ON"] = not states["ESTOP"]
-        states["NEUTRAL_ACTIVE"] = (
-            states["SYS_ON"]
-            and not states["N2O_ACTIVE"]
-            and not states["PURGE_ACTIVE"]
-        )
-        self.state_table = StateTable(**states)
 
     def cleanup(self):
         """Internal cleaup code"""
