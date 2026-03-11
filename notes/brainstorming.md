@@ -10,7 +10,7 @@ Design notes I made prior to coding anything
 	- Pre-launch checks (go/no-go)
 	- Post-launch monitoring
 	- Show status of all important systems
-- Send commands to rocket and GSE (User input will be from a hardware pendant. Not software) 
+- Send commands to rocket and GSE (User input will be from a hardware pendant. Not software)
 - Alert of possible issues with rocket
 - Safe and accurate enough to be dependable as a ground control system
 - System will recieve data from ISA or I2C
@@ -38,7 +38,7 @@ In order of priority
 Have the telemetry data ingested and trimmed at the lowest level possible. If you can as much of that on the  driver level that would be ideal. Then the telemetry data should be stored in the local database with the timestamp and a collumn for each metric/feature. Little to no relations at all. It's got to be a performant time series database. Also, data should be exported to .csv and cleared from the db on boot. The table only needs to store data for one flight at a time. Then have FastAPI send all metrics from a simple timestamp query to the front end. The web interface should update at like 30-60tps and each re-render should query the server cache for a list of changes since last update. The front end should be lightweight and offer basic user interaction and a few different views.
 
 
-Alternatively, it's worth looking into having the front end run with PHP, laraval and inertiajs while querying straight to db and removing the API level entirely. 
+Alternatively, it's worth looking into having the front end run with PHP, laraval and inertiajs while querying straight to db and removing the API level entirely.
 
 
 Note, broadcast HUD can be transparent web page overlayed on broadcast software with video source for live output visualisation.
@@ -67,26 +67,26 @@ Example repo tree
 project-root/
 ├── docker/
 │   ├── Dockerfile.dev          # Dockerfile for development
-│   └── entrypoint.sh          
+│   └── entrypoint.sh
 ├── src/
 │   ├── app/
-│   │   ├── main.?             
+│   │   ├── main.?
 │   │   ├── ...
 │   └── static/                 # USE SUGGESTED WEB STACK LAYOUT. Example only
-│       ├── index.html         
+│       ├── index.html
 │       └── ...
 ├── tests/
 │   └── ...                     # Could use CI tests too. Figure out later
-├── .env                       
-├── .gitignore                 
-├── README.md                  
+├── .env
+├── .gitignore
+├── README.md
 ├── rocket                      # Custom CLI script in any language. Python?
-└── docker-compose.yml         
+└── docker-compose.yml
 ```
 
 Example `rocket` CLI script
 
-Note that this could be Python, but just have to add note in README about having it installed (alongside Docker). Then you need the shebang and to run a `chown +x` command. 
+Note that this could be Python, but just have to add note in README about having it installed (alongside Docker). Then you need the shebang and to run a `chown +x` command.
 
 ```bash
 #!/bin/bash
@@ -101,8 +101,8 @@ Note that this could be Python, but just have to add note in README about having
 - Local SQLite database
 	- More performant and safe for concurrent read and writes than csv updates
 	- Lightweight
-- FastAPI? 
-	- Websocket connection 
+- FastAPI?
+	- Websocket connection
 	- Lightweight and fast API to handle database interactions
 	- Safer and conventional option for handling data compared to csv.
 	- Allows for scalability and external clients
@@ -114,9 +114,9 @@ Note that this could be Python, but just have to add note in README about having
 ### Frontend
 
 - Vue TS
-	- Lighter and possibly more performant than react. 
-	- Use TS over JS because typed is just better 
-	- Probably wont use many features, but this is a good foundation. 
+	- Lighter and possibly more performant than react.
+	- Use TS over JS because typed is just better
+	- Probably wont use many features, but this is a good foundation.
 - Tailwind CSS
 	- To look cool
 - Three.js

@@ -8,18 +8,22 @@ def start_simulator(logger: logging.Logger, DEVICE: str):
     try:
 
         SIMULATOR_COMMAND = [
-            "python3", "-u", os.path.join("backend",
-                                          "simulation", "run_simulation.py"),
-            "--device-rocket", DEVICE
+            "python3",
+            "-u",
+            os.path.join("backend", "simulation", "run_simulation.py"),
+            "--device-rocket",
+            DEVICE,
         ]
 
         logger.debug(
-            f"Starting {SERVICE_NAME} module with: {SIMULATOR_COMMAND}")
+            f"Starting {SERVICE_NAME} module with: {SIMULATOR_COMMAND}"
+        )
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
         env = os.environ.copy()
         env["PYTHONPATH"] = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), ".."))
+            os.path.join(os.path.dirname(__file__), "..")
+        )
 
         emulator_process = process.LoggedSubProcess(
             SIMULATOR_COMMAND,
@@ -30,6 +34,5 @@ def start_simulator(logger: logging.Logger, DEVICE: str):
         emulator_process.start()
 
     except Exception as e:
-        logger.error(
-            f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
         return None, None

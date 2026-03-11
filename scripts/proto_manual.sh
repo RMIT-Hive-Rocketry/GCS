@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # -----------------------------------------
-# This is redundant if building with CMake. 
+# This is redundant if building with CMake.
 # -----------------------------------------
 
 set -e

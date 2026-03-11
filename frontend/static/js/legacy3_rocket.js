@@ -3,7 +3,7 @@
  *
  * This script renders a 3D rocket model using Three.js, and updates its orientation in real-time
  * using quaternion data. Smooth interpolation is supported to improve visual stability during flight.
- * 
+ *
  * Functions and constants should be prefixed with "rocket_" for clarity and namespace safety.
  */
 

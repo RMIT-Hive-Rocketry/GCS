@@ -1,4 +1,3 @@
-
 # This is for children processes that log independently of the CLI.
 
 # The CLI will will pipe the logging output from subprocesses to the console.
