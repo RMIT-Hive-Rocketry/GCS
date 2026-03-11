@@ -141,26 +141,18 @@ class StateTable:
     def get_states_dict(self) -> dict:
         """returns argument dictionary for use in GCS to GSE packet"""
         # You should also check these states electronically where applicable
+        # fmt: off
         states = {
-            "MANUAL_PURGE": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.PURGE_ACTIVE,
-            "O2_FILL_ACTIVATE": self.SYS_ON
-            and self.IGNITION_SELECTED
-            and self.O2_MOMENT_ACTIVE,
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.NEUTRAL_ACTIVE,
-            "N2O_FILL_ACTIVATE": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.N2O_ACTIVE,
-            "IGNITION_FIRE": self.SYS_ON
-            and self.IGNITION_SELECTED
-            and self.IGNITION_MOMENT_ACTIVE,
+            "MANUAL_PURGE": self.SYS_ON and self.FILL_SELECTED and self.PURGE_ACTIVE,
+            "O2_FILL_ACTIVATE": self.SYS_ON and self.IGNITION_SELECTED and self.O2_MOMENT_ACTIVE,
+            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON and self.FILL_SELECTED and self.NEUTRAL_ACTIVE,
+            "N2O_FILL_ACTIVATE": self.SYS_ON and self.FILL_SELECTED and self.N2O_ACTIVE,
+            "IGNITION_FIRE": self.SYS_ON and self.IGNITION_SELECTED and self.IGNITION_MOMENT_ACTIVE,
             "IGNITION_SELECTED": self.SYS_ON and self.IGNITION_SELECTED,
             "GAS_FILL_SELECTED": self.SYS_ON and self.FILL_SELECTED,
             "SYSTEM_ACTIVATE": self.SYS_ON,
         }
+        # fmt: on
 
         # Type and range validation
         if (
@@ -214,9 +206,7 @@ class ControlDevice(ABC):
             self._update_state_table()
         except Exception as e:
             slogger.warning(f"Failed to update pendant states : {e}")
-            # import traceback
-            # traceback.print_exc()
-            # exit()
+            
         if not self.state_table:
             slogger.warning(
                 "No inputs received from control device, using fallback state"
@@ -431,7 +421,9 @@ class HID_Device(ControlDevice):
             }
             # Temporary fix for neutral state which isn't wired
             states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"] and not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
+                states["SYS_ON"]
+                and not states["N2O_ACTIVE"]
+                and not states["PURGE_ACTIVE"]
             )
 
             self.state_table = StateTable(**states)
@@ -599,7 +591,9 @@ class Pygame_Device(ControlDevice):
             # Temporary fix for neutral state which isn't wired
             states["SYS_ON"] = not states["ESTOP"]
             states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"] and not states["N2O_ACTIVE"] and not states["PURGE_ACTIVE"]
+                states["SYS_ON"]
+                and not states["N2O_ACTIVE"]
+                and not states["PURGE_ACTIVE"]
             )
             self.state_table = StateTable(**states)
         else:
