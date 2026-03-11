@@ -8,8 +8,8 @@ class Metric:
     """The metric class will generate byte payloads to be used by the device emulator.
     AFAIK everything is big endian"""
 
-    SIGNED_INT = Annotated[int, Literal['signed']]
-    UNSIGNED_INT = Annotated[int, Literal['unsigned']]
+    SIGNED_INT = Annotated[int, Literal["signed"]]
+    UNSIGNED_INT = Annotated[int, Literal["unsigned"]]
 
     # Using list for iterating over these values in emulator
     POSSIBLE_NAV_VALUES = ["NF", "DR", "G2", "G3", "D2", "D3", "RK", "TT"]
@@ -32,14 +32,16 @@ class Metric:
                     out.append(f"\\u{codepoint:04x}")
                 else:
                     out.append(f"\\U{codepoint:08x}")
-        return ''.join(out)
+        return "".join(out)
 
     @staticmethod
     def _invert_bits(num: int) -> int:
-        num_bits = num.bit_length()  # Get the number of bits required to represent num
+        num_bits = (
+            num.bit_length()
+        )  # Get the number of bits required to represent num
         # Create a bitmask of the same length (all 1s)
         MASK = (1 << num_bits) - 1
-        return ~num & MASK           # Invert bits and apply mask
+        return ~num & MASK  # Invert bits and apply mask
 
     @staticmethod
     def _invert_byte(data: bytes) -> bytes:
@@ -48,7 +50,9 @@ class Metric:
         return bytes([~data[0] & 0xFF])
 
     @staticmethod
-    def _float_to_bytes(value: float, NUM_BYTES: int = 4, LITTLE_ENDIAN: bool = False) -> bytes:
+    def _float_to_bytes(
+        value: float, NUM_BYTES: int = 4, LITTLE_ENDIAN: bool = False
+    ) -> bytes:
         """Converts a float to bytes (default 32-bit/4 bytes).
 
         Args:
@@ -61,12 +65,12 @@ class Metric:
         Raises:
             ValueError: If NUM_BYTES is not 4 (float32) or 8 (float64)
         """
-        mode = '<' if LITTLE_ENDIAN else '>'
+        mode = "<" if LITTLE_ENDIAN else ">"
         if NUM_BYTES == 4:
             # https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment
-            return struct.pack(f'{mode}f', value)
+            return struct.pack(f"{mode}f", value)
         elif NUM_BYTES == 8:  # Double?
-            return struct.pack(f'{mode}d', value)
+            return struct.pack(f"{mode}d", value)
         else:
             raise ValueError("NUM_BYTES must be 4 (float32) or 8 (float64)")
 
@@ -114,8 +118,9 @@ class Metric:
         """
         if not (0 <= value <= 0xFF):  # 0xFF == 255 (8-bit max)
             raise ValueError(
-                f"Value must be between 0 and 255 (8-bit unsigned range). Got: {value}")
-        return value.to_bytes(1, byteorder='big', signed=False)
+                f"Value must be between 0 and 255 (8-bit unsigned range). Got: {value}"
+            )
+        return value.to_bytes(1, byteorder="big", signed=False)
 
     @staticmethod
     def _int_to_byte_signed(value: int) -> bytes:
@@ -132,8 +137,9 @@ class Metric:
         """
         if not (-128 <= value <= 127):
             raise ValueError(
-                f"Value must be between -128 and 127 (8-bit signed range). Got: {value}")
-        return value.to_bytes(1, byteorder='big', signed=True)
+                f"Value must be between -128 and 127 (8-bit signed range). Got: {value}"
+            )
+        return value.to_bytes(1, byteorder="big", signed=True)
 
     @staticmethod
     def _int_to_multiple_bytes_unsigned(value: int, NUM_BYTES: int) -> bytes:
@@ -153,9 +159,10 @@ class Metric:
 
         if not (0 <= value <= max_value):
             raise ValueError(
-                f"Value must be between 0 and {max_value} for {NUM_BYTES} byte(s). Got: {value}")
+                f"Value must be between 0 and {max_value} for {NUM_BYTES} byte(s). Got: {value}"
+            )
 
-        return value.to_bytes(NUM_BYTES, byteorder='big', signed=False)
+        return value.to_bytes(NUM_BYTES, byteorder="big", signed=False)
 
     @staticmethod
     def _int_to_multiple_bytes_signed(value: int, NUM_BYTES: int) -> bytes:
@@ -176,9 +183,10 @@ class Metric:
 
         if not (min_value <= value <= max_value):
             raise ValueError(
-                f"Value must be between {min_value} and {max_value} for {NUM_BYTES} byte(s). Got: {value}")
+                f"Value must be between {min_value} and {max_value} for {NUM_BYTES} byte(s). Got: {value}"
+            )
 
-        return value.to_bytes(NUM_BYTES, byteorder='big', signed=True)
+        return value.to_bytes(NUM_BYTES, byteorder="big", signed=True)
 
     @staticmethod
     def is_valid_int3_(VALUE: int) -> bool:
@@ -213,9 +221,11 @@ class Metric:
         """
         if not isinstance(VALUE, (int, float)):
             return False
-        return (-3.4028235e+38 <= VALUE <= 3.4028235e+38 and
-                not math.isinf(VALUE) and
-                not math.isnan(VALUE))
+        return (
+            -3.4028235e38 <= VALUE <= 3.4028235e38
+            and not math.isinf(VALUE)
+            and not math.isnan(VALUE)
+        )
 
     @staticmethod
     def is_valid_float64(VALUE: float) -> bool:
@@ -229,12 +239,11 @@ class Metric:
         """
         if not isinstance(VALUE, (int, float)):
             return False
-        return (not math.isinf(VALUE) and
-                not math.isnan(VALUE))
+        return not math.isinf(VALUE) and not math.isnan(VALUE)
 
     @staticmethod
     def dummyByte() -> bytes:
-        """ Just returns 0x00 """
+        """Just returns 0x00"""
         result = 0
         return Metric._int_to_byte_unsigned(result)
 
@@ -283,7 +292,7 @@ class Metric:
             APOGEE_PRIMARY_TEST_RESULTS (bool): (0 = No Continuity, 1 = Continuity)
             APOGEE_SECONDARY_TEST_RESULTS (bool): (0 = No Continuity, 1 = Continuity)
 
-        Returns:    
+        Returns:
             int: Test flags prefixed with filler bits
         """
         result = 0
@@ -313,7 +322,7 @@ class Metric:
             MAIN_PRIMARY_TEST_RESULTS (bool): (0 = No Continuity, 1 = Continuity)
             MAIN_SECONDARY_TEST_RESULTS (bool): (0 = No Continuity, 1 = Continuity)
 
-        Returns:    
+        Returns:
             int: Test flags prefixed with filler bits
         """
         result = 0
@@ -333,7 +342,7 @@ class Metric:
         APOGEE_SECONDARY_TEST: bool,
         APROGEE_PRIMARY_TEST: bool,
     ) -> int:
-        """ Output of regular continuityCheckCMDFlags but every bit is inverted 
+        """Output of regular continuityCheckCMDFlags but every bit is inverted
 
         Args:
             mainSecondaryTest(bool): (0=Do not do test, 1=do test)
@@ -345,12 +354,14 @@ class Metric:
             int: Test flags prefixed with filler bits
         """
 
-        return Metric._invert_byte(Metric.continuityCheckCMDFlags(
-            MAIN_SECONDARY_TEST,
-            MAIN_PRIMARY_TEST,
-            APOGEE_SECONDARY_TEST,
-            APROGEE_PRIMARY_TEST,
-        ))
+        return Metric._invert_byte(
+            Metric.continuityCheckCMDFlags(
+                MAIN_SECONDARY_TEST,
+                MAIN_PRIMARY_TEST,
+                APOGEE_SECONDARY_TEST,
+                APROGEE_PRIMARY_TEST,
+            )
+        )
 
     @staticmethod
     def BroadcastBeginCMDFlags(
@@ -478,7 +489,7 @@ class Metric:
 
         Note 3, A
 
-        Flight state is a 3 bit number. 
+        Flight state is a 3 bit number.
         Pass it bit by bit. #lol
 
         Args:
@@ -495,7 +506,8 @@ class Metric:
 
         if not Metric.is_valid_int3_(FLIGHT_STATE_):
             raise ValueError(
-                f"Value must be between 0 and 7 (3-bit unsigned range). Got: {FLIGHT_STATE_}")
+                f"Value must be between 0 and 7 (3-bit unsigned range). Got: {FLIGHT_STATE_}"
+            )
 
         result = 0
         result = (result << 3) | (FLIGHT_STATE_ & 0b111)
@@ -521,7 +533,8 @@ class Metric:
         """
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -540,7 +553,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -559,7 +573,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -578,7 +593,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -597,7 +613,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -616,7 +633,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -635,7 +653,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -654,7 +673,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -673,7 +693,8 @@ class Metric:
 
         if not Metric.is_valid_int16_signed(VALUE):
             raise ValueError(
-                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}")
+                f"Value must be between -32768 and 32767 (16-bit signed range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_signed(VALUE, 2)
 
@@ -684,7 +705,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -702,7 +723,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -729,11 +750,13 @@ class Metric:
         """
         if not Metric.is_valid_float32(LATITUDE):
             raise ValueError(
-                f"LATITUDE must be a valid 32-bit float.: {LATITUDE}")
+                f"LATITUDE must be a valid 32-bit float.: {LATITUDE}"
+            )
 
         if not Metric.is_valid_float32(LONGITUDE):
             raise ValueError(
-                f"LONGITUDE must be a valid 32-bit float.: {LONGITUDE}")
+                f"LONGITUDE must be a valid 32-bit float.: {LONGITUDE}"
+            )
 
         ba = bytearray()
         ba.extend(Metric._float32_to_bytes(LATITUDE, LITTLE_ENDIAN=True))
@@ -747,7 +770,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -765,7 +788,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -822,7 +845,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -840,7 +863,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -866,7 +889,8 @@ class Metric:
 
         if not Metric.is_valid_int16_unsigned(VALUE):
             raise ValueError(
-                f"Value must be between 0, 65_535 (16-bit unsigned range). Got: {VALUE}")
+                f"Value must be between 0, 65_535 (16-bit unsigned range). Got: {VALUE}"
+            )
 
         return Metric._int_to_multiple_bytes_unsigned(VALUE, 2)
 
@@ -877,7 +901,7 @@ class Metric:
         """_summary_
 
         Args:
-            VALUE (float): 32bit float. 
+            VALUE (float): 32bit float.
 
         Returns:
             bytes: _description_
@@ -926,7 +950,8 @@ class Metric:
 
         if not (-1 <= VALUE <= 1):
             slogger.warning(
-                f"Quaternion is not normalised. You had {VALUE}, need [-1,1]")
+                f"Quaternion is not normalised. You had {VALUE}, need [-1,1]"
+            )
 
         return Metric._float32_to_bytes(VALUE, LITTLE_ENDIAN=True)
 
@@ -944,7 +969,8 @@ class Metric:
 
         if VALUE not in Metric.POSSIBLE_NAV_VALUES:
             slogger.warning(
-                f'Navigation status must be one of: {" ".join(Metric.POSSIBLE_NAV_VALUES)}. Got: {Metric.to_visible_repr(VALUE)}')
+                f'Navigation status must be one of: {" ".join(Metric.POSSIBLE_NAV_VALUES)}. Got: {Metric.to_visible_repr(VALUE)}'
+            )
 
         if len(VALUE) != 2:
             raise ValueError("Navigation status must be 2 characters")

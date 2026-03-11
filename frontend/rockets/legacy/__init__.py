@@ -12,39 +12,54 @@ class ConfigLegacy3(Config):
         self.ROCKET_NAME = "Legacy III"
         self.LOGO = "legacy/static/img/logo-legacy3.svg"
         self.STYLESHEETS = ["legacy/static/css/legacy3.css"]
-        self.GRID = (12,13)
+        self.GRID = (12, 13)
 
         # Load legacy modules
         self.MODULES = [
-                "legacy/modules/legacy3_auxiliary_gse.html",
-                "legacy/modules/legacy3_avionics_position.html",
-                "legacy/modules/legacy3_avionics.html",
-                "legacy/modules/legacy3_errorlog.html",
-                "legacy/modules/legacy3_header.html",
-                "legacy/modules/legacy3_hmi.html",
-                "legacy/modules/legacy3_live_launchpad.html",
-                "legacy/modules/legacy3_live_rocket.html",
-                "legacy/modules/legacy3_ops_auxcontrols.html",
-                "legacy/modules/legacy3_ops_continuitycheck.html",
-                "legacy/modules/legacy3_ops_poptest.html",
-                "legacy/modules/legacy3_ops_systemflags.html",
-                "legacy/modules/legacy3_position.html",
-                "legacy/modules/legacy3_rocket.html",
-                "legacy/modules/legacy3_timeline.html",
-            ]
-        
+            "legacy/modules/legacy3_auxiliary_gse.html",
+            "legacy/modules/legacy3_avionics_position.html",
+            "legacy/modules/legacy3_avionics.html",
+            "legacy/modules/legacy3_errorlog.html",
+            "legacy/modules/legacy3_header.html",
+            "legacy/modules/legacy3_hmi.html",
+            "legacy/modules/legacy3_live_launchpad.html",
+            "legacy/modules/legacy3_live_rocket.html",
+            "legacy/modules/legacy3_ops_auxcontrols.html",
+            "legacy/modules/legacy3_ops_continuitycheck.html",
+            "legacy/modules/legacy3_ops_poptest.html",
+            "legacy/modules/legacy3_ops_systemflags.html",
+            "legacy/modules/legacy3_position.html",
+            "legacy/modules/legacy3_rocket.html",
+            "legacy/modules/legacy3_timeline.html",
+        ]
 
         # Define pages for Legacy III
         self.PAGES = [
-            {"name": "Main Interface", "icon": "icon-rocket", "id": "page-main"},
+            {
+                "name": "Main Interface",
+                "icon": "icon-rocket",
+                "id": "page-main",
+            },
             {
                 "name": "Launchpad",
                 "icon": "icon-video-camera",
                 "id": "page-live-launchpad",
             },
-            {"name": "Rocket", "icon": "icon-video-camera", "id": "page-live-rocket"},
-            {"name": "Both feeds", "icon": "icon-video-camera", "id": "page-live-all"},
-            {"name": "Single Operator", "icon": "icon-gamepad", "id": "page-ops"},
+            {
+                "name": "Rocket",
+                "icon": "icon-video-camera",
+                "id": "page-live-rocket",
+            },
+            {
+                "name": "Both feeds",
+                "icon": "icon-video-camera",
+                "id": "page-live-all",
+            },
+            {
+                "name": "Single Operator",
+                "icon": "icon-gamepad",
+                "id": "page-ops",
+            },
             {"name": "GSE State", "icon": "icon-sitemap", "id": "page-hmi"},
         ]
 

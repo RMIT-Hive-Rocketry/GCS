@@ -19,7 +19,7 @@ class Mach:
         R = 8.3145  # Molar gas constant
         Y = 1.4  # Adiabatic index
         M = 0.0289645  # Molar mass for air
-        return math.sqrt((R*Y*TEMPERATURE)/(M))
+        return math.sqrt((R * Y * TEMPERATURE) / (M))
 
     @staticmethod
     def isa_temp(ALTITUDE_M: Number) -> float:
@@ -34,7 +34,8 @@ class Mach:
         """
         if ALTITUDE_M < -20:
             slogger.error(
-                f"Altitude should be above ground for accurate Mach calculation: {ALTITUDE_M}")
+                f"Altitude should be above ground for accurate Mach calculation: {ALTITUDE_M}"
+            )
 
         if ALTITUDE_M < 11000:
             # Legacy won't go past 3km anyway
@@ -65,6 +66,6 @@ class Mach:
             ALTITUDE_M (Number): Altitude in meters
 
         Returns:
-            float: Mach speed 
+            float: Mach speed
         """
-        return VELOCITY_M/Mach.sound_speed(Mach.isa_temp(ALTITUDE_M))
+        return VELOCITY_M / Mach.sound_speed(Mach.isa_temp(ALTITUDE_M))

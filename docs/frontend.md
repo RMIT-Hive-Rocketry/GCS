@@ -49,7 +49,7 @@ These are likely to be updated before IREC 2026, probably in March after our fir
 
 **Tailwind v4.0.17 is used for stylesheets.**
 
-The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to _tailwindcss_, and place it INSIDE `/third_party/` for development.
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development.
 
 The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
 

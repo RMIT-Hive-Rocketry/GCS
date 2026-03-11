@@ -11,7 +11,7 @@ message AV_TO_GCS_DATA_1 {
     // Note 3
     optional common.FlightState flightState = 2;
 
-    // Rest of states. 
+    // Rest of states.
     optional common.AVStateFlags state_flags = 3;
 
     optional float accel_low_x = 4;

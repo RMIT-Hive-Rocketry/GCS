@@ -11,7 +11,7 @@ import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 
 def format_hex(data):
     """Convert bytes to readable hex format"""
-    return ' '.join(f"{byte:02x}" for byte in data)
+    return " ".join(f"{byte:02x}" for byte in data)
 
 
 def get_sha(data, length=8):
@@ -47,7 +47,7 @@ def main(socket_path):
         print(f"Connection error: {e}")
         return
 
-    sub_socket.setsockopt_string(zmq.SUBSCRIBE, '')
+    sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -62,14 +62,13 @@ def main(socket_path):
                 if last_item != "DATA" and last_item != "UNINITIALISED":
                     match last_item:
                         case "ID":
-                            print(ansci.FG_RED +
-                                  f"MISSING:DATA ^^" + ansci.RESET)
+                            print(
+                                ansci.FG_RED + f"MISSING:DATA ^^" + ansci.RESET
+                            )
                         case "DATA":
-                            print(ansci.FG_RED +
-                                  f"MISSING:ID ^^" + ansci.RESET)
+                            print(ansci.FG_RED + f"MISSING:ID ^^" + ansci.RESET)
                         case "NOTHING":
-                            print(ansci.FG_RED +
-                                  f"MISSING:?? ^^" + ansci.RESET)
+                            print(ansci.FG_RED + f"MISSING:?? ^^" + ansci.RESET)
                 last_item = "NOTHING"
                 color = ansci.BG_RED
             elif len(message) == 1:
@@ -87,7 +86,8 @@ def main(socket_path):
             hex_data = format_hex(message)
             sha_data = get_sha(message)
             print(
-                f"[{timestamp}] {color}Received {len(message)} bytes:{ansci.RESET}")
+                f"[{timestamp}] {color}Received {len(message)} bytes:{ansci.RESET}"
+            )
             print(f"({sha_data}) {hex_data}")
             if len(message) > 1:
                 try:
@@ -103,10 +103,13 @@ def main(socket_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="ZeroMQ SUB client for LoRa interface")
-    parser.add_argument("socket_path",
-                        help="Base socket path name used in the C++ program (without _pub.sock)",
-                        default="gcs_rocket")
+        description="ZeroMQ SUB client for LoRa interface"
+    )
+    parser.add_argument(
+        "socket_path",
+        help="Base socket path name used in the C++ program (without _pub.sock)",
+        default="gcs_rocket",
+    )
     args = parser.parse_args()
 
     main(args.socket_path)

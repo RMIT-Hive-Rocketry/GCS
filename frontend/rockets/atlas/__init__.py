@@ -29,7 +29,11 @@ class ConfigAtlas(Config):
 
         # Define pages for Atlas
         self.PAGES = [
-            {"name": "Main Interface", "icon": "icon-rocket", "id": "page-main"},
+            {
+                "name": "Main Interface",
+                "icon": "icon-rocket",
+                "id": "page-main",
+            },
         ]
 
         # Module positioning on each page

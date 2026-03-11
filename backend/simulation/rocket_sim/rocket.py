@@ -5,8 +5,8 @@ from backend.simulation.rocket_sim.config import get_rocket_config
 
 def create_rocket():
     """
-        Creates the rocket ready for flight test, adds the rail buttons, motor, nose, fins, tail and parachutes currently
-        @TODO this will be made more modular later in an API
+    Creates the rocket ready for flight test, adds the rail buttons, motor, nose, fins, tail and parachutes currently
+    @TODO this will be made more modular later in an API
     """
     config = get_rocket_config()
     test_rocket = Rocket(
@@ -33,8 +33,12 @@ def create_rocket():
     test_rocket.add_trapezoidal_fins(
         n=4, root_chord=0.120, tip_chord=0.060, span=0.110, position=-1.04956
     )
-    test_rocket.add_tail(top_radius=0.0635, bottom_radius=0.0435,
-                         length=0.060, position=-1.194656)
+    test_rocket.add_tail(
+        top_radius=0.0635,
+        bottom_radius=0.0435,
+        length=0.060,
+        position=-1.194656,
+    )
 
     # Parachutes
     test_rocket.add_parachute(

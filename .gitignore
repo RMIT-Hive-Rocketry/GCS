@@ -33,7 +33,7 @@ libmiddleware_lib.a
 
 # Flight logs
 logs/*
-# If you want to save a particular log, use !logs/foldername/ 
+# If you want to save a particular log, use !logs/foldername/
 
 # Simulation files
 flightdataexport.csv
@@ -123,6 +123,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+build-debug/
+build-release/
 develop-eggs/
 dist/
 downloads/

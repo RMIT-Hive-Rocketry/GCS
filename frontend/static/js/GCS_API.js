@@ -432,6 +432,7 @@ function checkErrorConditions(apiData) {
                 const apiDataValue = apiData[id];
                 const apiDataType = typeof apiDataValue;
                 if (apiDataValue != undefined) {
+
                     // Define error key
                     const errorKey = `${id}Error`;
                     let isError = false;
@@ -749,7 +750,7 @@ function gpsToDecimal(gps) {
     if (gps == undefined || isNaN(gps) || gps == 0) return 0;
 
     // Split string into parts
-    let [intPart, decPart] = gps.toString().split(".");
+    let [intPart, decPart] = gps.toString().split('.');
 
     // Get sign (positive or negative)
     let sign = intPart >= 0 ? 1 : -1;

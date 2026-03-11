@@ -2,6 +2,8 @@ import logging
 import cli.proccess as process
 from config.config import load_config
 
+# TODO: Implement logging/slogger module
+
 
 class IgnoreWebMessagesFilter(logging.Filter):
     """Filter to exclude unneeded web messages"""

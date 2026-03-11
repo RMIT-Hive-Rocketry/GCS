@@ -23,7 +23,11 @@ class Config(object):
         # These appear in the navbar at the top of the page
         # Page ID values are used for module layouts
         self.PAGES = [
-            {"name": "Main Interface", "icon": "icon-rocket", "id": "page-main"},
+            {
+                "name": "Main Interface",
+                "icon": "icon-rocket",
+                "id": "page-main",
+            },
         ]
 
         # Module positioning on each page

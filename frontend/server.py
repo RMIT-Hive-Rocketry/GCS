@@ -83,7 +83,10 @@ def create_app():
                     break
 
         return render_template(
-            "/templates/layout.html", config=app.config, active=active, name=name
+            "/templates/layout.html",
+            config=app.config,
+            active=active,
+            name=name,
         )
 
     """
@@ -95,14 +98,18 @@ def create_app():
     def serve_html(filename):
         # Make sure rocket assets are loaded from a different directory
         file_directory = DIR_STATIC
-        if filename.startswith(tuple([r.name for r in app.config.get("rockets")])):
+        if filename.startswith(
+            tuple([r.name for r in app.config.get("rockets")])
+        ):
             file_directory = DIR_ROCKETS
 
         # Set filepath
         filepath = os_path.join(file_directory, filename)
 
         # Load files with valid extensions
-        if filename.endswith(valid_file_extensions) and os_path.isfile(filepath):
+        if filename.endswith(valid_file_extensions) and os_path.isfile(
+            filepath
+        ):
             # app.logger.debug(f"Serving static file: {filename}")
             return send_from_directory(file_directory, filename)
 

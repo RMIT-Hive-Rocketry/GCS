@@ -33,19 +33,19 @@ The function prepares and transmits data as an **AV packet**, which includes **r
 The currently function of this simulator is nowhere near complete, currently working on a much larger expansion.
 Current tasks in development include:
 
-- [ ] **Modular Rocket Configuration API**  
+- [ ] **Modular Rocket Configuration API**
   Develop a flexible system that can configure **any type of rocket** (solid, hybrid, liquid) using a unified structure.
 
-- [ ] **Fuel Indication Simulation**  
+- [ ] **Fuel Indication Simulation**
   Simulate fuel levels and consumption for various propulsion systems to mirror inputs expected by the GCS.
 
-- [ ] **Pre-Flight Check Emulation**  
+- [ ] **Pre-Flight Check Emulation**
   Create simulated pre-launch check routines to validate system status before ignition (e.g., sensor calibration, tank pressures, valve states).
 
-- [ ] **Expanded Task System**  
+- [ ] **Expanded Task System**
   Enable pluggable simulation components for staging, recovery, payload deployment, etc.
 
-- [ ] **Improve AV Packet Standardization**  
+- [ ] **Improve AV Packet Standardization**
   Define a clear, versioned structure for AV packets to ensure consistent interpretation by the GCS.
 
 ---

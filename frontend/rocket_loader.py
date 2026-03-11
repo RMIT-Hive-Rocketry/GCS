@@ -51,7 +51,10 @@ class Rocket(object):
             if (
                 name.startswith("Config")
                 and obj.__module__ == self.package.__name__
-                and (obj.__name__ == "Config" or obj.__bases__[0].__name__ == "Config")
+                and (
+                    obj.__name__ == "Config"
+                    or obj.__bases__[0].__name__ == "Config"
+                )
             ):
                 # Instantiate and validate rocket config
                 rocket_config = obj()  # object.__new__(obj)
@@ -67,18 +70,28 @@ class Rocket(object):
     def validate_config(self, _config):
         # Validate rocket configuration
         # Test that required variables are defined
-        assert isinstance(_config.ROCKET_NAME, str), "ROCKET_NAME not defined correctly"
+        assert isinstance(
+            _config.ROCKET_NAME, str
+        ), "ROCKET_NAME not defined correctly"
         assert isinstance(_config.GRID, tuple), "GRID not defined correctly"
-        assert isinstance(_config.MODULES, list), "MODULES not defined correctly"
+        assert isinstance(
+            _config.MODULES, list
+        ), "MODULES not defined correctly"
         assert isinstance(_config.PAGES, list), "PAGES not defined correctly"
         assert isinstance(
             _config.MODULE_PAGES, dict
         ), "MODULE_PAGES not defined correctly"
 
         # Test that GRID is a valid size
-        assert len(_config.GRID) == 2, "GRID must be a tuple containing two values"
-        assert _config.GRID[0] >= 1 and _config.GRID[0] <= 64, "GRID must have between 1 and 64 columns (inclusive)"
-        assert _config.GRID[1] >= 1 and _config.GRID[1] <= 64, "GRID must have between 1 and 64 rows (inclusive)"
+        assert (
+            len(_config.GRID) == 2
+        ), "GRID must be a tuple containing two values"
+        assert (
+            _config.GRID[0] >= 1 and _config.GRID[0] <= 64
+        ), "GRID must have between 1 and 64 columns (inclusive)"
+        assert (
+            _config.GRID[1] >= 1 and _config.GRID[1] <= 64
+        ), "GRID must have between 1 and 64 rows (inclusive)"
 
         # Test that MODULES exist
         for m in _config.MODULES:
@@ -111,19 +124,33 @@ class Rocket(object):
                 assert isinstance(pos[2], int)
                 assert isinstance(pos[3], int)
                 assert isinstance(pos[4], int)
-                assert pos[1] >= 0 and pos[1] < _config.GRID[0], "Module x out of bounds"
-                assert pos[2] >= 0 and pos[2] < _config.GRID[1], "Module y out of bounds"
-                assert pos[3] > 0 and pos[3] <= _config.GRID[0], "Module width invalid"
-                assert pos[4] > 0 and pos[4] <= _config.GRID[1], "Module height invalid"
-                assert pos[1] + pos[3] <= _config.GRID[0], "Module width out of bounds"
-                assert pos[2] + pos[4] <= _config.GRID[1], "Module height out of bounds"
+                assert (
+                    pos[1] >= 0 and pos[1] < _config.GRID[0]
+                ), "Module x out of bounds"
+                assert (
+                    pos[2] >= 0 and pos[2] < _config.GRID[1]
+                ), "Module y out of bounds"
+                assert (
+                    pos[3] > 0 and pos[3] <= _config.GRID[0]
+                ), "Module width invalid"
+                assert (
+                    pos[4] > 0 and pos[4] <= _config.GRID[1]
+                ), "Module height invalid"
+                assert (
+                    pos[1] + pos[3] <= _config.GRID[0]
+                ), "Module width out of bounds"
+                assert (
+                    pos[2] + pos[4] <= _config.GRID[1]
+                ), "Module height out of bounds"
                 assert pos[0] in [
                     n["id"] for n in _config.PAGES
                 ], "Module page not found"
 
     def print_rocket_configs(self):
         # Print out loaded rocket information from configs
-        print(f"Loaded 'rockets/{self.name}' with {len(self.configs)} config(s):")
+        print(
+            f"Loaded 'rockets/{self.name}' with {len(self.configs)} config(s):"
+        )
         for c in self.configs:
             self.print_config(c)
 
@@ -155,13 +182,19 @@ class Rocket(object):
         for config in self.configs:
             # Generate CSS selectors for pages
             config.CSS = (
-                ", ".join(["#{0} .{0}".format(page["id"]) for page in config.PAGES])
+                ", ".join(
+                    ["#{0} .{0}".format(page["id"]) for page in config.PAGES]
+                )
                 + " {display: flex;}"
             )
 
             # Dynamically allocate grid size
-            config.CSS += "\n.grid-cols-{0} {{grid-template-columns: repeat({0}, minmax(0, 1fr));}}".format(config.GRID[0])
-            config.CSS += "\n.grid-rows-{0} {{grid-template-rows: repeat({0}, minmax(0, 1fr));}}".format(config.GRID[1])
+            config.CSS += "\n.grid-cols-{0} {{grid-template-columns: repeat({0}, minmax(0, 1fr));}}".format(
+                config.GRID[0]
+            )
+            config.CSS += "\n.grid-rows-{0} {{grid-template-rows: repeat({0}, minmax(0, 1fr));}}".format(
+                config.GRID[1]
+            )
 
             # For each module, check pages and positioning to generate CSS classes
             grid = set()
@@ -176,8 +209,12 @@ class Rocket(object):
                     for page in config.MODULE_PAGES[module_id]:
                         if isinstance(page, tuple):
                             # Encode position and size in grid
-                            cols = "{}-c-{}-{}".format(page[0], page[1], page[3])
-                            rows = "{}-r-{}-{}".format(page[0], page[2], page[4])
+                            cols = "{}-c-{}-{}".format(
+                                page[0], page[1], page[3]
+                            )
+                            rows = "{}-r-{}-{}".format(
+                                page[0], page[2], page[4]
+                            )
 
                             # Add classes to grid
                             grid.add("#{} .{}".format(page[0], cols))

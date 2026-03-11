@@ -27,7 +27,11 @@ class ConfigHorizon(Config):
         # Define pages for Horizon
         self.PAGES = [
             {"name": "Overview", "icon": "icon-rocket", "id": "page-main"},
-            {"name": "Pre-flight", "icon": "icon-tasks", "id": "page-preflight"},
+            {
+                "name": "Pre-flight",
+                "icon": "icon-tasks",
+                "id": "page-preflight",
+            },
             {"name": "Control", "icon": "icon-gamepad", "id": "page-control"},
         ]
 
@@ -49,5 +53,5 @@ class ConfigHorizon(Config):
                 ("page-control", 0, 11, 24, 1),
             ],
             "horizon_overview": [("page-main", 0, 1, 24, 10)],
-            "horizon_controlpendant": [("page-control", 0, 1, 24, 10)]
+            "horizon_controlpendant": [("page-control", 0, 1, 24, 10)],
         }

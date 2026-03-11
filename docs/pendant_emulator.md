@@ -11,7 +11,7 @@ Refference schematic
 > - System is always powered on, but not activated
 > - Rotary is in neutral by default
 > - System select is in neutral by default
-> - Push in controller stick to select a mode and hold deadman to engage. This emulates the spring loaded rotary switch 
+> - Push in controller stick to select a mode and hold deadman to engage. This emulates the spring loaded rotary switch
 
 > [!CAUTION]
 > Start controller in `X` mode with the switch at the front. Under no circumstances do you change this or the connection will break and a restart is required.
