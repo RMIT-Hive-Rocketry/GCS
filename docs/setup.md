@@ -24,7 +24,7 @@ For a minimal clean slate installation, you can get away with:
 
 > [!NOTE]
 > *Protobuf gencode without building can be done by running the proto script in `scripts/`.
-> 
+>
 > Some C++ libraries have untested `FetchContent` support for cmake. This means you may be able to build after installing just CMake. Provided you are connected to internet to download those packages. Currently they do not work. Protobuf is a pain in the ass to work with.
 >
 > Also running setup.sh will install Protobuf automatically

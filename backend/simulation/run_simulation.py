@@ -26,7 +26,23 @@ TIMEOUT_INTERVAL_MS = float(sim_cfg["timeout_interval_ms"])
 MS_PER_SECOND = 1000
 
 
-def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w3: float, ax: float, ay: float, az: float, latitude: float, longitude: float, qw: float, qx: float, qy: float, qz: float, qm: float):
+def send_simulated_packet(
+    altitude: float,
+    speed: float,
+    w1: float,
+    w2: float,
+    w3: float,
+    ax: float,
+    ay: float,
+    az: float,
+    latitude: float,
+    longitude: float,
+    qw: float,
+    qx: float,
+    qy: float,
+    qz: float,
+    qm: float,
+):
     """
     Sends a simulated telemetry packet with the provided sensor values.
 
@@ -52,12 +68,12 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         ACCEL_HIGH_X=int(ax / 9.81 * -1048),
         ACCEL_HIGH_Y=int(ay / 9.81 * -1048),
         ACCEL_HIGH_Z=int(az / 9.81 * 1048),
-        GYRO_X=int(math.degrees(w1)/0.00875),
-        GYRO_Y=int(math.degrees(w2)/0.00875),
-        GYRO_Z=int(math.degrees(w3)/0.00875),
+        GYRO_X=int(math.degrees(w1) / 0.00875),
+        GYRO_Y=int(math.degrees(w2) / 0.00875),
+        GYRO_Z=int(math.degrees(w3) / 0.00875),
         ALTITUDE=altitude,
         VELOCITY=speed,
-        MOVE_TO_BROADCAST=True
+        MOVE_TO_BROADCAST=True,
     )
     packet2 = AVtoGCSData2(
         LATITUDE=latitude,
@@ -65,7 +81,7 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
         QW=qw / abs(qm),
         QX=qx / abs(qm),
         QY=qy / abs(qm),
-        QZ=qz / abs(qm)
+        QZ=qz / abs(qm),
     )
     # https://github.com/RMIT-Competition-Rocketry/GCS/issues/114
     if service_helper.time_to_stop():
@@ -76,12 +92,12 @@ def send_simulated_packet(altitude: float, speed: float, w1: float, w2: float, w
 
 def packet_importance(PACKET, PREVIOUS_WINDOW_TRAILER) -> int:
     """
-        Returns a numerical score on how 'important' the packet is
-        We don't want to drop these packets
+    Returns a numerical score on how 'important' the packet is
+    We don't want to drop these packets
 
-        Args:
-            PACKET (type): Current packet for observation
-            PREVIOUS_WINDOW_TRAILER (type): Last packet in previous window
+    Args:
+        PACKET (type): Current packet for observation
+        PREVIOUS_WINDOW_TRAILER (type): Last packet in previous window
     """
     importance = 0
     if PREVIOUS_WINDOW_TRAILER is None:
@@ -111,7 +127,7 @@ def partition_into_windows(FLIGHT_DATA: pd.DataFrame) -> list[tuple]:
     trailer_data = None  # The last packet in the last window
 
     for _, row in FLIGHT_DATA.iterrows():
-        row_time_ms = row['# Time (s)'] * MS_PER_SECOND
+        row_time_ms = row["# Time (s)"] * MS_PER_SECOND
         importance = packet_importance(row, trailer_data)
         if not current_window:
             # Start first window
@@ -144,7 +160,7 @@ def remove_extra_packets(flight_data) -> list:
 
 def post_process_simulation_data(flight_data: pd.DataFrame) -> list:
     # Cull extra packets so there's only one packet per interval
-    flight_data = flight_data.sort_values('# Time (s)').reset_index(drop=True)
+    flight_data = flight_data.sort_values("# Time (s)").reset_index(drop=True)
     flight_data = inject_data(flight_data)
     flight_data = partition_into_windows(flight_data)
     flight_data = remove_extra_packets(flight_data)
@@ -175,20 +191,22 @@ def inject_data(flight_data: pd.DataFrame) -> pd.DataFrame:
     # Create DataFrame from the new rows
     injected_data = pd.DataFrame(new_rows)
 
-    flight_data = pd.concat([flight_data, injected_data]
-                            ).sort_values("# Time (s)")
-    flight_data["# Time (s)"] = flight_data['# Time (s)']
+    flight_data = pd.concat([flight_data, injected_data]).sort_values(
+        "# Time (s)"
+    )
+    flight_data["# Time (s)"] = flight_data["# Time (s)"]
     return flight_data
 
 
 def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
     """
-        Runs the emulator based on the flight data
-        Uses a priority queue to organise which packets to send per interval
+    Runs the emulator based on the flight data
+    Uses a priority queue to organise which packets to send per interval
     """
     # Initialise mockpacket
     MockPacket.initialize_settings(
-        config.load_config()['emulation'], FAKE_DEVICE_NAME=DEVICE_NAME)
+        config.load_config()["emulation"], FAKE_DEVICE_NAME=DEVICE_NAME
+    )
 
     flight_data = post_process_simulation_data(flight_data)
 
@@ -200,11 +218,13 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
         return PACKET_TIME_S - (time.monotonic() - START_TIME)
 
     for packet in flight_data:
-        PACKET_TIME_S = packet['# Time (s)']
-        if (not first_packet):
+        PACKET_TIME_S = packet["# Time (s)"]
+        if not first_packet:
             time_until_next_packet_s = _time_until_next_packet_s(PACKET_TIME_S)
             if time_until_next_packet_s > 0.6:
-                time.sleep(time_until_next_packet_s*0.8)  # sleep off 80% of it
+                time.sleep(
+                    time_until_next_packet_s * 0.8
+                )  # sleep off 80% of it
             while _time_until_next_packet_s(PACKET_TIME_S) > 0:
                 pass  # Busy wait to avoid sub 20-50ms sleep inaccuracies
 
@@ -281,12 +301,12 @@ def simulation_to_replay_data(flight_data: pd.DataFrame):
                 "main_secondary_test_complete": False,
                 "main_primary_test_results": False,
                 "main_secondary_test_results": False,
-                "broadcast_flag": True
-            }
+                "broadcast_flag": True,
+            },
         )
         packets.append(AV1_PACKET)
         AV2_PACKET = Packet(
-            timestamp_ms=packet['# Time (s)'] * 1000,
+            timestamp_ms=packet["# Time (s)"] * 1000,
             packet_type=PacketType.AV_TO_GCS_DATA_2,
             data={
                 "rssi": 0,
@@ -302,8 +322,8 @@ def simulation_to_replay_data(flight_data: pd.DataFrame):
                 "qw": float(qw),
                 "qx": float(qx),
                 "qy": float(qy),
-                "qz": float(qz)
-            }
+                "qz": float(qz),
+            },
         )
         packets.append(AV2_PACKET)
 
@@ -324,7 +344,7 @@ def get_replay_sim_data():
 def main():
     slogger.info("Emulator Starting Simulation...")
     try:
-        FAKE_DEVICE_PATH = sys.argv[sys.argv.index('--device-rocket') + 1]
+        FAKE_DEVICE_PATH = sys.argv[sys.argv.index("--device-rocket") + 1]
     except ValueError:
         slogger.error("Failed to find device names in arguments for simulator")
         raise

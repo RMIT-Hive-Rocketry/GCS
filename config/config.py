@@ -10,7 +10,8 @@ def get_default_config_path():
     Can remove this crap when you don't need pendant emulator anymore.
     """
     CONFIG_LOCATOR_FILE = os.path.join(
-        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt")
+        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt"
+    )
     if os.path.exists(CONFIG_LOCATOR_FILE):
         with open(CONFIG_LOCATOR_FILE, "r") as f:
             return f.read().strip()

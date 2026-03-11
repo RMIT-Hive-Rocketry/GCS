@@ -46,7 +46,9 @@ def create_server(host: str, port: int) -> socket.socket:
     return srv
 
 
-def accept_client(server: socket.socket) -> Tuple[socket.socket, Tuple[str, int]]:
+def accept_client(
+    server: socket.socket,
+) -> Tuple[socket.socket, Tuple[str, int]]:
     print("Waiting for TCP connection...")
     client_sock, addr = server.accept()
     print(f"Accepted connection from {addr[0]}:{addr[1]}")
@@ -64,7 +66,9 @@ def main() -> int:
     try:
         server = create_server(args.host, args.port)
     except OSError as e:
-        print(f"Failed to bind to {args.host}:{args.port}: {e}", file=sys.stderr)
+        print(
+            f"Failed to bind to {args.host}:{args.port}: {e}", file=sys.stderr
+        )
         return 1
 
     try:
@@ -81,7 +85,9 @@ def main() -> int:
                     print("Client closed connection.")
                     break
 
-                timestamp = datetime.datetime.now().isoformat(timespec="milliseconds")
+                timestamp = datetime.datetime.now().isoformat(
+                    timespec="milliseconds"
+                )
                 print(
                     f"[{timestamp}] Received {len(data)} bytes from TcpInterface:"
                 )
@@ -95,4 +101,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

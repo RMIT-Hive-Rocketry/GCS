@@ -37,8 +37,8 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
     match PACKET_ID:
         case 3:
             data["mach_number"] = Mach.mach_from_alt_estimate(
-                VELOCITY_M=data["velocity"],
-                ALTITUDE_M=data["altitude"])
+                VELOCITY_M=data["velocity"], ALTITUDE_M=data["altitude"]
+            )
     return data
 
 
@@ -61,13 +61,14 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             try:
                 events = await sub_socket.poll(timeout=100)
                 if events:
-                    packet_id = int.from_bytes(await sub_socket.recv(), 'big')
+                    packet_id = int.from_bytes(await sub_socket.recv(), "big")
                     message = await sub_socket.recv()
 
                     if len(message) == 1:
-                        new_id = int.from_bytes(message, 'big')
+                        new_id = int.from_bytes(message, "big")
                         slogger.error(
-                            f"Message mismatch: {packet_id} vs {new_id}")
+                            f"Message mismatch: {packet_id} vs {new_id}"
+                        )
                         continue
 
                     if packet_id in packet_handlers:
@@ -75,10 +76,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         proto_object.ParseFromString(message)
                         data = MessageToDict(proto_object)
                         data = append_data(data, packet_id)
-                        output = {
-                            "id": packet_id,
-                            "data": data
-                        }
+                        output = {"id": packet_id, "data": data}
                         try:
                             await websocket.send(json.dumps(output))
                         except websockets.ConnectionClosedOK:
@@ -90,10 +88,10 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             except websockets.ConnectionClosed:
                 if not shutdown_event.is_set():
                     slogger.info(
-                        "WebSocket connection closed from manager trigger")
+                        "WebSocket connection closed from manager trigger"
+                    )
                 else:
-                    slogger.info(
-                        "WebSocket connection closed from ws client")
+                    slogger.info("WebSocket connection closed from ws client")
                 break
             except Exception as e:
                 slogger.error(f"Error fowarding data to websocket: {e}")
@@ -110,8 +108,8 @@ async def consumer(websocket):
     context = zmq.asyncio.Context()
     try:
         push_socket = context.socket(zmq.PUSH)
-        SOCKET_PATH = os.path.abspath(os.path.join(
-            os.path.sep, 'tmp', 'gcs_rocket_web_pull.sock')
+        SOCKET_PATH = os.path.abspath(
+            os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
         )
         LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
@@ -134,7 +132,8 @@ async def consumer(websocket):
                         continue
                     if message_json.get("id") not in EXPECTED_IDS:
                         slogger.error(
-                            f"Invalid packet ID for TX: {message_json.get('id')}. Expected in {EXPECTED_IDS}")
+                            f"Invalid packet ID for TX: {message_json.get('id')}. Expected in {EXPECTED_IDS}"
+                        )
                         continue
                     data = message_json.get("data", None)
                     if data is None or len(data.keys()) == 0:
@@ -149,19 +148,21 @@ async def consumer(websocket):
                             prefix = bytes([0xFF if manual_control else 0x00])
                         else:
                             slogger.error(
-                                f"Manual control field contains non-bool {manual_control}")
+                                f"Manual control field contains non-bool {manual_control}"
+                            )
                             continue
                         packet_bytes = bytes(prefix) + packet_bytes
                     elif message_json["id"] == 253:
                         # {"id":253,"data":{"cameraStatus":false}}
                         camera_status = message_json["data"].get(
-                            "cameraStatus", True)
+                            "cameraStatus", True
+                        )
                         if not isinstance(camera_status, bool):
                             camera_status = True
                         if camera_status:
-                            packet_bytes = (123).to_bytes(1, byteorder='big')
+                            packet_bytes = (123).to_bytes(1, byteorder="big")
                         else:
-                            packet_bytes = (100).to_bytes(1, byteorder='big')
+                            packet_bytes = (100).to_bytes(1, byteorder="big")
                     await push_socket.send(packet_bytes, flags=zmq.NOBLOCK)
                 except json.JSONDecodeError as e:
                     slogger.error(f"Invalid JSON received: {e}")
@@ -169,14 +170,17 @@ async def consumer(websocket):
                     slogger.error(f"Missing required key in message: {e}")
                 except Exception as e:
                     slogger.error(
-                        f"Error processing message: {e}. Socket may be full at HWM")
+                        f"Error processing message: {e}. Socket may be full at HWM"
+                    )
         except websockets.ConnectionClosedOK:
             if not shutdown_event.is_set():
                 slogger.info(
-                    "WebSocket connection closed in consumer from web side")
+                    "WebSocket connection closed in consumer from web side"
+                )
             else:
                 slogger.info(
-                    "WebSocket connection closed in consumer from manager trigger")
+                    "WebSocket connection closed in consumer from manager trigger"
+                )
         except Exception as e:
             slogger.error(f"Consumer error: {e}")
     finally:
@@ -215,14 +219,14 @@ def build_packet(WEBSOCKET_DATA: dict) -> device_emulator.GCStoGSEManualControl:
 async def handler(websocket):
     # start both producer and consumer
     producer_task = asyncio.create_task(
-        zmq_to_websocket(websocket, IPC_ADDRESS))
+        zmq_to_websocket(websocket, IPC_ADDRESS)
+    )
     consumer_task = asyncio.create_task(consumer(websocket))
 
     try:
         # wait until one side throws an exception or shutdown is requested
         done, pending = await asyncio.wait(
-            [producer_task, consumer_task],
-            return_when=asyncio.FIRST_EXCEPTION
+            [producer_task, consumer_task], return_when=asyncio.FIRST_EXCEPTION
         )
 
         if shutdown_event.is_set():
@@ -243,7 +247,8 @@ async def amain():
 
     server = await websockets.serve(handler, WEBSOCKET_HOST, WEBSOCKET_PORT)
     slogger.info(
-        f"WebSocket server started at ws://{WEBSOCKET_HOST}:{WEBSOCKET_PORT}")
+        f"WebSocket server started at ws://{WEBSOCKET_HOST}:{WEBSOCKET_PORT}"
+    )
 
     try:
         await shutdown_event.wait()
@@ -262,15 +267,16 @@ def main():
     WEBSOCKET_HOST = "0.0.0.0"
     WEBSOCKET_PORT = 1887
 
-    if '--socket-path' in sys.argv:
-        SOCKET_PATH = sys.argv[sys.argv.index('--socket-path') + 1]
+    if "--socket-path" in sys.argv:
+        SOCKET_PATH = sys.argv[sys.argv.index("--socket-path") + 1]
         IPC_ADDRESS = f"ipc:///tmp/{SOCKET_PATH}_pub.sock"
     else:
         slogger.error("Missing required --socket-path argument")
         sys.exit(1)
 
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()['emulation'])
+        config.load_config()["emulation"]
+    )
 
     try:
         asyncio.run(amain())
