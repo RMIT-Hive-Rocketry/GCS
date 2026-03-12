@@ -571,17 +571,17 @@ class Pygame_Device(ControlDevice):
         if not Pygame_Device.is_connected:
             self._try_connect_device()
 
-
-        # check for disconection        
+        # check for disconection
         events: List[pygame.event.Event] = pygame.event.get()
         for event in events:
-            if event.type == pygame.JOYDEVICEREMOVED and event.instance_id == Pygame_Device.joystick_id:
+            if (
+                event.type == pygame.JOYDEVICEREMOVED
+                and event.instance_id == Pygame_Device.joystick_id
+            ):
                 Pygame_Device.joystick = None
                 Pygame_Device.is_connected = False
                 Pygame_Device.joystick_id = 0
                 slogger.error("Pendnat Disconnected")
-
-
 
         if Pygame_Device.is_connected and Pygame_Device.joystick is not None:
             # polling events on mac gave me segfaults
