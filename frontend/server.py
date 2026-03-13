@@ -17,16 +17,6 @@ class SubprocessLogHandler(logging.Handler):
             slogger.info(msg)  # fallback
 """
 
-valid_file_extensions = (
-    ".css",
-    ".js",  # CSS, JavaScript
-    ".png",
-    ".jpg",
-    ".ico",
-    ".svg",  # Images
-    ".glb",  # 3D models
-)
-
 
 # Initialise flask app
 def create_app():

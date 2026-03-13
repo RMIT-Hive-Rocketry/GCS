@@ -18,8 +18,7 @@ class InterfaceType(enum.Enum):
 def get_interface_type(interface: Optional[str]) -> InterfaceType:
     """Get the interface type from the command line argument or config"""
     if interface is None:  # Unspecified by user
-        interface = config.get_config(
-        )['hardware']['interface'].strip().upper()
+        interface = config.get_config()["hardware"]["interface"].strip().upper()
     else:
         interface = interface.strip().upper()
 
@@ -127,15 +126,17 @@ def get_middleware_path(
     return file_matches[0]
 
 
-def build_middleware_argv(config: MiddlewareConfig, binary_path: str) -> List[str]:
+def build_middleware_argv(
+    config: MiddlewareConfig, binary_path: str
+) -> List[str]:
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
     [9 lora params if gse_type==UART_E5], [--GSE_ONLY].
     """
-    if not isinstance(config.interface_gse_type, InterfaceType) or not isinstance(
-        config.interface_av_type, InterfaceType
-    ):
+    if not isinstance(
+        config.interface_gse_type, InterfaceType
+    ) or not isinstance(config.interface_av_type, InterfaceType):
         raise ValueError(
             "interface_gse_type and interface_av_type must be InterfaceType"
         )
@@ -151,17 +152,19 @@ def build_middleware_argv(config: MiddlewareConfig, binary_path: str) -> List[st
     if config.interface_gse_type == InterfaceType.UART_E5:
         if config.lora_config is None:
             raise ValueError("UART_E5 GSE interface requires lora_config")
-        argv.extend([
-            config.lora_config["frequency"],
-            config.lora_config["spread_factor"],
-            config.lora_config["bandwidth"],
-            config.lora_config["tx_preamble"],
-            config.lora_config["rx_preamble"],
-            config.lora_config["power"],
-            config.lora_config["crc"],
-            config.lora_config["iq"],
-            config.lora_config["net"],
-        ])
+        argv.extend(
+            [
+                config.lora_config["frequency"],
+                config.lora_config["spread_factor"],
+                config.lora_config["bandwidth"],
+                config.lora_config["tx_preamble"],
+                config.lora_config["rx_preamble"],
+                config.lora_config["power"],
+                config.lora_config["crc"],
+                config.lora_config["iq"],
+                config.lora_config["net"],
+            ]
+        )
     if config.opt_arg is not None:
         argv.append(config.opt_arg)
     return argv
@@ -175,15 +178,21 @@ def start_middleware(logger: logging.Logger, config: MiddlewareConfig) -> None:
             os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
         )
     try:
-        BINARY_NAME = "middleware_release" if config.release else "middleware_debug"
-        MIDDLEWARE_BINARY_PATH = get_middleware_path(BINARY_NAME, config.release)
+        BINARY_NAME = (
+            "middleware_release" if config.release else "middleware_debug"
+        )
+        MIDDLEWARE_BINARY_PATH = get_middleware_path(
+            BINARY_NAME, config.release
+        )
         if MIDDLEWARE_BINARY_PATH is None:
             logger.debug(f"WORKING DIRECTORY: {os.getcwd()}")
             raise FileNotFoundError(
                 f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build folders or root folder. Please run $ bash scripts/release.sh"
             )
 
-        middleware_command = build_middleware_argv(config, MIDDLEWARE_BINARY_PATH)
+        middleware_command = build_middleware_argv(
+            config, MIDDLEWARE_BINARY_PATH
+        )
 
         logger.debug(f"Starting {SERVICE_NAME} with: {middleware_command}")
 

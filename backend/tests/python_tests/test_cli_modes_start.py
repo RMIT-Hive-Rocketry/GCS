@@ -48,7 +48,9 @@ class ProcessOutputScanner:
 
                 for fail_regex in fail_regexes:
                     if fail_regex.search(line):
-                        print("\n\nFailure pattern matched:", line, end="\n\n\n")
+                        print(
+                            "\n\nFailure pattern matched:", line, end="\n\n\n"
+                        )
                         failure_time = time.time()
                         while time.time() - failure_time < 1:
                             # Print traceback for 1 second
@@ -78,14 +80,18 @@ class ProcessOutputScanner:
 class CliStartup(ABC):
     CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "../../.."))
-    DEFAULT_FAIL_PATTERNS = [r"\[STDERR\](?!.*(?:This is a development server|Running on|Press CTRL\+C to quit)).*",
-                             r"Traceback \(most recent call last\)",]
-    DEFAULT_SUCCESS_PATTERNS = ["Starting Soteria",
-                                "socat: Stopping socat callbacks",  # found devices
-                                r"middleware_server: \[STDOUT] Starting middleware server",
-                                r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
-                                r"event viewer: \[STDOUT] Listening for messages\.\.\.",
-                                r"event viewer: \[STDOUT] Supersonic flight detected"]
+    DEFAULT_FAIL_PATTERNS = [
+        r"\[STDERR\](?!.*(?:This is a development server|Running on|Press CTRL\+C to quit)).*",
+        r"Traceback \(most recent call last\)",
+    ]
+    DEFAULT_SUCCESS_PATTERNS = [
+        "Starting Soteria",
+        "socat: Stopping socat callbacks",  # found devices
+        r"middleware_server: \[STDOUT] Starting middleware server",
+        r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
+        r"event viewer: \[STDOUT] Listening for messages\.\.\.",
+        r"event viewer: \[STDOUT] Supersonic flight detected",
+    ]
 
     # Protected
     def _start_process(self, ROCKET_ARGS: list):
@@ -100,7 +106,8 @@ class CliStartup(ABC):
         if "run" not in ROCKET_ARGS and "--nobuild" not in cmd:
             print(f"ROCKET_ARGS: {ROCKET_ARGS}")
             raise ValueError(
-                "ROCKET_ARGS must include --nobuild for your non release test class")
+                "ROCKET_ARGS must include --nobuild for your non release test class"
+            )
 
         CLI_FILE_PATH = os.path.join(CliStartup.PROJECT_ROOT, "rocket.py")
         print(f"Expected rocket.py path: {CLI_FILE_PATH}")
@@ -194,12 +201,17 @@ class TestDevStartups(CliStartup):
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
 
-@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Run", reason="CI_BUILD_ENV undefined or not Run")
+@pytest.mark.skipif(
+    os.getenv("CI_BUILD_ENV") != "Run",
+    reason="CI_BUILD_ENV undefined or not Run",
+)
 class TestRunStartups(CliStartup):
     def get_rocket_args(self) -> List[str]:
         return ["run"]
 
-    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+    def test_runs_successfully(
+        self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]
+    ):
         proc, scanner = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         # Do not test any further until you have super sexy test cases for it
@@ -207,34 +219,42 @@ class TestRunStartups(CliStartup):
         # The only thing this really misses is the physical interface testing
         success_patterns = [
             r"------- STARTING SOTERIA IN PRODUCTION MODE -------",
-            r"Release python testing is not implemented"
+            r"Release python testing is not implemented",
         ]
         success, output_lines = scanner.scan_for_patterns(
-            fail_any=fail_patterns,
-            success_all=success_patterns,
-            timeout=30.0
+            fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
         assert success, f"System failed to match patterns"
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
 
-@pytest.mark.skipif(os.getenv("CI_BUILD_ENV") != "Debug", reason="CI_BUILD_ENV undefined or not Debug")
+@pytest.mark.skipif(
+    os.getenv("CI_BUILD_ENV") != "Debug",
+    reason="CI_BUILD_ENV undefined or not Debug",
+)
 class TestInterfaceUART_E5(CliStartup):
     def get_rocket_args(self) -> List[str]:
-        return ["dev", "--interface", "TEST_UART_E5", "--nopendant", "--nobuild", "--frontend"]
+        return [
+            "dev",
+            "--interface",
+            "TEST_UART_E5",
+            "--nopendant",
+            "--nobuild",
+            "--frontend",
+        ]
 
-    def test_runs_successfully(self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]):
+    def test_runs_successfully(
+        self, process_and_scanner: Tuple[subprocess.Popen, ProcessOutputScanner]
+    ):
         proc, scanner = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         success_patterns = CliStartup.DEFAULT_SUCCESS_PATTERNS + [
             r"device emulator: \[STDOUT] Emulator starting",
             r"WebSocket server started at",
-            r"\* Serving Flask app 'frontend\.server'"
+            r"\* Serving Flask app 'frontend\.server'",
         ]
         success, output_lines = scanner.scan_for_patterns(
-            fail_any=fail_patterns,
-            success_all=success_patterns,
-            timeout=30.0
+            fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
         assert success, f"System failed to match patterns"
         print(f"System ran successfully. Captured {len(output_lines)} lines")
