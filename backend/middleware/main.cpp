@@ -28,6 +28,7 @@
 #include "middleware_timing.hpp"
 #include "packet_handling.hpp"
 #include "sequence.hpp"
+#include "server_args.hpp"
 #include "subprocess_logging.hpp"
 #include "tcp_interface.hpp"
 #include "test_interface.hpp"
@@ -165,76 +166,27 @@ int main(int argc, char* argv[]) {
 
   slogger::info("Starting middleware server");
 
-  // Argv: <gse_type> <gse_path> <av_type> <av_path> <pendant> <web>
-  //       [9x lora if gse_type==UART_E5] [--GSE_ONLY]
-  // Validation is done on the Python side; C++ only parses.
-  const int MIN_ARGS = 7;
-  if (argc < MIN_ARGS) {
-    slogger::error("Not enough arguments.");
-    slogger::error(
-        "Usage: ./file <gse_type> <gse_path> <av_type> <av_path> "
-        "<pendant socket path> <web control socket path> "
-        "[lora params if gse_type=UART_E5] [--GSE_ONLY]");
-    throw std::runtime_error("Error: Not enough arguments provided");
-  }
-
-  const std::string gse_type(argv[1]);
-  const std::string gse_path(argv[2]);
-  const std::string av_type(argv[3]);
-  const std::string av_path(argv[4]);
-  const std::string PENDANT_SOCKET_PATH(argv[5]);
-  const std::string WEB_CONTROL_SOCKET_PATH(argv[6]);
-
-  LoraConfig lora_cfg{};
-  int optional_arg_index = -1;
-  if (gse_type == "UART_E5") {
-    const int UART_ARGS = 9;
-    if (argc < MIN_ARGS + UART_ARGS) {
-      slogger::error("UART_E5 GSE requires 9 lora args after the 6 base args.");
-      throw std::runtime_error("Error: Not enough arguments for UART_E5");
-    }
-    lora_cfg = {
-        .frequency = argv[7],
-        .spread_factor = argv[8],
-        .bandwidth = argv[9],
-        .tx_preamble = argv[10],
-        .rx_preamble = argv[11],
-        .power = argv[12],
-        .crc = argv[13],
-        .iq = argv[14],
-        .net = argv[15],
-    };
-    if (argc >= 17 && std::string(argv[16]) == "--GSE_ONLY") {
-      optional_arg_index = 16;
-    }
-  } else {
-    if (argc >= 8 && std::string(argv[7]) == "--GSE_ONLY") {
-      optional_arg_index = 7;
-    }
-  }
+  const ParsedArgs args = parse_args(argc, argv);
 
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
 
   std::shared_ptr<RadioInterface> interface =
-      create_interface(gse_type, gse_path, lora_cfg);
+      create_interface(args.gse_type, args.gse_path, args.lora_cfg);
 
   interface->initialize();
-  slogger::info("Interface initialised for type: " + gse_type);
+  slogger::info("Interface initialised for type: " + args.gse_type);
 
   // Create sequence handler singleton
   Sequence sequence;
 
-  if (optional_arg_index >= 0 &&
-      std::string(argv[optional_arg_index]) == "--GSE_ONLY") {
-    sequence.set_gse_only_mode(true);
-  }
+  sequence.set_gse_only_mode(true);
 
   zmq::context_t context(1);
 
   // PUB socket for broadcasting incoming data
   zmq::socket_t pub_socket(context, ZMQ_PUB);
-  pub_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH + "_pub.sock");
+  pub_socket.bind("ipc:///tmp/" + args.pendant_socket_path + "_pub.sock");
 
   // Only keep this many messages in buffer.
   constexpr int PULL_SOCKET_HWM = 1;
@@ -243,14 +195,14 @@ int main(int argc, char* argv[]) {
   zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
   pendant_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   pendant_pull_socket.set(zmq::sockopt::conflate, 1);
-  pendant_pull_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH +
+  pendant_pull_socket.bind("ipc:///tmp/" + args.pendant_socket_path +
                            "_pendant_pull.sock");
 
   zmq::socket_t web_control_pull_socket(context, ZMQ_PULL);
   web_control_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   // Only keep last message
   web_control_pull_socket.set(zmq::sockopt::conflate, 1);
-  web_control_pull_socket.bind("ipc://" + WEB_CONTROL_SOCKET_PATH);
+  web_control_pull_socket.bind("ipc://" + args.web_control_socket_path);
 
   // Start interface reading thread
   std::thread reader(input_read_loop, interface, std::ref(pub_socket),
