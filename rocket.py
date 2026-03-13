@@ -28,17 +28,24 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
-from cli.start_replay_system import start_replay_system, get_available_missions, SimulationType
+from cli.start_replay_system import (
+    start_replay_system,
+    get_available_missions,
+    SimulationType,
+)
 from cli.start_pendant_daemon import start_pendant_daemon
 
 
 logger: logging.Logger = None
-cleanup_reason: str = "Program completed or undefined exit"  # Default clenaup message
+cleanup_reason: str = (
+    "Program completed or undefined exit"  # Default clenaup message
+)
 running_services: bool = False  # To help close the cli automatically
 
 
 class Command(enum.Enum):
     """Command enums to help start services"""
+
     RUN = enum.auto()
     DEV = enum.auto()
     SIMULATION = enum.auto()
@@ -47,6 +54,7 @@ class Command(enum.Enum):
 
 class DecoratorSelector(enum.Enum):
     """Selection options to build a decorator"""
+
     ALL_DEV = enum.auto()  # Give me all the dev options
     SIM = enum.auto()  # Give me the options for simulation
     GSE_ONLY = enum.auto()  # Give me just the GSE only option
@@ -55,35 +63,46 @@ class DecoratorSelector(enum.Enum):
 
 class ControllerTypes(enum.Enum):
     """Nomenclature: this is also called a pendant"""
+
     F710 = enum.auto()
     RPI_GPIO_DEVICE = enum.auto()
+    HID_DEVICE = enum.auto()
+    PYGAME_DEVICE = enum.auto()
+    NOT_IMPLIMENTED = enum.auto()
 
 
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
     """Factory function to create decorators based on the selector"""
+
     def _set_level(ctx, param, value):
         if value:
             CLEAN_VALUE = value.upper().strip()
             rocket_logging.set_console_log_level(CLEAN_VALUE)
         return value
 
-    _LOG_LEVEL_CHOICES = click.Choice(list(rocket_logging.LOG_MAPPING.keys()),
-                                      case_sensitive=False)
+    _LOG_LEVEL_CHOICES = click.Choice(
+        list(rocket_logging.LOG_MAPPING.keys()), case_sensitive=False
+    )
     _INTERFACE_CHOICES = click.Choice(
-        [e.value for e in InterfaceType], case_sensitive=False)
+        [e.value for e in InterfaceType], case_sensitive=False
+    )
     _MISSION_CHOICES = click.Choice(
-        get_available_missions(), case_sensitive=False)
+        get_available_missions(), case_sensitive=False
+    )
 
     _REPLAY_MODES = click.Choice(
-        ['mission', 'simulation'], case_sensitive=False
+        ["mission", "simulation"], case_sensitive=False
     )
 
     _SIMULATION_CHOICES = click.Choice(
         [e.value for e in SimulationType], case_sensitive=False
     )
 
-    OPTIONS_GSE_ONLY = [click.option('--gse-only', is_flag=True,
-                                     help="Run the system in GSE only mode")]
+    OPTIONS_GSE_ONLY = [
+        click.option(
+            "--gse-only", is_flag=True, help="Run the system in GSE only mode"
+        )
+    ]
 
     OPTIONS_SIM = [
         click.option('-l', '--log-level', is_flag=False, type=_LOG_LEVEL_CHOICES,
@@ -153,11 +172,22 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
 def start_docker_container(logger):
     try:
         logger.info("Building dev container")
-        subprocess.run(["docker", "build", "-t", "rocket-dev",
-                       "-f", "docker/Dockerfile.dev", "."], check=True)
+        subprocess.run(
+            [
+                "docker",
+                "build",
+                "-t",
+                "rocket-dev",
+                "-f",
+                "docker/Dockerfile.dev",
+                ".",
+            ],
+            check=True,
+        )
         logger.info("Running dev container")
-        subprocess.run(["docker", "run", "--rm", "-it",
-                       "rocket-dev"], check=True)
+        subprocess.run(
+            ["docker", "run", "--rm", "-it", "rocket-dev"], check=True
+        )
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to start Docker container: {e}")
         DOCKER_WARNING_TEXT = "PLEASE ENSURE DOCKER ENGINE IS RUNNING"
@@ -177,6 +207,10 @@ def get_controller_enum() -> ControllerTypes:
             return ControllerTypes.F710
         case "rpi_gpio_device":
             return ControllerTypes.RPI_GPIO_DEVICE
+        case "hid_device":
+            return ControllerTypes.HID_DEVICE
+        case "pygame_device":
+            return ControllerTypes.PYGAME_DEVICE
         case _:
             raise RuntimeError(
                 "Pendant controller option not found in config.ini")
@@ -281,7 +315,8 @@ def start_services(COMMAND: Command,
     else:
         logger.info("Starting Soteria container in Docker")
         raise NotImplementedError(
-            "Internal Docker implimentation is out of date. Do not use")
+            "Internal Docker implimentation is out of date. Do not use"
+        )
         start_docker_container(logger)
 
     # 1 Build C++ middleware
@@ -290,7 +325,8 @@ def start_services(COMMAND: Command,
             start_middleware_build(logger, CMakeBuildModes.DEBUG)
         except Exception as e:
             logger.error(
-                f"Failed to build middleware: {e}\nPropogating fatal error")
+                f"Failed to build middleware: {e}\nPropogating fatal error"
+            )
             raise
     else:
         logger.info("Skipping middleware build. Using pre-built binaries")
@@ -367,7 +403,8 @@ def start_services(COMMAND: Command,
         start_middleware(logger=logger, config=mw_config)
     except Exception as e:
         logger.error(
-            f"Failed to start middleware: {e}\nPropogating fatal error")
+            f"Failed to start middleware: {e}\nPropogating fatal error"
+        )
         raise
 
     # 4. Start device emulator
@@ -388,10 +425,12 @@ def start_services(COMMAND: Command,
     elif COMMAND == Command.REPLAY:
         if replay_mode == "mission":
             start_replay_system(
-                logger, devices[1], MISSION=MISSION_ARG, SIMULATION=None)
+                logger, devices[1], MISSION=MISSION_ARG, SIMULATION=None
+            )
         else:
             start_replay_system(
-                logger, devices[1], MISSION=None, SIMULATION=SIMULATION_ARG)
+                logger, devices[1], MISSION=None, SIMULATION=SIMULATION_ARG
+            )
 
     # 5. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
@@ -399,12 +438,13 @@ def start_services(COMMAND: Command,
     # 6. Start the pendent emulator
     if not nopendant:
         controller_enum = get_controller_enum()
+
         if controller_enum == ControllerTypes.F710:
             start_pendant_emulator(logger)
-        elif controller_enum == ControllerTypes.RPI_GPIO_DEVICE:
-            start_pendant_daemon(logger)
-        else:
+        elif controller_enum == ControllerTypes.NOT_IMPLIMENTED:
             raise NotImplementedError("Controller service not supported")
+        else:
+            start_pendant_daemon(logger)
 
     if frontend:
         # 7. Start the websocket / frontend API
@@ -419,8 +459,7 @@ def run_pseudoterm_setup(COMMAND: Command):
     logger.info("Starting pseudo-terminals for emulation")
     devices = start_fake_serial_device(logger)
     if devices == (None, None):
-        raise RuntimeError(
-            "Failed to start fake serial device. Exiting")
+        raise RuntimeError("Failed to start fake serial device. Exiting")
 
     return devices
 
@@ -432,7 +471,8 @@ def cli():
     # Implicit check is to make sure the logo file exists in expected spot
     if not os.path.exists(os.path.join("cli", "ascii_art_logo.txt")):
         raise RuntimeError(
-            "Please run this program from project root directory")
+            "Please run this program from project root directory"
+        )
 
 
 @click.command()
@@ -501,23 +541,26 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
     if not mode:
         raise click.UsageError("--mode is required for the replay engine")
 
-    if mode == 'mission':
+    if mode == "mission":
         if not mission:
             raise click.UsageError(
-                "--mission is required to run a specified mission")
-        elif mission == 'TEST':
+                "--mission is required to run a specified mission"
+            )
+        elif mission == "TEST":
             raise NotImplementedError(
                 f"{mission} has not been implemented yet")
 
         logger.info(f"Using mission data:{mission}")
 
-    elif mode == 'simulation':
+    elif mode == "simulation":
         if not simulation:
             raise click.UsageError(
-                "--simulation is required to run a specified scenario")
-        elif simulation != 'TEST' and simulation != 'DEMO':
+                "--simulation is required to run a specified scenario"
+            )
+        elif simulation != "TEST" and simulation != "DEMO":
             raise NotImplementedError(
-                f"{simulation} has not been implemented yet")
+                f"{simulation} has not been implemented yet"
+            )
         logger.info(f"Running simulation: {simulation}")
     start_services(Command.REPLAY,
                    DOCKER=docker,
@@ -540,12 +583,14 @@ def print_splash():
 
     print("\n\n")
     print("RMIT High Velocty Rocket GCS CLI")
-    print("Version: ", end='')
+    print("Version: ", end="")
     with open("VERSION", "r") as r:
         print(r.read())
 
-    print("Local Timestamp: ", time.strftime(
-        "%Y-%m-%d %H:%M:%S", time.localtime()))
+    print(
+        "Local Timestamp: ",
+        time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+    )
 
     print("\n")
 
@@ -596,12 +641,13 @@ def main():
 
     # Remove stale tmp files
     GCS_CONFIG_HELPER_PATH = os.path.join(
-        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt")
+        os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt"
+    )
     if os.path.exists(GCS_CONFIG_HELPER_PATH):
         os.remove(GCS_CONFIG_HELPER_PATH)
 
     rocket_logging.initialise()
-    logger = logging.getLogger('rocket')
+    logger = logging.getLogger("rocket")
 
     try:
         # Tell click CLI to let me handle exceptions and stuff.
@@ -621,5 +667,5 @@ def main():
         raise  # Re-raise the exception after cleanup
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -58,7 +58,7 @@ install_protobuf() {
 
     ORIGINAL_DIR="$(pwd)"
     echo "Installing protobuf v$PROTOBUF_VERSION..."
-    
+
     # Create temp directory for protobuf if it doesn't exist
     if [ -d "$HOME/protobuf" ]; then
         echo "Warning: $HOME/protobuf directory already exists."
@@ -71,13 +71,13 @@ install_protobuf() {
             return 1
         fi
     fi
-    
+
     git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to clone protobuf repository." >&2
         return 1
     fi
-    
+
     cd "$HOME/protobuf"
     git checkout "v$PROTOBUF_VERSION"
     if [ $? -ne 0 ]; then
@@ -85,36 +85,42 @@ install_protobuf() {
         cd - > /dev/null
         return 1
     fi
-    
+
     git submodule update --init --recursive
     if [ $? -ne 0 ]; then
         echo "Error: Failed to update protobuf submodules." >&2
         cd - > /dev/null
         return 1
     fi
-    
+
     mkdir -p build && cd build
-    cmake -Dprotobuf_BUILD_TESTS=OFF ..
+    # make sure protobuf compiles with C++17
+    cmake -Dprotobuf_BUILD_TESTS=OFF \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_CXX_EXTENSIONS=OFF \
+        ..
+
     if [ $? -ne 0 ]; then
         echo "Error: CMAKE configuration failed." >&2
         cd - > /dev/null
         return 1
     fi
-    
+
     sudo make install -j$(nproc)
     if [ $? -ne 0 ]; then
         echo "Error: Failed to install protobuf. Make sure you have sudo privileges." >&2
         cd - > /dev/null
         return 1
     fi
-    
+
     if command -v ldconfig &>/dev/null; then
         sudo ldconfig
     elif command -v update_dyld_shared_cache &>/dev/null; then
         sudo update_dyld_shared_cache
     fi
     echo "Protobuf v$PROTOBUF_VERSION installation completed successfully."
-    
+
     # Return to original directory
     cd "$ORIGINAL_DIR"
     return 0
@@ -132,13 +138,13 @@ else
 fi
 
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "darwin"* ]]; then
-    # Make the CLI script executable 
+    # Make the CLI script executable
     chmod +x "$CLI_PYTHON_FILE"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to make $CLI_PYTHON_FILE executable." >&2
         exit 1
     fi
-    
+
     # NOTE: Using relative paths for now. No need to add this to PATH
 
     # Create a symbolic link in /usr/local/bin (or another directory in $PATH)
@@ -155,7 +161,7 @@ if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "darwin"* ]]; then
     fi
 fi
 
-# Windows setup 
+# Windows setup
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
     BATCH_FILE="rocket.bat"
     chmod +x "$BATCH_FILE"

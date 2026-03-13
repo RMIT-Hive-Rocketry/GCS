@@ -146,7 +146,7 @@ function displayUpdateTime() {
     if (timestampApi != 0) {
         displaySetValue("fs-time-api", timestampApi, 1);
 
-        // Rocket launch time 
+        // Rocket launch time
         // TODO: Find somewhere nicer to put this in the code, this is so jank
         if (timers?.launchTimestamp != undefined) {
             const launchTime = timers.launchTimestamp == 0 ? 0 : timestampApi - timers.launchTimestamp;
@@ -224,7 +224,7 @@ function displayUpdateAuxData(data) {
     if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
-        
+
     // Solenoids
     /*
     if (data?.stateFlags) {
@@ -457,7 +457,7 @@ function displayUpdateRadio(data) {
                     displaySetState("radio-gse-state", 5); // error
                 }, 10000);
             }
-            
+
 
             // Update GSE radio data
             if (data?.meta?.rssi) {

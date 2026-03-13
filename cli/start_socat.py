@@ -13,8 +13,7 @@ class IgnoreWriteMessagesFilter(logging.Filter):
 
 
 class SocatSubprocess(process.ERRLoggedSubProcess):
-    """Subclass of the ERRLoggedSubProcess with a stop condition for callbacks.
-    """
+    """Subclass of the ERRLoggedSubProcess with a stop condition for callbacks."""
 
     def _update_callback_condition(self) -> bool:
         if self._callback_hits >= 2:
@@ -57,7 +56,9 @@ def device_name_callback(line: str, stream_name: str):
         return match.group(1)
 
 
-def start_fake_serial_device(logger: logging.Logger) -> Tuple[Optional[str], Optional[str]]:
+def start_fake_serial_device(
+    logger: logging.Logger,
+) -> Tuple[Optional[str], Optional[str]]:
     """
     Starts a fake serial device using socat and logs the output.
     Returns a tuple containing the paths of the two generated pseudo-terminals.
@@ -66,8 +67,13 @@ def start_fake_serial_device(logger: logging.Logger) -> Tuple[Optional[str], Opt
     """
     try:
 
-        SOCAT_COMMAND = ["socat", "-d", "-d",
-                         "pty,raw,echo=0", "pty,raw,echo=0"]
+        SOCAT_COMMAND = [
+            "socat",
+            "-d",
+            "-d",
+            "pty,raw,echo=0",
+            "pty,raw,echo=0",
+        ]
         logger.debug(f"Starting socat with: {SOCAT_COMMAND}")
         socat_proccess = SocatSubprocess(SOCAT_COMMAND, name="socat")
         socat_proccess.register_callback(device_name_callback)
@@ -83,7 +89,8 @@ def start_fake_serial_device(logger: logging.Logger) -> Tuple[Optional[str], Opt
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting a Socat fake serial device: {e}")
+            f"An error occurred while starting a Socat fake serial device: {e}"
+        )
         return None, None
 
     return devices

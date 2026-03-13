@@ -13,12 +13,12 @@ SUCCESS_LEVEL_NUM = 25
 logging.addLevelName(SUCCESS_LEVEL_NUM, "SUCCESS")
 
 LOG_MAPPING = {
-    'DEBUG': logging.DEBUG,
-    'INFO': logging.INFO,
-    'SUCCESS': SUCCESS_LEVEL_NUM,
-    'WARNING': logging.WARNING,
-    'ERROR': logging.ERROR,
-    'CRITICAL': logging.CRITICAL
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "SUCCESS": SUCCESS_LEVEL_NUM,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
 }
 
 
@@ -40,7 +40,7 @@ class CustomFormatter(logging.Formatter):
         SUCCESS_LEVEL_NUM: GREEN + FORMAT + RESET,
         logging.WARNING: YELLOW + FORMAT + RESET,
         logging.ERROR: RED + FORMAT + RESET,
-        logging.CRITICAL: BOLD_RED + FORMAT + RESET
+        logging.CRITICAL: BOLD_RED + FORMAT + RESET,
     }
 
     def format(self, record):
@@ -49,7 +49,7 @@ class CustomFormatter(logging.Formatter):
         if APP_START_TIME is None:
             record.post_start_s = "0000.000"
         else:
-            elapsed_s = (time.perf_counter() - APP_START_TIME)
+            elapsed_s = time.perf_counter() - APP_START_TIME
             record.post_start_s = f"{elapsed_s:09.3f}"
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
@@ -63,8 +63,8 @@ class PlainFormatter(CustomFormatter):
         # First format with the parent formatter that adds colors
         formatted_message = super().format(record)
         # Strip ANSI escape sequences using regex
-        ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-        return ansi_escape.sub('', formatted_message)
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        return ansi_escape.sub("", formatted_message)
 
 
 def create_handler(LEVEL: int = logging.DEBUG) -> logging.StreamHandler:
@@ -96,14 +96,15 @@ def initialise():
     if logger.hasHandlers():
         # Clear existing handlers to avoid duplicates
         logger.warning(
-            "Logger has been initialised before. Stop intialising it again please")
+            "Logger has been initialised before. Stop intialising it again please"
+        )
         logger.handlers.clear()
 
     config = get_config()
-    LOG_LEVEL = config['logging']['level'].strip()
+    LOG_LEVEL = config["logging"]["level"].strip()
 
     # Get log file path from config or use default
-    LOG_DIR_PATH = config['logging']['cli_log_dir'].strip()
+    LOG_DIR_PATH = config["logging"]["cli_log_dir"].strip()
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
@@ -151,10 +152,13 @@ def set_console_log_level(level_name: str):
         level = logging.INFO
 
     for handler in logger.handlers:
-        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+        if isinstance(handler, logging.StreamHandler) and not isinstance(
+            handler, logging.FileHandler
+        ):
             handler.setLevel(level)
             logger.debug(
-                f"Console log level set to {level_name} post intialisation")
+                f"Console log level set to {level_name} post intialisation"
+            )
             return
 
     logger.warning("No console handler found")

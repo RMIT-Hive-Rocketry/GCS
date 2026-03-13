@@ -42,7 +42,7 @@ CONTROLLER_MAP = {
     "BTN_START": 7,
     "BTN_LOGITECH": 8,
     "BTN_LEFT_JOYSTICK": 9,
-    "BTN_RIGHT_JOYSTICK": 10
+    "BTN_RIGHT_JOYSTICK": 10,
 }
 
 # Mapped as (button_name, is_momentary)
@@ -85,8 +85,9 @@ KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
 # fml again
 BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
-LOCK_FILE_GSE_RESPONSE_PATH: str = config.get_config(
-)["locks"]["lock_file_gse_response_path"]
+LOCK_FILE_GSE_RESPONSE_PATH: str = config.get_config()["locks"][
+    "lock_file_gse_response_path"
+]
 
 pressed_states = {button: False for button in CONTROLLER_MAP.keys()}
 pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]] = True
@@ -100,7 +101,7 @@ controller_offline = True
 N2O_FILLING = False
 N2O_FILL_START_TIME = time.monotonic()
 N2O_FILLING_LAST = N2O_FILLING
-N2O_EXPECTED_FILL_TIME = 2*60 + 10
+N2O_EXPECTED_FILL_TIME = 2 * 60 + 10
 TOTAL_N2O_FILL_TIMES = []
 
 stop_event = threading.Event()
@@ -150,10 +151,11 @@ def setup_controller() -> Optional[pygame.joystick.JoystickType]:
 
     if joystick.get_name() != "Logitech Gamepad F710":
         slogger.error(
-            f"Invalid controller detected. Please use F710 controller. Found: {joystick.get_name()}")
+            f"Invalid controller detected. Please use F710 controller. Found: {joystick.get_name()}"
+        )
         raise RuntimeError("Invalid controller type")
 
-    slogger.info(f"Controller initialized: {joystick.get_name()}")
+    slogger.info(f"Controller emulator initialized: {joystick.get_name()}")
     return joystick
 
 
@@ -168,11 +170,14 @@ def print_information():
         N2O = enum.auto()
         NEUTRAL = enum.auto()
 
-    def _handle_truth_value(TRUTH_VALUES: Dict[str, bool], COLOUR: str) -> Tuple[str, Union[system_selection, gas_selection]]:
+    def _handle_truth_value(
+        TRUTH_VALUES: Dict[str, bool], COLOUR: str
+    ) -> Tuple[str, Union[system_selection, gas_selection]]:
         MAX_VALUE_LENGTH = max(len(x) for x in TRUTH_VALUES.keys())
         if list(TRUTH_VALUES.values()).count(True) > 1:
             slogger.error(
-                "Invalid system select state when printing information")
+                "Invalid system select state when printing information"
+            )
             slogger.debug(TRUTH_VALUES)
             return MAX_VALUE_LENGTH * "X"
         # Return first truth value
@@ -197,22 +202,29 @@ def print_information():
                     enum = gas_selection.NEUTRAL
                 case _:
                     slogger.error(
-                        "Invalid system select state enum when printing information")
+                        "Invalid system select state enum when printing information"
+                    )
             return (text, enum)
 
     def get_system_select_values() -> Tuple[str, system_selection]:
         TRUTH_VALUES = {
-            "GAS": pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_GAS'][0]],
-            "IGNITION": pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_IGNITION'][0]],
-            "NEUTRAL": pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_NEUTRAL'][0]],
+            "GAS": pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0]],
+            "IGNITION": pressed_states[
+                KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0]
+            ],
+            "NEUTRAL": pressed_states[
+                KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]
+            ],
         }
         return _handle_truth_value(TRUTH_VALUES, ansci.BG_YELLOW)
 
     def get_gas_select_values() -> Tuple[str, gas_selection]:
         TRUTH_VALUES = {
-            "PURGE": pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_PURGE'][0]],
-            "N20": pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_N2O'][0]],
-            "NEUTRAL": pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_NEUTRAL'][0]],
+            "PURGE": pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0]],
+            "N20": pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0]],
+            "NEUTRAL": pressed_states[
+                KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]
+            ],
         }
         return _handle_truth_value(TRUTH_VALUES, ansci.BG_MAGENTA)
 
@@ -222,21 +234,37 @@ def print_information():
         else:
             return ansci.BG_RED + "OFF" + ansci.RESET
 
-    def gas_information_text(HIGHLIGHT: bool, GAS_FILL_TEXT, GAS_GO: bool) -> str:
+    def gas_information_text(
+        HIGHLIGHT: bool, GAS_FILL_TEXT, GAS_GO: bool
+    ) -> str:
         output = ""
         if HIGHLIGHT:
             output += ansci.FG_RED + ansci.BOLD
             output += "FILL TYPE:" + ansci.RESET + GAS_FILL_TEXT
             output += ansci.FG_RED + ansci.BOLD
-            output += "GASDM:" + ansci.RESET + ansci.BG_BLUE + ansci.FG_WHITE + \
-                ("YES" if GAS_GO else "NO ") + ansci.RESET
+            output += (
+                "GASDM:"
+                + ansci.RESET
+                + ansci.BG_BLUE
+                + ansci.FG_WHITE
+                + ("YES" if GAS_GO else "NO ")
+                + ansci.RESET
+            )
         else:
             output += "FILL TYPE:" + ansci.RESET + GAS_FILL_TEXT
-            output += "GASDM:" + ansci.RESET + ansci.BG_BLUE + ansci.FG_WHITE + \
-                ("YES" if GAS_GO else "NO ") + ansci.RESET
+            output += (
+                "GASDM:"
+                + ansci.RESET
+                + ansci.BG_BLUE
+                + ansci.FG_WHITE
+                + ("YES" if GAS_GO else "NO ")
+                + ansci.RESET
+            )
         return output
 
-    def ignition_information_text(HIGHLIGHT: bool, O2_GO: bool, IGNITION_GO: bool) -> str:
+    def ignition_information_text(
+        HIGHLIGHT: bool, O2_GO: bool, IGNITION_GO: bool
+    ) -> str:
         output = ""
         if O2_GO:
             O2_TEXT = ansci.BG_BLACK + ansci.FG_WHITE + "FILL" + ansci.RESET
@@ -258,10 +286,14 @@ def print_information():
             output += ansci.RESET
         return output
 
-    def get_final_status_text(ON, GAS_GO, O2_GO, IGNITION_GO,
-                              SYSTEM_SELECT: system_selection,
-                              GAS_SELECT: gas_selection
-                              ) -> str:
+    def get_final_status_text(
+        ON,
+        GAS_GO,
+        O2_GO,
+        IGNITION_GO,
+        SYSTEM_SELECT: system_selection,
+        GAS_SELECT: gas_selection,
+    ) -> str:
         global N2O_FILLING, N2O_FILL_START_TIME
         if not ON:
             N2O_FILLING = False
@@ -307,19 +339,29 @@ def print_information():
         return
     with state_lock:
         # Get logical states for computation
-        ON: bool = pressed_states[KEY_MAP['TOGGLE_SYSTEM_ACTIVE'][0]]
-        GAS_DM: bool = pressed_states[KEY_MAP['GAS_DEADMAN'][0]]
-        IGNITION_DM: bool = pressed_states[KEY_MAP['IGNITION_DEADMAN'][0]]
-        IGNITION_FIRE: bool = pressed_states[KEY_MAP['IGNITION_FIRE'][0]]
-        O2_MOMENTRAY: bool = pressed_states[KEY_MAP['O2_MOMENTARY'][0]]
+        ON: bool = pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]]
+        GAS_DM: bool = pressed_states[KEY_MAP["GAS_DEADMAN"][0]]
+        IGNITION_DM: bool = pressed_states[KEY_MAP["IGNITION_DEADMAN"][0]]
+        IGNITION_FIRE: bool = pressed_states[KEY_MAP["IGNITION_FIRE"][0]]
+        O2_MOMENTRAY: bool = pressed_states[KEY_MAP["O2_MOMENTARY"][0]]
 
         SYSTEM_SELECT_TEXT, SYSTEM_SELECT = get_system_select_values()
         GAS_SELECT_TEXT, GAS_SELECT = get_gas_select_values()
         ON_TEXT: str = format_on(ON)
 
     GAS_GO = GAS_DM and ON and SYSTEM_SELECT == system_selection.GAS
-    O2_GO = IGNITION_DM and O2_MOMENTRAY and ON and SYSTEM_SELECT == system_selection.IGNITION
-    IGNITION_GO = IGNITION_DM and IGNITION_FIRE and ON and SYSTEM_SELECT == system_selection.IGNITION
+    O2_GO = (
+        IGNITION_DM
+        and O2_MOMENTRAY
+        and ON
+        and SYSTEM_SELECT == system_selection.IGNITION
+    )
+    IGNITION_GO = (
+        IGNITION_DM
+        and IGNITION_FIRE
+        and ON
+        and SYSTEM_SELECT == system_selection.IGNITION
+    )
 
     global N2O_FILLING_LAST, TOTAL_N2O_FILL_TIMES
     filling_n2o = GAS_GO and GAS_SELECT == gas_selection.N2O
@@ -341,11 +383,14 @@ def print_information():
             print(gas_information_text(False, GAS_SELECT_TEXT, GAS_GO), end="")
             print(ignition_information_text(False, O2_GO, IGNITION_GO), end="")
 
-    print(ansci.BG_GREEN + ansci.FG_BLACK +
-          get_final_status_text(
-              ON, GAS_GO, O2_GO, IGNITION_GO, SYSTEM_SELECT, GAS_SELECT)
-          + ansci.RESET
-          )
+    print(
+        ansci.BG_GREEN
+        + ansci.FG_BLACK
+        + get_final_status_text(
+            ON, GAS_GO, O2_GO, IGNITION_GO, SYSTEM_SELECT, GAS_SELECT
+        )
+        + ansci.RESET
+    )
 
 
 def handle_controller_events():
@@ -362,7 +407,11 @@ def handle_controller_events():
     firstAddedEvent = True
     while not stop_event.is_set():
         if N2O_FILLING:
-            total_secs = time.monotonic() - N2O_FILL_START_TIME + sum(TOTAL_N2O_FILL_TIMES)
+            total_secs = (
+                time.monotonic()
+                - N2O_FILL_START_TIME
+                + sum(TOTAL_N2O_FILL_TIMES)
+            )
             total_ms = int(total_secs * 1000)
             minutes = total_ms // 60000
             seconds = (total_ms % 60000) // 1000
@@ -370,7 +419,7 @@ def handle_controller_events():
             percentage = total_secs / N2O_EXPECTED_FILL_TIME * 100
             print(
                 f"\rFilling N2O for {total_secs:.2f} s | {minutes:02}:{seconds:02}.{milliseconds:03} | ~{percentage:.2f}%",
-                end=""
+                end="",
             )
         if joystick is not None:
             events = pygame.event.get()
@@ -393,7 +442,8 @@ def handle_controller_events():
                     case pygame.JOYDEVICEADDED:
                         if not firstAddedEvent:
                             slogger.info(
-                                "Controller online. Restart likely required. Maintaining fallback state")
+                                "Controller online. Restart likely required. Maintaining fallback state"
+                            )
                             controller_offline = True  # This is default behaviour for F710 controller
                             firstAddedEvent = False
         else:
@@ -404,7 +454,7 @@ def handle_controller_events():
         with state_lock:
             # Thread safe instance copy
             current_states = pressed_states.copy()
-        if (current_states != previous_pressed_states or first_time):
+        if current_states != previous_pressed_states or first_time:
             # Print on change. Many STDOUT ANSI writes are expensive
             print_information()
             first_time = False
@@ -433,21 +483,28 @@ def handle_button_press(button_id, pressed):
                     # Only operate this on a press, not on a release
                     if KEY_MAP_INVERSE[button_name] == "TOGGLE_SYSTEM_ACTIVE":
                         # Repeated press toggle logic for SPST
-                        pressed_states[button_name] = not pressed_states[button_name]
+                        pressed_states[button_name] = not pressed_states[
+                            button_name
+                        ]
                     else:
                         # Set state to true, set others to false logic. for non SPST
                         pressed_states[button_name] = True
-                    action = "toggled " + \
-                        ("on" if pressed_states[button_name] else "off")
+                    action = "toggled " + (
+                        "on" if pressed_states[button_name] else "off"
+                    )
                     # Now if you operated on the SPDT, or rotary, you need to turn off the other options
                     # A SPST switch doesn't need this because it only has one state
-                    system_rotary_options = [KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0],
-                                             KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0],
-                                             KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]]
+                    system_rotary_options = [
+                        KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0],
+                        KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0],
+                        KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0],
+                    ]
 
-                    gas_rotary_options = [KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0],
-                                          KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0],
-                                          KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]]
+                    gas_rotary_options = [
+                        KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0],
+                        KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0],
+                        KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0],
+                    ]
 
                     if button_name in gas_rotary_options:
                         gas_rotary_options.remove(button_name)
@@ -469,15 +526,15 @@ def handle_button_press(button_id, pressed):
 def validate_switch_states():
     """Check if states are ok. This is called in state lock when creating packets. Please be careful not to deadlock"""
     gas_rotary_values = [
-        pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_PURGE'][0]],
-        pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_N2O'][0]],
-        pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_NEUTRAL'][0]],
+        pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0]],
+        pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0]],
+        pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]],
     ]
 
     system_rotary_values = [
-        pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_GAS'][0]],
-        pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_IGNITION'][0]],
-        pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_NEUTRAL'][0]],
+        pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0]],
+        pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0]],
+        pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_NEUTRAL"][0]],
     ]
 
     # Validate input states. Check for physically impossible states
@@ -487,12 +544,14 @@ def validate_switch_states():
     # Rotray switch must have only 1 active state
     if not gas_rotary_values.count(True) == 1:
         slogger.error(
-            f"Only 1 gas rotary value should be active. Getting: {gas_rotary_values}")
+            f"Only 1 gas rotary value should be active. Getting: {gas_rotary_values}"
+        )
         pprint(pressed_states)
         error_present = True
     if not system_rotary_values.count(True) == 1:
         slogger.error(
-            f"Only 1 system rotary value should be active. Getting: {system_rotary_values}")
+            f"Only 1 system rotary value should be active. Getting: {system_rotary_values}"
+        )
         pprint(pressed_states)
         error_present = True
 
@@ -506,32 +565,52 @@ def calculate_states() -> Union[Dict[str, bool], bool]:
         if not validate_switch_states():
             return False
 
-        SYS_ON = pressed_states[KEY_MAP['TOGGLE_SYSTEM_ACTIVE'][0]]
+        SYS_ON = pressed_states[KEY_MAP["TOGGLE_SYSTEM_ACTIVE"][0]]
 
         # Gas DM is used becuase the rotary switches are spring loaded
         # But our simulation only uses toggle buttons
-        GAS_DM = pressed_states[KEY_MAP['GAS_DEADMAN'][0]]
-        GAS_SEL = pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_GAS'][0]]
+        GAS_DM = pressed_states[KEY_MAP["GAS_DEADMAN"][0]]
+        GAS_SEL = pressed_states[KEY_MAP["SYSTEM_SELECT_TOGGLE_GAS"][0]]
 
         # GAS_GO = GAS_DM and GAS_SEL
-        IGNITION_DM = pressed_states[KEY_MAP['IGNITION_DEADMAN'][0]]
-        IGNITION_SEL = pressed_states[KEY_MAP['SYSTEM_SELECT_TOGGLE_IGNITION'][0]]
+        IGNITION_DM = pressed_states[KEY_MAP["IGNITION_DEADMAN"][0]]
+        IGNITION_SEL = pressed_states[
+            KEY_MAP["SYSTEM_SELECT_TOGGLE_IGNITION"][0]
+        ]
 
         # If system is off, the actual pendant GPIO pins will go LOW
         # Enforce electrical GPIO validity based on GPIO layouts
         states = {
-            "MANUAL_PURGE": SYS_ON and GAS_SEL and GAS_DM and pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_PURGE'][0]],
-            "O2_FILL_ACTIVATE": SYS_ON and IGNITION_SEL and IGNITION_DM and pressed_states[KEY_MAP['O2_MOMENTARY'][0]],
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": SYS_ON and GAS_SEL and GAS_DM and pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_NEUTRAL'][0]],
-            "N2O_FILL_ACTIVATE": SYS_ON and GAS_SEL and GAS_DM and pressed_states[KEY_MAP['GAS_SELECTION_ROTARY_N2O'][0]],
-            "IGNITION_FIRE": SYS_ON and IGNITION_SEL and IGNITION_DM and pressed_states[KEY_MAP['IGNITION_FIRE'][0]],
+            "MANUAL_PURGE": SYS_ON
+            and GAS_SEL
+            and GAS_DM
+            and pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_PURGE"][0]],
+            "O2_FILL_ACTIVATE": SYS_ON
+            and IGNITION_SEL
+            and IGNITION_DM
+            and pressed_states[KEY_MAP["O2_MOMENTARY"][0]],
+            "SELECTOR_SWITCH_NEUTRAL_POSITION": SYS_ON
+            and GAS_SEL
+            and GAS_DM
+            and pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_NEUTRAL"][0]],
+            "N2O_FILL_ACTIVATE": SYS_ON
+            and GAS_SEL
+            and GAS_DM
+            and pressed_states[KEY_MAP["GAS_SELECTION_ROTARY_N2O"][0]],
+            "IGNITION_FIRE": SYS_ON
+            and IGNITION_SEL
+            and IGNITION_DM
+            and pressed_states[KEY_MAP["IGNITION_FIRE"][0]],
             "IGNITION_SELECTED": SYS_ON and IGNITION_SEL and IGNITION_DM,
             "GAS_FILL_SELECTED": SYS_ON and GAS_SEL and GAS_DM,
             "SYSTEM_ACTIVATE": SYS_ON,
         }
 
         # final state validation
-        if any(not isinstance(x, bool) for x in states.values()) or len(states) != 8:
+        if (
+            any(not isinstance(x, bool) for x in states.values())
+            or len(states) != 8
+        ):
             slogger.error(f"Missing/invalid states: {states}")
             return False
 
@@ -565,8 +644,8 @@ def send_packet():
     LINGER_TIME_MS = 300
     try:
         push_socket = context.socket(zmq.PUSH)
-        SOCKET_PATH = os.path.abspath(os.path.join(
-            os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
+        SOCKET_PATH = os.path.abspath(
+            os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
         # Wait LINGER_TIME_MS before giving up on push request
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
@@ -584,11 +663,14 @@ def send_packet():
             state_command = device_emulator.GCStoGSEStateCMD(**states)
             try:
                 push_socket.send(
-                    state_command.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK)
+                    state_command.get_payload_bytes(EXTERNAL=True),
+                    flags=zmq.NOBLOCK,
+                )
             except zmq.ZMQError:
                 # Queue is likely full
                 slogger.warning(
-                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping")
+                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping"
+                )
                 time.sleep(1)
             # No need to go full blast. Socket will fill up
             time.sleep(0.2)
@@ -603,7 +685,8 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.get_config()['emulation'])
+        config.get_config()["emulation"]
+    )
     slogger.debug("Starting pendant emulator")
 
     signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C

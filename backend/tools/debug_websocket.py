@@ -20,6 +20,7 @@ async def pretty_print_json(uri):
             print("WebSocket connection lost. Reconnecting in 1s...")
             await asyncio.sleep(1)
 
+
 if __name__ == "__main__":
     uri = "ws://localhost:1887"
     asyncio.run(pretty_print_json(uri))

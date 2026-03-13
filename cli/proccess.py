@@ -6,11 +6,12 @@ import threading
 from queue import Queue
 import backend.includes_python.process_logging as slogger
 
-logger = logging.getLogger('rocket')
+logger = logging.getLogger("rocket")
 
 
 class LoggedSubProcess:
     """Object to manage subproccess called by this CLI with centralised logging"""
+
     # All instances of this class.
     _instances = []
     # Flag to control cleanup behavior. True means it will cleanup automatically
@@ -18,11 +19,13 @@ class LoggedSubProcess:
     # How long to wait for the process to finish before killing it
     CLEANUP_TIMEOUT_S = 3
 
-    def __init__(self,
-                 command: List[str],
-                 name: Optional[str] = None,
-                 env: Optional[dict] = None,
-                 parse_output: bool = False):
+    def __init__(
+        self,
+        command: List[str],
+        name: Optional[str] = None,
+        env: Optional[dict] = None,
+        parse_output: bool = False,
+    ):
         """
         Args:
             command (List[str]): List of terminal arguments to run the subprocess
@@ -30,10 +33,13 @@ class LoggedSubProcess:
             env (Optional[dict], optional): Environment variables. Defaults to None.
             parse_output (bool): Parse output for logging levels? Defaults to False. Set this to true if you are using the slogger subprocess logging system.
         """
-        self._parent_logger = logging.getLogger('rocket')
-        if (any("python" in arg for arg in command) and not any("-u" in arg for arg in command)):
+        self._parent_logger = logging.getLogger("rocket")
+        if any("python" in arg for arg in command) and not any(
+            "-u" in arg for arg in command
+        ):
             self._parent_logger.warning(
-                "Python subprocesses must have the `-u` flag to prevent buffering")
+                "Python subprocesses must have the `-u` flag to prevent buffering"
+            )
         self._command = command
         self._name = name or " ".join(command)
         self._process = None
@@ -44,13 +50,14 @@ class LoggedSubProcess:
         self._env = env
         # Use logger_adaptor to log from this class
         self._logger_adapter = logging.LoggerAdapter(
-            self._parent_logger,
-            extra={"subprocess_name": self._name}
+            self._parent_logger, extra={"subprocess_name": self._name}
         )
         self._stop_callbacks: bool = False
         self._callback_data_available = threading.Event()
         self._callbacks = []
-        self._callback_hits: int = 0  # Amount of callbacks that have returned values
+        self._callback_hits: int = (
+            0  # Amount of callbacks that have returned values
+        )
         self._parsed_data = Queue()  # Thread-safe queue apparently
         self.__class__._instances.append(self)
 
@@ -58,12 +65,11 @@ class LoggedSubProcess:
         """Register a callback to be called when a specific line is detected"""
         if self._process is not None:
             self._logger_adapter.warning(
-                "You have added callbacks after process has started. Race conditions possible")
-        self._logger_adapter.debug(
-            f"Registering callback: {callback.__name__}")
+                "You have added callbacks after process has started. Race conditions possible"
+            )
+        self._logger_adapter.debug(f"Registering callback: {callback.__name__}")
         self._callbacks.append(callback)
-        self._logger_adapter.debug(
-            f"Registered  callback: {callback.__name__}")
+        self._logger_adapter.debug(f"Registered  callback: {callback.__name__}")
 
     def start(self):
         """Start the subprocess and monitor its output asynchronously"""
@@ -74,18 +80,21 @@ class LoggedSubProcess:
             text=True,
             bufsize=1,
             env=self._env,
-            start_new_session=True  # For SIGINT handling with cleanup method
+            start_new_session=True,  # For SIGINT handling with cleanup method
         )
         self._logger_adapter.info(
-            f"Started subprocess: {self._name} (PID: {self._process.pid})")
+            f"Started subprocess: {self._name} (PID: {self._process.pid})"
+        )
         self._stdout_thread = threading.Thread(
             target=self._monitor_stream,
             args=(self._process.stdout, "STDOUT"),
-            name=f"{self._name}_STDOUT")
+            name=f"{self._name}_STDOUT",
+        )
         self._stderr_thread = threading.Thread(
             target=self._monitor_stream,
             args=(self._process.stderr, "STDERR"),
-            name=f"{self._name}_STDERR")
+            name=f"{self._name}_STDERR",
+        )
         self._stdout_thread.daemon = True
         self._stderr_thread.daemon = True
         self._stdout_thread.start()
@@ -109,12 +118,17 @@ class LoggedSubProcess:
             # instantiated but never started. It should not be needed if
             # everything starts fine
             INSTANCE_DEBUG_PID = [
-                f'({x._name}: {x._process.pid})' for x in self.__class__._instances if x._process is not None]
+                f"({x._name}: {x._process.pid})"
+                for x in self.__class__._instances
+                if x._process is not None
+            ]
             self._logger_adapter.debug(
-                f"Remaining instances: {INSTANCE_DEBUG_PID}")
+                f"Remaining instances: {INSTANCE_DEBUG_PID}"
+            )
         except ValueError:
             self._logger_adapter.error(
-                f"Failed to close my subprocess: {self._name} (PID:{self._process.pid})")
+                f"Failed to close my subprocess: {self._name} (PID:{self._process.pid})"
+            )
 
     def _update_callback_condition(self) -> bool:
         """Should callbacks stop? If this returns `False` callbacks will continue. `True` will permanently stop all callbacks.
@@ -139,10 +153,9 @@ class LoggedSubProcess:
                 self._callback_hits += 1
                 self._callback_data_available.set()
 
-    def _log_monitored_stream(self,
-                              stripped_line: str,
-                              stream_name: str,
-                              level: Optional[str]) -> None:
+    def _log_monitored_stream(
+        self, stripped_line: str, stream_name: str, level: Optional[str]
+    ) -> None:
         """When given a line and it's origin stream, log it with the appropriate level
 
         Args:
@@ -170,7 +183,8 @@ class LoggedSubProcess:
                 else:
                     if stream_name == "STDERR":
                         self._logger_adapter.error(
-                            _format(stream_name, stripped_line))
+                            _format(stream_name, stripped_line)
+                        )
                     else:
                         self._logger_adapter.debug(
                             _format(stream_name, stripped_line)
@@ -181,15 +195,18 @@ class LoggedSubProcess:
                 self._logger_adapter.info(_format(stream_name, stripped_line))
             case "SUCCESS":
                 self._logger_adapter.success(
-                    _format(stream_name, stripped_line))
+                    _format(stream_name, stripped_line)
+                )
             case "WARNING":
                 self._logger_adapter.warning(
-                    _format(stream_name, stripped_line))
+                    _format(stream_name, stripped_line)
+                )
             case "ERROR":
                 self._logger_adapter.error(_format(stream_name, stripped_line))
             case "CRITICAL":
                 self._logger_adapter.critical(
-                    _format(stream_name, stripped_line))
+                    _format(stream_name, stripped_line)
+                )
             case _:
                 # Level was found but not in an expected format
                 self._logger_adapter.error(
@@ -197,7 +214,7 @@ class LoggedSubProcess:
                 )
 
     def _monitor_stream(self, stream, stream_name):
-        for line in iter(stream.readline, ''):
+        for line in iter(stream.readline, ""):
             line = line.strip()
             if line:  # Non-empty lines by 'truthy' check of blank string
                 if self._PARSE_OUTPUT:
@@ -206,7 +223,7 @@ class LoggedSubProcess:
                 else:
                     level = None
                 # remove level prefix
-                line = re.sub(slogger.REGEX_MATCH, '', line)
+                line = re.sub(slogger.REGEX_MATCH, "", line)
                 self._log_monitored_stream(line, stream_name, level)
                 if self._stop_callbacks == False:
                     self._run_callbacks(line, stream_name)
@@ -216,7 +233,8 @@ class LoggedSubProcess:
         """Retrieve parsed data from the queue. This will empty the queue of course"""
         if self._process is None:
             raise RuntimeError(
-                "Cannot get data for a process that has not started or has already stopped")
+                "Cannot get data for a process that has not started or has already stopped"
+            )
         self._callback_data_available.wait()  # Wait for the thread to set event
         data = []
         while not self._parsed_data.empty():

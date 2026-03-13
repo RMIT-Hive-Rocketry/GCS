@@ -25,7 +25,9 @@ import threading
 class MockPacket(ABC):
     # Name of the fake device socat has made
     _FAKE_DEVICE_NAME: Optional[str] = None
-    _INITIALISED: bool = False  # Flag to check if the settings have been initialized
+    _INITIALISED: bool = (
+        False  # Flag to check if the settings have been initialized
+    )
     _write_lock = threading.Lock()
 
     class _SourceDevice(enum.Enum):
@@ -34,10 +36,12 @@ class MockPacket(ABC):
         GCS = enum.auto()
 
     @classmethod
-    def initialize_settings(cls,
-                            EMULATION_CONFIG: dict,
-                            FAKE_DEVICE_NAME: str = None,
-                            INTERFACE_TYPE: InterfaceType = InterfaceType.TEST):
+    def initialize_settings(
+        cls,
+        EMULATION_CONFIG: dict,
+        FAKE_DEVICE_NAME: str = None,
+        INTERFACE_TYPE: InterfaceType = InterfaceType.TEST,
+    ):
         """Initialise settings for the MockPacket object
 
         Args:
@@ -55,14 +59,17 @@ class MockPacket(ABC):
         cls._INITIALISED = True
         MockPacket._INTERFACE_TYPE = INTERFACE_TYPE
         MockPacket._NOISE_COEFFICIENT = float(
-            EMULATION_CONFIG["noise_coefficient"])
+            EMULATION_CONFIG["noise_coefficient"]
+        )
         MockPacket._PACKET_LOSS = float(
-            EMULATION_CONFIG["packet_loss"])  # [0-1]
+            EMULATION_CONFIG["packet_loss"]
+        )  # [0-1]
 
     def __init__(self):
         if not self._INITIALISED:
             raise RuntimeError(
-                "Cannot create instances of MockPacket or its subclasses before initializing class settings.")
+                "Cannot create instances of MockPacket or its subclasses before initializing class settings."
+            )
         self.ID: Optional[int] = None  # Packet ID
         # High level payload builder
         self.payload_after_id_and_meta: Optional[List[bytes]] = None
@@ -76,15 +83,17 @@ class MockPacket(ABC):
         try:
             payload_bytes = self.get_payload_bytes()
             with MockPacket._write_lock:
-                with open(self._FAKE_DEVICE_NAME, 'wb') as device:
+                with open(self._FAKE_DEVICE_NAME, "wb") as device:
                     device.write(payload_bytes)
         except Exception as e:
             slogger.error(
-                f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}")
+                f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}"
+            )
             raise
 
     def get_payload_bytes(self, EXTERNAL=False) -> bytes:
         """Concatenates the ID and payload fragments into a single bytes object."""
+
         def _format_test_payload() -> bytes:
             output_bytes = bytearray()
             output_bytes.extend(metric.Metric._int_to_byte_unsigned(self.ID))
@@ -105,17 +114,21 @@ class MockPacket(ABC):
             # +TEST: RX
             # "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
             # ...
-            CRLF = '\r\n'
-            header = f"+TEST: LEN:{len(self.payload_after_id_and_meta)+1}, RSSI:{int(round(self.RSSI))}, SNR:{int(round(self.SNR))}"+CRLF
+            CRLF = "\r\n"
+            header = (
+                f"+TEST: LEN:{len(self.payload_after_id_and_meta)+1}, RSSI:{int(round(self.RSSI))}, SNR:{int(round(self.SNR))}"
+                + CRLF
+            )
             header_suffix = "+TEST: RX" + "\n"
             data_payload_bytes = bytearray()
             data_payload_bytes.extend(
-                metric.Metric._int_to_byte_unsigned(self.ID))
+                metric.Metric._int_to_byte_unsigned(self.ID)
+            )
             for fragment in self.payload_after_id_and_meta:
                 data_payload_bytes.extend(fragment)
             data_payload_hex_line = f'"{data_payload_bytes.hex()}"' + CRLF
             output_string = header + header_suffix + data_payload_hex_line
-            return output_string.encode('ascii')
+            return output_string.encode("ascii")
 
         match MockPacket._INTERFACE_TYPE:
             case InterfaceType.TEST:
@@ -125,7 +138,6 @@ class MockPacket(ABC):
 
 
 class GCStoGSEStateCMD(MockPacket):
-
     def __init__(
         self,
         RSSI: float = 0.0,
@@ -145,23 +157,27 @@ class GCStoGSEStateCMD(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id_and_meta = [
-            metric.Metric.StateSetFlags2p1(MANUAL_PURGE,
-                                           O2_FILL_ACTIVATE,
-                                           SELECTOR_SWITCH_NEUTRAL_POSITION,
-                                           N2O_FILL_ACTIVATE,
-                                           IGNITION_FIRE,
-                                           IGNITION_SELECTED,
-                                           GAS_FILL_SELECTED,
-                                           SYSTEM_ACTIVATE,),
-            metric.Metric.StateSetFlagINVERTEDs2p2(MANUAL_PURGE,
-                                                   O2_FILL_ACTIVATE,
-                                                   SELECTOR_SWITCH_NEUTRAL_POSITION,
-                                                   N2O_FILL_ACTIVATE,
-                                                   IGNITION_FIRE,
-                                                   IGNITION_SELECTED,
-                                                   GAS_FILL_SELECTED,
-                                                   SYSTEM_ACTIVATE,),
-            metric.Metric.dummyByte()
+            metric.Metric.StateSetFlags2p1(
+                MANUAL_PURGE,
+                O2_FILL_ACTIVATE,
+                SELECTOR_SWITCH_NEUTRAL_POSITION,
+                N2O_FILL_ACTIVATE,
+                IGNITION_FIRE,
+                IGNITION_SELECTED,
+                GAS_FILL_SELECTED,
+                SYSTEM_ACTIVATE,
+            ),
+            metric.Metric.StateSetFlagINVERTEDs2p2(
+                MANUAL_PURGE,
+                O2_FILL_ACTIVATE,
+                SELECTOR_SWITCH_NEUTRAL_POSITION,
+                N2O_FILL_ACTIVATE,
+                IGNITION_FIRE,
+                IGNITION_SELECTED,
+                GAS_FILL_SELECTED,
+                SYSTEM_ACTIVATE,
+            ),
+            metric.Metric.dummyByte(),
         ]
 
 
@@ -194,7 +210,7 @@ class GCStoAVStateCMD(MockPacket):
                 APOGEE_SECONDARY_TEST,
                 APROGEE_PRIMARY_TEST,
             ),
-            metric.Metric.BroadcastBeginCMDFlags(BEGIN_BROADCAST)
+            metric.Metric.BroadcastBeginCMDFlags(BEGIN_BROADCAST),
         ]
 
 
@@ -217,15 +233,15 @@ class AVtoGCSData1(MockPacket):
         GPS_FIX_FLAG=False,
         PAYLOAD_CONNECTION_FLAG=True,
         CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=2048*1,
-        ACCEL_LOW_Y=2048*2,
-        ACCEL_LOW_Z=-2048*3,
-        ACCEL_HIGH_X=-1024*1,
-        ACCEL_HIGH_Y=-1024*2,
-        ACCEL_HIGH_Z=1024*3,
-        GYRO_X=int(1/0.00875),
-        GYRO_Y=int(2/0.00875),
-        GYRO_Z=int(3/0.00875),
+        ACCEL_LOW_X=2048 * 1,
+        ACCEL_LOW_Y=2048 * 2,
+        ACCEL_LOW_Z=-2048 * 3,
+        ACCEL_HIGH_X=-1024 * 1,
+        ACCEL_HIGH_Y=-1024 * 2,
+        ACCEL_HIGH_Z=1024 * 3,
+        GYRO_X=int(1 / 0.00875),
+        GYRO_Y=int(2 / 0.00875),
+        GYRO_Z=int(3 / 0.00875),
         ALTITUDE=1234,
         VELOCITY=1234,
         APOGEE_PRIMARY_TEST_COMPETE=True,
@@ -236,9 +252,9 @@ class AVtoGCSData1(MockPacket):
         MAIN_SECONDARY_TEST_COMPETE=False,
         MAIN_PRIMARY_TEST_RESULTS=False,
         MAIN_SECONDARY_TEST_RESULTS=False,
-        MOVE_TO_BROADCAST=False
+        MOVE_TO_BROADCAST=False,
     ):
-        super().    __init__()
+        super().__init__()
         self.ID = 0x03
         self.RSSI = RSSI
         self.SNR = SNR
@@ -277,7 +293,7 @@ class AVtoGCSData1(MockPacket):
             ),
             metric.Metric.MovingToBroadCastFlag(MOVE_TO_BROADCAST),
             # Note the dummy byte here for TBC purposes
-            metric.Metric.dummyByte()
+            metric.Metric.dummyByte(),
         ]
 
 
@@ -350,7 +366,7 @@ class AVtoGCSData3(MockPacket):
                 CAMERA_CONTROLLER_CONNECTION,
             ),
             # TBC for rest of the bytes?
-        ] + [metric.Metric.dummyByte()]*30
+        ] + [metric.Metric.dummyByte()] * 30
 
 
 class GSEtoGCSData1(MockPacket):
@@ -430,7 +446,7 @@ class GSEtoGCSData1(MockPacket):
                 TRANSDUCER_3_ERROR,
                 TRANSDUCER_2_ERROR,
                 TRANSDUCER_1_ERROR,
-            )
+            ),
         ]
 
 
@@ -513,12 +529,18 @@ class GSEtoGCSData2(MockPacket):
                 TRANSDUCER_3_ERROR,
                 TRANSDUCER_2_ERROR,
                 TRANSDUCER_1_ERROR,
-            )
+            ),
         ]
 
 
-def sinusoid(t: float, min: float, max: float, period: float,
-             phase: float, apply_noise: bool = True) -> float:
+def sinusoid(
+    t: float,
+    min: float,
+    max: float,
+    period: float,
+    phase: float,
+    apply_noise: bool = True,
+) -> float:
     """Generate sinusoidal value for simulation purposes
 
     Args:
@@ -539,8 +561,10 @@ def sinusoid(t: float, min: float, max: float, period: float,
 
     if apply_noise:
         noise_range_abs = amplitude * MockPacket._NOISE_COEFFICIENT
-        base *= 1-MockPacket._NOISE_COEFFICIENT  # Make space for noise
-        noise = MockPacket._NOISE_COEFFICIENT * random.random() * noise_range_abs
+        base *= 1 - MockPacket._NOISE_COEFFICIENT  # Make space for noise
+        noise = (
+            MockPacket._NOISE_COEFFICIENT * random.random() * noise_range_abs
+        )
         return base + noise
 
     return base
@@ -555,10 +579,12 @@ def changing_int(t: float, min: int, max: int, wait_time_s: float):
 
 def changing_bool(t: float, wait_time_s: float = 1):
     """Bool changing every `wait_time_s` seconds"""
-    return t % wait_time_s*2 > wait_time_s
+    return t % wait_time_s * 2 > wait_time_s
 
 
-def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3):
+def corrupt_packet(
+    packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3
+):
     """Corrupts data inside a packet with random bit flips
 
     Args:
@@ -566,7 +592,9 @@ def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption
         corruption_chance (float): Chance of packet being corrupted [0, 1]
         max_corruption (float): Max percentage of bits flipped [0, 1]
     """
-    assert 0 <= corruption_chance <= 1, "Corruption chance must be between 0 and 1"
+    assert (
+        0 <= corruption_chance <= 1
+    ), "Corruption chance must be between 0 and 1"
     assert 0 <= max_corruption <= 1, "Max corruption must be between 0 and 1"
 
     if random.random() <= corruption_chance:
@@ -578,26 +606,31 @@ def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption
             # Get packed bits of value
             packed = None
             if isinstance(value, bool):
-                packed = struct.pack('?', value)
+                packed = struct.pack("?", value)
             elif isinstance(value, int):
-                packed = struct.pack('i', value)
+                packed = struct.pack("i", value)
             elif isinstance(value, float):
-                packed = struct.pack('f', value)
+                packed = struct.pack("f", value)
 
             # Only flip bits of supported value types
             if packed != None:
-                binary_str = ''.join(f'{byte:08b}' for byte in packed)
-                bytes_str = bytes(int(binary_str[i:i+8], 2)
-                                  for i in range(0, len(binary_str), 8))
+                binary_str = "".join(f"{byte:08b}" for byte in packed)
+                bytes_str = bytes(
+                    int(binary_str[i: i + 8], 2)
+                    for i in range(0, len(binary_str), 8)
+                )
 
                 # Generate corruption mask to flip bits based on corruption % chance
-                binary_corrupt = ''.join(
-                    random.choices(['1', '0'],
-                                   weights=[corruption, 1 - corruption],
-                                   k=len(binary_str))
+                binary_corrupt = "".join(
+                    random.choices(
+                        ["1", "0"],
+                        weights=[corruption, 1 - corruption],
+                        k=len(binary_str),
+                    )
                 )
                 bytes_corrupt = bytes(
-                    int(binary_corrupt[i:i+8], 2) for i in range(0, len(binary_corrupt), 8)
+                    int(binary_corrupt[i: i + 8], 2)
+                    for i in range(0, len(binary_corrupt), 8)
                 )
                 byte_data = bytes(
                     a ^ b for a, b in zip(bytes_str, bytes_corrupt)
@@ -605,22 +638,22 @@ def corrupt_packet(packet: dict, corruption_chance: float = 0.01, max_corruption
 
                 # Pack bits back into a value
                 if data_type == bool:
-                    value_corrupt = struct.unpack('?', byte_data)[0]
+                    value_corrupt = struct.unpack("?", byte_data)[0]
                 elif data_type == int:
-                    value_corrupt = struct.unpack('i', byte_data)[0]
+                    value_corrupt = struct.unpack("i", byte_data)[0]
                     value_corrupt &= (1 << value.bit_length()) - 1
                 elif data_type == float:
-                    value_corrupt = struct.unpack('f', byte_data)[0]
+                    value_corrupt = struct.unpack("f", byte_data)[0]
                     if not Metric.is_valid_float32(value_corrupt):
-                        value_corrupt = 3.4028235e+38
+                        value_corrupt = 3.4028235e38
 
                 # Add corrupt value to packet
                 packet[key] = value_corrupt
 
 
-def get_sinusoid_packets(START_TIME: float,
-                         EXPERIMENTAL: bool,
-                         CORRUPTION: bool) -> List[MockPacket]:
+def get_sinusoid_packets(
+    START_TIME: float, EXPERIMENTAL: bool, CORRUPTION: bool
+) -> List[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions unless specified otherwise
 
@@ -635,67 +668,140 @@ def get_sinusoid_packets(START_TIME: float,
     TIME_NOW = time.monotonic()
     T = TIME_NOW - START_TIME
 
-    ARGS_AV_COMMON = {"RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
-                      "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-                      "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1) if EXPERIMENTAL else 0b000,
-                      "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T) if EXPERIMENTAL else True,
-                      "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": changing_bool(T) if EXPERIMENTAL else False,
-                      "GPS_FIX_FLAG": changing_bool(T) if EXPERIMENTAL else True,
-                      "PAYLOAD_CONNECTION_FLAG": changing_bool(T) if EXPERIMENTAL else True,
-                      "CAMERA_CONTROLLER_CONNECTION": changing_bool(T) if EXPERIMENTAL else True}
+    ARGS_AV_COMMON = {
+        "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
+        "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
+        "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1)
+        if EXPERIMENTAL
+        else 0b000,
+        "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T)
+        if EXPERIMENTAL
+        else True,
+        "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "GPS_FIX_FLAG": changing_bool(T) if EXPERIMENTAL else True,
+        "PAYLOAD_CONNECTION_FLAG": changing_bool(T) if EXPERIMENTAL else True,
+        "CAMERA_CONTROLLER_CONNECTION": changing_bool(T)
+        if EXPERIMENTAL
+        else True,
+    }
 
     ARGS_AVtoGCSData1 = ARGS_AV_COMMON | {
-        "ACCEL_LOW_X": int(2048*sinusoid(T, min=-15.9, max=15.9, period=5, phase=2*math.pi/3)),
-        "ACCEL_LOW_Y": int(2048*sinusoid(T, min=-15.9, max=15.9, period=5, phase=4*math.pi/3)),
-        "ACCEL_LOW_Z": -int(2048*sinusoid(T, min=-15.9, max=15.9, period=5, phase=6*math.pi/3)),
-        "ACCEL_HIGH_X": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=2*math.pi/3)),
-        "ACCEL_HIGH_Y": -int(1024*sinusoid(T, min=-32, max=32, period=5, phase=4*math.pi/3)),
-        "ACCEL_HIGH_Z": int(1024*sinusoid(T, min=-32, max=32, period=5, phase=6*math.pi/3)),
+        "ACCEL_LOW_X": int(
+            2048
+            * sinusoid(T, min=-15.9, max=15.9, period=5, phase=2 * math.pi / 3)
+        ),
+        "ACCEL_LOW_Y": int(
+            2048
+            * sinusoid(T, min=-15.9, max=15.9, period=5, phase=4 * math.pi / 3)
+        ),
+        "ACCEL_LOW_Z": -int(
+            2048
+            * sinusoid(T, min=-15.9, max=15.9, period=5, phase=6 * math.pi / 3)
+        ),
+        "ACCEL_HIGH_X": -int(
+            1024 * sinusoid(T, min=-32, max=32, period=5,
+                            phase=2 * math.pi / 3)
+        ),
+        "ACCEL_HIGH_Y": -int(
+            1024 * sinusoid(T, min=-32, max=32, period=5,
+                            phase=4 * math.pi / 3)
+        ),
+        "ACCEL_HIGH_Z": int(
+            1024 * sinusoid(T, min=-32, max=32, period=5,
+                            phase=6 * math.pi / 3)
+        ),
         # should be [-30,30] on output
-        "GYRO_X": int(sinusoid(T, min=-245, max=245, period=5, phase=2*math.pi/3)/0.00875),
-        "GYRO_Y": int(sinusoid(T, min=-245, max=245, period=5, phase=4*math.pi/3)/0.00875),
-        "GYRO_Z": int(sinusoid(T, min=-245, max=245, period=5, phase=6*math.pi/3)/0.00875),
+        "GYRO_X": int(
+            sinusoid(T, min=-245, max=245, period=5, phase=2 * math.pi / 3)
+            / 0.00875
+        ),
+        "GYRO_Y": int(
+            sinusoid(T, min=-245, max=245, period=5, phase=4 * math.pi / 3)
+            / 0.00875
+        ),
+        "GYRO_Z": int(
+            sinusoid(T, min=-245, max=245, period=5, phase=6 * math.pi / 3)
+            / 0.00875
+        ),
         "ALTITUDE": sinusoid(T, min=0, max=3000, period=40, phase=0),
         "VELOCITY": sinusoid(T, min=0, max=350, period=20, phase=0),
-        "APOGEE_PRIMARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
-        "APOGEE_SECONDARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
-        "APOGEE_PRIMARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
-        "APOGEE_SECONDARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
-        "MAIN_PRIMARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
-        "MAIN_SECONDARY_TEST_COMPETE": changing_bool(T) if EXPERIMENTAL else False,
-        "MAIN_PRIMARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
-        "MAIN_SECONDARY_TEST_RESULTS": changing_bool(T) if EXPERIMENTAL else False,
-        "MOVE_TO_BROADCAST": changing_bool(T) if EXPERIMENTAL else False
+        "APOGEE_PRIMARY_TEST_COMPETE": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "APOGEE_SECONDARY_TEST_COMPETE": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "APOGEE_PRIMARY_TEST_RESULTS": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "APOGEE_SECONDARY_TEST_RESULTS": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "MAIN_PRIMARY_TEST_COMPETE": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "MAIN_SECONDARY_TEST_COMPETE": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "MAIN_PRIMARY_TEST_RESULTS": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "MAIN_SECONDARY_TEST_RESULTS": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "MOVE_TO_BROADCAST": changing_bool(T) if EXPERIMENTAL else False,
     }
 
     if EXPERIMENTAL:
         nav_status = Metric.POSSIBLE_NAV_VALUES[
-            int(T/1 % len(Metric.POSSIBLE_NAV_VALUES))
+            int(T / 1 % len(Metric.POSSIBLE_NAV_VALUES))
         ]
     else:
         nav_status = "G2"
-        assert nav_status in Metric.POSSIBLE_NAV_VALUES, f"Invalid NAV_STATUS: {nav_status}"
+        assert (
+            nav_status in Metric.POSSIBLE_NAV_VALUES
+        ), f"Invalid NAV_STATUS: {nav_status}"
 
     ARGS_AVtoGCSData2 = ARGS_AV_COMMON | {
-        "LATITUDE": sinusoid(T, min=-37.80808500000-0.1, max=37.80808500000+0.1, period=10, phase=0),
-        "LONGITUDE": sinusoid(T, min=144.96507800000-0.1, max=144.96507800000+0.1, period=10, phase=0),
+        "LATITUDE": sinusoid(
+            T,
+            min=-37.80808500000 - 0.1,
+            max=37.80808500000 + 0.1,
+            period=10,
+            phase=0,
+        ),
+        "LONGITUDE": sinusoid(
+            T,
+            min=144.96507800000 - 0.1,
+            max=144.96507800000 + 0.1,
+            period=10,
+            phase=0,
+        ),
         "NAV_STATUS": nav_status,
-        "QW": sinusoid(T, min=-1, max=1, period=3, phase=1*2*math.pi/4),
-        "QX": sinusoid(T, min=-1, max=1, period=4, phase=2*2*math.pi/4),
-        "QY": sinusoid(T, min=-1, max=1, period=5, phase=3*2*math.pi/4),
-        "QZ": sinusoid(T, min=-1, max=1, period=6, phase=4*2*math.pi/4),
+        "QW": sinusoid(T, min=-1, max=1, period=3, phase=1 * 2 * math.pi / 4),
+        "QX": sinusoid(T, min=-1, max=1, period=4, phase=2 * 2 * math.pi / 4),
+        "QY": sinusoid(T, min=-1, max=1, period=5, phase=3 * 2 * math.pi / 4),
+        "QZ": sinusoid(T, min=-1, max=1, period=6, phase=4 * 2 * math.pi / 4),
     }
 
     ARGS_AVtoGCSData3 = ARGS_AV_COMMON
 
     ARGS_GSE_COMMON = {
-        "RSSI":  sinusoid(T, min=-50, max=0, period=10, phase=0),
-        "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi/2),
-        "MANUAL_PURGED": changing_bool(T+1/4) if EXPERIMENTAL else False,
-        "O2_FILL_ACTIVATED": changing_bool(T+2/4) if EXPERIMENTAL else False,
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T) if EXPERIMENTAL else False,
-        "N2O_FILL_ACTIVATED": changing_bool(T+3/4) if EXPERIMENTAL else False,
-        "IGNITION_FIRED": changing_bool(T+4/4) if EXPERIMENTAL else False,
+        "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
+        "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
+        "MANUAL_PURGED": changing_bool(T + 1 / 4) if EXPERIMENTAL else False,
+        "O2_FILL_ACTIVATED": changing_bool(T + 2 / 4)
+        if EXPERIMENTAL
+        else False,
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T)
+        if EXPERIMENTAL
+        else False,
+        "N2O_FILL_ACTIVATED": changing_bool(T + 3 / 4)
+        if EXPERIMENTAL
+        else False,
+        "IGNITION_FIRED": changing_bool(T + 4 / 4) if EXPERIMENTAL else False,
         "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "SYSTEM_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
@@ -718,20 +824,38 @@ def get_sinusoid_packets(START_TIME: float,
     }
 
     ARGS_GSEtoGCSData1 = ARGS_GSE_COMMON | {
-        "TRANSDUCER1": sinusoid(T, min=1, max=30, period=10, phase=1*2*math.pi/3),
-        "TRANSDUCER2": sinusoid(T, min=1, max=30, period=10, phase=2*2*math.pi/3),
-        "TRANSDUCER3": sinusoid(T, min=1, max=30, period=10, phase=3*2*math.pi/3),
-        "THERMOCOUPLE1": sinusoid(T, min=10, max=40, period=20, phase=1*2*math.pi/4),
-        "THERMOCOUPLE2": sinusoid(T, min=10, max=40, period=20, phase=2*2*math.pi/4),
-        "THERMOCOUPLE3": sinusoid(T, min=10, max=40, period=20, phase=3*2*math.pi/4),
-        "THERMOCOUPLE4": sinusoid(T, min=10, max=40, period=20, phase=4*2*math.pi/4),
+        "TRANSDUCER1": sinusoid(
+            T, min=1, max=30, period=10, phase=1 * 2 * math.pi / 3
+        ),
+        "TRANSDUCER2": sinusoid(
+            T, min=1, max=30, period=10, phase=2 * 2 * math.pi / 3
+        ),
+        "TRANSDUCER3": sinusoid(
+            T, min=1, max=30, period=10, phase=3 * 2 * math.pi / 3
+        ),
+        "THERMOCOUPLE1": sinusoid(
+            T, min=10, max=40, period=20, phase=1 * 2 * math.pi / 4
+        ),
+        "THERMOCOUPLE2": sinusoid(
+            T, min=10, max=40, period=20, phase=2 * 2 * math.pi / 4
+        ),
+        "THERMOCOUPLE3": sinusoid(
+            T, min=10, max=40, period=20, phase=3 * 2 * math.pi / 4
+        ),
+        "THERMOCOUPLE4": sinusoid(
+            T, min=10, max=40, period=20, phase=4 * 2 * math.pi / 4
+        ),
     }
 
     ARGS_GSEtoGCSData2 = ARGS_GSE_COMMON | {
         "INTERNAL_TEMPERATURE": sinusoid(T, min=15, max=60, period=30, phase=0),
         "WIND_SPEED": sinusoid(T, min=15, max=20, period=30, phase=0),
-        "GAS_BOTTLE_WEIGHT_1": int(sinusoid(T, min=12, max=18, period=30, phase=0)),
-        "GAS_BOTTLE_WEIGHT_2": int(sinusoid(T, min=12, max=18, period=30, phase=math.pi/2)),
+        "GAS_BOTTLE_WEIGHT_1": int(
+            sinusoid(T, min=12, max=18, period=30, phase=0)
+        ),
+        "GAS_BOTTLE_WEIGHT_2": int(
+            sinusoid(T, min=12, max=18, period=30, phase=math.pi / 2)
+        ),
         "ADDITIONAL_VA_1": sinusoid(T, min=15, max=60, period=30, phase=0),
         "ADDITIONAL_VA_2": sinusoid(T, min=2, max=5, period=10, phase=0),
         "ADDITIONAL_CURRENT_1": sinusoid(T, min=1, max=5, period=10, phase=0),
@@ -751,7 +875,7 @@ def get_sinusoid_packets(START_TIME: float,
         AVtoGCSData2(**ARGS_AVtoGCSData2),
         AVtoGCSData3(**ARGS_AVtoGCSData3),
         GSEtoGCSData1(**ARGS_GSEtoGCSData1),
-        GSEtoGCSData2(**ARGS_GSEtoGCSData2)
+        GSEtoGCSData2(**ARGS_GSEtoGCSData2),
     ]
 
 
@@ -759,9 +883,10 @@ def main():
     slogger.debug("Emulator starting")
 
     try:
-        FAKE_DEVICE_NAME = sys.argv[sys.argv.index('--device-rocket') + 1]
+        FAKE_DEVICE_NAME = sys.argv[sys.argv.index("--device-rocket") + 1]
         INTERFACE_TYPE = get_interface_type(
-            sys.argv[sys.argv.index('--interface-type') + 1])
+            sys.argv[sys.argv.index("--interface-type") + 1]
+        )
     except ValueError:
         slogger.error("Failed to find device names in arguments for emulator")
         raise
@@ -780,8 +905,8 @@ def main():
 
     # Used for the sequence lock class GSE debugging
     CONFIG_LOADED = config.get_config()
-    GSE_LOCK_PATH = CONFIG_LOADED['locks']['lock_file_gse_response_path']
-    AV_LOCK_PATH = CONFIG_LOADED['locks']['lock_file_av_response_path']
+    GSE_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_gse_response_path"]
+    AV_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_av_response_path"]
 
     START_TIME = time.monotonic()
     last_time_gse_written = START_TIME
@@ -791,18 +916,22 @@ def main():
     LOCK_WARNING_TIME = 5
     TIME_INBETWEEN_PACKETS = 0.01
 
-    EXPERIMENTAL = \
-        experimental_cli_override or \
-        CONFIG_LOADED['emulation']['experimental'].lower() == 'true'
+    EXPERIMENTAL = (
+        experimental_cli_override
+        or CONFIG_LOADED["emulation"]["experimental"].lower() == "true"
+    )
 
     CORRUPTION = corruption_cli_override
 
     if EXPERIMENTAL:
         slogger.warning(
-            "Experimental mode enabled. Values may appear nonsensical.")
+            "Experimental mode enabled. Values may appear nonsensical."
+        )
 
     while not service_helper.time_to_stop():
-        for packet in get_sinusoid_packets(START_TIME, EXPERIMENTAL, CORRUPTION):
+        for packet in get_sinusoid_packets(
+            START_TIME, EXPERIMENTAL, CORRUPTION
+        ):
             device = packet.ORIGIN_DEVICE
             # As a cheeky sequence emulation, only write when the lock file is PRESENT
             if random.random() < MockPacket._PACKET_LOSS:
@@ -826,18 +955,24 @@ def main():
         check_time = time.monotonic()
         AV_AWAIT_TIME = check_time - last_time_av_written
         GSE_AWAIT_TIME = check_time - last_time_gse_written
-        if (AV_AWAIT_TIME) > LOCK_WARNING_TIME and check_time - last_time_av_warned > 3:
+        if (
+            AV_AWAIT_TIME
+        ) > LOCK_WARNING_TIME and check_time - last_time_av_warned > 3:
             slogger.warning(
-                f"AV emulation awaiting server sequence timing for {round(AV_AWAIT_TIME)} seconds")
+                f"AV emulation awaiting server sequence timing for {round(AV_AWAIT_TIME)} seconds"
+            )
             last_time_av_warned = check_time
-        if (GSE_AWAIT_TIME) > LOCK_WARNING_TIME and check_time - last_time_gse_warned > 3:
+        if (
+            GSE_AWAIT_TIME
+        ) > LOCK_WARNING_TIME and check_time - last_time_gse_warned > 3:
             slogger.warning(
-                f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds")
+                f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds"
+            )
             last_time_gse_warned = check_time
 
     slogger.debug("Emulator finished")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # This only runs if you start this as a service directly. Not for imports
     main()

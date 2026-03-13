@@ -3,7 +3,7 @@ syntax = "proto3";
 package common;
 
 message GSEErrors {
-    // Note 10 
+    // Note 10
     optional bool ignition_error = 1;
     optional bool relay_3_error = 2;
     optional bool relay_2_error = 3;
@@ -23,4 +23,3 @@ message GSEErrors {
     optional bool transducer_2_error = 15;
     optional bool transducer_1_error = 16;
 }
-
