@@ -16,7 +16,12 @@ def test_validate_interface_options_valid_dual():
     """Both interface_av and interface_gse set, interface None is valid."""
     _validate_interface_options(None, "TCP", "UART_E5")
     _validate_interface_options(None, "UART_E5", "TCP")
-    _validate_interface_options(None, "TEST", "TEST_UART_E5")
+    with pytest.raises(NotImplementedError):
+        _validate_interface_options(None, "TEST", "TEST_UART_E5")
+    with pytest.raises(NotImplementedError):
+        _validate_interface_options(None, "TEST", "TCP")
+    with pytest.raises(NotImplementedError):
+        _validate_interface_options(None, "TCP", "TEST")
 
 
 def test_validate_interface_options_valid_all_none():
