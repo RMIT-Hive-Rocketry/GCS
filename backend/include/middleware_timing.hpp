@@ -31,4 +31,7 @@ constexpr int READ_LOOP_NO_DATA_WARNING_SECONDS = 3;
 /// interval (ms).
 constexpr int GSE_FULL_DUPLEX_MIN_INTERVAL_MS = 500;
 
+constexpr std::chrono::milliseconds initial_tcp_retry_backoff{250};
+static constexpr int64_t MAX_TCP_RETRY_BACKOFF_MS = 2000;
+
 }  // namespace middleware_timing
