@@ -48,7 +48,7 @@ bool SequenceLock::unlock_if_timed_out_() {
   // If lock is timed out for more than TIMEOUT ms, unlock it
   if (std::chrono::steady_clock::now() - getLastLockTime() > TIMEOUT) {
     unlock();
-    slogger::warning("(NO SIGNAL: " + ANS_COLOR + "\033[1m" + LOCK_NAME +
+    slogger::warning("(NO RESPONSE: " + ANS_COLOR + "\033[1m" + LOCK_NAME +
                      "\033[0m" + slogger::WARNING_COLOUR + ") Timeout on " +
                      LOCK_NAME + " sequence lock");
     return true;

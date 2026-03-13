@@ -11,7 +11,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Simple TCP loopback listener that prints any packets it receives. "
-            "Intended for debugging the middleware TcpInterface (127.0.0.1:5000)."
+            "Intended for debugging the middleware TcpInterface (127.0.0.1:5001)."
         )
     )
     parser.add_argument(
@@ -22,8 +22,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--port",
         type=int,
-        default=5000,
-        help="TCP port to listen on (default: 5000)",
+        default=5001,
+        help="TCP port to listen on (default: 5001)",
     )
     return parser.parse_args()
 
@@ -32,7 +32,7 @@ def hexdump(data: bytes) -> None:
     """Pretty-print bytes as hex + ASCII."""
     bytes_per_line = 16
     for offset in range(0, len(data), bytes_per_line):
-        chunk = data[offset : offset + bytes_per_line]
+        chunk = data[offset: offset + bytes_per_line]
         hex_part = " ".join(f"{b:02X}" for b in chunk)
         ascii_part = "".join((chr(b) if 32 <= b < 127 else ".") for b in chunk)
         print(f"{offset:04X}  {hex_part:<47}  {ascii_part}")
@@ -64,7 +64,8 @@ def main() -> int:
     try:
         server = create_server(args.host, args.port)
     except OSError as e:
-        print(f"Failed to bind to {args.host}:{args.port}: {e}", file=sys.stderr)
+        print(
+            f"Failed to bind to {args.host}:{args.port}: {e}", file=sys.stderr)
         return 1
 
     try:
@@ -95,4 +96,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
