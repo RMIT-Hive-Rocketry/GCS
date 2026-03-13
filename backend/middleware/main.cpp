@@ -50,7 +50,7 @@ inline void set_thread_name([[maybe_unused]] const char* name) {
 }
 
 void input_read_loop(std::shared_ptr<RadioInterface> interface,
-                     zmq::socket_t& pub_socket, Sequence& sequence) {
+                     zmq::socket_t& pub_socket, AvSequence& sequence) {
   set_thread_name("input_read_loop");
   std::vector<uint8_t> buffer(1024);
   auto READER_BOOT_TIME = std::chrono::steady_clock::now();
@@ -88,7 +88,8 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
             post_process_av(sequence, proto_msg->flight_state());
             if (proto_msg->broadcast_flag()) {
               sequence.set_broadcast_flag_recieved(true);
-              sequence.current_state = Sequence::LOOP_AV_DATA_TRANSMISSION_BURN;
+              sequence.current_state =
+                  AvSequence::LOOP_AV_DATA_TRANSMISSION_BURN;
             }
             break;
           }
@@ -178,7 +179,7 @@ int main(int argc, char* argv[]) {
   slogger::info("Interface initialised for type: " + args.gse_type);
 
   // Create sequence handler singleton
-  Sequence sequence;
+  AvSequence sequence;
 
   sequence.set_gse_only_mode(true);
 
@@ -346,7 +347,7 @@ int main(int argc, char* argv[]) {
 
       // After getting data, continue with main logic loop
       switch (sequence.get_state()) {
-        case Sequence::State::LOOP_PRE_LAUNCH:
+        case AvSequence::State::LOOP_PRE_LAUNCH:
           // Send data to GSE
           interface->write_data(gse_data);
           sequence.start_await_gse();
@@ -358,14 +359,14 @@ int main(int argc, char* argv[]) {
           // Wait for data from AV (blocking rest of this loop, or timeout)
           sequence.sit_and_wait_for_av();
           break;
-        case Sequence::State::LOOP_IGNITION:
+        case AvSequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
           if (broadcast) {
             interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
         // It says once, but it's a conditional loop anyway.
-        case Sequence::State::ONCE_AV_DETERMINING_LAUNCH:
+        case AvSequence::State::ONCE_AV_DETERMINING_LAUNCH:
           interface->write_data(gse_data);
           sequence.start_await_gse();
           sequence.sit_and_wait_for_gse();
@@ -373,19 +374,19 @@ int main(int argc, char* argv[]) {
           sequence.start_await_av();
           sequence.sit_and_wait_for_av();
           break;
-        case Sequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
+        case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
           // Just listen. This thread can just close bassically
           if (broadcast) {
             interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
-        case Sequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
+        case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
           // Just listen. This thread can just close bassically
           if (broadcast) {
             interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
           }
           break;
-        case Sequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
+        case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
           // Just listen. This thread can just close bassically
           if (broadcast) {
             interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));

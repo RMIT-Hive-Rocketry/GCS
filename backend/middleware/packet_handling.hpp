@@ -20,7 +20,7 @@ std::unique_ptr<PacketType> process_packet(
     std::vector<uint8_t>& buffer,
     zmq::socket_t& pub_socket,
     const std::chrono::steady_clock::time_point& READER_BOOT_TIME,
-    Sequence& sequence) {
+    AvSequence& sequence) {
   if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
     try {
       std::unique_ptr<PacketType> payload =
@@ -69,5 +69,5 @@ std::unique_ptr<PacketType> process_packet(
 
 /// Post-process after receiving an AV packet: update sequence (received_av,
 /// state, broadcast flags) based on flight state.
-void post_process_av(Sequence& sequence,
+void post_process_av(AvSequence& sequence,
                      const common::FlightState FLIGHT_STATE);

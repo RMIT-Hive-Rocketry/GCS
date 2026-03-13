@@ -9,14 +9,15 @@
 // This file hosts locking mechanisms to orchestrate the packet sequence
 
 /// @brief Thread save mutex lock with timeout features for sequence diagram
-SequenceLock::SequenceLock(const std::string NAME, const std::string ANS_COLOR)
+AvSequenceLock::AvSequenceLock(const std::string NAME,
+                               const std::string ANS_COLOR)
     : LOCK_NAME(NAME), ANS_COLOR(ANS_COLOR) {
   // Set last lock time as little as possible so timeout initially works
   // instantly
   last_lock_time_ = std::chrono::steady_clock::time_point::min();
 }
 
-void SequenceLock::lock() {
+void AvSequenceLock::lock() {
   mtx_.lock();
   is_locked_ = true;
   last_lock_time_ = std::chrono::steady_clock::now();
@@ -33,14 +34,14 @@ void SequenceLock::lock() {
 #endif
 }
 
-void SequenceLock::unlock() {
+void AvSequenceLock::unlock() {
   is_locked_ = false;
   mtx_.unlock();
 }
 
 /// @brief Check if timed out and return the final lock status
 /// @return true if unlocked. False otherwise
-bool SequenceLock::unlock_if_timed_out_() {
+bool AvSequenceLock::unlock_if_timed_out_() {
   // If lock is already open, just return true
   if (!is_locked_.load()) {
     return true;
@@ -57,10 +58,10 @@ bool SequenceLock::unlock_if_timed_out_() {
   }
 }
 
-std::chrono::steady_clock::time_point SequenceLock::getLastLockTime() const {
+std::chrono::steady_clock::time_point AvSequenceLock::getLastLockTime() const {
   return last_lock_time_;
 }
 
 /// @brief Applies timeout logic and returns lock status
 /// @return
-bool SequenceLock::is_locked() { return unlock_if_timed_out_(); }
+bool AvSequenceLock::is_locked() { return unlock_if_timed_out_(); }

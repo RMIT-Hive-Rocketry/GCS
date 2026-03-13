@@ -4,15 +4,15 @@
 
 #include <thread>
 
-// Sequence is designed as a process singleton (assert in ctor); only one
-// Sequence may exist. We use a single test that creates one and exercises all.
+// AvSequence is designed as a process singleton (assert in ctor); only one
+// AvSequence may exist. We use a single test that creates one and exercises all.
 // Diagram:
 // https://github.com/RMIT-Hive-Rocketry/GCS/blob/main/notes/assets/sequence_diagram.png
 TEST(SequenceTest, AllBehaviour) {
-  Sequence seq;
+  AvSequence seq;
 
   // Initial state
-  EXPECT_EQ(seq.get_state(), Sequence::LOOP_PRE_LAUNCH);
+  EXPECT_EQ(seq.get_state(), AvSequence::LOOP_PRE_LAUNCH);
   EXPECT_FALSE(seq.gse_only_mode());
   EXPECT_FALSE(seq.manual_control_mode());
   EXPECT_EQ(seq.get_packet_count_av(), 0);
@@ -21,11 +21,11 @@ TEST(SequenceTest, AllBehaviour) {
   EXPECT_FALSE(seq.have_received_broadcast_flag());
 
   // State transitions
-  seq.set_state(Sequence::LOOP_IGNITION);
-  EXPECT_EQ(seq.get_state(), Sequence::LOOP_IGNITION);
-  seq.set_state(Sequence::LOOP_AV_DATA_TRANSMISSION_BURN);
-  EXPECT_EQ(seq.get_state(), Sequence::LOOP_AV_DATA_TRANSMISSION_BURN);
-  seq.set_state(Sequence::LOOP_PRE_LAUNCH);
+  seq.set_state(AvSequence::LOOP_IGNITION);
+  EXPECT_EQ(seq.get_state(), AvSequence::LOOP_IGNITION);
+  seq.set_state(AvSequence::LOOP_AV_DATA_TRANSMISSION_BURN);
+  EXPECT_EQ(seq.get_state(), AvSequence::LOOP_AV_DATA_TRANSMISSION_BURN);
+  seq.set_state(AvSequence::LOOP_PRE_LAUNCH);
 
   // GSE only mode
   // This is currently only set at initialisation time.

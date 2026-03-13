@@ -4,7 +4,7 @@
 
 namespace middleware_timing {
 
-// --- Sequence lock (GSE/AV write wait timeout) ---
+// --- AvSequence lock (GSE/AV write wait timeout) ---
 /// Time to wait for peer response before considering the lock timed out (ms).
 constexpr int SEQUENCE_LOCK_TIMEOUT_MS = 1000;
 
