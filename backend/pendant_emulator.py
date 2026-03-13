@@ -640,13 +640,13 @@ def safety_fallback_state():
 
 def send_packet():
     context = zmq.Context()
+    LINGER_TIME_MS = 300
     try:
         push_socket = context.socket(zmq.PUSH)
         SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
         # Wait LINGER_TIME_MS before giving up on push request
-        LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
         push_socket.connect(f"ipc://{SOCKET_PATH}")
