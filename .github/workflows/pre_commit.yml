@@ -10,6 +10,18 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
-    - uses: pre-commit/action@v3.0.1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - uses: pre-commit/action@v3.0.1
+
+      - name: Pre-commit failed - how to fix
+        if: failure()
+        run: |
+          echo "----------------------------"
+          echo "PRE-COMMIT CHECKS FAILED"
+          echo "----------------------------"
+          echo ""
+          echo "To fix this locally, run:"
+          echo "  pre-commit run --all-files"
+          echo ""
+          echo "Then commit and push your changes"
