@@ -213,13 +213,17 @@ def _validate_interface_options(
             "When using separate links, both --interface-av and --interface-gse must be specified."
         )
 
-    interface_av = interface_av.strip().lower()
-    interface_gse = interface_gse.strip().lower()
+    if interface_av is not None:
+        interface_av = interface_av.strip().lower()
 
-    if "test" in interface_av or "test" in interface_gse and \
-            interface_av != interface_gse:
-        raise NotImplementedError(
-            "Device emulator does not support split emulation interfaces yet")
+    if interface_gse is not None:
+        interface_gse = interface_gse.strip().lower()
+
+    if interface_gse is not None and interface_av is not None:
+        if "test" in interface_av or "test" in interface_gse and \
+                interface_av != interface_gse:
+            raise NotImplementedError(
+                "Device emulator does not support split emulation interfaces yet")
 
 
 def start_services(COMMAND: Command,
