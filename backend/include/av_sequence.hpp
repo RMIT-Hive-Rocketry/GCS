@@ -1,5 +1,5 @@
 #pragma once
-#include "sequence_lock.hpp"
+#include "av_sequence_lock.hpp"
 
 // Used for handling position in the sequence diagram.
 // This should be treated as a singleton, passed by `std::ref` through threads

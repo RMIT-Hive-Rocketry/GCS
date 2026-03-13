@@ -1,12 +1,12 @@
-#include "sequence.hpp"
-
 #include <gtest/gtest.h>
 
 #include <thread>
 
+#include "av_sequence.hpp"
+
 // AvSequence is designed as a process singleton (assert in ctor); only one
-// AvSequence may exist. We use a single test that creates one and exercises all.
-// Diagram:
+// AvSequence may exist. We use a single test that creates one and exercises
+// all. Diagram:
 // https://github.com/RMIT-Hive-Rocketry/GCS/blob/main/notes/assets/sequence_diagram.png
 TEST(SequenceTest, AllBehaviour) {
   AvSequence seq;

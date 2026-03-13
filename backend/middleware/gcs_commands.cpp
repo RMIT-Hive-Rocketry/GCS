@@ -1,6 +1,6 @@
 #include "gcs_commands.hpp"
 
-#include "sequence.hpp"
+#include "av_sequence.hpp"
 
 std::vector<uint8_t> collect_pull_data(const zmq::message_t& last_pendant_msg) {
   return std::vector<uint8_t>(
