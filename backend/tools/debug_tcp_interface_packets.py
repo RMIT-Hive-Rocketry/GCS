@@ -32,7 +32,7 @@ def hexdump(data: bytes) -> None:
     """Pretty-print bytes as hex + ASCII."""
     bytes_per_line = 16
     for offset in range(0, len(data), bytes_per_line):
-        chunk = data[offset: offset + bytes_per_line]
+        chunk = data[offset : offset + bytes_per_line]
         hex_part = " ".join(f"{b:02X}" for b in chunk)
         ascii_part = "".join((chr(b) if 32 <= b < 127 else ".") for b in chunk)
         print(f"{offset:04X}  {hex_part:<47}  {ascii_part}")

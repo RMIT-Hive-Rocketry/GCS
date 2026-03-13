@@ -2,7 +2,6 @@ import configparser
 import json
 import hashlib
 
-
 """
     CONFIG FOR EVERY MODULE IN ROCKET_SIM A PAIN IN THE ASS
 """

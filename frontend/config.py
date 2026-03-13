@@ -39,6 +39,7 @@ class Config(object):
 
 # ROCKET SPECIFIC CONFIGURATIONS
 
+
 # Legacy III
 # Launched at IREC 2025
 class LegacyConfig(Config):

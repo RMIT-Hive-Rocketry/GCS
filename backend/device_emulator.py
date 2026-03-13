@@ -616,7 +616,7 @@ def corrupt_packet(
             if packed != None:
                 binary_str = "".join(f"{byte:08b}" for byte in packed)
                 bytes_str = bytes(
-                    int(binary_str[i: i + 8], 2)
+                    int(binary_str[i : i + 8], 2)
                     for i in range(0, len(binary_str), 8)
                 )
 
@@ -629,7 +629,7 @@ def corrupt_packet(
                     )
                 )
                 bytes_corrupt = bytes(
-                    int(binary_corrupt[i: i + 8], 2)
+                    int(binary_corrupt[i : i + 8], 2)
                     for i in range(0, len(binary_corrupt), 8)
                 )
                 byte_data = bytes(
@@ -671,20 +671,20 @@ def get_sinusoid_packets(
     ARGS_AV_COMMON = {
         "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
-        "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1)
-        if EXPERIMENTAL
-        else 0b000,
-        "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T)
-        if EXPERIMENTAL
-        else True,
-        "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
+        "FLIGHT_STATE_": (
+            changing_int(T, 0, 0b111, 1) if EXPERIMENTAL else 0b000
+        ),
+        "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": (
+            changing_bool(T) if EXPERIMENTAL else True
+        ),
+        "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
         "GPS_FIX_FLAG": changing_bool(T) if EXPERIMENTAL else True,
         "PAYLOAD_CONNECTION_FLAG": changing_bool(T) if EXPERIMENTAL else True,
-        "CAMERA_CONTROLLER_CONNECTION": changing_bool(T)
-        if EXPERIMENTAL
-        else True,
+        "CAMERA_CONTROLLER_CONNECTION": (
+            changing_bool(T) if EXPERIMENTAL else True
+        ),
     }
 
     ARGS_AVtoGCSData1 = ARGS_AV_COMMON | {
@@ -701,16 +701,13 @@ def get_sinusoid_packets(
             * sinusoid(T, min=-15.9, max=15.9, period=5, phase=6 * math.pi / 3)
         ),
         "ACCEL_HIGH_X": -int(
-            1024 * sinusoid(T, min=-32, max=32, period=5,
-                            phase=2 * math.pi / 3)
+            1024 * sinusoid(T, min=-32, max=32, period=5, phase=2 * math.pi / 3)
         ),
         "ACCEL_HIGH_Y": -int(
-            1024 * sinusoid(T, min=-32, max=32, period=5,
-                            phase=4 * math.pi / 3)
+            1024 * sinusoid(T, min=-32, max=32, period=5, phase=4 * math.pi / 3)
         ),
         "ACCEL_HIGH_Z": int(
-            1024 * sinusoid(T, min=-32, max=32, period=5,
-                            phase=6 * math.pi / 3)
+            1024 * sinusoid(T, min=-32, max=32, period=5, phase=6 * math.pi / 3)
         ),
         # should be [-30,30] on output
         "GYRO_X": int(
@@ -727,30 +724,30 @@ def get_sinusoid_packets(
         ),
         "ALTITUDE": sinusoid(T, min=0, max=3000, period=40, phase=0),
         "VELOCITY": sinusoid(T, min=0, max=350, period=20, phase=0),
-        "APOGEE_PRIMARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "APOGEE_SECONDARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "APOGEE_PRIMARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "APOGEE_SECONDARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_PRIMARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_SECONDARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_PRIMARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_SECONDARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
+        "APOGEE_PRIMARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "APOGEE_SECONDARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "APOGEE_PRIMARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "APOGEE_SECONDARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_PRIMARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_SECONDARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_PRIMARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_SECONDARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
         "MOVE_TO_BROADCAST": changing_bool(T) if EXPERIMENTAL else False,
     }
 
@@ -792,15 +789,15 @@ def get_sinusoid_packets(
         "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
         "MANUAL_PURGED": changing_bool(T + 1 / 4) if EXPERIMENTAL else False,
-        "O2_FILL_ACTIVATED": changing_bool(T + 2 / 4)
-        if EXPERIMENTAL
-        else False,
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "N2O_FILL_ACTIVATED": changing_bool(T + 3 / 4)
-        if EXPERIMENTAL
-        else False,
+        "O2_FILL_ACTIVATED": (
+            changing_bool(T + 2 / 4) if EXPERIMENTAL else False
+        ),
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "N2O_FILL_ACTIVATED": (
+            changing_bool(T + 3 / 4) if EXPERIMENTAL else False
+        ),
         "IGNITION_FIRED": changing_bool(T + 4 / 4) if EXPERIMENTAL else False,
         "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
@@ -895,7 +892,7 @@ def main():
     corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
-        config.get_config()['emulation'],
+        config.get_config()["emulation"],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
         INTERFACE_TYPE=INTERFACE_TYPE,
     )

@@ -29,7 +29,10 @@ def test_validate_interface_options_invalid_single_and_av():
     with pytest.raises(click.UsageError) as exc_info:
         _validate_interface_options("UART_E5", "TCP", None)
     assert "Do not specify both" in str(exc_info.value)
-    assert "interface-av" in str(exc_info.value).lower() or "interface" in str(exc_info.value).lower()
+    assert (
+        "interface-av" in str(exc_info.value).lower()
+        or "interface" in str(exc_info.value).lower()
+    )
 
 
 def test_validate_interface_options_invalid_single_and_gse():
@@ -44,7 +47,10 @@ def test_validate_interface_options_invalid_only_av():
     with pytest.raises(click.UsageError) as exc_info:
         _validate_interface_options(None, "TCP", None)
     assert "both" in str(exc_info.value).lower()
-    assert "interface-av" in str(exc_info.value).lower() or "interface-gse" in str(exc_info.value).lower()
+    assert (
+        "interface-av" in str(exc_info.value).lower()
+        or "interface-gse" in str(exc_info.value).lower()
+    )
 
 
 def test_validate_interface_options_invalid_only_gse():

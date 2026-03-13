@@ -8,7 +8,6 @@ from cli.start_middleware import (
     build_middleware_argv,
 )
 
-
 FAKE_BINARY = "/fake/path/middleware_debug"
 PENDANT = "gcs_rocket"
 WEB = "/tmp/gcs_rocket_web_pull.sock"
@@ -106,7 +105,9 @@ def test_build_middleware_argv_uart_e5_requires_lora_config():
         "/dev/serial0",
         lora_config=None,
     )
-    with pytest.raises(ValueError, match="UART_E5 GSE interface requires lora_config"):
+    with pytest.raises(
+        ValueError, match="UART_E5 GSE interface requires lora_config"
+    ):
         build_middleware_argv(cfg, FAKE_BINARY)
 
 
