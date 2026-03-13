@@ -7,10 +7,10 @@
 
 // This file hosts locking mechanisms to orchestrate the packet sequence
 
-class SequenceLock {
+class AvSequenceLock {
  public:
-  SequenceLock(const std::string NAME, const std::string ANS_COLOR);
-  ~SequenceLock() = default;
+  AvSequenceLock(const std::string NAME, const std::string ANS_COLOR);
+  ~AvSequenceLock() = default;
   void lock();
   void unlock();
   bool is_locked();

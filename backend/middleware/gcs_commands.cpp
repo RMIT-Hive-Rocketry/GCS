@@ -10,7 +10,7 @@ std::vector<uint8_t> collect_pull_data(const zmq::message_t& last_pendant_msg) {
 }
 
 std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
-                                           Sequence& sequence) {
+                                           AvSequence& sequence) {
   std::vector<uint8_t> data;
 
   const bool camera_power = sequence.get_camera_power();
