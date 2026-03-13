@@ -4,20 +4,19 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <zmq.hpp>
 
 #include "FlightState.pb.h"
+#include "av_sequence.hpp"
 #include "debug_functions.hpp"
-#include "sequence.hpp"
 #include "subprocess_logging.hpp"
-#include <zmq.hpp>
 
 /// Process a single packet: parse from buffer, convert to protobuf, send on
 /// pub_socket, run sequence updates. SIZE does not include the ID byte.
 /// Returns the parsed payload or nullptr on error.
 template <typename PacketType>
 std::unique_ptr<PacketType> process_packet(
-    const ssize_t BUFFER_BYTE_COUNT,
-    std::vector<uint8_t>& buffer,
+    const ssize_t BUFFER_BYTE_COUNT, std::vector<uint8_t>& buffer,
     zmq::socket_t& pub_socket,
     const std::chrono::steady_clock::time_point& READER_BOOT_TIME,
     AvSequence& sequence) {
