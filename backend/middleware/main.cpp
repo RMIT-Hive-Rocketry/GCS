@@ -23,12 +23,16 @@
 #include "GSE_TO_GCS_DATA_1.hpp"
 #include "GSE_TO_GCS_DATA_2.hpp"
 #include "debug_functions.hpp"
+#include "gcs_commands.hpp"
+#include "interface_factory.hpp"
+#include "middleware_timing.hpp"
+#include "packet_handling.hpp"
 #include "sequence.hpp"
 #include "subprocess_logging.hpp"
 #include "tcp_interface.hpp"
 #include "test_interface.hpp"
-#include "test_uart_interface.hpp"
-#include "uart_interface.hpp"
+#include "test_uart_e5_interface.hpp"
+#include "uart_e5_interface.hpp"
 
 // This file hosts the ZeroMQ IPC server stuff
 
@@ -42,85 +46,6 @@ inline void set_thread_name([[maybe_unused]] const char* name) {
 #ifdef __APPLE__
   pthread_setname_np(name);
 #endif
-}
-
-template <typename PacketType>
-std::unique_ptr<PacketType> process_packet(const ssize_t BUFFER_BYTE_COUNT,
-                                           std::vector<uint8_t>& buffer,
-                                           zmq::socket_t& pub_socket,
-                                           const auto READER_BOOT_TIME,
-                                           Sequence& sequence) {
-  // SIZE does not include ID byte that's already been read
-  if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
-    try {
-      // Construct the packet object (skipping the ID byte)
-      std::unique_ptr<PacketType> payload =
-          std::make_unique<PacketType>(&buffer[1]);
-
-      // Convert to protobuf and serialize to a string
-      float TIMESTAMP = std::chrono::duration<float>(
-                            std::chrono::steady_clock::now() - READER_BOOT_TIME)
-                            .count();
-      auto proto_msg =
-          payload->toProtobuf(TIMESTAMP, sequence.get_packet_count_av(),
-                              sequence.get_packet_count_gse());
-      if (!proto_msg.IsInitialized()) {
-        std::string missing_info = proto_msg.InitializationErrorString();
-        slogger::warning(std::string(PacketType::PACKET_NAME) +
-                         ": Not all fields are initialized in the protobuf "
-                         "message. Missing: " +
-                         missing_info);
-      }
-      // Run sequence related updates
-      std::string serialized;
-      if (proto_msg.SerializeToString(&serialized)) {
-        zmq::message_t msg(serialized.data(), serialized.size());
-        pub_socket.send(msg, zmq::send_flags::none);
-      } else {
-        slogger::error(
-            std::string(PacketType::PACKET_NAME) +
-            ": Failed to serialize and send to string with protobuf");
-        return nullptr;
-      }
-      return payload;
-    } catch (const std::exception& e) {
-      slogger::error(std::string(PacketType::PACKET_NAME) +
-                     ": Error processing payload: " + e.what());
-    } catch (...) {
-      slogger::error("Caught unknown exception while processing payload");
-    }
-  } else {
-    // This may be fixed 32 bytes every time. Not sure if can be different
-    slogger::error(std::string(PacketType::PACKET_NAME) +
-                   ": Incorrect packet size. Expected: " +
-                   std::to_string(PacketType::SIZE + 1) + " bytes, got: " +
-                   std::to_string(BUFFER_BYTE_COUNT) + " bytes");
-    slogger::debug("Buffer contents: " +
-                   debug::vectorToHexString(buffer, BUFFER_BYTE_COUNT));
-  }
-  return nullptr;
-}
-
-void post_process_av(Sequence& sequence,
-                     const common::FlightState FLIGHT_STATE) {
-  sequence.received_av();
-  if (FLIGHT_STATE == common::FlightState::LAUNCH) {
-    sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
-  }
-  switch (FLIGHT_STATE) {
-    case common::FlightState::OH_NO:
-    case common::FlightState::PRE_FLIGHT_NO_FLIGHT_READY:
-    case common::FlightState::PRE_FLIGHT_FLIGHT_READY:
-      break;
-    case common::FlightState::LAUNCH:
-    case common::FlightState::COAST:
-    case common::FlightState::APOGEE:
-    case common::FlightState::DESCENT:
-    case common::FlightState::LANDED:
-      sequence.set_start_sending_broadcast_flag(true);
-    default:
-      break;
-  }
 }
 
 void input_read_loop(std::shared_ptr<RadioInterface> interface,
@@ -213,11 +138,9 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
         }
       }
     } else {
-      // CPU sleeper
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      // Timeout warning
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(middleware_timing::READ_LOOP_SLEEP_MS));
       auto now = std::chrono::steady_clock::now();
-      // Amount of seconds since last read total
       int seconds_waited =
           std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time)
               .count();
@@ -225,99 +148,16 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
           std::chrono::duration_cast<std::chrono::seconds>(
               now - last_timeout_warning_time)
               .count();
-      if (seconds_waited >= 3 && seconds_waited_timeout >= 3) {
+      if (seconds_waited >=
+              middleware_timing::READ_LOOP_NO_DATA_WARNING_SECONDS &&
+          seconds_waited_timeout >=
+              middleware_timing::TIMEOUT_WARNING_INTERVAL_SECONDS) {
         slogger::warning("No data received for " +
                          std::to_string(seconds_waited) + " seconds.");
-        last_timeout_warning_time = now;  // Wait another 3 seconds
+        last_timeout_warning_time = now;
       }
     }
   }
-}
-
-// Parses "ip:port" (e.g. "192.168.0.150:5000"). Throws if format is invalid.
-// TCP endpoint must be passed from the launcher (e.g. rocket.py); no defaults.
-static std::pair<std::string, uint16_t> parse_tcp_endpoint(
-    const std::string& endpoint) {
-  const size_t colon = endpoint.find(':');
-  if (colon == std::string::npos || colon == 0 ||
-      colon == endpoint.size() - 1) {
-    throw std::runtime_error(
-        "TCP interface requires device path in the form ip:port (e.g. "
-        "192.168.0.150:5000). Pass --tcp-ip and --tcp-port from rocket.py.");
-  }
-  const std::string ip = endpoint.substr(0, colon);
-  const std::string port_str = endpoint.substr(colon + 1);
-  if (ip.empty() || port_str.empty()) {
-    throw std::runtime_error(
-        "TCP interface requires non-empty IP and port. Pass --tcp-ip and "
-        "--tcp-port from rocket.py.");
-  }
-  const unsigned long port_val = std::stoul(port_str);
-  if (port_val > 65535) {
-    throw std::runtime_error("TCP port must be in range 1-65535");
-  }
-  return {ip, static_cast<uint16_t>(port_val)};
-}
-
-std::shared_ptr<RadioInterface> create_interface(
-    const std::string INTERFACE_NAME, const std::string DEVICE_PATH,
-    const LoraConfig& lora_cfg = {}) {
-  std::shared_ptr<RadioInterface> interface;
-
-  if (INTERFACE_NAME == "UART") {
-    interface = std::make_shared<UartInterface>(lora_cfg, DEVICE_PATH);
-  } else if (INTERFACE_NAME == "TEST") {
-    interface = std::make_shared<TestInterface>(DEVICE_PATH);
-  } else if (INTERFACE_NAME == "TEST_UART") {
-    interface = std::make_shared<TestUartInterface>(DEVICE_PATH);
-  } else if (INTERFACE_NAME == "TCP") {
-    const auto [ip, port] = parse_tcp_endpoint(DEVICE_PATH);
-    interface = std::make_shared<TcpInterface>(ip, port);
-  } else {
-    throw std::runtime_error("Error: Invalid interface type");
-  }
-
-  return interface;
-}
-
-std::vector<uint8_t> collect_pull_data(const zmq::message_t& last_pendant_msg) {
-  // Process command (echo bytes verbatim to LoRa)
-  // slogger::critical("HELLO DATA IS STILL COMING THROUGH");
-  std::vector<uint8_t> cmd_data(
-      static_cast<const uint8_t*>(last_pendant_msg.data()),
-      static_cast<const uint8_t*>(last_pendant_msg.data()) +
-          last_pendant_msg.size());
-  return cmd_data;
-}
-
-std::vector<uint8_t> create_GCS_TO_AV_data(const bool BROADCAST,
-                                           Sequence& sequence) {
-  std::vector<uint8_t> data;
-
-  const bool camera_power = sequence.get_camera_power();
-
-  // Byte 0: Packet ID
-  data.push_back(0x01);  // ID
-
-  // Byte 1: camera_power command
-  // [7:5] type = 0b101
-  // [4]   value = camera_power
-  // [3:0] padding/reserved = 0
-  uint8_t byte1 = (0b101 << 5) | (camera_power << 4);
-  data.push_back(byte1);
-
-  // Byte 2: camera_power disable command
-  // [7:5] type = 0b010
-  // [4]   value = !camera_power
-  // [3:0] padding/reserved = 0b1111
-  uint8_t byte2 = (0b010 << 5) | ((!camera_power) << 4) | 0b1111;
-  data.push_back(byte2);
-
-  // Byte 3: broadcast flag
-  // Set broadcast indicator
-  data.push_back(BROADCAST ? 0b10101010 : 0b00000000);
-
-  return data;
 }
 
 int main(int argc, char* argv[]) {
@@ -325,58 +165,69 @@ int main(int argc, char* argv[]) {
 
   slogger::info("Starting middleware server");
 
-  const std::string INTERFACE_NAME = std::string(argv[1]);
-  const bool IS_UART = (INTERFACE_NAME == "UART");
-
-  const int MIN_ARGS = IS_UART ? 14 : 5;  // 4 base + 9 lora + program name
-
+  // Argv: <gse_type> <gse_path> <av_type> <av_path> <pendant> <web>
+  //       [9x lora if gse_type==UART_E5] [--GSE_ONLY]
+  // Validation is done on the Python side; C++ only parses.
+  const int MIN_ARGS = 7;
   if (argc < MIN_ARGS) {
-    slogger::error("Not enough arguments provided.");
+    slogger::error("Not enough arguments.");
     slogger::error(
-        "Usage: ./file <interface type> <device path> <pendant socket path> "
-        "<web control socket path> [optional mode]\n"
-        "  UART also requires: <frequency> <spread_factor> <bandwidth> "
-        "<tx_preamble> <rx_preamble> <power> <crc> <iq> <net>");
+        "Usage: ./file <gse_type> <gse_path> <av_type> <av_path> "
+        "<pendant socket path> <web control socket path> "
+        "[lora params if gse_type=UART_E5] [--GSE_ONLY]");
     throw std::runtime_error("Error: Not enough arguments provided");
-    return EXIT_FAILURE;
-  } else if (argc > MIN_ARGS + 1) {
-    slogger::warning("Too many arguments provided: " + std::to_string(argc));
+  }
+
+  const std::string gse_type(argv[1]);
+  const std::string gse_path(argv[2]);
+  const std::string av_type(argv[3]);
+  const std::string av_path(argv[4]);
+  const std::string PENDANT_SOCKET_PATH(argv[5]);
+  const std::string WEB_CONTROL_SOCKET_PATH(argv[6]);
+
+  LoraConfig lora_cfg{};
+  int optional_arg_index = -1;
+  if (gse_type == "UART_E5") {
+    const int UART_ARGS = 9;
+    if (argc < MIN_ARGS + UART_ARGS) {
+      slogger::error("UART_E5 GSE requires 9 lora args after the 6 base args.");
+      throw std::runtime_error("Error: Not enough arguments for UART_E5");
+    }
+    lora_cfg = {
+        .frequency = argv[7],
+        .spread_factor = argv[8],
+        .bandwidth = argv[9],
+        .tx_preamble = argv[10],
+        .rx_preamble = argv[11],
+        .power = argv[12],
+        .crc = argv[13],
+        .iq = argv[14],
+        .net = argv[15],
+    };
+    if (argc >= 17 && std::string(argv[16]) == "--GSE_ONLY") {
+      optional_arg_index = 16;
+    }
+  } else {
+    if (argc >= 8 && std::string(argv[7]) == "--GSE_ONLY") {
+      optional_arg_index = 7;
+    }
   }
 
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
 
-  const std::string DEVICE_PATH = std::string(argv[2]);
-  const std::string PENDANT_SOCKET_PATH = std::string(argv[3]);
-  const std::string WEB_CONTROL_SOCKET_PATH = std::string(argv[4]);
-
-  LoraConfig lora_cfg;
-  if (IS_UART) {
-    lora_cfg = {
-        .frequency = argv[5],
-        .spread_factor = argv[6],
-        .bandwidth = argv[7],
-        .tx_preamble = argv[8],
-        .rx_preamble = argv[9],
-        .power = argv[10],
-        .crc = argv[11],
-        .iq = argv[12],
-        .net = argv[13],
-    };
-  }
-
   std::shared_ptr<RadioInterface> interface =
-      create_interface(INTERFACE_NAME, DEVICE_PATH, lora_cfg);
+      create_interface(gse_type, gse_path, lora_cfg);
 
   interface->initialize();
-  slogger::info("Interface initialised for type: " + std::string(argv[1]));
+  slogger::info("Interface initialised for type: " + gse_type);
 
   // Create sequence handler singleton
   Sequence sequence;
 
-  if (argc == 6) {
-    std::string mode = std::string(argv[5]);
-    sequence.set_gse_only_mode(mode == "--GSE_ONLY");
+  if (optional_arg_index >= 0 &&
+      std::string(argv[optional_arg_index]) == "--GSE_ONLY") {
+    sequence.set_gse_only_mode(true);
   }
 
   zmq::context_t context(1);
@@ -385,18 +236,18 @@ int main(int argc, char* argv[]) {
   zmq::socket_t pub_socket(context, ZMQ_PUB);
   pub_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH + "_pub.sock");
 
+  // Only keep this many messages in buffer.
+  constexpr int PULL_SOCKET_HWM = 1;
+
   // PULL socket for fowarding commands to LoRa
   zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
-  constexpr int PENDANT_HWM = 1;  // Only keep 1 message in buffer
-  pendant_pull_socket.set(zmq::sockopt::rcvhwm, PENDANT_HWM);
-  // Only keep last message
+  pendant_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   pendant_pull_socket.set(zmq::sockopt::conflate, 1);
   pendant_pull_socket.bind("ipc:///tmp/" + PENDANT_SOCKET_PATH +
                            "_pendant_pull.sock");
 
   zmq::socket_t web_control_pull_socket(context, ZMQ_PULL);
-  constexpr int WEB_CONTROL_HWM = 1;  // Only keep 1 message in buffer
-  web_control_pull_socket.set(zmq::sockopt::rcvhwm, WEB_CONTROL_HWM);
+  web_control_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   // Only keep last message
   web_control_pull_socket.set(zmq::sockopt::conflate, 1);
   web_control_pull_socket.bind("ipc://" + WEB_CONTROL_SOCKET_PATH);
@@ -423,7 +274,8 @@ int main(int argc, char* argv[]) {
   slogger::info("Middleware server started successfully");
   try {
     while (running) {
-      zmq::poll(items, std::chrono::milliseconds(300));  // 300ms timeout
+      zmq::poll(items, std::chrono::milliseconds(
+                           middleware_timing::COMMAND_LOOP_POLL_MS));
 
       int pendant_socket_more_intbool =
           1;  // http://api.zeromq.org/2-2:zmq-getsockopt
@@ -449,9 +301,10 @@ int main(int argc, char* argv[]) {
             std::chrono::duration_cast<std::chrono::seconds>(
                 now - last_timeout_warning_time)
                 .count();
-        constexpr int PENDANT_FALLBACK_TIMEOUT_SECONDS = 5;
-        if (seconds_waited >= PENDANT_FALLBACK_TIMEOUT_SECONDS &&
-            seconds_waited_timeout >= 3) {
+        if (seconds_waited >=
+                middleware_timing::PENDANT_FALLBACK_TIMEOUT_SECONDS &&
+            seconds_waited_timeout >=
+                middleware_timing::TIMEOUT_WARNING_INTERVAL_SECONDS) {
           if (!SUPPRESS_PENDANT_WARNING) {
             slogger::warning(
                 "Failed to get any new pendant data from pendant service "
@@ -459,7 +312,7 @@ int main(int argc, char* argv[]) {
                 std::to_string(seconds_waited) + " seconds");
           }
           pendant_data = FALLBACK_PENDANT_DATA;
-          last_timeout_warning_time = now;  // Wait another 3 seconds
+          last_timeout_warning_time = now;
         }
       }
 

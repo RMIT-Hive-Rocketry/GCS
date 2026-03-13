@@ -9,13 +9,18 @@
 #include <cstring>
 #include <vector>
 
+enum class DuplexMode { FULL_DUPLEX, HALF_DUPLEX };
+
 class RadioInterface {
  public:
   virtual ~RadioInterface() = default;
+  explicit RadioInterface(DuplexMode mode) : duplex_mode(mode) {}
 
   virtual bool initialize() = 0;
   virtual ssize_t read_data(std::vector<uint8_t>& buffer) = 0;
   virtual ssize_t write_data(const std::vector<uint8_t>& data) = 0;
+
+  const DuplexMode duplex_mode;
 
  protected:
   /// @brief Convert native float value to big-endian byte array.

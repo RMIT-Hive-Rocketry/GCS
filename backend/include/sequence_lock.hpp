@@ -3,6 +3,8 @@
 #include <chrono>
 #include <mutex>
 
+#include "middleware_timing.hpp"
+
 // This file hosts locking mechanisms to orchestrate the packet sequence
 
 class SequenceLock {
@@ -13,7 +15,8 @@ class SequenceLock {
   void unlock();
   bool is_locked();
 
-  static constexpr std::chrono::milliseconds TIMEOUT{1000};
+  static constexpr std::chrono::milliseconds TIMEOUT{
+      middleware_timing::SEQUENCE_LOCK_TIMEOUT_MS};
 
  private:
   std::chrono::steady_clock::time_point getLastLockTime() const;

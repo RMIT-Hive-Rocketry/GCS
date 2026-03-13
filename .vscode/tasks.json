@@ -60,9 +60,32 @@
             }
         },
         {
-            "label": "python test",
+            "label": "python test Debug",
             "type": "shell",
             "command": "bash scripts/test_manual_python.sh",
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Debug"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "id": "check",
+                "color": "terminal.ansiCyan"
+            }
+        },
+        {
+            "label": "python test Run",
+            "type": "shell",
+            "command": "bash scripts/test_manual_python.sh",
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Run"
+                }
+            },
             "group": {
                 "kind": "build",
                 "isDefault": false

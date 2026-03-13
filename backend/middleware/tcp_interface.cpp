@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstring>
 #include <stdexcept>
@@ -17,14 +18,11 @@
 #include "subprocess_logging.hpp"
 
 TcpInterface::TcpInterface(const std::string& ip, uint16_t port)
-    : ip_(ip), port_(port) {}
+    : RadioInterface(DuplexMode::FULL_DUPLEX), ip_(ip), port_(port) {}
 
 TcpInterface::~TcpInterface() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
-  if (sock_fd_ >= 0) {
-    close(sock_fd_);
-    sock_fd_ = -1;
-  }
+  close_socket_locked_();
 }
 
 bool TcpInterface::initialize() {
@@ -36,16 +34,11 @@ bool TcpInterface::initialize() {
         "(e.g. from rocket.py). No default is allowed.");
   }
 
-  sock_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
-  if (sock_fd_ < 0) {
-    throw std::system_error(errno, std::system_category(),
-                            "Failed to create TCP socket");
-  }
-
-  // Disable Nagle's algorithm for low-latency sends.
+  // Disable Nagle's algorithm for low-latency sends. Spam that shit
+  // See https://redisgate.kr/images/server/tcp_nodelay.png
   int flag = 1;
   if (setsockopt(sock_fd_, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
-    slogger::warning("Failed to set TCP_NODELAY on socket");
+    slogger::error("Failed to set TCP_NODELAY on socket");
   }
 
   std::memset(&remote_addr_, 0, sizeof(remote_addr_));
@@ -55,24 +48,13 @@ bool TcpInterface::initialize() {
     throw std::runtime_error("Invalid TCP interface IP address: " + ip_);
   }
 
-  slogger::info("Connecting TCP interface to " + ip_ + ":" +
-                std::to_string(port_));
-
-  if (::connect(sock_fd_, reinterpret_cast<sockaddr*>(&remote_addr_),
-                sizeof(remote_addr_)) < 0) {
-    int err = errno;
-    throw std::system_error(err, std::system_category(),
-                            "Failed to connect TCP interface");
-  }
-
-  return true;
+  return connect_socket_locked_();
 }
 
 // NOTE we are not using OML or anything. Raw TCP bytes only
 ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
-  if (sock_fd_ < 0) {
-    slogger::error("TCP socket not connected for write");
+  if (!ensure_connected_or_retry_locked_()) {
     return -1;
   }
 
@@ -85,8 +67,9 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
     ssize_t n = ::send(sock_fd_, buf + total, data.size() - total, 0);
     if (n < 0) {
       if (errno == EINTR) continue;
-      slogger::error("TCP send failed");
-      throw std::system_error(errno, std::system_category(), "TCP send failed");
+      mark_disconnected_locked_("TCP send failed: " +
+                                std::string(std::strerror(errno)));
+      return -1;
     }
     if (n == 0) break;
     total += static_cast<size_t>(n);
@@ -97,16 +80,14 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
 
 ssize_t TcpInterface::read_data(std::vector<uint8_t>& buffer) {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
-  if (sock_fd_ < 0) {
-    slogger::error("TCP socket not connected for read");
-    return -1;
-  }
-
   if (buffer.empty()) {
     return 0;
   }
+  if (!ensure_connected_or_retry_locked_()) {
+    return 0;
+  }
 
-  // Basic blocking read with a small timeout using select.
+  // Blocking read with timeout
   fd_set read_fds;
   FD_ZERO(&read_fds);
   FD_SET(sock_fd_, &read_fds);
@@ -118,7 +99,9 @@ ssize_t TcpInterface::read_data(std::vector<uint8_t>& buffer) {
   int ready = ::select(sock_fd_ + 1, &read_fds, nullptr, nullptr, &timeout);
   if (ready < 0) {
     if (errno == EINTR) return 0;
-    throw std::system_error(errno, std::system_category(), "TCP select failed");
+    mark_disconnected_locked_("TCP select failed: " +
+                              std::string(std::strerror(errno)));
+    return 0;
   }
   if (ready == 0) {
     // Timeout, no data.
@@ -131,8 +114,86 @@ ssize_t TcpInterface::read_data(std::vector<uint8_t>& buffer) {
     if (errno == EINTR) {
       return 0;
     }
-    throw std::system_error(errno, std::system_category(), "TCP recv failed");
+    mark_disconnected_locked_("TCP recv failed: " +
+                              std::string(std::strerror(errno)));
+    return 0;
+  }
+  if (n == 0) {
+    mark_disconnected_locked_("TCP peer closed connection");
+    return 0;
   }
 
   return n;
+}
+
+bool TcpInterface::connect_socket_locked_() {
+  close_socket_locked_();
+  connection_state_ = ConnectionState::DISCONNECTED_RETRYING;
+
+  sock_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
+  if (sock_fd_ < 0) {
+    mark_disconnected_locked_("Failed to create TCP socket: " +
+                              std::string(std::strerror(errno)));
+    return false;
+  }
+
+  // Set NODELAY again. See initialisation for more comments
+  int flag = 1;
+  if (setsockopt(sock_fd_, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
+    slogger::warning("Failed to set TCP_NODELAY on socket");
+  }
+
+  slogger::warning("(TCP SIGNAL LOST)");
+
+  if (::connect(sock_fd_, reinterpret_cast<sockaddr*>(&remote_addr_),
+                sizeof(remote_addr_)) < 0) {
+    mark_disconnected_locked_("Failed to connect TCP interface: " +
+                              std::string(std::strerror(errno)));
+    return false;
+  }
+
+  connection_state_ = ConnectionState::CONNECTED;
+  retry_backoff_ = middleware_timing::initial_tcp_retry_backoff;
+  next_retry_time_ = std::chrono::steady_clock::now();
+  slogger::success("TCP interface connected");
+  return true;
+}
+
+bool TcpInterface::ensure_connected_or_retry_locked_() {
+  if (connection_state_ == ConnectionState::CONNECTED && sock_fd_ >= 0) {
+    return true;
+  }
+
+  auto now = std::chrono::steady_clock::now();
+  if (now < next_retry_time_) {
+    return false;
+  }
+
+  if (connect_socket_locked_()) {
+    return true;
+  }
+
+  next_retry_time_ = now + retry_backoff_;
+  auto next_backoff_ms = std::min<int64_t>(
+      retry_backoff_.count() * 2, middleware_timing::MAX_TCP_RETRY_BACKOFF_MS);
+  retry_backoff_ = std::chrono::milliseconds(next_backoff_ms);
+  return false;
+}
+
+void TcpInterface::mark_disconnected_locked_(const std::string& reason) {
+  bool was_connected = connection_state_ == ConnectionState::CONNECTED;
+  connection_state_ = ConnectionState::DISCONNECTED_RETRYING;
+  close_socket_locked_();
+  if (was_connected) {
+    slogger::warning(reason + ". Entering reconnect limbo.");
+  } else {
+    slogger::warning(reason);
+  }
+}
+
+void TcpInterface::close_socket_locked_() {
+  if (sock_fd_ >= 0) {
+    close(sock_fd_);
+    sock_fd_ = -1;
+  }
 }

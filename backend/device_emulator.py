@@ -120,7 +120,7 @@ class MockPacket(ABC):
         match MockPacket._INTERFACE_TYPE:
             case InterfaceType.TEST:
                 return _format_test_payload()
-            case InterfaceType.TEST_UART:
+            case InterfaceType.TEST_UART_E5:
                 return _format_test_uart_payload()
 
 
