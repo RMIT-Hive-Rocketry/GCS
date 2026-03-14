@@ -529,6 +529,9 @@ class Pygame_Device(ControlDevice):
         if Pygame_Device.is_connected:
             return
 
+        # this should only be called when these are junk (controller disconnected, startup etc)
+        # Pygame_Device.is_connected = False
+        # Pygame_Device.joystick = None
         found_names = ""
 
         for i in range(pygame.joystick.get_count()):
