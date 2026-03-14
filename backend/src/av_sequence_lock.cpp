@@ -1,5 +1,6 @@
 #include "av_sequence_lock.hpp"
 
+#include "middleware_timing.hpp"
 #include "subprocess_logging.hpp"
 
 #ifdef DEBUG
@@ -47,7 +48,8 @@ bool AvSequenceLock::unlock_if_timed_out_() {
     return true;
   }
   // If lock is timed out for more than TIMEOUT ms, unlock it
-  if (std::chrono::steady_clock::now() - getLastLockTime() > TIMEOUT) {
+  if (std::chrono::steady_clock::now() - getLastLockTime() >
+      middleware_timing::SEQUENCE_LOCK_TIMEOUT) {
     unlock();
     slogger::warning("(NO RESPONSE: " + ANS_COLOR + "\033[1m" + LOCK_NAME +
                      "\033[0m" + slogger::WARNING_COLOUR + ") Timeout on " +

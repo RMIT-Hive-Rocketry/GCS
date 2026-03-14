@@ -2,36 +2,46 @@
 
 /// Include from main and any module that needs these values.
 
+// Holy fuck these types are long
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+using Seconds = std::chrono::seconds;
+using Millis = std::chrono::milliseconds;
+
 namespace middleware_timing {
 
-// --- AvSequence lock (GSE/AV write wait timeout) ---
-/// Time to wait for peer response before considering the lock timed out (ms).
-constexpr int SEQUENCE_LOCK_TIMEOUT_MS = 1000;
+// --- AvSequence and lock (GSE/AV write wait timeout) ---
+/// Time to wait for peer response before considering the lock timed out and
+/// device unresponsive
+constexpr Millis SEQUENCE_LOCK_TIMEOUT{1000};
+/// Buffer time while busy waiting on thread
+constexpr Millis SEQUENCE_BUSY_WAIT{10};
 
 // --- Command loop (pendant / web polling) ---
 /// Poll timeout for ZMQ pendant and web control sockets (ms).
-constexpr int COMMAND_LOOP_POLL_MS = 300;
+constexpr Millis COMMAND_LOOP_POLL{300};
 /// After this many seconds without pendant data, use fallback and warn.
-constexpr int PENDANT_FALLBACK_TIMEOUT_SECONDS = 5;
+constexpr Seconds PENDANT_FALLBACK_TIMEOUT{5};
 /// Minimum interval between repeated timeout warnings (seconds).
 /// For terminal printing only. This does not effect functionality
-constexpr int TIMEOUT_WARNING_INTERVAL_SECONDS = 3;
+constexpr Seconds TIMEOUT_WARNING_INTERVAL{3};
 
 // --- Read loop (interface read thread) ---
 /// Sleep when no data available to avoid busy-wait (ms).
-constexpr int READ_LOOP_SLEEP_MS = 1;
+constexpr Millis READ_LOOP_SLEEP{1};
 /// After this many seconds with no data, log a "no data received" warning.
 /// For terminal printing only. This does not effect functionality
-constexpr int READ_LOOP_NO_DATA_WARNING_SECONDS = 3;
+constexpr Seconds READ_LOOP_NO_DATA_WARNING{3};
 
 // --- GSE full-duplex rate limit (e.g. TCP; used when dual-interface is active)
 // ---
 /// Minimum interval between GSE sends when interface is full-duplex
 /// (heartbeat). Send immediately if payload changed; otherwise throttle to this
 /// interval (ms).
-constexpr int GSE_FULL_DUPLEX_MIN_INTERVAL_MS = 500;
+constexpr Millis GSE_FULL_DUPLEX_MIN_INTERVAL{500};
 
-constexpr std::chrono::milliseconds initial_tcp_retry_backoff{250};
-static constexpr int64_t MAX_TCP_RETRY_BACKOFF_MS = 2000;
+/// Include desc
+constexpr Millis initial_tcp_retry_backoff{250};
+/// Include desc
+static constexpr Millis MAX_TCP_RETRY_BACKOFF{2000};
 
 }  // namespace middleware_timing

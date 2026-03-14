@@ -63,7 +63,6 @@ class AvSequence {
  private:
   AvSequenceLock gse_write_lock_{"GSE", "\033[38;5;10m"};
   AvSequenceLock av_write_lock_{"AV", "\033[38;5;205m"};
-  static constexpr std::chrono::milliseconds TIMEOUT = AvSequenceLock::TIMEOUT;
   bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
   bool manual_control_solenoids_ = false;  // Changes based on web data
   // Singleton assertion helper for constructor assertion
