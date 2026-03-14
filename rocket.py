@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from functools import cache
+
 import click
 import cli.rocket_logging as rocket_logging
 import cli.proccess as process
@@ -11,7 +13,7 @@ import time
 import os
 import signal
 import enum
-from typing import Optional, Callable
+from typing import Dict, Optional, Callable
 from cli.start_socat import start_fake_serial_device
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -19,6 +21,7 @@ from cli.start_middleware import (
     start_middleware,
     InterfaceType,
     get_interface_type,
+    MiddlewareConfig,
 )
 from cli.start_event_viewer import start_event_viewer
 from cli.start_pendant_emulator import start_pendant_emulator
@@ -160,7 +163,17 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                 "-i",
                 "--interface",
                 type=_INTERFACE_CHOICES,
-                help="Hardware interface type. Overrides config parameter",
+                help="Hardware interface type (single link). Overrides config. Mutually exclusive with --interface-av/--interface-gse.",
+            ),
+            click.option(
+                "--interface-av",
+                type=_INTERFACE_CHOICES,
+                help="AV link interface type (dual-link mode). Must be used together with --interface-gse.",
+            ),
+            click.option(
+                "--interface-gse",
+                type=_INTERFACE_CHOICES,
+                help="GSE link interface type (dual-link mode). Must be used together with --interface-av.",
             ),
             click.option(
                 "--nopendant",
@@ -230,7 +243,7 @@ def start_docker_container(logger):
 
 
 def get_controller_enum() -> ControllerTypes:
-    pedant_config = config.load_config()["hardware"].get("controller")
+    pedant_config = config.get_config()["hardware"].get("controller")
     if pedant_config is None or len(pedant_config) == 0:
         # Nothing specified
         raise RuntimeError("Pendant controller option not found in config.ini")
@@ -244,13 +257,65 @@ def get_controller_enum() -> ControllerTypes:
         case "pygame_device":
             return ControllerTypes.PYGAME_DEVICE
         case _:
-            return ControllerTypes.NOT_IMPLIMENTED
+            raise RuntimeError(
+                "Pendant controller option not found in config.ini"
+            )
+
+
+# Used to tell the sleep deprived operator what the current configs are on bootup
+# Explicit and obvious. Don't assume what frequency you are on
+
+
+def large_radio_config_print(params):
+    logger.info("----------# RADIO PARAMETERS #----------")
+    for key, value in params.items():
+        logger.info(f"{key}:\t {value}")
+    logger.info("----------# RADIO PARAMETERS #----------")
+
+
+def _validate_interface_options(
+    interface: Optional[str],
+    interface_av: Optional[str],
+    interface_gse: Optional[str],
+) -> None:
+    """Validate mutual exclusivity of --interface vs --interface-av/--interface-gse.
+    Raises click.UsageError for invalid combinations.
+    """
+    has_single = interface is not None
+    has_av = interface_av is not None
+    has_gse = interface_gse is not None
+    if has_single and (has_av or has_gse):
+        raise click.UsageError(
+            "Do not specify both --interface and --interface-av/--interface-gse. "
+            "Use either --interface (single link) or both --interface-av and --interface-gse (separate links)."
+        )
+    if (has_av and not has_gse) or (has_gse and not has_av):
+        raise click.UsageError(
+            "When using separate links, both --interface-av and --interface-gse must be specified."
+        )
+
+    if interface_av is not None:
+        interface_av = interface_av.strip().lower()
+
+    if interface_gse is not None:
+        interface_gse = interface_gse.strip().lower()
+
+    if interface_gse is not None and interface_av is not None:
+        if (
+            "test" in interface_av
+            or "test" in interface_gse
+            and interface_av != interface_gse
+        ):
+            raise NotImplementedError(
+                "Device emulator does not support split emulation interfaces yet"
+            )
 
 
 def start_services(
     COMMAND: Command,
     DOCKER: bool = False,
-    INTERFACE_ARG: Optional[InterfaceType] = None,
+    interface_av_arg: Optional[str] = None,
+    interface_gse_arg: Optional[str] = None,
     nobuild: bool = False,
     logpkt: bool = False,
     nopendant: bool = False,
@@ -267,7 +332,8 @@ def start_services(
     Args:
         COMMAND (Command): Summoning command for context.
         DOCKER (bool, optional): Start in docker?. Defaults to False.
-        INTERFACE_ARG (Optional[InterfaceType], optional): Hardware interface to use. Defaults to None.
+        interface_av_arg (Optional[str], optional): AV link type for dual-link mode. With interface_gse_arg. Defaults to None.
+        interface_gse_arg (Optional[str], optional): GSE link type for dual-link mode. With interface_av_arg. Defaults to None.
         nobuild (bool, optional): Skip cmake build?. Defaults to False.
         logpkt (bool, optional): Log recieved packets?. Defaults to False.
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
@@ -288,13 +354,19 @@ def start_services(
 
     print_splash()
 
-    # 0. Start docker container if requested in dev environment
+    # 0 Notify user if they are in release mode
+    if COMMAND == Command.RUN:
+        logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
+        logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
+        logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
+
+    # 0.1 Start docker container if requested in dev environment
     if not DOCKER:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
-        logger.info("Starting development mode")
+        logger.info("Starting Soteria")
     else:
-        logger.info("Starting development container in Docker")
+        logger.info("Starting Soteria container in Docker")
         raise NotImplementedError(
             "Internal Docker implimentation is out of date. Do not use"
         )
@@ -312,41 +384,81 @@ def start_services(
     else:
         logger.info("Skipping middleware build. Using pre-built binaries")
 
-    # 2. Intialise devices and parameters
-    INTERFACE_TYPE = get_interface_type(INTERFACE_ARG)
-    match INTERFACE_TYPE:
-        case InterfaceType.UART:
-            logger.info("Starting UART interface")
-            # Just leave second (emulator) device as None
+    # 2. Resolve GSE and AV interface types (single = same for both; dual = separate)
+    dual_mode = interface_av_arg is not None and interface_gse_arg is not None
+
+    INTERFACE_TYPE_GSE = get_interface_type(interface_gse_arg)
+    INTERFACE_TYPE_AV = get_interface_type(interface_av_arg)
+
+    if (
+        os.environ.get("PYTEST_CURRENT_TEST") is not None
+        and os.environ.get("CI_BUILD_ENV") == "Run"
+    ):
+        # You are in testing release environment
+        raise NotImplementedError("Release python testing is not implemented")
+
+    lora_config = {}
+    match INTERFACE_TYPE_GSE:
+        case InterfaceType.UART_E5:
+            logger.info("Starting UART E5 interface (GSE)")
             devices = ("/dev/serial0", None)
-        case InterfaceType.TEST_UART:
+            lora_section = config.get_config()["lora"]
+            lora_config = {
+                "frequency": str(lora_section.get("frequency")),
+                "spread_factor": str(lora_section.get("spread_factor")),
+                "bandwidth": str(lora_section.get("bandwidth")),
+                "tx_preamble": str(lora_section.get("tx_preamble")),
+                "rx_preamble": str(lora_section.get("rx_preamble")),
+                "power": str(lora_section.get("power")),
+                "crc": str(lora_section.get("crc")),
+                "iq": str(lora_section.get("iq")),
+                "net": str(lora_section.get("net")),
+            }
+            large_radio_config_print(lora_section)
+        case InterfaceType.TEST_UART_E5:
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TEST:
             devices = run_pseudoterm_setup(COMMAND)
         case InterfaceType.TCP:
             logger.info("Starting TCP interface")
-            devices = ("127.0.0.1", None)
+            tcp_ip = str(config.get_config()["tcp"].get("gse_ip"))
+            tcp_port = int(config.get_config()["tcp"].get("gse_port"))
+            large_radio_config_print(config.get_config()["tcp"])
+            if tcp_ip is None or tcp_port is None:
+                raise RuntimeError(
+                    "Please specify gse_ip and gse_port in config/config.ini"
+                )
+            if not (1 <= tcp_port <= 65535):
+                raise RuntimeError("tcp-port must be between 1 and 65535")
+            devices = (f"{tcp_ip}:{tcp_port}", None)
         case _:
             logger.error("Invalid interface type")
             raise ValueError("Invalid interface type")
 
-    # 3. Run C++ middleware
-    # Note that `devices` are paired pseudo-ttys
+    # 3. Run C++ middleware (always gse + av argv; single = same type/path for both)
     try:
-        optional_arg = None
-        if gse_only:
-            optional_arg = "--GSE_ONLY"
-        start_middleware(
-            logger=logger,
+        optional_arg = "--GSE_ONLY" if gse_only else None
+        device_path = devices[0]
+        # Adding shit to the middleware args is annoying as fuck
+        # This needs to be refactored and SSOT / DRY fixed
+        mw_config = MiddlewareConfig(
             release=COMMAND == Command.RUN,
-            INTERFACE_TYPE=INTERFACE_TYPE,
-            DEVICE_PATH=devices[0],
-            PENDANT_SOCKET_PATH="gcs_rocket",
-            WEB_CONTROL_SOCKET_PATH=os.path.abspath(
+            interface_gse_type=INTERFACE_TYPE_GSE,
+            device_path_gse=device_path,
+            interface_av_type=INTERFACE_TYPE_AV,
+            device_path_av=device_path,
+            pendant_socket_path="gcs_rocket",
+            web_control_socket_path=os.path.abspath(
                 os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
             ),
             opt_arg=optional_arg,
+            lora_config=(
+                lora_config
+                if INTERFACE_TYPE_GSE == InterfaceType.UART_E5
+                else None
+            ),
         )
+        start_middleware(logger=logger, config=mw_config)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error"
@@ -357,13 +469,19 @@ def start_services(
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
     if (
-        INTERFACE_TYPE in [InterfaceType.TEST, InterfaceType.TEST_UART]
+        INTERFACE_TYPE_AV in [InterfaceType.TEST, InterfaceType.TEST_UART_E5]
+        or INTERFACE_TYPE_GSE
+        in [InterfaceType.TEST, InterfaceType.TEST_UART_E5]
         and COMMAND == Command.DEV
     ):
+        if INTERFACE_TYPE_AV != INTERFACE_TYPE_GSE:
+            raise NotImplementedError(
+                "Device emulator does not support split emulation interfaces yet"
+            )
         start_fake_serial_device_emulator(
             logger,
             devices[1],
-            INTERFACE_TYPE,
+            INTERFACE_TYPE_AV,
             experimental=experimental,
             corruption=corruption,
         )
@@ -427,10 +545,17 @@ def cli():
 def run(gse_only):
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
+    interface_gse_arg = config.get_config()["hardware"].get(
+        "interface_release_gse"
+    )
+    interface_av_arg = config.get_config()["hardware"].get(
+        "interface_release_av"
+    )
     start_services(
         Command.RUN,
         DOCKER=False,
-        INTERFACE_ARG=None,  # Should use config only. Arg is not available for run mode
+        interface_av_arg=interface_av_arg,  # Use config only
+        interface_gse_arg=interface_gse_arg,  # Use config only
         nobuild=True,  # Do NOT auto build in production mode.
         logpkt=True,  # Log packets by default in production mode
         nopendant=False,  # Pendant emulator is required in production mode
@@ -444,6 +569,8 @@ def run(gse_only):
 def dev(
     docker,
     interface,
+    interface_av,
+    interface_gse,
     nobuild,
     logpkt,
     nopendant,
@@ -453,10 +580,15 @@ def dev(
     corruption,
 ):
     """Start software in development mode"""
+    _validate_interface_options(interface, interface_av, interface_gse)
+    if interface is not None:
+        interface_av = interface
+        interface_gse = interface
     start_services(
         Command.DEV,
         DOCKER=docker,
-        INTERFACE_ARG=interface,
+        interface_av_arg=interface_av,
+        interface_gse_arg=interface_gse,
         nobuild=nobuild,
         logpkt=logpkt,
         nopendant=nopendant,

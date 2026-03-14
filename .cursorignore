@@ -1,0 +1,11 @@
+# Oh look it's using AI now! ...
+# If I catch you commiting anything that is slop I will hit you
+
+# .gitignore is included by default by cursor
+
+# Don't touch or attempt to index old notes, refference code
+notes/
+# Or excalidraw files
+*.excalidraw
+
+*.svg

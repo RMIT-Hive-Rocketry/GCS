@@ -435,7 +435,7 @@ def main():
             )
 
         MockPacket.initialize_settings(
-            config.load_config()["emulation"],
+            config.get_config()["emulation"],
             FAKE_DEVICE_NAME=args.device_rocket,
         )
 

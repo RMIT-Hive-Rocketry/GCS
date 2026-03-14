@@ -141,26 +141,18 @@ class StateTable:
     def get_states_dict(self) -> dict:
         """returns argument dictionary for use in GCS to GSE packet"""
         # You should also check these states electronically where applicable
+        # fmt: off
         states = {
-            "MANUAL_PURGE": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.PURGE_ACTIVE,
-            "O2_FILL_ACTIVATE": self.SYS_ON
-            and self.IGNITION_SELECTED
-            and self.O2_MOMENT_ACTIVE,
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.NEUTRAL_ACTIVE,
-            "N2O_FILL_ACTIVATE": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.N2O_ACTIVE,
-            "IGNITION_FIRE": self.SYS_ON
-            and self.IGNITION_SELECTED
-            and self.IGNITION_MOMENT_ACTIVE,
+            "MANUAL_PURGE": self.SYS_ON and self.FILL_SELECTED and self.PURGE_ACTIVE,
+            "O2_FILL_ACTIVATE": self.SYS_ON and self.IGNITION_SELECTED and self.O2_MOMENT_ACTIVE,
+            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON and self.FILL_SELECTED and self.NEUTRAL_ACTIVE,
+            "N2O_FILL_ACTIVATE": self.SYS_ON and self.FILL_SELECTED and self.N2O_ACTIVE,
+            "IGNITION_FIRE": self.SYS_ON and self.IGNITION_SELECTED and self.IGNITION_MOMENT_ACTIVE,
             "IGNITION_SELECTED": self.SYS_ON and self.IGNITION_SELECTED,
             "GAS_FILL_SELECTED": self.SYS_ON and self.FILL_SELECTED,
             "SYSTEM_ACTIVATE": self.SYS_ON,
         }
+        # fmt: on
 
         # Type and range validation
         if (
@@ -212,8 +204,9 @@ class ControlDevice(ABC):
         """Updates and gets the current states from the control device."""
         try:
             self._update_state_table()
-        except Exception:
-            slogger.warning("Failed to update pendant states")
+        except Exception as e:
+            slogger.warning(f"Failed to update pendant states : {e}")
+
         if not self.state_table:
             slogger.warning(
                 "No inputs received from control device, using fallback state"
@@ -286,7 +279,8 @@ class HID_Button:
     MAX_SAFETY_COUNT: int = 10
     USEFUL_BYTE_OFFSET: int = 5
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
-    SAFETY_FACTOR: float = 0.5  # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    SAFETY_FACTOR: float = 0.5
 
     byte: int  # [0, 1]
     bit: int  # [0, 7]
@@ -370,7 +364,7 @@ class HID_Device(ControlDevice):
     # name: (byte, bit)
     BITMAP: Dict[str, Tuple[int, int]] = {
         "SYS_ON": (1, 5),
-        # "ESTOP":                    (1, 6),
+        # "ESTOP": (1, 6),
         "FILL_SELECTED": (0, 2),
         "IGNITION_SELECTED": (0, 1),
         "N2O_ACTIVE": (0, 0),
@@ -428,14 +422,16 @@ class HID_Device(ControlDevice):
             }
             # Temporary fix for neutral state which isn't wired
             states["NEUTRAL_ACTIVE"] = (
-                self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
+                states["SYS_ON"]
+                and not states["N2O_ACTIVE"]
+                and not states["PURGE_ACTIVE"]
             )
 
             self.state_table = StateTable(**states)
 
-        except IOError as e:
+        except IOError:
             self.device_is_connected = False
-            self.state_table = StateTable.FALLBACK_DICT
+            self.state_table = StateTable.get_fallback_table()
 
     def cleanup(self):
         self.device.close()
@@ -514,7 +510,7 @@ class Pygame_Device(ControlDevice):
     CONTROLLER_NAME: str = "DragonRise Inc. Generic USB Joystick"
 
     joystick: pygame.joystick.JoystickType | None = None
-
+    joystick_id: int
     is_connected: bool = False
 
     def __init__(self):
@@ -526,14 +522,14 @@ class Pygame_Device(ControlDevice):
     def _try_connect_device(self):
         # Attempt controller connection
         if pygame.joystick.get_count() == 0:
-            slogger.warning("No Controllers Connected")
+            # slogger.warning("No Controllers Connected")
             return
 
         # Don't re-attempt connection if device is already connected
         if Pygame_Device.is_connected:
             return
 
-        # this should only be called when these are junt (controller disconnected, startup etc)
+        # this should only be called when these are junk (controller disconnected, startup etc)
         # Pygame_Device.is_connected = False
         # Pygame_Device.joystick = None
         found_names = ""
@@ -546,20 +542,22 @@ class Pygame_Device(ControlDevice):
             if jstk.get_name() == Pygame_Device.CONTROLLER_NAME:
                 Pygame_Device.is_connected = True
                 Pygame_Device.joystick = jstk
+                Pygame_Device.joystick_id = jstk.get_instance_id()
+
                 slogger.info(
                     f"Controller initialized: {Pygame_Device.joystick.get_name()}"
                 )
                 break
 
         if not Pygame_Device.is_connected:
-            slogger.warning(
-                "Did not find controller '"
-                + Pygame_Device.CONTROLLER_NAME
-                + "'"
-                + " found controllers '"
-                + found_names
-                + "'"
-            )
+            # slogger.warning(
+            #     "Did not find controller '"
+            #     + Pygame_Device.CONTROLLER_NAME
+            #     + "'"
+            #     + " found controllers '"
+            #     + found_names
+            #     + "'"
+            # )
             return
 
     def _setup_device(self):
@@ -575,6 +573,18 @@ class Pygame_Device(ControlDevice):
         if not Pygame_Device.is_connected:
             self._try_connect_device()
 
+        # check for disconection
+        events: List[pygame.event.Event] = pygame.event.get()
+        for event in events:
+            if (
+                event.type == pygame.JOYDEVICEREMOVED
+                and event.instance_id == Pygame_Device.joystick_id
+            ):
+                Pygame_Device.joystick = None
+                Pygame_Device.is_connected = False
+                Pygame_Device.joystick_id = 0
+                slogger.error("Pendnat Disconnected")
+
         if Pygame_Device.is_connected and Pygame_Device.joystick is not None:
             # polling events on mac gave me segfaults
             for btn_name, btn_id in Pygame_Device.BUTTON_NAME_ID_MAP.items():
@@ -583,8 +593,6 @@ class Pygame_Device(ControlDevice):
                 except Exception:
                     # Don't automatically disconnect device when an unexpected button is pressed
                     # Since the joystick sends noisy/useless data, it causes it to reconnect endlessly
-                    # Pygame_Device.is_connected = False
-                    # Pygame_Device.joystick = None
                     pressed = False
                 self.buttons[btn_name].update_state(pressed)
 
@@ -592,8 +600,17 @@ class Pygame_Device(ControlDevice):
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
+
+            # Temporary fix for neutral state which isn't wired
+            states["SYS_ON"] = not states["ESTOP"]
+            states["NEUTRAL_ACTIVE"] = (
+                states["SYS_ON"]
+                and not states["N2O_ACTIVE"]
+                and not states["PURGE_ACTIVE"]
+            )
+            self.state_table = StateTable(**states)
         else:
-            states = StateTable.FALLBACK_DICT.copy()
+            self.state_table = StateTable.get_fallback_table()
 
         """
         states = {}
@@ -604,15 +621,6 @@ class Pygame_Device(ControlDevice):
         else:
             states = StateTable.FALLBACK_DICT.copy()
         """
-
-        # Temporary fix for neutral state which isn't wired
-        states["SYS_ON"] = not states["ESTOP"]
-        states["NEUTRAL_ACTIVE"] = (
-            states["SYS_ON"]
-            and not states["N2O_ACTIVE"]
-            and not states["PURGE_ACTIVE"]
-        )
-        self.state_table = StateTable(**states)
 
     def cleanup(self):
         """Internal cleaup code"""
@@ -638,7 +646,7 @@ def send_packet():
 
     try:
         push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.load_config()
+        CONFIG = config.get_config()
         SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
@@ -681,7 +689,7 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()["emulation"]
+        config.get_config()["emulation"]
     )
     slogger.debug("Starting pendant daemon")
 

@@ -17,6 +17,7 @@ class SubprocessLogHandler(logging.Handler):
             slogger.info(msg)  # fallback
 """
 
+
 valid_file_extensions = (
     ".css",
     ".js",  # CSS, JavaScript

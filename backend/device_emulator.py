@@ -133,7 +133,7 @@ class MockPacket(ABC):
         match MockPacket._INTERFACE_TYPE:
             case InterfaceType.TEST:
                 return _format_test_payload()
-            case InterfaceType.TEST_UART:
+            case InterfaceType.TEST_UART_E5:
                 return _format_test_uart_payload()
 
 
@@ -892,7 +892,7 @@ def main():
     corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
-        config.load_config()["emulation"],
+        config.get_config()["emulation"],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
         INTERFACE_TYPE=INTERFACE_TYPE,
     )
@@ -901,7 +901,7 @@ def main():
     # They are not recieved by the GCS
 
     # Used for the sequence lock class GSE debugging
-    CONFIG_LOADED = config.load_config()
+    CONFIG_LOADED = config.get_config()
     GSE_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_gse_response_path"]
     AV_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_av_response_path"]
 
