@@ -1,4 +1,4 @@
-// uart_test_interface.hpp
+// test_uart_e5_interface.hpp
 #pragma once
 
 #include <termios.h>
@@ -10,10 +10,10 @@
 
 #include "radio_interface.hpp"
 
-class TestUartInterface : public RadioInterface {
+class TestUartE5Interface : public RadioInterface {
  public:
-  TestUartInterface(const std::string& device_path, int baud_rate = B115200);
-  virtual ~TestUartInterface();
+  TestUartE5Interface(const std::string& device_path, int baud_rate = B115200);
+  virtual ~TestUartE5Interface();
 
   bool initialize() override;
   ssize_t read_data(std::vector<uint8_t>& buffer) override;

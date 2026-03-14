@@ -141,26 +141,18 @@ class StateTable:
     def get_states_dict(self) -> dict:
         """returns argument dictionary for use in GCS to GSE packet"""
         # You should also check these states electronically where applicable
+        # fmt: off
         states = {
-            "MANUAL_PURGE": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.PURGE_ACTIVE,
-            "O2_FILL_ACTIVATE": self.SYS_ON
-            and self.IGNITION_SELECTED
-            and self.O2_MOMENT_ACTIVE,
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.NEUTRAL_ACTIVE,
-            "N2O_FILL_ACTIVATE": self.SYS_ON
-            and self.FILL_SELECTED
-            and self.N2O_ACTIVE,
-            "IGNITION_FIRE": self.SYS_ON
-            and self.IGNITION_SELECTED
-            and self.IGNITION_MOMENT_ACTIVE,
+            "MANUAL_PURGE": self.SYS_ON and self.FILL_SELECTED and self.PURGE_ACTIVE,
+            "O2_FILL_ACTIVATE": self.SYS_ON and self.IGNITION_SELECTED and self.O2_MOMENT_ACTIVE,
+            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON and self.FILL_SELECTED and self.NEUTRAL_ACTIVE,
+            "N2O_FILL_ACTIVATE": self.SYS_ON and self.FILL_SELECTED and self.N2O_ACTIVE,
+            "IGNITION_FIRE": self.SYS_ON and self.IGNITION_SELECTED and self.IGNITION_MOMENT_ACTIVE,
             "IGNITION_SELECTED": self.SYS_ON and self.IGNITION_SELECTED,
             "GAS_FILL_SELECTED": self.SYS_ON and self.FILL_SELECTED,
             "SYSTEM_ACTIVATE": self.SYS_ON,
         }
+        # fmt: on
 
         # Type and range validation
         if (
@@ -639,7 +631,7 @@ def send_packet():
 
     try:
         push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.load_config()
+        CONFIG = config.get_config()
         SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
@@ -682,7 +674,7 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()["emulation"]
+        config.get_config()["emulation"]
     )
     slogger.debug("Starting pendant daemon")
 

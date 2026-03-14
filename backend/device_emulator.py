@@ -133,7 +133,7 @@ class MockPacket(ABC):
         match MockPacket._INTERFACE_TYPE:
             case InterfaceType.TEST:
                 return _format_test_payload()
-            case InterfaceType.TEST_UART:
+            case InterfaceType.TEST_UART_E5:
                 return _format_test_uart_payload()
 
 
@@ -671,20 +671,20 @@ def get_sinusoid_packets(
     ARGS_AV_COMMON = {
         "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
-        "FLIGHT_STATE_": changing_int(T, 0, 0b111, 1)
-        if EXPERIMENTAL
-        else 0b000,
-        "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": changing_bool(T)
-        if EXPERIMENTAL
-        else True,
-        "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
+        "FLIGHT_STATE_": (
+            changing_int(T, 0, 0b111, 1) if EXPERIMENTAL else 0b000
+        ),
+        "DUAL_BOARD_CONNECTIVITY_STATE_FLAG": (
+            changing_bool(T) if EXPERIMENTAL else True
+        ),
+        "RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
         "GPS_FIX_FLAG": changing_bool(T) if EXPERIMENTAL else True,
         "PAYLOAD_CONNECTION_FLAG": changing_bool(T) if EXPERIMENTAL else True,
-        "CAMERA_CONTROLLER_CONNECTION": changing_bool(T)
-        if EXPERIMENTAL
-        else True,
+        "CAMERA_CONTROLLER_CONNECTION": (
+            changing_bool(T) if EXPERIMENTAL else True
+        ),
     }
 
     ARGS_AVtoGCSData1 = ARGS_AV_COMMON | {
@@ -724,30 +724,30 @@ def get_sinusoid_packets(
         ),
         "ALTITUDE": sinusoid(T, min=0, max=3000, period=40, phase=0),
         "VELOCITY": sinusoid(T, min=0, max=350, period=20, phase=0),
-        "APOGEE_PRIMARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "APOGEE_SECONDARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "APOGEE_PRIMARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "APOGEE_SECONDARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_PRIMARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_SECONDARY_TEST_COMPETE": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_PRIMARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "MAIN_SECONDARY_TEST_RESULTS": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
+        "APOGEE_PRIMARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "APOGEE_SECONDARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "APOGEE_PRIMARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "APOGEE_SECONDARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_PRIMARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_SECONDARY_TEST_COMPETE": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_PRIMARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "MAIN_SECONDARY_TEST_RESULTS": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
         "MOVE_TO_BROADCAST": changing_bool(T) if EXPERIMENTAL else False,
     }
 
@@ -789,15 +789,15 @@ def get_sinusoid_packets(
         "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
         "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
         "MANUAL_PURGED": changing_bool(T + 1 / 4) if EXPERIMENTAL else False,
-        "O2_FILL_ACTIVATED": changing_bool(T + 2 / 4)
-        if EXPERIMENTAL
-        else False,
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": changing_bool(T)
-        if EXPERIMENTAL
-        else False,
-        "N2O_FILL_ACTIVATED": changing_bool(T + 3 / 4)
-        if EXPERIMENTAL
-        else False,
+        "O2_FILL_ACTIVATED": (
+            changing_bool(T + 2 / 4) if EXPERIMENTAL else False
+        ),
+        "SELECTOR_SWITCH_NEUTRAL_POSITION": (
+            changing_bool(T) if EXPERIMENTAL else False
+        ),
+        "N2O_FILL_ACTIVATED": (
+            changing_bool(T + 3 / 4) if EXPERIMENTAL else False
+        ),
         "IGNITION_FIRED": changing_bool(T + 4 / 4) if EXPERIMENTAL else False,
         "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
         "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
@@ -892,7 +892,7 @@ def main():
     corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
-        config.load_config()["emulation"],
+        config.get_config()["emulation"],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
         INTERFACE_TYPE=INTERFACE_TYPE,
     )
@@ -901,7 +901,7 @@ def main():
     # They are not recieved by the GCS
 
     # Used for the sequence lock class GSE debugging
-    CONFIG_LOADED = config.load_config()
+    CONFIG_LOADED = config.get_config()
     GSE_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_gse_response_path"]
     AV_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_av_response_path"]
 

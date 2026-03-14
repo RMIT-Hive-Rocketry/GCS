@@ -11,7 +11,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Simple TCP loopback listener that prints any packets it receives. "
-            "Intended for debugging the middleware TcpInterface (127.0.0.1:5000)."
+            "Intended for debugging the middleware TcpInterface (127.0.0.1:5001)."
         )
     )
     parser.add_argument(
@@ -22,8 +22,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--port",
         type=int,
-        default=5000,
-        help="TCP port to listen on (default: 5000)",
+        default=5001,
+        help="TCP port to listen on (default: 5001)",
     )
     return parser.parse_args()
 

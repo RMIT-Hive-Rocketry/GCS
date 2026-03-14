@@ -139,7 +139,8 @@ class LoggedSubProcess:
 
         ---
 
-        ### If you plan on running a finite amount of callbacks, override this method."""
+        ### If you plan on running a finite amount of callbacks, override this method.
+        """
         return False
 
     def _run_callbacks(self, stripped_line: str, stream_name: str) -> None:

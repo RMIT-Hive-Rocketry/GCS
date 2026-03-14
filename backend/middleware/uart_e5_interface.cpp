@@ -1,4 +1,6 @@
 // uart_e5_interface.cpp
+#include "uart_e5_interface.hpp"
+
 #include <fcntl.h>
 #include <sys/select.h>
 #include <termios.h>
@@ -14,7 +16,6 @@
 #include <thread>
 
 #include "subprocess_logging.hpp"
-#include "uart_e5_interface.hpp"
 
 UartE5Interface::UartE5Interface(LoraConfig lora_cfg,
                                  const std::string& device_path, int baud_rate)
@@ -262,19 +263,6 @@ ssize_t UartE5Interface::read_data(std::vector<uint8_t>& buffer) {
     slogger::error("UART file descriptor is invalid");
     return -1;
   }
-
-  // Responses looks like this
-  // ...
-
-  // +TEST: LEN:32, RSSI:-46, SNR:10
-  // +TEST: RX
-  // "0400FFEA0838001FFFDA0400FFC1FFEB0007FFA73C6DAABE0000000000000000"
-
-  // +TEST: LEN:32, RSSI:-45, SNR:10
-  // +TEST: RX
-  // "0400001908490042FFCD03F7FFCFFFC0002DFFE93C6DAABE0000000000000000"
-
-  // ...
 
   // Start listening
   at_send_command("AT+TEST=RXLRPKT", "+TEST: RXLRPKT", AT_TIMEOUT_MS,
