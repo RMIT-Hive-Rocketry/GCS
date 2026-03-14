@@ -13,7 +13,6 @@ import enum
 from typing import Optional, Dict, Union, Tuple
 from functools import cache
 
-
 # For those who come back to this code.
 # For those who come back to this code.
 # For those who come back to this code.
@@ -85,7 +84,7 @@ KEY_MAP_INVERSE = {v[0]: k for k, v in KEY_MAP.items()}
 # fml again
 BTN_TOGGLE_MAP = {v[0]: v[1] for v in KEY_MAP.values()}
 
-LOCK_FILE_GSE_RESPONSE_PATH: str = config.load_config()["locks"][
+LOCK_FILE_GSE_RESPONSE_PATH: str = config.get_config()["locks"][
     "lock_file_gse_response_path"
 ]
 
@@ -641,13 +640,13 @@ def safety_fallback_state():
 
 def send_packet():
     context = zmq.Context()
+    LINGER_TIME_MS = 300
     try:
         push_socket = context.socket(zmq.PUSH)
         SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
         # Wait LINGER_TIME_MS before giving up on push request
-        LINGER_TIME_MS = 300
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
         push_socket.connect(f"ipc://{SOCKET_PATH}")
@@ -685,7 +684,7 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()["emulation"]
+        config.get_config()["emulation"]
     )
     slogger.debug("Starting pendant emulator")
 

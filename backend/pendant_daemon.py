@@ -279,9 +279,8 @@ class HID_Button:
     MAX_SAFETY_COUNT: int = 10
     USEFUL_BYTE_OFFSET: int = 5
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
-    SAFETY_FACTOR: float = (
-        0.5  # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
-    )
+    # percentage of the last MAX_SAFETY_COUNT inputs which need to be on for a press to register
+    SAFETY_FACTOR: float = 0.5
 
     byte: int  # [0, 1]
     bit: int  # [0, 7]
@@ -644,7 +643,7 @@ def send_packet():
 
     try:
         push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.load_config()
+        CONFIG = config.get_config()
         SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
@@ -687,7 +686,7 @@ def send_packet():
 
 def main():
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()["emulation"]
+        config.get_config()["emulation"]
     )
     slogger.debug("Starting pendant daemon")
 

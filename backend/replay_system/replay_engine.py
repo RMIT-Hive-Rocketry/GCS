@@ -1,8 +1,9 @@
 """
-    Just read the csv file and read it linearly no stress
-    Replay the following CSV files
+Just read the csv file and read it linearly no stress
+Replay the following CSV files
 
 """
+
 from enum import Enum
 from dataclasses import dataclass
 import sys
@@ -434,7 +435,7 @@ def main():
             )
 
         MockPacket.initialize_settings(
-            config.load_config()["emulation"],
+            config.get_config()["emulation"],
             FAKE_DEVICE_NAME=args.device_rocket,
         )
 

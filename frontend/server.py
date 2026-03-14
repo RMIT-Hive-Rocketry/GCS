@@ -17,6 +17,7 @@ class SubprocessLogHandler(logging.Handler):
             slogger.info(msg)  # fallback
 """
 
+
 # Initialise flask app
 def create_app():
     # App configuration

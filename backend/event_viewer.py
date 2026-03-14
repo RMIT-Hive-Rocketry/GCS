@@ -368,7 +368,14 @@ class AVPacket(Packet):
                 PROTO_DATA.flightState
             )
             match PROTO_DATA.flightState:
-                case FlightState_pb.FlightState.PRE_FLIGHT_FLIGHT_READY | FlightState_pb.FlightState.LAUNCH | FlightState_pb.FlightState.COAST | FlightState_pb.FlightState.APOGEE | FlightState_pb.FlightState.DESCENT | FlightState_pb.FlightState.LANDED:
+                case (
+                    FlightState_pb.FlightState.PRE_FLIGHT_FLIGHT_READY
+                    | FlightState_pb.FlightState.LAUNCH
+                    | FlightState_pb.FlightState.COAST
+                    | FlightState_pb.FlightState.APOGEE
+                    | FlightState_pb.FlightState.DESCENT
+                    | FlightState_pb.FlightState.LANDED
+                ):
                     slogger.info(f"Flight state changed to {flight_state_name}")
                 case FlightState_pb.FlightState.PRE_FLIGHT_NO_FLIGHT_READY:
                     slogger.warning(

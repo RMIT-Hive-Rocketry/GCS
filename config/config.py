@@ -1,6 +1,13 @@
 from configparser import ConfigParser
+from functools import cache
 from typing import Dict
 import os
+
+# TODO
+# Add field validation to every single config option.
+# When get_config() loads it in, check that all fields are there and valid.
+# If the field is critical, throw a runtime error. If not, diplay a slogger warning
+# From fred, who is happy to chat with the next eager developer who finds this
 
 
 def get_default_config_path():
@@ -19,7 +26,10 @@ def get_default_config_path():
     return os.path.join(os.getcwd(), "config", "config.ini")
 
 
-def load_config(file_path=get_default_config_path()) -> Dict[str, str]:
+# Cache/Singleton this. The config file does not chang during runtime.
+# You should only read the config once at startup anyway
+@cache
+def get_config(file_path=get_default_config_path()) -> Dict[str, str]:
     """Loads configuration settings from an INI file.
 
     Args:
