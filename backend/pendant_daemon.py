@@ -510,7 +510,7 @@ class Pygame_Device(ControlDevice):
     CONTROLLER_NAME: str = "DragonRise Inc. Generic USB Joystick"
 
     joystick: pygame.joystick.JoystickType | None = None
-
+    joystick_id: int
     is_connected: bool = False
 
     def __init__(self):
@@ -542,6 +542,8 @@ class Pygame_Device(ControlDevice):
             if jstk.get_name() == Pygame_Device.CONTROLLER_NAME:
                 Pygame_Device.is_connected = True
                 Pygame_Device.joystick = jstk
+                Pygame_Device.joystick_id = jstk.get_instance_id()
+
                 slogger.info(
                     f"Controller initialized: {Pygame_Device.joystick.get_name()}"
                 )
@@ -571,6 +573,18 @@ class Pygame_Device(ControlDevice):
         if not Pygame_Device.is_connected:
             self._try_connect_device()
 
+        # check for disconection
+        events: List[pygame.event.Event] = pygame.event.get()
+        for event in events:
+            if (
+                event.type == pygame.JOYDEVICEREMOVED
+                and event.instance_id == Pygame_Device.joystick_id
+            ):
+                Pygame_Device.joystick = None
+                Pygame_Device.is_connected = False
+                Pygame_Device.joystick_id = 0
+                slogger.error("Pendnat Disconnected")
+
         if Pygame_Device.is_connected and Pygame_Device.joystick is not None:
             # polling events on mac gave me segfaults
             for btn_name, btn_id in Pygame_Device.BUTTON_NAME_ID_MAP.items():
@@ -579,8 +593,6 @@ class Pygame_Device(ControlDevice):
                 except Exception:
                     # Don't automatically disconnect device when an unexpected button is pressed
                     # Since the joystick sends noisy/useless data, it causes it to reconnect endlessly
-                    # Pygame_Device.is_connected = False
-                    # Pygame_Device.joystick = None
                     pressed = False
                 self.buttons[btn_name].update_state(pressed)
 
