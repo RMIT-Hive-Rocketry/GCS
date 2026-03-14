@@ -1,4 +1,4 @@
-#include "../middleware/payloads/ByteParser.hpp"
+#include "ByteParser.hpp"
 
 #include <gtest/gtest.h>
 

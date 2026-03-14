@@ -174,8 +174,9 @@ bool TcpInterface::ensure_connected_or_retry_locked_() {
   }
 
   next_retry_time_ = now + retry_backoff_;
-  auto next_backoff_ms = std::min<int64_t>(
-      retry_backoff_.count() * 2, middleware_timing::MAX_TCP_RETRY_BACKOFF_MS);
+  auto next_backoff_ms =
+      std::min<int64_t>(retry_backoff_.count() * 2,
+                        middleware_timing::MAX_TCP_RETRY_BACKOFF.count());
   retry_backoff_ = std::chrono::milliseconds(next_backoff_ms);
   return false;
 }

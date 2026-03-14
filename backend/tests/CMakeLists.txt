@@ -22,7 +22,6 @@ target_link_libraries(runC++Tests PRIVATE
 target_include_directories(runC++Tests PRIVATE
     ${UTF8_RANGE_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/backend/include
-    ${CMAKE_SOURCE_DIR}/backend/middleware
     ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )
 

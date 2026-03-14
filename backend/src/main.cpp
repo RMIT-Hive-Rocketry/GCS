@@ -24,7 +24,7 @@
 #include "GSE_TO_GCS_DATA_2.hpp"
 #include "av_sequence.hpp"
 #include "debug_functions.hpp"
-#include "gcs_commands.hpp"
+#include "gcs_process_data.hpp"
 #include "interface_factory.hpp"
 #include "middleware_timing.hpp"
 #include "packet_handling.hpp"
@@ -140,22 +140,17 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
         }
       }
     } else {
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(middleware_timing::READ_LOOP_SLEEP_MS));
+      std::this_thread::sleep_for(middleware_timing::READ_LOOP_SLEEP);
       auto now = std::chrono::steady_clock::now();
-      int seconds_waited =
-          std::chrono::duration_cast<std::chrono::seconds>(now - last_read_time)
-              .count();
-      int seconds_waited_timeout =
-          std::chrono::duration_cast<std::chrono::seconds>(
-              now - last_timeout_warning_time)
-              .count();
-      if (seconds_waited >=
-              middleware_timing::READ_LOOP_NO_DATA_WARNING_SECONDS &&
+      Seconds seconds_waited =
+          std::chrono::duration_cast<Seconds>(now - last_read_time);
+      Seconds seconds_waited_timeout =
+          std::chrono::duration_cast<Seconds>(now - last_timeout_warning_time);
+      if (seconds_waited >= middleware_timing::READ_LOOP_NO_DATA_WARNING &&
           seconds_waited_timeout >=
-              middleware_timing::TIMEOUT_WARNING_INTERVAL_SECONDS) {
+              middleware_timing::TIMEOUT_WARNING_INTERVAL) {
         slogger::warning("No data received for " +
-                         std::to_string(seconds_waited) + " seconds.");
+                         std::to_string(seconds_waited.count()) + " seconds.");
         last_timeout_warning_time = now;
       }
     }
@@ -180,148 +175,67 @@ int main(int argc, char* argv[]) {
 
   // Create sequence handler singleton
   AvSequence sequence;
-
   sequence.set_gse_only_mode(true);
 
-  zmq::context_t context(1);
+  zmq::context_t all_context(1);
 
   // PUB socket for broadcasting incoming data
-  zmq::socket_t pub_socket(context, ZMQ_PUB);
+  // why is this called pendant_socket_path? I think this is generic.
+  // I will leave this to another commit to figure out
+  zmq::socket_t pub_socket(all_context, ZMQ_PUB);
   pub_socket.bind("ipc:///tmp/" + args.pendant_socket_path + "_pub.sock");
 
-  // Only keep this many messages in buffer.
-  constexpr int PULL_SOCKET_HWM = 1;
+  // Data input reader from AV or GSE
+  std::thread radio_reader(input_read_loop, interface, std::ref(pub_socket),
+                           std::ref(sequence));
 
-  // PULL socket for fowarding commands to LoRa
-  zmq::socket_t pendant_pull_socket(context, ZMQ_PULL);
-  pendant_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
-  pendant_pull_socket.set(zmq::sockopt::conflate, 1);
-  pendant_pull_socket.bind("ipc:///tmp/" + args.pendant_socket_path +
-                           "_pendant_pull.sock");
+  // Data input reader from GCS processes (single mutex inside gcs_state)
+  SharedGcsState gcs_state;
+  std::thread gcs_reader(server_listen_loop, std::ref(all_context), args,
+                         std::ref(gcs_state), std::ref(running));
 
-  zmq::socket_t web_control_pull_socket(context, ZMQ_PULL);
-  web_control_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
-  // Only keep last message
-  web_control_pull_socket.set(zmq::sockopt::conflate, 1);
-  web_control_pull_socket.bind("ipc://" + args.web_control_socket_path);
-
-  // Start interface reading thread
-  std::thread reader(input_read_loop, interface, std::ref(pub_socket),
-                     std::ref(sequence));
-
-  // http://api.zeromq.org/3-0:zmq-poll
-  // Can add multiple push pull sockets here. Useful for when front end is
-  // integrated
-  std::vector<zmq::pollitem_t> items = {
-      {static_cast<void*>(pendant_pull_socket), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(web_control_pull_socket), 0, ZMQ_POLLIN, 0}};
-  std::vector<uint8_t> pendant_data;
-  std::vector<uint8_t> web_control_data;
-
-  const std::vector<uint8_t> FALLBACK_PENDANT_DATA = {0x02, 0x00, 0xFF, 0x00};
-  auto last_pendant_receival = std::chrono::steady_clock::now();
-  auto last_timeout_warning_time = std::chrono::steady_clock::now();
-  // TODO I think this is redundant now?
-  const bool SUPPRESS_PENDANT_WARNING = std::getenv("CONFIG_PATH") == nullptr;
-  // Main command loop
   slogger::info("Middleware server started successfully");
   try {
     while (running) {
-      zmq::poll(items, std::chrono::milliseconds(
-                           middleware_timing::COMMAND_LOOP_POLL_MS));
-
-      int pendant_socket_more_intbool =
-          1;  // http://api.zeromq.org/2-2:zmq-getsockopt
-      // items[0].revents represents items[0] which is the pendant data
-      if (items[0].revents & ZMQ_POLLIN) {
-        do {  // Data to be dequeued
-          last_pendant_receival = std::chrono::steady_clock::now();
-          zmq::message_t pendant_msg;
-          zmq::recv_result_t pendant_result =
-              pendant_pull_socket.recv(pendant_msg, zmq::recv_flags::none);
-          if (pendant_result) {
-            pendant_data = collect_pull_data(pendant_msg);
-            pendant_socket_more_intbool =
-                pendant_pull_socket.get(zmq::sockopt::rcvmore);
-          }
-        } while (pendant_socket_more_intbool);
-      } else {
-        auto now = std::chrono::steady_clock::now();
-        int seconds_waited = std::chrono::duration_cast<std::chrono::seconds>(
-                                 now - last_pendant_receival)
-                                 .count();
-        int seconds_waited_timeout =
-            std::chrono::duration_cast<std::chrono::seconds>(
-                now - last_timeout_warning_time)
-                .count();
-        if (seconds_waited >=
-                middleware_timing::PENDANT_FALLBACK_TIMEOUT_SECONDS &&
-            seconds_waited_timeout >=
-                middleware_timing::TIMEOUT_WARNING_INTERVAL_SECONDS) {
-          if (!SUPPRESS_PENDANT_WARNING) {
-            slogger::warning(
-                "Failed to get any new pendant data from pendant service "
-                "for " +
-                std::to_string(seconds_waited) + " seconds");
-          }
-          pendant_data = FALLBACK_PENDANT_DATA;
-          last_timeout_warning_time = now;
-        }
-      }
+      PendantData pendant_data;
+      WebsocketData websocket_data;
+      gcs_state.get_snapshot(pendant_data, websocket_data);
 
       if (pendant_data.empty()) {
-        // No data to send, continue and try polling again
+        // No data to send
         // This will only be empty while the pendant software boots
         // Fallback data should be present anyway
         continue;
       }
 
-      // http://api.zeromq.org/2-2:zmq-getsockopt
-      int web_control_socket_more_intbool = 1;
-      if (items[1].revents & ZMQ_POLLIN) {
-        do {  // Data to be dequeued
-          zmq::message_t web_control_msg;
-          zmq::recv_result_t web_control_result = web_control_pull_socket.recv(
-              web_control_msg, zmq::recv_flags::none);
-          if (web_control_result) {
-            web_control_data = collect_pull_data(web_control_msg);
-            web_control_socket_more_intbool =
-                web_control_pull_socket.get(zmq::sockopt::rcvmore);
-          }
-        } while (web_control_socket_more_intbool);
-        // Get rid of this shit when you refactor all IPC comms
-        if (!web_control_data.empty()) {
-          slogger::debug("server got values from web control: " +
-                         debug::vectorToHexString(web_control_data,
-                                                  web_control_data.size()));
-          uint8_t packet_byte_prefix = web_control_data.front();
-          web_control_data.erase(
-              web_control_data.begin());  // remove that first byte
-          // fucking stupid check because grpc didn't get done in time
-          // fuck
-          if (packet_byte_prefix == 123) {
-            // Yeah you're trying to activate power
+      if (!websocket_data.empty()) {
+        switch (websocket_data.lastCommand) {
+          case WebsocketData::CAMERA_POWER_ON:
             if (sequence.get_camera_power() != true) {
               slogger::warning("Camera power ON");
             }
             sequence.set_camera_power(true);
-          } else if (packet_byte_prefix == 100) {
+            break;
+          case WebsocketData::CAMERA_POWER_OFF:
             if (sequence.get_camera_power() != false) {
               slogger::warning("Camera power OFF");
             }
             sequence.set_camera_power(false);
-          } else {
-            bool manual_control = packet_byte_prefix == 0xFF;
-            if (manual_control != sequence.manual_control_mode()) {
-              // manual control state value has changed
-              if (manual_control) {
-                slogger::warning("Manual control ENABLED");
-              } else {
-                slogger::warning("Manual control DISABLED");
-              }
+            break;
+          case WebsocketData::CAMERA_MANUAL_CONTROL_ON:
+            if (sequence.manual_control_mode() == false) {
+              sequence.set_manual_control_mode(true);
+              slogger::warning("Manual control ENABLED");
             }
-            sequence.set_manual_control_mode(manual_control);
-          }
+            break;
+          case WebsocketData::CAMERA_MANUAL_CONTROL_OFF:
+            if (sequence.manual_control_mode() == true) {
+              sequence.set_manual_control_mode(false);
+              slogger::warning("Manual control DISABLED");
+            }
+            break;
+          default:
+            slogger::error("Unknown websocket command");
         }
       }
 
@@ -330,9 +244,9 @@ int main(int argc, char* argv[]) {
       // timeout the GSE
       std::vector<uint8_t> gse_data;
       if (sequence.manual_control_mode()) {
-        gse_data = web_control_data;  // Last updated value
+        gse_data = websocket_data.payload;
       } else {
-        gse_data = pendant_data;
+        gse_data = pendant_data.payload;
       }
 
       if (sequence.gse_only_mode()) {
@@ -411,11 +325,10 @@ int main(int argc, char* argv[]) {
   }
   try {
     // Cleanup
-    reader.join();
+    gcs_reader.join();
+    radio_reader.join();
     pub_socket.close();
-    pendant_pull_socket.close();
-    web_control_pull_socket.close();
-    context.close();
+
     google::protobuf::ShutdownProtobufLibrary();
   } catch (const std::exception& e) {
     slogger::error("Error during cleanup");

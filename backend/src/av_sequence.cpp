@@ -22,10 +22,11 @@ bool AvSequence::waiting_for_gse() { return !gse_write_lock_.is_locked(); }
 // Wait until GSE responds while blocking the thread
 bool AvSequence::sit_and_wait_for_gse() {
   while (waiting_for_gse()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(middleware_timing::SEQUENCE_BUSY_WAIT);
   }
   return true;
 }
+
 void AvSequence::start_await_gse() { gse_write_lock_.lock(); }
 void AvSequence::received_gse() { gse_write_lock_.unlock(); }
 
@@ -33,7 +34,7 @@ void AvSequence::received_gse() { gse_write_lock_.unlock(); }
 bool AvSequence::waiting_for_av() { return !av_write_lock_.is_locked(); }
 bool AvSequence::sit_and_wait_for_av() {
   while (waiting_for_av()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(middleware_timing::SEQUENCE_BUSY_WAIT);
   }
   return true;
 }

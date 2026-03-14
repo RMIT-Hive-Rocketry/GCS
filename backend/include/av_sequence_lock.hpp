@@ -15,9 +15,6 @@ class AvSequenceLock {
   void unlock();
   bool is_locked();
 
-  static constexpr std::chrono::milliseconds TIMEOUT{
-      middleware_timing::SEQUENCE_LOCK_TIMEOUT_MS};
-
  private:
   std::chrono::steady_clock::time_point getLastLockTime() const;
   bool unlock_if_timed_out_();
