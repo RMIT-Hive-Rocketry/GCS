@@ -50,7 +50,7 @@ inline void set_thread_name([[maybe_unused]] const char* name) {
 }
 
 void input_read_loop(std::shared_ptr<RadioInterface> interface,
-                     zmq::socket_t& pub_socket, AvSequence& sequence) {
+                     zmq::socket_t& pub_socket, SharedGcsState& gcsState) {
   set_thread_name("input_read_loop");
   std::vector<uint8_t> buffer(1024);
   auto READER_BOOT_TIME = std::chrono::steady_clock::now();
@@ -74,60 +74,58 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
         // for GCS
         switch (packet_id) {
           case AV_TO_GCS_DATA_1::ID: {  // 3
-            sequence.increment_packet_count_av();
+            gcsState.increment_packet_count_av();
             std::unique_ptr<AV_TO_GCS_DATA_1> proto_msg =
                 process_packet<AV_TO_GCS_DATA_1>(count, buffer, pub_socket,
-                                                 READER_BOOT_TIME, sequence);
+                                                 READER_BOOT_TIME, gcsState);
             if (proto_msg == nullptr) {
               // Yeah we got it, so you can just continue talking to other
               // devices. But we assume it was garbage and the information in it
               // is fucked
-              sequence.received_av();
+              gcsState.av_sequence.received_av();
               break;
             }
-            post_process_av(sequence, proto_msg->flight_state());
+            post_process_av(gcsState.av_sequence, proto_msg->flight_state());
             if (proto_msg->broadcast_flag()) {
-              sequence.set_broadcast_flag_recieved(true);
-              sequence.current_state =
+              gcsState.av_sequence.set_broadcast_flag_recieved(true);
+              gcsState.av_sequence.current_state =
                   AvSequence::LOOP_AV_DATA_TRANSMISSION_BURN;
             }
             break;
           }
           case AV_TO_GCS_DATA_2::ID: {  // 4
-            sequence.increment_packet_count_av();
+            gcsState.increment_packet_count_av();
             std::unique_ptr<AV_TO_GCS_DATA_2> proto_msg =
                 process_packet<AV_TO_GCS_DATA_2>(count, buffer, pub_socket,
-                                                 READER_BOOT_TIME, sequence);
+                                                 READER_BOOT_TIME, gcsState);
             if (proto_msg == nullptr) {
-              sequence.received_av();
+              gcsState.av_sequence.received_av();
               break;
             }
-            post_process_av(sequence, proto_msg->flight_state());
+            post_process_av(gcsState.av_sequence, proto_msg->flight_state());
           } break;
           case AV_TO_GCS_DATA_3::ID: {  // 5
-            sequence.increment_packet_count_av();
+            gcsState.increment_packet_count_av();
             std::unique_ptr<AV_TO_GCS_DATA_3> proto_msg =
                 process_packet<AV_TO_GCS_DATA_3>(count, buffer, pub_socket,
-                                                 READER_BOOT_TIME, sequence);
+                                                 READER_BOOT_TIME, gcsState);
             if (proto_msg == nullptr) {
-              sequence.received_av();
+              gcsState.av_sequence.received_av();
               break;
             }
-            post_process_av(sequence, proto_msg->flight_state());
+            post_process_av(gcsState.av_sequence, proto_msg->flight_state());
             break;
           }
           case GSE_TO_GCS_DATA_1::ID: {  // 6
-            sequence.increment_packet_count_gse();
+            gcsState.increment_packet_count_gse();
             process_packet<GSE_TO_GCS_DATA_1>(count, buffer, pub_socket,
-                                              READER_BOOT_TIME, sequence);
-            sequence.received_gse();
+                                              READER_BOOT_TIME, gcsState);
             break;
           }
           case GSE_TO_GCS_DATA_2::ID: {  // 7
-            sequence.increment_packet_count_gse();
+            gcsState.increment_packet_count_gse();
             process_packet<GSE_TO_GCS_DATA_2>(count, buffer, pub_socket,
-                                              READER_BOOT_TIME, sequence);
-            sequence.received_gse();
+                                              READER_BOOT_TIME, gcsState);
             break;
           }
           default: {
@@ -173,11 +171,12 @@ int main(int argc, char* argv[]) {
   interface->initialize();
   slogger::info("Interface initialised for type: " + args.gse_type);
 
-  // Create sequence handler singleton
-  AvSequence sequence;
-  sequence.set_gse_only_mode(true);
-
   zmq::context_t all_context(1);
+
+  // Data input reader from GCS processes (single mutex inside gcs_state)
+  // Includes AV sequence data
+  SharedGcsState gcs_state;
+  gcs_state.set_gse_only_mode(args.gse_only_mode);
 
   // PUB socket for broadcasting incoming data
   // why is this called pendant_socket_path? I think this is generic.
@@ -187,10 +186,8 @@ int main(int argc, char* argv[]) {
 
   // Data input reader from AV or GSE
   std::thread radio_reader(input_read_loop, interface, std::ref(pub_socket),
-                           std::ref(sequence));
+                           std::ref(gcs_state));
 
-  // Data input reader from GCS processes (single mutex inside gcs_state)
-  SharedGcsState gcs_state;
   std::thread gcs_reader(server_listen_loop, std::ref(all_context), args,
                          std::ref(gcs_state), std::ref(running));
 
@@ -211,26 +208,26 @@ int main(int argc, char* argv[]) {
       if (!websocket_data.empty()) {
         switch (websocket_data.lastCommand) {
           case WebsocketData::CAMERA_POWER_ON:
-            if (sequence.get_camera_power() != true) {
+            if (gcs_state.av_sequence.get_camera_power() != true) {
               slogger::warning("Camera power ON");
             }
-            sequence.set_camera_power(true);
+            gcs_state.av_sequence.set_camera_power(true);
             break;
           case WebsocketData::CAMERA_POWER_OFF:
-            if (sequence.get_camera_power() != false) {
+            if (gcs_state.av_sequence.get_camera_power() != false) {
               slogger::warning("Camera power OFF");
             }
-            sequence.set_camera_power(false);
+            gcs_state.av_sequence.set_camera_power(false);
             break;
           case WebsocketData::CAMERA_MANUAL_CONTROL_ON:
-            if (sequence.manual_control_mode() == false) {
-              sequence.set_manual_control_mode(true);
+            if (gcs_state.manual_control_mode() == false) {
+              gcs_state.set_manual_control_mode(true);
               slogger::warning("Manual control ENABLED");
             }
             break;
           case WebsocketData::CAMERA_MANUAL_CONTROL_OFF:
-            if (sequence.manual_control_mode() == true) {
-              sequence.set_manual_control_mode(false);
+            if (gcs_state.manual_control_mode() == true) {
+              gcs_state.set_manual_control_mode(false);
               slogger::warning("Manual control DISABLED");
             }
             break;
@@ -243,67 +240,66 @@ int main(int argc, char* argv[]) {
       // You have to pick something to continue the networking sequence and not
       // timeout the GSE
       std::vector<uint8_t> gse_data;
-      if (sequence.manual_control_mode()) {
+      if (gcs_state.manual_control_mode()) {
         gse_data = websocket_data.payload;
       } else {
         gse_data = pendant_data.payload;
       }
 
-      if (sequence.gse_only_mode()) {
+      if (gcs_state.gse_only_mode()) {
         interface->write_data(gse_data);
-        sequence.start_await_gse();
-        sequence.sit_and_wait_for_gse();
-        continue;
+        continue;  // Dont run the AV code below because it doesn't exist
       }
 
-      bool broadcast = sequence.start_sending_broadcast_flag() &&
-                       !sequence.have_received_broadcast_flag();
+      bool av_broadcast =
+          gcs_state.av_sequence.start_sending_broadcast_flag() &&
+          !gcs_state.av_sequence.have_received_broadcast_flag();
 
-      // After getting data, continue with main logic loop
-      switch (sequence.get_state()) {
+      // After getting data, continue with main logic loop for avinoics.
+      // GSE is on its own thread
+      switch (gcs_state.av_sequence.get_state()) {
         case AvSequence::State::LOOP_PRE_LAUNCH:
-          // Send data to GSE
-          interface->write_data(gse_data);
-          sequence.start_await_gse();
           // Wait for data from GSE (blocking rest of this loop, or timeout)
-          sequence.sit_and_wait_for_gse();  // Let read thread unlock this
           // Send data to AV
-          interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
-          sequence.start_await_av();
+          interface->write_data(
+              create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
+          gcs_state.av_sequence.start_await_av();
           // Wait for data from AV (blocking rest of this loop, or timeout)
-          sequence.sit_and_wait_for_av();
+          gcs_state.av_sequence.sit_and_wait_for_av();
           break;
         case AvSequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
-          if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
+          if (av_broadcast) {
+            interface->write_data(
+                create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         // It says once, but it's a conditional loop anyway.
         case AvSequence::State::ONCE_AV_DETERMINING_LAUNCH:
-          interface->write_data(gse_data);
-          sequence.start_await_gse();
-          sequence.sit_and_wait_for_gse();
-          interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
-          sequence.start_await_av();
-          sequence.sit_and_wait_for_av();
+          interface->write_data(
+              create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
+          gcs_state.av_sequence.start_await_av();
+          gcs_state.av_sequence.sit_and_wait_for_av();
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
           // Just listen. This thread can just close bassically
-          if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
+          if (av_broadcast) {
+            interface->write_data(
+                create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
           // Just listen. This thread can just close bassically
-          if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
+          if (av_broadcast) {
+            interface->write_data(
+                create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
           // Just listen. This thread can just close bassically
-          if (broadcast) {
-            interface->write_data(create_GCS_TO_AV_data(broadcast, sequence));
+          if (av_broadcast) {
+            interface->write_data(
+                create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
       }
