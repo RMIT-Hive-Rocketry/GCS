@@ -25,7 +25,7 @@ struct LoraConfig {
 class UartE5Interface : public RadioInterface {
  public:
   UartE5Interface(
-      LoraConfig lora_cfg, const std::string& device_path = "/dev/serial0",
+      LoraConfig lora_cfg, const std::string& device_path,
       int baud_rate = B230400);  // Default to RPi ttyAMA0 and 230400 baud
   virtual ~UartE5Interface();
 

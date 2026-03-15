@@ -72,7 +72,7 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
   while (total < data.size()) {
     std::string hex_output =
         debug::vectorToHexString(data, static_cast<ssize_t>(data.size()));
-    slogger::info("Sending data (Hex): " + hex_output);
+    slogger::debug("Sending data (Hex): " + hex_output);
     ssize_t n = ::send(sock_fd_, buf + total, data.size() - total, 0);
     if (n < 0) {
       if (errno == EINTR) continue;

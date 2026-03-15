@@ -3,8 +3,8 @@
 #include <string>
 
 struct WarningString {
-  std::string color;
   std::string name;
+  std::string color;
 };
 
 static const WarningString GSE{"GSE", "\033[38;5;10m"};  // green

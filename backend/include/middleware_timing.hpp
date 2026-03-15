@@ -23,7 +23,7 @@ constexpr Millis COMMAND_LOOP_POLL{300};
 constexpr Seconds PENDANT_FALLBACK_TIMEOUT{5};
 /// Minimum interval between repeated timeout warnings (seconds).
 /// For terminal printing only. This does not effect functionality
-constexpr Seconds TIMEOUT_WARNING_INTERVAL{3};
+constexpr Seconds TIMEOUT_WARNING_INTERVAL{10};
 
 // --- Read loop (interface read thread) ---
 /// Sleep when no data available to avoid busy-wait (ms).
