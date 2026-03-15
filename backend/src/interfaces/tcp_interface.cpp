@@ -58,6 +58,15 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
     return -1;
   }
 
+  // For heartbeat traffic, suppress duplicate payloads sent too recently.
+  auto now = std::chrono::steady_clock::now();
+  bool is_duplicate_payload = (data == last_payload_);
+  bool within_heartbeat_window =
+      (now - last_send_time_) < middleware_timing::TCP_HEARTBEAT;
+  if (is_duplicate_payload && within_heartbeat_window) {
+    return static_cast<ssize_t>(data.size());
+  }
+
   const uint8_t* buf = data.data();
   size_t total = 0;
   while (total < data.size()) {
@@ -73,6 +82,11 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
     }
     if (n == 0) break;
     total += static_cast<size_t>(n);
+  }
+
+  if (total == data.size()) {
+    last_payload_ = data;
+    last_send_time_ = now;
   }
 
   return static_cast<ssize_t>(total);

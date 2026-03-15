@@ -18,7 +18,7 @@ const std::vector<std::pair<std::string, std::string>>
 
 bool has_interface_support(const ParsedArgs& args) {
   for (const auto& [gse, av] : SUPPORTED_INTERFACE_PAIRS) {
-    if (args.gse_type == gse && args.av_type == av) {
+    if (args.gse_type == gse && (args.gse_only_mode || args.av_type == av)) {
       return true;
     }
   }
@@ -29,8 +29,10 @@ void require_interface_support(const ParsedArgs& args) {
   if (has_interface_support(args)) {
     return;
   }
-  std::string msg = "Unsupported interface combination: GSE=" + args.gse_type +
-                    ", AV=" + args.av_type + ". Supported combinations: ";
+  std::string msg =
+      "Unsupported interface combination whilst GSE only mode is: " +
+      std::to_string(args.gse_only_mode) + ": GSE=" + args.gse_type +
+      ", AV=" + args.av_type + ". Supported combinations: ";
   const char* sep = "";
   for (const auto& [gse, av] : SUPPORTED_INTERFACE_PAIRS) {
     msg += sep;
@@ -66,6 +68,17 @@ ParsedArgs parse_args(int argc, char* argv[]) {
                   .lora_cfg = {},
                   .gse_only_mode = false};
 
+  // Parse --GSE_ONLY before interface check so GSE-only mode is allowed.
+  if (args.gse_type == "UART_E5") {
+    if (argc >= 17 && std::string(argv[16]) == "--GSE_ONLY") {
+      args.gse_only_mode = true;
+    }
+  } else {
+    if (argc >= 8 && std::string(argv[7]) == "--GSE_ONLY") {
+      args.gse_only_mode = true;
+    }
+  }
+
   require_interface_support(args);
 
   if (args.gse_type == "UART_E5") {
@@ -85,13 +98,6 @@ ParsedArgs parse_args(int argc, char* argv[]) {
         .iq = argv[14],
         .net = argv[15],
     };
-    if (argc >= 17 && std::string(argv[16]) == "--GSE_ONLY") {
-      args.gse_only_mode = true;
-    }
-  } else {
-    if (argc >= 8 && std::string(argv[7]) == "--GSE_ONLY") {
-      args.gse_only_mode = true;
-    }
   }
 
   return args;
