@@ -62,7 +62,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
 
         middleware_build_process_cmake = MiddlewareBuildSubprocess(
             MIDDLEWARE_BUILD_COMMAND_CMAKE,
-            name="build-cmake",
+            name="cmake",
         )
         middleware_build_process_cmake.register_callback(
             successful_cmake_build_callback
@@ -85,7 +85,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
 
         middleware_build_process_make = MiddlewareBuildSubprocess(
             MIDDLEWARE_BUILD_COMMAND_MAKE,
-            name="build-make",
+            name="make",
         )
 
         middleware_build_process_make.register_callback(

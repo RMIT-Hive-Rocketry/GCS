@@ -134,7 +134,7 @@ def build_middleware_argv(
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
-    [9 lora params if gse_type==UART_E5], [--GSE_ONLY].
+    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE_ONLY].
     """
     if not isinstance(
         config.interface_gse_type, InterfaceType
@@ -151,9 +151,12 @@ def build_middleware_argv(
         config.pendant_socket_path,
         config.web_control_socket_path,
     ]
-    if config.interface_gse_type == InterfaceType.UART_E5:
+    if (
+        config.interface_gse_type == InterfaceType.UART_E5
+        or config.interface_av_type == InterfaceType.UART_E5
+    ):
         if config.lora_config is None:
-            raise ValueError("UART_E5 GSE interface requires lora_config")
+            raise ValueError("UART_E5 interface requires lora_config")
         argv.extend(
             [
                 config.lora_config["frequency"],
