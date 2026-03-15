@@ -52,7 +52,7 @@ std::shared_ptr<RadioInterface> create_interface(
     throw std::runtime_error("UART E5 interface needs a lora config");
   }
   // Otherwise you can pass a blank because it is ignored
-  create_interface(INTERFACE_NAME, DEVICE_PATH, {});
+  return create_interface(INTERFACE_NAME, DEVICE_PATH, {});
 }
 
 std::shared_ptr<RadioInterface> create_interface(

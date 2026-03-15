@@ -33,7 +33,8 @@ UartE5Interface::~UartE5Interface() {
 
 bool UartE5Interface::initialize() {
   std::lock_guard<std::recursive_mutex> lock(io_mutex_);
-  uart_fd_ = open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
+  uart_fd_ =
+      open(device_path_.c_str(), O_RDWR | O_NOCTTY | O_SYNC | O_NONBLOCK);
   if (uart_fd_ < 0) {
     slogger::error("Failed to open UART device: " + device_path_);
     slogger::warning(
