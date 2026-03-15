@@ -283,13 +283,6 @@ endif()
 
 file(STRINGS VERSION PROJECT_VERSION)
 
-# Get current git commit hash
-execute_process(
-    COMMAND git rev-parse --short HEAD
-    OUTPUT_VARIABLE GIT_COMMIT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
 # Same as $ uname -m -> "arm64"
 set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
@@ -299,7 +292,7 @@ else()
     set(MIDDLEWARE_NAME_PREFIX "middleware_debug")
 endif()
 
-set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "${MIDDLEWARE_NAME_PREFIX}_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
+set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "${MIDDLEWARE_NAME_PREFIX}_${TARGET_ARCH}_${PROJECT_VERSION}")
 
 install(TARGETS middleware_server DESTINATION bin)
 
