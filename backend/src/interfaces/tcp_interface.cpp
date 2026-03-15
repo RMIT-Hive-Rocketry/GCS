@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -158,12 +159,19 @@ bool TcpInterface::connect_socket_locked_() {
   }
 
   slogger::warning("(TCP SIGNAL LOST)");
-
   if (::connect(sock_fd_, reinterpret_cast<sockaddr*>(&remote_addr_),
                 sizeof(remote_addr_)) < 0) {
     mark_disconnected_locked_("Failed to connect TCP interface: " +
                               std::string(std::strerror(errno)));
     return false;
+  }
+
+  timeval tv;
+  tv.tv_sec = static_cast<time_t>(middleware_timing::TCP_SEND_TIMEOUT.count());
+  tv.tv_usec = 0;
+  if (setsockopt(sock_fd_, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
+    slogger::warning("Failed to set SO_SNDTIMEO on TCP socket: " +
+                     std::string(std::strerror(errno)));
   }
 
   connection_state_ = ConnectionState::CONNECTED;
@@ -191,7 +199,7 @@ bool TcpInterface::ensure_connected_or_retry_locked_() {
   auto next_backoff_ms =
       std::min<int64_t>(retry_backoff_.count() * 2,
                         middleware_timing::MAX_TCP_RETRY_BACKOFF.count());
-  retry_backoff_ = std::chrono::milliseconds(next_backoff_ms);
+  retry_backoff_ = Millis(next_backoff_ms);
   return false;
 }
 

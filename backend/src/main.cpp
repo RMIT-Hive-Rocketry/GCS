@@ -155,6 +155,29 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
   }
 }
 
+void tcp_write(std::shared_ptr<RadioInterface> interface_gse,
+               SharedGcsState& gcs_state) {
+  PendantData pendant_data;
+  WebsocketData websocket_data;
+  while (running) {
+    gcs_state.get_snapshot(pendant_data, websocket_data);
+
+    // Are we sending manual packets or pendant controlled packets?
+    // You have to pick something to continue the networking sequence and not
+    // timeout the GSE
+    std::vector<uint8_t> gse_data;
+    if (gcs_state.manual_control_mode()) {
+      gse_data = websocket_data.payload;
+    } else {
+      gse_data = pendant_data.payload;
+    }
+
+    // This runs in every loop, but the interface will handle throttling
+    interface_gse->write_data(gse_data);
+  }
+  slogger::debug("TCP write thread has closed");
+}
+
 int main(int argc, char* argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -164,6 +187,8 @@ int main(int argc, char* argv[]) {
 
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
+  // Broken pipe: let TCP send() return EPIPE, don't kill process
+  signal(SIGPIPE, SIG_IGN);
 
   std::shared_ptr<RadioInterface> interface_gse =
       create_interface(args.gse_type, args.gse_path);
@@ -199,6 +224,9 @@ int main(int argc, char* argv[]) {
 
   std::thread gcs_reader(server_listen_loop, std::ref(all_context), args,
                          std::ref(gcs_state), std::ref(running));
+
+  std::thread tcp_writer(tcp_write, std::ref(interface_gse),
+                         std::ref(gcs_state));
 
   slogger::info("Middleware server started successfully");
   try {
@@ -244,19 +272,6 @@ int main(int argc, char* argv[]) {
             slogger::error("Unknown websocket command");
         }
       }
-
-      // Are we sending manual packets or pendant controlled packets?
-      // You have to pick something to continue the networking sequence and not
-      // timeout the GSE
-      std::vector<uint8_t> gse_data;
-      if (gcs_state.manual_control_mode()) {
-        gse_data = websocket_data.payload;
-      } else {
-        gse_data = pendant_data.payload;
-      }
-
-      // This runs in every loop, but the interface will handle throttling
-      interface_gse->write_data(gse_data);
 
       if (gcs_state.gse_only_mode()) {
         continue;  // Dont run the AV code below because it doesn't exist

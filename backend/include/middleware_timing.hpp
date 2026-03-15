@@ -37,6 +37,9 @@ constexpr Seconds READ_LOOP_NO_DATA_WARNING{3};
 /// If a payload is unchanged and was sent within this interval, skip it.
 /// If payload changes, send immediately.
 constexpr Millis TCP_HEARTBEAT{500};
+/// Send timeout (SO_SNDTIMEO). Prevents send() from blocking indefinitely when
+/// the peer dies or stops reading.
+constexpr Seconds TCP_SEND_TIMEOUT{1};
 
 /// Include desc
 constexpr Millis initial_tcp_retry_backoff{250};
