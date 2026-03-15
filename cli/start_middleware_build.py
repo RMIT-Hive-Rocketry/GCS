@@ -45,6 +45,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
             MIDDLEWARE_BUILD_COMMAND_CMAKE = [
                 "cmake",
                 f"-DCMAKE_BUILD_TYPE={BUILD_FLAG.value}",
+                "-DBUILD_TESTS=OFF",
                 "..",
             ]
 
