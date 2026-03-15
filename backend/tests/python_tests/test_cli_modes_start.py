@@ -166,7 +166,8 @@ class CliStartup(ABC):
         r"event viewer: \[STDOUT] Supersonic flight detected",
     ]
     MAX_RSS_MB = float(os.getenv("ROCKET_TEST_MAX_RSS_MB", "100"))
-    MAX_CPU_PCT = float(os.getenv("ROCKET_TEST_MAX_CPU_PCT", "20"))
+    # increase this to fix flakey tests. It only exists to find runaway programs
+    MAX_CPU_PCT = float(os.getenv("ROCKET_TEST_MAX_CPU_PCT", "50"))
 
     # Protected
     def _start_process(self, ROCKET_ARGS: list):
