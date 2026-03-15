@@ -1,5 +1,48 @@
 #include "server_args.hpp"
 
+#include <utility>
+#include <vector>
+
+namespace {
+
+/// Single source of truth for supported (GSE, AV) interface combinations.
+/// Add or remove pairs here when support changes.
+/// Interface names from start_middleware.py --> class InterfaceType(enum.Enum):
+const std::vector<std::pair<std::string, std::string>>
+    // GSE, AV
+    SUPPORTED_INTERFACE_PAIRS = {
+        {"TCP", "UART_E5"},
+        {"TEST_UART_E5", "TEST_UART_E5"},
+        {"TEST", "TEST"},
+};
+
+bool has_interface_support(const ParsedArgs& args) {
+  for (const auto& [gse, av] : SUPPORTED_INTERFACE_PAIRS) {
+    if (args.gse_type == gse && args.av_type == av) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void require_interface_support(const ParsedArgs& args) {
+  if (has_interface_support(args)) {
+    return;
+  }
+  std::string msg = "Unsupported interface combination: GSE=" + args.gse_type +
+                    ", AV=" + args.av_type + ". Supported combinations: ";
+  const char* sep = "";
+  for (const auto& [gse, av] : SUPPORTED_INTERFACE_PAIRS) {
+    msg += sep;
+    msg += "(GSE=" + gse + ", AV=" + av + ")";
+    sep = "; ";
+  }
+  msg += ".";
+  throw std::runtime_error(msg);
+}
+
+}  // namespace
+
 ParsedArgs parse_args(int argc, char* argv[]) {
   // Argv: <gse_type> <gse_path> <av_type> <av_path> <pendant> <web>
   //       [9x lora if gse_type==UART_E5] [--GSE_ONLY]
@@ -22,6 +65,8 @@ ParsedArgs parse_args(int argc, char* argv[]) {
                   .web_control_socket_path = argv[6],
                   .lora_cfg = {},
                   .gse_only_mode = false};
+
+  require_interface_support(args);
 
   if (args.gse_type == "UART_E5") {
     const int UART_ARGS = 9;
