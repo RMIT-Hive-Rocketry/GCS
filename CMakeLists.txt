@@ -125,7 +125,7 @@ if(NOT BINARY_DIR_NAME STREQUAL EXPECTED_BUILD_DIR_SUFFIX)
     )
 endif()
 
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/middleware")
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/backend/src")
 
 file(GLOB_RECURSE LIB_SRCS
     "${SRC_DIR}/*.cpp"
@@ -134,7 +134,6 @@ file(GLOB_RECURSE LIB_SRCS
 
 # Separate main source file from sources (main.cpp)
 list(REMOVE_ITEM LIB_SRCS "${SRC_DIR}/main.cpp")
-list(APPEND LIB_SRCS "${SRC_DIR}/packet_handling.cpp" "${SRC_DIR}/gcs_commands.cpp")
 set(MAIN_SRC "${SRC_DIR}/main.cpp")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -233,7 +232,8 @@ target_include_directories(middleware_lib PUBLIC
     ${ZMQ_C_INCLUDE_DIR}
     ${PROTO_DIR} # For proto file imports
     ${CMAKE_SOURCE_DIR}/backend/include # Add backend so that includes like "backend/process_logging.hpp" work
-    ${CMAKE_SOURCE_DIR}/backend/middleware/payloads
+    ${CMAKE_SOURCE_DIR}/backend/include/interfaces
+    ${CMAKE_SOURCE_DIR}/backend/include/payloads
     ${PROTO_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/backend/proto/generated/payloads
 )

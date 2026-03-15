@@ -1,10 +1,10 @@
 #include "packet_handling.hpp"
 
-void post_process_av(Sequence& sequence,
+void post_process_av(AvSequence& sequence,
                      const common::FlightState FLIGHT_STATE) {
   sequence.received_av();
   if (FLIGHT_STATE == common::FlightState::LAUNCH) {
-    sequence.current_state = Sequence::ONCE_AV_DETERMINING_LAUNCH;
+    sequence.current_state = AvSequence::ONCE_AV_DETERMINING_LAUNCH;
   }
   switch (FLIGHT_STATE) {
     case common::FlightState::OH_NO:

@@ -1,12 +1,12 @@
 #pragma once
-#include "sequence_lock.hpp"
+#include "av_sequence_lock.hpp"
 
 // Used for handling position in the sequence diagram.
 // This should be treated as a singleton, passed by `std::ref` through threads
-class Sequence {
+class AvSequence {
  public:
-  Sequence();
-  ~Sequence() = default;
+  AvSequence();
+  ~AvSequence() = default;
 
   // Current state in the sequence diagram
   enum State {
@@ -61,9 +61,8 @@ class Sequence {
   void set_camera_power(bool flag) { camera_power_ = flag; }
 
  private:
-  SequenceLock gse_write_lock_{"GSE", "\033[38;5;10m"};
-  SequenceLock av_write_lock_{"AV", "\033[38;5;205m"};
-  static constexpr std::chrono::milliseconds TIMEOUT = SequenceLock::TIMEOUT;
+  AvSequenceLock gse_write_lock_{"GSE", "\033[38;5;10m"};
+  AvSequenceLock av_write_lock_{"AV", "\033[38;5;205m"};
   bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
   bool manual_control_solenoids_ = false;  // Changes based on web data
   // Singleton assertion helper for constructor assertion
