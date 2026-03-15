@@ -35,7 +35,7 @@
 #include "test_uart_e5_interface.hpp"
 #include "uart_e5_interface.hpp"
 
-// This file hosts the ZeroMQ IPC server stuff
+// This reads in all data and hosts the PUB/SUB IPC
 
 std::atomic<bool> running{true};
 volatile bool debugger_attached = false;
