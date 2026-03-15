@@ -62,7 +62,7 @@ GCS Software Team
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/freddy-mcloughlan/">Freddy Mcloughlan</a> (<code>mcloughlan</code>)</td>
-        <td>IREC Lead</td>
+        <td>IREC 2026 lead</td>
         <td>2026</td>
     </tr>
     <tr>
@@ -71,12 +71,22 @@ GCS Software Team
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
-        <td>GCS Lead</td>
+        <td>GCS lead & senior software engineer</td>
         <td>2026</td>
     </tr>
     <tr>
         <td>GCS frontend lead & software engineer</td>
         <td>2025</td>
+    </tr>
+    <tr>
+        <td>Xavier Egan (<code>s4171328</code>)</td>
+        <td>GCS software & firmware developer</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>Tom Lynch (<code>s4008739</code>)</td>
+        <td>GCS software developer</td>
+        <td>2026</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/caspar-oneill/">Caspar O'Neill</a> (<code>s3899921</code>)</td>
