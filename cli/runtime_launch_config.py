@@ -65,6 +65,7 @@ class RuntimeLaunchConfig:
             lora_config=(
                 self.lora_config
                 if self.interface_gse_type == InterfaceType.UART_E5
+                or self.interface_av_type == InterfaceType.UART_E5
                 else None
             ),
         )

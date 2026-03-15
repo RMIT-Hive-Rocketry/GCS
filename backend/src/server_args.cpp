@@ -47,7 +47,7 @@ void require_interface_support(const ParsedArgs& args) {
 
 ParsedArgs parse_args(int argc, char* argv[]) {
   // Argv: <gse_type> <gse_path> <av_type> <av_path> <pendant> <web>
-  //       [9x lora if gse_type==UART_E5] [--GSE_ONLY]
+  //       [9x lora if gse_type==UART_E5 or av_type==UART_E5] [--GSE_ONLY]
   // Validation is done on the Python side; C++ only parses.
   const int MIN_ARGS = 7;
   if (argc < MIN_ARGS) {
@@ -55,7 +55,7 @@ ParsedArgs parse_args(int argc, char* argv[]) {
     slogger::error(
         "Usage: ./file <gse_type> <gse_path> <av_type> <av_path> "
         "<pendant socket path> <web control socket path> "
-        "[lora params if gse_type=UART_E5] [--GSE_ONLY]");
+        "[lora params if GSE or AV is UART_E5] [--GSE_ONLY]");
     throw std::runtime_error("Error: Not enough arguments provided");
   }
 
@@ -68,23 +68,28 @@ ParsedArgs parse_args(int argc, char* argv[]) {
                   .lora_cfg = {},
                   .gse_only_mode = false};
 
+  const bool has_lora_args =
+      (args.gse_type == "UART_E5" || args.av_type == "UART_E5");
+  const int LORA_ARGS = 9;
+
   // Parse --GSE_ONLY before interface check so GSE-only mode is allowed.
-  if (args.gse_type == "UART_E5") {
-    if (argc >= 17 && std::string(argv[16]) == "--GSE_ONLY") {
+  if (has_lora_args) {
+    if (argc >= MIN_ARGS + LORA_ARGS + 1 &&
+        std::string(argv[MIN_ARGS + LORA_ARGS]) == "--GSE_ONLY") {
       args.gse_only_mode = true;
     }
   } else {
-    if (argc >= 8 && std::string(argv[7]) == "--GSE_ONLY") {
+    if (argc >= MIN_ARGS + 1 && std::string(argv[MIN_ARGS]) == "--GSE_ONLY") {
       args.gse_only_mode = true;
     }
   }
 
   require_interface_support(args);
 
-  if (args.gse_type == "UART_E5") {
-    const int UART_ARGS = 9;
-    if (argc < MIN_ARGS + UART_ARGS) {
-      slogger::error("UART_E5 GSE requires 9 lora args after the 6 base args.");
+  if (has_lora_args) {
+    if (argc < MIN_ARGS + LORA_ARGS) {
+      slogger::error(
+          "UART_E5 (GSE or AV) requires 9 lora args after the 7 base args.");
       throw std::runtime_error("Error: Not enough arguments for UART_E5");
     }
     args.lora_cfg = {

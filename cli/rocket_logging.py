@@ -35,7 +35,7 @@ class CustomFormatter(logging.Formatter):
     GREEN = "\x1b[32;20m"
     RESET = "\x1b[0m"
     FORMAT = "[%(levelname)-7s] %(post_start_s)5s s | %(subprocess_name)s: %(message)s"
-    FORMAT_SHORT = "[%(levelname_short)s] %(post_start_s)s s | %(subprocess_name)s: %(message)s"
+    FORMAT_SHORT = "%(levelname_short)s %(post_start_s)ss %(subprocess_name)s | %(message)s"
 
     LEVEL_SHORT = {
         logging.DEBUG: "D",
