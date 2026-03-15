@@ -34,6 +34,8 @@ cleanup_reason: str = (
 )
 running_services: bool = False  # To help close the cli automatically
 
+IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
+
 
 class Command(enum.Enum):
     """Command enums to help start services"""
@@ -366,10 +368,7 @@ def start_services(
     else:
         logger.info("Skipping middleware build. Using pre-built binaries")
 
-    if (
-        os.environ.get("PYTEST_CURRENT_TEST") is not None
-        and os.environ.get("CI_BUILD_ENV") == "Run"
-    ):
+    if IN_TEST_ENVIRONMENT and os.environ.get("CI_BUILD_ENV") == "Run":
         # You are in testing release environment
         raise NotImplementedError("Release python testing is not implemented")
 
@@ -453,6 +452,7 @@ def cli():
 def run(gse_only):
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
+    rocket_logging.set_console_low_detail(True)
     interface_gse_arg = config.get_config()["hardware"].get(
         "interface_release_gse"
     )
@@ -639,6 +639,8 @@ def main():
 
     rocket_logging.initialise()
     logger = logging.getLogger("rocket")
+    if IN_TEST_ENVIRONMENT:
+        rocket_logging.set_console_low_detail(False)
 
     try:
         # Tell click CLI to let me handle exceptions and stuff.

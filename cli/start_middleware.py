@@ -174,7 +174,7 @@ def build_middleware_argv(
 
 def start_middleware(logger: logging.Logger, config: MiddlewareConfig) -> None:
 
-    SERVICE_NAME = "middleware_server"
+    SERVICE_NAME = "server"  # Formally the middleware_server
     if config.web_control_socket_path is None:
         config.web_control_socket_path = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
