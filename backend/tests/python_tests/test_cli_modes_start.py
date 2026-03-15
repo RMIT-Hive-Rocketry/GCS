@@ -161,7 +161,8 @@ class CliStartup(ABC):
         "Starting Soteria",
         "socat: Stopping socat callbacks",  # found devices
         r"middleware_server: \[STDOUT] Starting middleware server",
-        r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
+        r"middleware_server: \[STDOUT] Interface \[GSE] initialised with type: TEST*",
+        r"middleware_server: \[STDOUT] Interface  \[AV] initialised with type: TEST*",
         r"event viewer: \[STDOUT] Listening for messages\.\.\.",
         r"event viewer: \[STDOUT] Supersonic flight detected",
     ]

@@ -32,12 +32,11 @@ constexpr Millis READ_LOOP_SLEEP{1};
 /// For terminal printing only. This does not effect functionality
 constexpr Seconds READ_LOOP_NO_DATA_WARNING{3};
 
-// --- GSE full-duplex rate limit (e.g. TCP; used when dual-interface is active)
-// ---
-/// Minimum interval between GSE sends when interface is full-duplex
-/// (heartbeat). Send immediately if payload changed; otherwise throttle to this
-/// interval (ms).
-constexpr Millis GSE_FULL_DUPLEX_MIN_INTERVAL{500};
+// --- TCP write heartbeat ---
+/// Minimum interval between sending the same TCP payload.
+/// If a payload is unchanged and was sent within this interval, skip it.
+/// If payload changes, send immediately.
+constexpr Millis TCP_HEARTBEAT{500};
 
 /// Include desc
 constexpr Millis initial_tcp_retry_backoff{250};

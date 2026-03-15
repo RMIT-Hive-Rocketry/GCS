@@ -165,11 +165,20 @@ int main(int argc, char* argv[]) {
   signal(SIGINT, signal_handler);
   signal(SIGTERM, signal_handler);
 
-  std::shared_ptr<RadioInterface> interface =
-      create_interface(args.gse_type, args.gse_path, args.lora_cfg);
+  std::shared_ptr<RadioInterface> interface_gse =
+      create_interface(args.gse_type, args.gse_path);
+  interface_gse->initialize();
+  slogger::info("Interface [GSE] initialised with type: " + args.gse_type);
 
-  interface->initialize();
-  slogger::info("Interface initialised for type: " + args.gse_type);
+  std::shared_ptr<RadioInterface> interface_av;
+  if (args.gse_type == args.av_type && args.gse_path == args.av_path) {
+    interface_av = interface_gse;
+    slogger::info("Interface  [AV] reusing GSE interface (same type/path)");
+  } else {
+    interface_av = create_interface(args.av_type, args.av_path, args.lora_cfg);
+    interface_av->initialize();
+    slogger::info("Interface  [AV] initialised with type: " + args.av_type);
+  }
 
   zmq::context_t all_context(1);
 
@@ -184,9 +193,9 @@ int main(int argc, char* argv[]) {
   zmq::socket_t pub_socket(all_context, ZMQ_PUB);
   pub_socket.bind("ipc:///tmp/" + args.pendant_socket_path + "_pub.sock");
 
-  // Data input reader from AV or GSE
-  std::thread radio_reader(input_read_loop, interface, std::ref(pub_socket),
-                           std::ref(gcs_state));
+  // Data input reader from AV or GSE (shared with GSE when same interface)
+  std::thread av_reader(input_read_loop, interface_av, std::ref(pub_socket),
+                        std::ref(gcs_state));
 
   std::thread gcs_reader(server_listen_loop, std::ref(all_context), args,
                          std::ref(gcs_state), std::ref(running));
@@ -246,8 +255,10 @@ int main(int argc, char* argv[]) {
         gse_data = pendant_data.payload;
       }
 
+      // This runs in every loop, but the interface will handle throttling
+      interface_gse->write_data(gse_data);
+
       if (gcs_state.gse_only_mode()) {
-        interface->write_data(gse_data);
         continue;  // Dont run the AV code below because it doesn't exist
       }
 
@@ -261,7 +272,7 @@ int main(int argc, char* argv[]) {
         case AvSequence::State::LOOP_PRE_LAUNCH:
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           // Send data to AV
-          interface->write_data(
+          interface_av->write_data(
               create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           gcs_state.av_sequence.start_await_av();
           // Wait for data from AV (blocking rest of this loop, or timeout)
@@ -270,13 +281,13 @@ int main(int argc, char* argv[]) {
         case AvSequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
           if (av_broadcast) {
-            interface->write_data(
+            interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         // It says once, but it's a conditional loop anyway.
         case AvSequence::State::ONCE_AV_DETERMINING_LAUNCH:
-          interface->write_data(
+          interface_av->write_data(
               create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           gcs_state.av_sequence.start_await_av();
           gcs_state.av_sequence.sit_and_wait_for_av();
@@ -284,21 +295,21 @@ int main(int argc, char* argv[]) {
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
           // Just listen. This thread can just close bassically
           if (av_broadcast) {
-            interface->write_data(
+            interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
           // Just listen. This thread can just close bassically
           if (av_broadcast) {
-            interface->write_data(
+            interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
           // Just listen. This thread can just close bassically
           if (av_broadcast) {
-            interface->write_data(
+            interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
@@ -322,7 +333,7 @@ int main(int argc, char* argv[]) {
   try {
     // Cleanup
     gcs_reader.join();
-    radio_reader.join();
+    av_reader.join();
     pub_socket.close();
 
     google::protobuf::ShutdownProtobufLibrary();
