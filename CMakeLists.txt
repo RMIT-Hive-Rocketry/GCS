@@ -199,14 +199,17 @@ protobuf_generate(
     FILES ${PROTO_FILES}
 )
 
-add_custom_target(fix-proto-imports ALL
+set(FIX_IMPORT_STAMP "${CMAKE_CURRENT_BINARY_DIR}/fix_proto_imports.stamp")
+add_custom_command(
+    OUTPUT ${FIX_IMPORT_STAMP}
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fix_imports.sh
+    COMMAND ${CMAKE_COMMAND} -E touch ${FIX_IMPORT_STAMP}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS proto-objects ${PROTO_FILES} ${FIX_IMPORT_SCRIPT}
     COMMENT "Fixing Python proto imports"
     VERBATIM
 )
-
-add_dependencies(fix-proto-imports proto-objects)
+add_custom_target(fix-proto-imports DEPENDS ${FIX_IMPORT_STAMP})
 add_dependencies(middleware_server fix-proto-imports)
 
 # Define DEBUG macro in debug builds
@@ -293,13 +296,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(MIDDLEWARE_NAME_PREFIX "middleware_release")
 else()
     set(MIDDLEWARE_NAME_PREFIX "middleware_debug")
-endif()
-
-file(GLOB OLD_BINARIES "${CMAKE_BINARY_DIR}/${MIDDLEWARE_NAME_PREFIX}_*")
-
-if(OLD_BINARIES)
-    message(STATUS "Cleaning up old ${MIDDLEWARE_NAME_PREFIX} binaries: ${OLD_BINARIES}")
-    file(REMOVE ${OLD_BINARIES})
 endif()
 
 set_target_properties(middleware_server PROPERTIES OUTPUT_NAME "${MIDDLEWARE_NAME_PREFIX}_${TARGET_ARCH}_${PROJECT_VERSION}+${GIT_COMMIT}")
