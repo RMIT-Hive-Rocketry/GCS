@@ -9,6 +9,7 @@
 #include "FlightState.pb.h"
 #include "av_sequence.hpp"
 #include "debug_functions.hpp"
+#include "gcs_process_data.hpp"
 #include "subprocess_logging.hpp"
 
 /// Process a single packet: parse from buffer, convert to protobuf, send on
@@ -19,7 +20,7 @@ std::unique_ptr<PacketType> process_packet(
     const ssize_t BUFFER_BYTE_COUNT, std::vector<uint8_t>& buffer,
     zmq::socket_t& pub_socket,
     const std::chrono::steady_clock::time_point& READER_BOOT_TIME,
-    AvSequence& sequence) {
+    SharedGcsState& gcs_state) {
   if (BUFFER_BYTE_COUNT >= PacketType::SIZE + 1) {
     try {
       std::unique_ptr<PacketType> payload =
@@ -29,8 +30,8 @@ std::unique_ptr<PacketType> process_packet(
                             std::chrono::steady_clock::now() - READER_BOOT_TIME)
                             .count();
       auto proto_msg =
-          payload->toProtobuf(TIMESTAMP, sequence.get_packet_count_av(),
-                              sequence.get_packet_count_gse());
+          payload->toProtobuf(TIMESTAMP, gcs_state.get_packet_count_av(),
+                              gcs_state.get_packet_count_gse());
       if (!proto_msg.IsInitialized()) {
         std::string missing_info = proto_msg.InitializationErrorString();
         slogger::warning(std::string(PacketType::PACKET_NAME) +
