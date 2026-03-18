@@ -52,7 +52,7 @@ The GCS, known as SOTERIA, is Hive's computer control system for GSE control, av
 
 ## Credit
 
-GCS Software Team
+Ground Control Software Team
 
 <table>
     <tr>
@@ -66,51 +66,55 @@ GCS Software Team
         <td>2026</td>
     </tr>
     <tr>
-        <td>GCS software lead & backend software engineer</td>
+        <td>GC software lead & backend software engineer</td>
         <td>2025</td>
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
-        <td>GCS lead & senior software engineer</td>
+        <td>GC lead & senior software engineer</td>
         <td>2026</td>
     </tr>
     <tr>
-        <td>GCS frontend lead & software engineer</td>
+        <td>GC frontend lead & software engineer</td>
         <td>2025</td>
     </tr>
     <tr>
-        <td>Xavier Egan (<code>s4171328</code>)</td>
-        <td>GCS software & firmware developer</td>
+        <td rowspan=2><a href="https://www.linkedin.com/in/trist4nl3/">Tristan Le</a> (<code>trist4nl3</code>)</td>
+        <td>GSE (Ground Service Equipment) & electronics lead</td>
         <td>2026</td>
     </tr>
     <tr>
-        <td>Tom Lynch (<code>s4008739</code>)</td>
-        <td>GCS software developer</td>
+    <td>GC simulation integration</td>
+        <td>2025</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/xavier-egan-a5b3b027a/">Xavier Egan</a> (<code>XavierEgan</code>)</td>
+        <td>GC software & firmware developer</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.linkedin.com/in/twhlynch/">Tom Lynch</a> (<code>twhlynch</code>)</td>
+        <td>GC software developer</td>
         <td>2026</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/caspar-oneill/">Caspar O'Neill</a> (<code>s3899921</code>)</td>
-        <td>GCS frontend API engineer</td>
+        <td>GC frontend API engineer</td>
         <td>2025</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/">Anuk Jayasundara</a> (<code>SaviruA</code>)</td>
-        <td>GCS 6DOF rocket visualisation</td>
+        <td>GC 6DOF rocket visualisation</td>
         <td>2025</td>
     </tr>
     <tr>
         <td>Jonathan Do (<code>J88error</code>)</td>
-        <td>GCS frontend UI/UX design</td>
+        <td>GC frontend UI/UX design</td>
         <td>2025</td>
     </tr>
     <tr>
         <td>Nathan La (<code>s4003562</code>)</td>
-        <td>GCS data visualisation</td>
-        <td>2025</td>
-    </tr>
-    <tr>
-        <td><a href="https://www.linkedin.com/in/trist4nl3/">Tristan Le</a> (<code>trist4nl3</code>)</td>
-        <td>GCS simulation integration</td>
+        <td>GC data visualisation</td>
         <td>2025</td>
     </tr>
 </table>
