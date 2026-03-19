@@ -1,0 +1,544 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "middleware build-dev + generate proto",
+            "type": "shell",
+            "command": "mkdir -p build-debug && cd build-debug; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiGreen"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "middleware build-dev + generate proto + build tests",
+            "type": "shell",
+            "command": "mkdir -p build-debug && cd build-debug; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiYellow"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "middleware build and test all",
+            "type": "shell",
+            "command": "bash scripts/test_manual_all.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "id": "check",
+                "color": "terminal.ansiCyan"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Debug"
+                }
+            }
+        },
+        {
+            "label": "python test Debug",
+            "type": "shell",
+            "command": "bash scripts/test_manual_python.sh",
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Debug"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "id": "check",
+                "color": "terminal.ansiCyan"
+            }
+        },
+        {
+            "label": "python test Run",
+            "type": "shell",
+            "command": "bash scripts/test_manual_python.sh",
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Run"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "id": "check",
+                "color": "terminal.ansiCyan"
+            }
+        },
+        {
+            "label": "start socat manually",
+            "type": "shell",
+            "command": "socat -d -d pty,raw,echo=0 pty,raw,echo=0",
+            "icon": {
+                "id": "debug-console"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start emulator manually",
+            "type": "shell",
+            "command": "./venv/bin/python -u -Xfrozen_modules=off -m backend.device_emulator --device-rocket ${input:terminalPath}",
+            "icon": {
+                "id": "debug-console"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start ZeroMQ debug subscriber",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_zeromq_sub_raw.py",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start RPI pendant controller debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_rpi_pendant.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start Pygame pendant controller debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_pygame_pendant.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start websocket debug subscriber",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_websocket.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend API manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start frontend API manually",
+            "type": "shell",
+            "command": "/Users/freddy/.pyenv/versions/3.11.1/bin/python",
+            "args": [
+                "backend/frontend_api.py",
+                "--socket-path",
+                "gcs_rocket"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "start hardware pendant emulator manually",
+            "type": "shell",
+            "command": "./venv/bin/python",
+            "args": [
+                "backend/pendant_emulator.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile Manual Protobuf Payload",
+            "type": "shell",
+            "command": "protoc",
+            "args": [
+                "-I=${workspaceFolder}/backend/proto/payloads",
+                "--cpp_out=${workspaceFolder}/backend/proto/generated/payloads",
+                "${workspaceFolder}/backend/proto/payloads/${input:outputPath}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                {
+                    "owner": "protobuf",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/backend/proto/payloads"
+                    ],
+                    "pattern": {
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "message": 4
+                    }
+                }
+            ],
+            "icon": {
+                "id": "code"
+            }
+        },
+        {
+            "label": "Frontend Tailwind",
+            "type": "shell",
+            "command": "./frontend/scripts/tailwind.sh",
+            "icon": {
+                "id": "paintcan"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Setup",
+            "type": "shell",
+            "command": "./frontend/setup.sh",
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiRed"
+            }
+        },
+        {
+            "label": "Frontend Flask Server",
+            "type": "shell",
+            "command": "flask",
+            "args": [
+                "-e",
+                "./frontend/.flaskenv",
+                "-A",
+                "frontend.server",
+                "run"
+            ],
+            "icon": {
+                "id": "server-process",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Dev",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "dev",
+                "--nopendant",
+                "--frontend",
+                "--interface",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Dev [EXPERIMENTAL]",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "dev",
+                "--nopendant",
+                "--experimental",
+                "--corruption",
+                "--frontend",
+                "--interface",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiRed"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Rocket.py",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "simulation",
+                "--simulation",
+                "TEST"
+            ],
+            "icon": {
+                "id": "debug-continue",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Replay 20250504",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "20250504"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Replay IREC2025",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "IREC2025"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Simulation",
+            "type": "shell",
+            "command": "./.venv/bin/python",
+            "args": [
+                "backend/simulation/run_simulation.py",
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
+                }
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            }
+        },
+        {
+            "label": "Play Replay System",
+            "type": "shell",
+            "command": "./.venv/bin/python",
+            "args": [
+                "backend/replay_system/replay_engine.py",
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock",
+                "--mission-type",
+                "20250504"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}:$PYTHONPATH"
+                }
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            }
+        },
+        {
+            "label": "Act: Local Build (Release/g++)",
+            "type": "shell",
+            "command": "act",
+            "args": [
+                "--matrix",
+                "build_type:Release",
+                "--matrix",
+                "cpp_compiler:g++",
+                "--secret-file",
+                ".secrets"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "start TCP interface loopback debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_tcp_interface_packets.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "outputPath",
+            "type": "promptString",
+            "description": "Enter the proto file path relative to backend/proto/payloads/",
+            "default": "AV_TO_GCS_DATA_1.proto"
+        },
+        {
+            "id": "terminalPath",
+            "type": "promptString",
+            "description": "Enter the psuedoterminal /dev path",
+            "default": "/dev/ttys..."
+        }
+    ]
+}

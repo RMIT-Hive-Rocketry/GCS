@@ -1,0 +1,167 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Attach PID",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/build/middleware_debug_arm64_0.1.0-dev.1+serpentine+f00522a"
+        },
+        {
+            "name": "(lldb) Launch middleware",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/middleware_debug_arm64_0.1.0-dev.1+serpentine+f00522a",
+            "args": [
+                // 3 args please
+                "TEST",
+                "/dev/ttys011", // socat device. Either is fine
+                // Note that using /var/run requires elevated privleges
+                "gcs_rocket.sock",
+            ],
+            "preLaunchTask": "middleware build-dev + generate proto",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "(gdb / pi) Launch middleware",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/middleware",
+            "args": [
+                // 3 args please
+                "UART",
+                "/dev/ttyAMA0",
+                "gcs_rocket.sock",
+            ],
+            "preLaunchTask": "middleware build-dev + generate proto",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
+            "name": "Python Debugger: cli dev",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface",
+                "test",
+                "--nopendant"
+            ]
+        },
+        {
+            "name": "Python Debugger: cli dev with web",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface",
+                "test",
+                "--nopendant",
+                "--frontend"
+            ]
+        },
+        {
+            "name": "Python Debugger: cli dev uart",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface",
+                "test_uart",
+                "--nopendant"
+            ]
+        },
+        {
+            "name": "Python Debugger: cli simulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
+            "args": [
+                "simulation",
+                "--logpkt"
+            ]
+        },
+        {
+            "name": "Python Debugger: cli dev test uarte5",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface-av",
+                "test",
+                "--interface-gse",
+                "uart_e5",
+                "--nopendant",
+            ],
+        },
+        {
+            "name": "Python Debugger: emulator",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "module": "backend.device_emulator",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "name": "Python Debugger: pendant emulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/pendant_emulator.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
+            "name": "Python Debugger: simulator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/simulation/run_simulation.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--device-rocket",
+                "/tmp/gcs_rocket.sock"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+    ],
+}

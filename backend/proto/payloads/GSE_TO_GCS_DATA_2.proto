@@ -1,0 +1,22 @@
+syntax = "proto3";
+import "GSEStateFlags.proto";
+import "GSEErrors.proto";
+import "PacketMeta.proto";
+
+package payload;
+
+message GSE_TO_GCS_DATA_2 {
+    optional common.PacketMeta meta = 1;
+    optional common.GSEStateFlags state_flags = 2;
+
+    optional float internal_temp = 3;
+    optional float wind_speed = 4;
+    optional int32 gas_bottle_weight_1 = 5;
+    optional int32 gas_bottle_weight_2 = 6;
+    optional float analog_voltage_input_1 = 7;
+    optional float analog_voltage_input_2 = 8;
+    optional float additional_current_input_1 = 9;
+    optional float additional_current_input_2 = 10;
+
+    optional common.GSEErrors error_flags = 11;
+}

@@ -1,0 +1,23 @@
+syntax = "proto3";
+import "FlightState.proto";
+import "AVStateFlags.proto";
+import "PacketMeta.proto";
+
+package payload;
+
+message AV_TO_GCS_DATA_2 {
+    optional common.PacketMeta meta = 1;
+    optional common.FlightState flightState = 2;
+    optional common.AVStateFlags state_flags = 3;
+
+    optional float GPS_latitude = 4;
+    optional float GPS_longitude = 5;
+
+    optional string navigation_status = 6;
+
+    // Quaternion notation
+    optional float qw = 7;
+    optional float qx = 8;
+    optional float qy = 9;
+    optional float qz = 10;
+}

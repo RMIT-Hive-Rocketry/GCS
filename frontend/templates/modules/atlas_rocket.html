@@ -1,0 +1,37 @@
+<!-- 3D rocket module -->
+<div class="module-atlas">
+    <style>
+        .module-atlas .rocket-frame {
+            background-image: url('/img/atlas/rocket-frame.svg#svgView(preserveAspectRatio(none))');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+
+        #rocketCanvasAtlas {
+            --current-color: var(--color-atlas-dark);
+            filter: drop-shadow(1px 1px 0 var(--current-color)) drop-shadow(-1px 1px 0 var(--current-color)) drop-shadow(-1px -1px 0 var(--current-color)) drop-shadow(1px -1px 0 var(--current-color));
+        }
+    </style>
+
+    <div class="w-full h-full rocket-frame flex flex-col">
+        <h2 class="font-bold uppercase text-atlas text-center mt-4 border-0">3DOF Rocket Visualisation</h2>
+        <div class="flex flex-row gap-4 justify-center text-center text-atlas z-10">
+            <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch border-b-red-500 border-b-2 text-right"
+                    size="6">°</span>
+            <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw border-b-green-500 border-b-2 text-right"
+                    size="6">°</span>
+            <span>Roll:<input readonly autocomplete="off" class="rocket-roll border-b-blue-500 border-b-2 text-right"
+                    size="6">°</span>
+        </div>
+
+        <!-- Viewer -->
+        <div class="grow flex items-center justify-center h-full">
+            <div id="rocketContainerAtlas" class="relative w-full h-full group">
+                <canvas id="rocketCanvasAtlas" class="w-full h-full block"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3DOF Rocket code -->
+    <script type="module" src="/js/atlas_rocket.js" defer></script>
+</div>
