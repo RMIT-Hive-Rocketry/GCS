@@ -1,4 +1,5 @@
 from backend.includes_python.mach import Mach
+from backend.pendant_daemon import get_control_device, ControlDevice
 import backend.includes_python.process_logging as slogger
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
@@ -16,6 +17,7 @@ import websockets
 import zmq
 import zmq.asyncio
 import os
+import time
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
@@ -57,8 +59,26 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             7: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2,
         }
 
+        PENDANT_STATE_UPDATE_INTERVAL_MS = 50.0
+        previous_update_time = 0.0
+        CONFIG = config.get_config()
+        CONTROL_TYPE = CONFIG["hardware"]["controller"]
+        pendant_control_device: ControlDevice = get_control_device(CONTROL_TYPE)
+
         while not shutdown_event.is_set():
             try:
+                pendant_dt = time.time() - previous_update_time
+                if pendant_dt > PENDANT_STATE_UPDATE_INTERVAL_MS / 1000.0:
+                    try:
+                        packet_dict = {
+                            "id": 10,
+                            "data": pendant_control_device.get_states_dict()
+                        }
+                        await websocket.send(json.dumps(packet_dict))
+                        previous_update_time = time.time()
+                    except websockets.ConnectionClosedOK:
+                        pass
+    
                 events = await sub_socket.poll(timeout=100)
                 if events:
                     packet_id = int.from_bytes(await sub_socket.recv(), "big")
@@ -82,7 +102,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         except websockets.ConnectionClosedOK:
                             pass
                     else:
-                        slogger.error(f"Unexpected packet ID: {packet_id}")
+                        slogger.error(f"Unexpected packet ID: {packet_id}")   
+                
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
             except websockets.ConnectionClosed:
