@@ -1,7 +1,3 @@
-"""
-export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
-"""
-
 import backend.includes_python.process_logging as slogger
 
 try:
@@ -29,7 +25,7 @@ import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 import config.config as config
 import threading
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Type
 from abc import ABC, abstractmethod
 
 try:
@@ -186,6 +182,8 @@ class StateTable:
 
 class ControlDevice(ABC):
     def __init__(self):
+        # DONT instanciate a ControlDevice manually
+        # Use the get_control_device() funciton
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
         self.state_table = StateTable.get_fallback_table()
@@ -627,12 +625,30 @@ class Pygame_Device(ControlDevice):
 
 
 def get_control_device(key: str) -> ControlDevice:
-    key = key.lower().strip()
-    return {
+    # instead of making each control device a singleton we can add logic here to only instanciate it once
+    instances: Dict[str, None | ControlDevice] = {
+        "rpi_gpio_device": None,
+        "hid_device": None,
+        "pygame_device": None,
+    }
+
+    str_to_device: Dict[str, Type[ControlDevice]] = {
         "rpi_gpio_device": RPI_GPIO_Device,
         "hid_device": HID_Device,
         "pygame_device": Pygame_Device,
-    }.get(key, None)
+    }
+
+    key = key.lower().strip()
+
+    if key not in instances:
+        error_str = f"Control Device `{key}` not recognised, check that `controller` is set correctly in config.ini"
+        slogger.error(error_str)
+        raise ValueError(error_str)
+
+    if instances[key] is None:
+        instances[key] = str_to_device[key]()
+    
+    return instances[key]
 
 
 def send_packet():
@@ -648,7 +664,7 @@ def send_packet():
             os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
         )
         CONTROL_TYPE = CONFIG["hardware"]["controller"]
-        controller: ControlDevice = get_control_device(CONTROL_TYPE)()
+        controller: ControlDevice = get_control_device(CONTROL_TYPE)
 
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
