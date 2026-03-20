@@ -2,6 +2,8 @@ import asyncio
 import websockets
 import json
 
+# only read these packets
+PACKETS_TO_DEBUG = [10]
 
 async def pretty_print_json(uri):
     while True:
@@ -12,7 +14,11 @@ async def pretty_print_json(uri):
                     message = await websocket.recv()
                     try:
                         json_data = json.loads(message)
-                        print(json.dumps(json_data, indent=4))
+
+                        if isinstance(json_data, dict):
+                            packet_id = json_data.get("id")
+                            if packet_id in PACKETS_TO_DEBUG:
+                                print(json.dumps(json_data, indent=4))
                     except json.JSONDecodeError:
                         print("Non-JSON message received:")
                         print(message)
