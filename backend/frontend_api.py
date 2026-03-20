@@ -72,13 +72,13 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     try:
                         packet_dict = {
                             "id": 10,
-                            "data": pendant_control_device.get_states_dict()
+                            "data": pendant_control_device.get_states_dict(),
                         }
                         await websocket.send(json.dumps(packet_dict))
                         previous_update_time = time.time()
                     except websockets.ConnectionClosedOK:
                         pass
-    
+
                 events = await sub_socket.poll(timeout=100)
                 if events:
                     packet_id = int.from_bytes(await sub_socket.recv(), "big")
@@ -102,8 +102,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         except websockets.ConnectionClosedOK:
                             pass
                     else:
-                        slogger.error(f"Unexpected packet ID: {packet_id}")   
-                
+                        slogger.error(f"Unexpected packet ID: {packet_id}")
+
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
             except websockets.ConnectionClosed:
