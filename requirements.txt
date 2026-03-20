@@ -9,7 +9,7 @@ pandas>=2.2.3
 gpio==1.0.0
 gpiozero==2.0.1
 # lgpio==0.2.2.0
-hid==1.0.9
+# hid==1.0.9
 
 # Middleware
 websockets>=15.0.1
