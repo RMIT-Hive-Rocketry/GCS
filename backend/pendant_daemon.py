@@ -647,7 +647,7 @@ def get_control_device(key: str) -> ControlDevice:
 
     if instances[key] is None:
         instances[key] = str_to_device[key]()
-    
+
     return instances[key]
 
 
