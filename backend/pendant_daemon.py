@@ -627,18 +627,113 @@ class Pygame_Device(ControlDevice):
         slogger.info("Pygame killed. Done...")
 
 
+class Emulated_Device(Pygame_Device):
+    """
+    Emulated device class, FOR TESTING ONLY
+    Based on the Pygame_Device class, even though it doesn't actually use Pygame
+    """
+
+    BUTTON_NAME_ID_MAP: Dict[str, int] = {
+        "SYS_ON": 0,
+        "ESTOP": 5,
+        "FILL_SELECTED": 6,
+        "IGNITION_SELECTED": 4,
+        "N2O_ACTIVE": 8,
+        "PURGE_ACTIVE": 3,
+        "O2_MOMENT_ACTIVE": 1,
+        "IGNITION_MOMENT_ACTIVE": 2,
+    }
+
+    BUTTON_ID_NAME_MAP: Dict[int, str] = {
+        v: k for k, v in BUTTON_NAME_ID_MAP.items()
+    }
+
+    BUTTON_SEQUENCE = [
+        [],
+        ["FILL_SELECTED"],
+        ["FILL_SELECTED", "N2O_ACTIVE"],
+        ["FILL_SELECTED"],
+        ["FILL_SELECTED", "PURGE_ACTIVE"],
+        ["FILL_SELECTED"],
+        [],
+        ["IGNITION_SELECTED"],
+        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE"],
+        ["IGNITION_SELECTED"],
+        ["IGNITION_SELECTED", "IGNITION_MOMENT_ACTIVE"],
+        ["IGNITION_SELECTED"],
+        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE", "IGNITION_MOMENT_ACTIVE"],
+        ["IGNITION_SELECTED"],
+        [],
+    ]
+
+    CONTROLLER_NAME: str = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
+    is_connected: bool = False
+
+    def __init__(self):
+        super().__init__()
+        self.buttons = {}
+
+    def _try_connect_device(self):
+        # This device never has connection issues
+        Emulated_Device.is_connected = True
+        slogger.info(
+            f"Controller initialized: {Emulated_Device.CONTROLLER_NAME}"
+        )
+
+    def _setup_device(self):
+        pygame.init()
+        self._try_connect_device()
+
+    def _update_state_table(self):
+        """Updates instance attributes"""
+        pygame.event.pump()
+
+        if Emulated_Device.is_connected:
+
+            # Loop through states and update them
+            seconds = int(time.time())
+            current_buttons = Emulated_Device.BUTTON_SEQUENCE[
+                seconds % len(Emulated_Device.BUTTON_SEQUENCE)
+            ]
+
+            for btn_name, btn_id in Emulated_Device.BUTTON_NAME_ID_MAP.items():
+                pressed = btn_name in current_buttons
+                self.buttons[btn_name] = pressed
+
+            states = {btn_name: btn for btn_name, btn in self.buttons.items()}
+
+            # Temporary fix for neutral state which isn't wired
+            states["SYS_ON"] = not states["ESTOP"]
+            states["NEUTRAL_ACTIVE"] = (
+                states["SYS_ON"]
+                and not states["N2O_ACTIVE"]
+                and not states["PURGE_ACTIVE"]
+            )
+            self.state_table = StateTable(**states)
+        else:
+            self.state_table = StateTable.get_fallback_table()
+
+    def cleanup(self):
+        """Internal cleaup code"""
+        slogger.info("Quitting pygame...")
+        pygame.quit()
+        slogger.info("Pygame killed. Done...")
+
+
 def get_control_device(key: str) -> ControlDevice:
     # instead of making each control device a singleton we can add logic here to only instanciate it once
     instances: Dict[str, None | ControlDevice] = {
         "rpi_gpio_device": None,
         "hid_device": None,
         "pygame_device": None,
+        "emulated_device": None,
     }
 
     str_to_device: Dict[str, Type[ControlDevice]] = {
         "rpi_gpio_device": RPI_GPIO_Device,
         "hid_device": HID_Device,
         "pygame_device": Pygame_Device,
+        "emulated_device": Emulated_Device,
     }
 
     key = key.lower().strip()
@@ -655,6 +750,12 @@ def get_control_device(key: str) -> ControlDevice:
 
 
 def send_packet():
+
+    # NEVER SEND PACKET FROM THE EMULATED_DEVICE OVER IPC
+    CONTROL_TYPE = CONFIG["hardware"]["controller"]
+    if CONTROL_TYPE == "emulated_device":
+        raise Exception
+
     context = zmq.Context()
 
     # Wait LINGER_TIME_MS before giving up on push request
