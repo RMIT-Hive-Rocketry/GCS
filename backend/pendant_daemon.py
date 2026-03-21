@@ -751,7 +751,8 @@ def get_control_device(key: str) -> ControlDevice:
 
 
 def send_packet():
-
+    CONFIG = config.get_config()
+    
     # NEVER SEND PACKET FROM THE EMULATED_DEVICE OVER IPC
     CONTROL_TYPE = CONFIG["hardware"]["controller"]
     if CONTROL_TYPE == "emulated_device":
@@ -764,7 +765,6 @@ def send_packet():
 
     try:
         push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.get_config()
         SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
