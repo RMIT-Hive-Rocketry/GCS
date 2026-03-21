@@ -35,17 +35,18 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
     endif()
 
     if(FORCE_FETCH_DEPENDENCIES OR NOT ${FIND_NAME}_FOUND)
-        if(NAME STREQUAL "libzmq" AND CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
-            # TODO check on this and remove it when the noted pr is merged
-            message(WARNING "libzqm auto install is likely to fail until resolution of https://github.com/zeromq/libzmq/pull/4776")
-        endif()
-
         message(STATUS "Fetching ${NAME} from ${URL} (${VERSION})")
         FetchContent_Declare(
             ${NAME}
             GIT_REPOSITORY ${URL}
             GIT_TAG ${VERSION}
         )
+
+        if(NAME STREQUAL "libzmq")
+            # https://github.com/zeromq/libzmq/pull/4776
+            set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+        endif()
+
         FetchContent_MakeAvailable(${NAME})
         find_package(${FIND_NAME} CONFIG)
         message(STATUS "${NAME} has been fetched and made available")
