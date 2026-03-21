@@ -43,6 +43,7 @@ function(fetch_git_dependency NAME FIND_NAME URL VERSION)
         )
 
         if(NAME STREQUAL "libzmq")
+            # https://github.com/zeromq/libzmq/pull/4776
             set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
         endif()
 
