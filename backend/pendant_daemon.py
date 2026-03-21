@@ -716,15 +716,16 @@ class Emulated_Device(Pygame_Device):
         pygame.quit()
         slogger.info("Pygame killed. Done...")
 
+instances: Dict[str, None | ControlDevice] = {
+    "rpi_gpio_device": None,
+    "hid_device": None,
+    "pygame_device": None,
+    "emulated_device": None,
+}
 
 def get_control_device(key: str) -> ControlDevice:
     # instead of making each control device a singleton we can add logic here to only instanciate it once
-    instances: Dict[str, None | ControlDevice] = {
-        "rpi_gpio_device": None,
-        "hid_device": None,
-        "pygame_device": None,
-        "emulated_device": None,
-    }
+    global instances
 
     str_to_device: Dict[str, Type[ControlDevice]] = {
         "rpi_gpio_device": RPI_GPIO_Device,
