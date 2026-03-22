@@ -1,6 +1,7 @@
 from backend.includes_python.mach import Mach
 from backend.pendant_daemon import get_control_device, ControlDevice
 import backend.includes_python.process_logging as slogger
+from backend.includes_python.state_table import StateTable
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
@@ -60,32 +61,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             7: GSE_TO_GCS_DATA_2_pb.GSE_TO_GCS_DATA_2,
         }
 
-        PENDANT_STATE_UPDATE_INTERVAL_MS = 100.0
-        previous_update_time = 0.0
-        previous_pendant_state: Dict | None = None
-        CONFIG = config.get_config()
-        CONTROL_TYPE = CONFIG["hardware"]["controller"]
-        pendant_control_device: ControlDevice = get_control_device(CONTROL_TYPE)
-
         while not shutdown_event.is_set():
             try:
-                pendant_dt = time.time() - previous_update_time
-                pendant_state = pendant_control_device.get_states_dict()
-                
-                interval_check = pendant_dt > PENDANT_STATE_UPDATE_INTERVAL_MS / 1000.0
-                data_changed_check = pendant_state != previous_pendant_state
-
-                if interval_check or data_changed_check:
-                    previous_pendant_state = pendant_state
-                    try:
-                        packet_dict = {
-                            "id": 10,
-                            "data": pendant_state,
-                        }
-                        await websocket.send(json.dumps(packet_dict))
-                        previous_update_time = time.time()
-                    except websockets.ConnectionClosedOK:
-                        pass
 
                 events = await sub_socket.poll(timeout=100)
                 if events:
