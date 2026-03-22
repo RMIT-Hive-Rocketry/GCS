@@ -49,6 +49,8 @@ class MiddlewareConfig:
     device_path_gse: str
     interface_av_type: InterfaceType
     device_path_av: str
+    # I am confused as to why this is called pendant_socket_path?
+    # - from idiot who wrote this code
     pendant_socket_path: str = "gcs_rocket"
     web_control_socket_path: Optional[str] = None
     opt_arg: Optional[str] = None
