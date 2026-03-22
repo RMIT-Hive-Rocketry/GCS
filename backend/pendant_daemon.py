@@ -761,16 +761,17 @@ def send_packet():
     LINGER_TIME_MS = 300
 
     try:
-        push_socket = context.socket(zmq.PUSH)
-        SOCKET_PATH = os.path.abspath(
+        controller: ControlDevice = get_control_device(CONTROL_TYPE)
+        
+        # path to the socket that will be forwarded to GSE in the server
+        GSE_SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
-        CONTROL_TYPE = CONFIG["hardware"]["controller"]
-        controller: ControlDevice = get_control_device(CONTROL_TYPE)
 
+        push_socket = context.socket(zmq.PUSH)
         push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
-        push_socket.connect(f"ipc://{SOCKET_PATH}")
+        push_socket.connect(f"ipc://{GSE_SOCKET_PATH}")
 
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
