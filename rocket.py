@@ -26,7 +26,9 @@ from cli.start_replay_system import (
     SimulationType,
 )
 from cli.start_pendant_daemon import start_pendant_daemon
-from cli.runtime_launch_config import RuntimeLaunchConfig
+from cli.start_dummy_critAlert import start_dummy_alert
+
+
 
 logger: logging.Logger = None
 cleanup_reason: str = (
@@ -437,6 +439,9 @@ def start_services(
         start_frontend_api(logger, "gcs_rocket")
         # 7. Start the frontend web server
         start_frontend_webserver(logger)
+
+    # Appended On Dummy Service for Dummy Alert Logging
+    start_dummy_alert(logger)
 
 
 @click.group()
