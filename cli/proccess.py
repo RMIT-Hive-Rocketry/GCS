@@ -5,6 +5,7 @@ from typing import List, Optional, Callable
 import threading
 from queue import Queue
 import backend.includes_python.process_logging as slogger
+import cli.rocket_logging as rocket_logging
 
 logger = logging.getLogger("rocket")
 
@@ -166,7 +167,9 @@ class LoggedSubProcess:
         """
 
         def _format(stream, line):
-            return f"[{stream}] {line}"  # ╰─▶ or ╰ or ╰─ ??
+            if rocket_logging.DETAILED_LOGGING_PREFIX:
+                return f"[{stream}] {line}"
+            return line
 
         # This is for things like SOCAT that just puts everything in STDERR
         if stream_name == "STDERR" and self._FLIP_STREAMS:
