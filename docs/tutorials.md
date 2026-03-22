@@ -1,0 +1,134 @@
+# How to create a new process / service
+
+> [!IMPORTANT]
+> Please ensure you have completed [setup instructions](setup.md) before proceeding.
+
+
+## Basic Overview Of System Architecture
+
+The GCS system uses CLI and that means among other things that all services and sub process are separated and segmented from each other. for example the project described is a completely segmented off service from the rest of the GSC software using CLI to manage the sub process of the new python script running.
+
+
+### File Structure
+
+To create a new service requires the creation of 2 new files one inside the cli folder that contains the start script to run and act as a obstruction layer to the actual script inside of the backend folder.
+
+
+## Tutorial Steps
+
+1. firstly locate the "cli" and "backend" folders inside the codebase.
+
+2. Create a new file in each with the naming conventions used in respective folders. 
+    > e.g. start_[service-name].py for cli and [service-name].py for backend.
+
+3. Copy inside of each the template code listed below for the respective files.
+
+4. Modify the the first file in the cli folder so that it is linked to the service created in the backend folder.
+
+    >modify the function name to match the format start_[service_name]
+
+    >modify SERVICE_NAME variable to suit the new service name.
+
+    >modify TEMPLATE_SERVICE_COMMAND variable to follow structure of [SERVICE_NAME]_COMMAND
+
+    >modify template_service_process variable to follow structure of [service_name]_process
+
+
+5.  Customize the service python script to your needs the example script simply uses logging to print out a alert when the script is started however much more is possible then this.
+
+6. to make the service be started and called locate the "start_services()" function inside of [rocket.py](../rocket.py)
+
+7. once found carefully modify the code so that inside the start script the function is called depending on what situation it should run in eg. Dev, Production and in certin modes dictated through the commands. all arguments needed to run should be passed through with the logger argument required.
+    > start_template_service(logger)
+
+8. at the top of [rocket.py](../rocket.py) in the includes the starting script inside the cli folder needs to be included. the import name after the file name needs to exactly match the starting function in the service.
+    > from cli.start_template_service import start_template_service
+
+
+
+<br><br>
+
+
+
+
+
+
+
+
+___
+___
+<br>
+
+
+
+# Template Code For New Services.
+
+> ## start_template_service.py
+```python
+import logging
+import cli.proccess as process
+from typing import Tuple
+import os
+
+
+
+
+def start_template_service(
+    logger: logging.Logger
+):
+    SERVICE_NAME = "template service"
+    try:
+
+        TEMPLATE_SERVICE_COMMAND = [
+            "python3",
+            os.path.join("backend", "template_service.py"),
+            "-u",
+        ]
+
+        logger.debug(f"Starting {SERVICE_NAME}")
+
+        # Set PYTHONPATH to the project root to ensure imports work correctly.
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..")
+        )
+
+        template_service_process = process.LoggedSubProcess(
+            DUMMY_ALERT_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
+        )
+
+        template_service_process.start()
+
+    except Exception as e:
+        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
+        return None, None
+
+```
+
+
+> ## template_service.py
+```python
+import backend.includes_python.process_logging as slogger
+import time
+
+# Run Service Code Here Eg Send One Time Alive Message
+def main():
+    slogger.debug("Template Service Debug Test Message")
+    slogger.info("Template Service info Test Message")
+    slogger.success("Template Service success Test Message")
+    slogger.warning("Template Service warning Test Message")
+    slogger.error("Template Service  error Test Message")
+    slogger.critical("Template Service critical Test Message")
+
+    while True:
+        # Do Nothing But Wait 
+        time.sleep(1)
+        
+
+
+
+if __name__ == "__main__":
+    main()
+
+
+```
