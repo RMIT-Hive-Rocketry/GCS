@@ -11,7 +11,6 @@ class Config(object):
         self.ROCKET_NAME = "ROCKET SELECTOR"
         self.LOGO = ""
         self.GRID = (1, 1)
-        self.STYLESHEETS = ["default/static/css/rocket_selector.css"]
 
         # List of modules used by the rocket
         # PATH = "default/modules/"

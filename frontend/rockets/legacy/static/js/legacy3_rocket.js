@@ -7,8 +7,8 @@
  * Functions and constants should be prefixed with "rocket_" for clarity and namespace safety.
  */
 
-import * as THREE from "/js/libraries/three.module.js";
-import { GLTFLoader } from "/js/libraries/GLTFLoader.js";
+import * as THREE from "/static/js/libraries/three.module.min.js";
+import { GLTFLoader } from "/static/js/libraries/loaders/GLTFLoader.js";
 
 const rocket_containerID = "rocketContainerLegacy";
 const rocket_canvasID = "rocketCanvasLegacy";

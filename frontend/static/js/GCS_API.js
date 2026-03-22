@@ -238,7 +238,7 @@ function logMessage(message, type = "") {
     // Make sure log area exists
     const logArea = document.getElementById("errorLogBox");
     if (!logArea) {
-        console.error("Log area not found.");
+        // console.error("Log area not found.");
         return;
     }
 

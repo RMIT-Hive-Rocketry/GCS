@@ -7,8 +7,8 @@
  * Functions and constants should be prefixed with "rocket_" for clarity and namespace safety.
  */
 
-import * as THREE from "../../../../static/js/libraries/three.module.js";
-import { GLTFLoader } from "../../../../static/js/libraries/GLTFLoader.js";
+import * as THREE from "/static/js/libraries/three.module.min.js";
+import { GLTFLoader } from "/static/js/libraries/loaders/GLTFLoader.js";
 
 // === Core Variables ===
 let rocket = null; // The main rocket model group
