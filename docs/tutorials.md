@@ -1,14 +1,5 @@
 # How to create a new process / service
 
-> [!IMPORTANT]
-> Please ensure you have completed [setup instructions](setup.md) before proceeding.
-
-
-## Basic Overview Of System Architecture
-
-The GCS system uses CLI and that means among other things that all services and sub process are separated and segmented from each other. for example the project described is a completely segmented off service from the rest of the GSC software using CLI to manage the sub process of the new python script running.
-
-
 ### File Structure
 
 To create a new service requires the creation of 2 new files one inside the cli folder that contains the start script to run and act as a obstruction layer to the actual script inside of the backend folder.
@@ -109,6 +100,7 @@ def start_template_service(
 > ## template_service.py
 ```python
 import backend.includes_python.process_logging as slogger
+import backend.includes_python.service_helper as service_helper
 import time
 
 # Run Service Code Here Eg Send One Time Alive Message
@@ -120,7 +112,8 @@ def main():
     slogger.error("Template Service  error Test Message")
     slogger.critical("Template Service critical Test Message")
 
-    while True:
+    # the while loop continues until the signal from the process handler tells to stop
+    while not service_helper.time_to_stop()::
         # Do Nothing But Wait 
         time.sleep(1)
         
