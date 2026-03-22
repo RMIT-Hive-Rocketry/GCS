@@ -1,7 +1,5 @@
 from backend.includes_python.mach import Mach
-from backend.pendant_daemon import get_control_device, ControlDevice
 import backend.includes_python.process_logging as slogger
-from backend.includes_python.state_table import StateTable
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
@@ -18,8 +16,6 @@ import websockets
 import zmq
 import zmq.asyncio
 import os
-import time
-from typing import Dict
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
@@ -61,7 +57,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         server_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
         pendant_sub_socket = context.socket(zmq.PULL)
-        # pendant_sub_socket.setsockopt(zmq.CONFLATE, 1) # only keep the most recent state
+        pendant_sub_socket.setsockopt(zmq.CONFLATE, 1) # only keep the most recent state
         pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         packet_handlers = {
@@ -128,6 +124,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
         server_sub_socket.close(linger=LINGER_TIME_MS)
+        pendant_sub_socket.cose(linger=LINGER_TIME_MS)
         context.term()
 
 
