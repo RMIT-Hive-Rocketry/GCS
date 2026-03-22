@@ -7,8 +7,8 @@
  * Functions and constants should be prefixed with "rocket_" for clarity and namespace safety.
  */
 
-import * as THREE from "/static/js/libraries/three.module.js";
-import { GLTFLoader } from "/static/js/libraries/GLTFLoader.js";
+import * as THREE from "/static/js/libraries/three.module.min.js";
+import { GLTFLoader } from "/static/js/libraries/loaders/GLTFLoader.js";
 
 const rotationSpeed = 15000; // Time (ms) for a full rotation
 
@@ -53,8 +53,8 @@ window.addEventListener("DOMContentLoaded", () => {
             canvas.parentElement.clientWidth,
             Math.min(canvas.parentElement.clientHeight, 512),
         );
-        renderer.gammaOutput = true;
-        renderer.gammaFactor = 2.2;
+        //renderer.gammaOutput = true;
+        //renderer.gammaFactor = 2.2;
 
         // Setup scene and camera
         const scene = new THREE.Scene();
@@ -74,22 +74,31 @@ window.addEventListener("DOMContentLoaded", () => {
         camera.position.set(0, 0, 20);
         camera.lookAt(0, 0, 0);
 
-        // Setup lighting
-        const lights = [
-            new THREE.DirectionalLight(0xffffff, 1),
-            new THREE.DirectionalLight(0xffffff, 1),
-            new THREE.SpotLight(0xffffff, 3),
-            new THREE.PointLight(0xffffff, 0.75),
-        ];
-        lights[0].position.set(15, 30, 20);
-        lights[1].position.set(-15, 20, -10);
-        lights[2].position.set(0, 30, 25);
-        lights[2].angle = Math.PI / 5;
-        lights[2].penumbra = 0.4;
-        lights[2].decay = 1;
-        lights[2].distance = 200;
-        lights[3].position.set(10, 2, 5);
-        lights.forEach((light) => scene.add(light));
+        // Setup environment lighting
+        // Newer versions of three.js require an environment map for lighting
+        const environmentTexture = new THREE.CubeTextureLoader().setPath('/static/img/cubemap/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+        scene.environment = environmentTexture;
+        //scene.background = environmentTexture;
+        scene.environmentIntensity = 1;
+
+        // Also define fixed lights (for aesthetic reasons)
+        let skyColor = 0xB1E1FF;  // light blue
+        let groundColor = 0xB97A20;  // brownish orange
+        let lightIntensity = 100;
+        let light = new THREE.HemisphereLight(skyColor, groundColor, lightIntensity);
+        scene.add(light);
+
+        let light2 = new THREE.PointLight(skyColor, 20);
+        light2.position.set( 10, 4, 2 );
+        scene.add(light2);
+
+        let light3 = new THREE.PointLight(0xFFFFFF, 100);
+        light3.position.set( 10, 2.5, 0 );
+        scene.add(light3);
+
+        let light4 = new THREE.PointLight(groundColor, 50);
+        light4.position.set( -20, -4, 0 );
+        scene.add(light4);
 
         // Load rocket model
         new GLTFLoader().load(
