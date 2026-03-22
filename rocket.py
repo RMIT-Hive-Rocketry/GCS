@@ -20,6 +20,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
+from cli.start_dummy_service import start_dummy_service
 from cli.start_replay_system import (
     start_replay_system,
     get_available_missions,
@@ -437,6 +438,10 @@ def start_services(
         start_frontend_api(logger, "gcs_rocket")
         # 7. Start the frontend web server
         start_frontend_webserver(logger)
+    
+    # 8. Start the dummy service
+    start_dummy_service(logger)
+    
 
 
 @click.group()
