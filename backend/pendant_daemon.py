@@ -625,10 +625,7 @@ def get_control_device(key: str) -> ControlDevice:
 def send_packet():
     CONFIG = config.get_config()
     
-    # NEVER SEND PACKET FROM THE EMULATED_DEVICE OVER IPC
     CONTROL_TYPE = CONFIG["hardware"]["controller"]
-    if CONTROL_TYPE == "emulated_device":
-        raise Exception
 
     context = zmq.Context()
 
@@ -658,16 +655,32 @@ def send_packet():
         frontend_push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
         frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
 
+        # wait for other services to open
+        time.sleep(10)
+
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
             pendant_state_dict = controller.get_states_dict()
             state_command = device_emulator.GCStoGSEStateCMD(**pendant_state_dict)
+
+
+            # NEVER SEND PACKET FROM THE EMULATED_DEVICE OVER IPC
+            if CONTROL_TYPE != "emulated_device":
+                # send to c++ server to forward to GSE
+                try:
+                    gse_push_socket.send(
+                        state_command.get_payload_bytes(EXTERNAL=True),
+                        flags=zmq.NOBLOCK,
+                    )
+                except zmq.ZMQError:
+                    # Queue is likely full
+                    slogger.warning(
+                        "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                    )
+            
+            # send to frontend api
             try:
-                gse_push_socket.send(
-                    state_command.get_payload_bytes(EXTERNAL=True),
-                    flags=zmq.NOBLOCK,
-                )
                 frontend_push_socket.send_json(
                     pendant_state_dict,
                     flags=zmq.NOBLOCK,
@@ -675,15 +688,15 @@ def send_packet():
             except zmq.ZMQError:
                 # Queue is likely full
                 slogger.warning(
-                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping"
+                    "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
                 )
-                time.sleep(1)
+            
             # No need to go full blast.
             time.sleep(0.05)
     finally:
         slogger.debug("Packet sender closing socket")
         gse_push_socket.close()
-
+        frontend_push_socket.close()
         slogger.debug("Packet sender closed socket")
         slogger.debug(f"Packet sender closing context (<{LINGER_TIME_MS}ms)")
         context.term()
