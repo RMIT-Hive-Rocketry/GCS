@@ -7,7 +7,7 @@ def start_dummy_service(logger: logging.Logger):
     SERVICE_NAME = "DUMMY SERVICE"
     try:
 
-        DAEMON_COMMAND = [
+        DUMMY_COMMAND = [
             "python3",
             "-u",
             os.path.join("backend", "dummy_service.py"),
@@ -22,7 +22,7 @@ def start_dummy_service(logger: logging.Logger):
         )
 
         api_process = process.LoggedSubProcess(
-            DAEMON_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
+            DUMMY_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
         )
         api_process.start()
 
