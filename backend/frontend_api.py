@@ -57,7 +57,9 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         server_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
         pendant_sub_socket = context.socket(zmq.PULL)
-        pendant_sub_socket.setsockopt(zmq.CONFLATE, 1) # only keep the most recent state
+        pendant_sub_socket.setsockopt(
+            zmq.CONFLATE, 1
+        )  # only keep the most recent state
         pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
@@ -81,14 +83,19 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
-                    packet = {"id": PENDANT_PACKET_ID, "data": pendant_state_dict}
+                    packet = {
+                        "id": PENDANT_PACKET_ID,
+                        "data": pendant_state_dict,
+                    }
                     try:
                         await websocket.send(json.dumps(packet))
                     except websockets.ConnectionClosedOK:
                         pass
 
                 if server_sub_socket in events:
-                    packet_id = int.from_bytes(await server_sub_socket.recv(), "big")
+                    packet_id = int.from_bytes(
+                        await server_sub_socket.recv(), "big"
+                    )
                     message = await server_sub_socket.recv()
 
                     if len(message) == 1:
