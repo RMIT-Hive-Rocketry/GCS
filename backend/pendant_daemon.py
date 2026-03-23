@@ -823,6 +823,8 @@ def send_packet():
                     slogger.warning(
                         "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
                     )
+                    time.sleep(1)
+
                 time_of_last_gse_packet = time.time()
 
             time_check_frontend = time_since_last_frontend_packet > TIME_BETWEEN_FRONTEND_PACKETS_S
@@ -838,6 +840,7 @@ def send_packet():
                     slogger.warning(
                         "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
                     )
+                    time.sleep(0.25)
                 time_of_last_frontend_packet = time.time()
             
             # No need to go full blast.
