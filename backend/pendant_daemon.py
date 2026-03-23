@@ -759,6 +759,10 @@ def send_packet():
 
     # Wait LINGER_TIME_MS before giving up on push request
     LINGER_TIME_MS = 300
+    
+    # send packets on an interval of TIME_BETWEEN_PACKETS and also when there is a change
+    TIME_BETWEEN_GSE_PACKETS_S = 0.1 # so server doesnt think we died
+    TIME_BETWEEN_FRONTEND_PACKETS_S = 1.0
 
     try:
         controller: ControlDevice = get_control_device(CONTROL_TYPE)
@@ -783,6 +787,10 @@ def send_packet():
         frontend_push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
         frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
 
+        time_of_last_gse_packet = 0
+        time_of_last_frontend_packet = 0
+        previous_packet = {}
+
         # wait for other services to open
         time.sleep(10)
 
@@ -792,9 +800,18 @@ def send_packet():
             pendant_state_dict = controller.get_states_dict()
             state_command = device_emulator.GCStoGSEStateCMD(**pendant_state_dict)
 
+            time_since_last_gse_packet = time.time() - time_of_last_gse_packet
+            time_since_last_frontend_packet = time.time() - time_of_last_frontend_packet
 
-            # NEVER SEND PACKET FROM THE EMULATED_DEVICE OVER IPC
-            if CONTROL_TYPE != "emulated_device":
+            change_in_pendant_data = previous_packet != pendant_state_dict
+
+            previous_packet = pendant_state_dict
+
+            # NEVER SEND PACKET FROM THE EMULATED_DEVICE TO THE SERVER
+            not_emulated_device = CONTROL_TYPE != "emulated_device"
+            time_check_gse = time_since_last_gse_packet > TIME_BETWEEN_GSE_PACKETS_S
+
+            if not_emulated_device and (time_check_gse or change_in_pendant_data):
                 # send to c++ server to forward to GSE
                 try:
                     gse_push_socket.send(
@@ -806,18 +823,22 @@ def send_packet():
                     slogger.warning(
                         "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
                     )
-            
-            # send to frontend api
-            try:
-                frontend_push_socket.send_json(
-                    pendant_state_dict,
-                    flags=zmq.NOBLOCK,
-                )
-            except zmq.ZMQError:
-                # Queue is likely full
-                slogger.warning(
-                    "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
-                )
+                time_of_last_gse_packet = time.time()
+
+            time_check_frontend = time_since_last_frontend_packet > TIME_BETWEEN_FRONTEND_PACKETS_S
+            if time_check_frontend or change_in_pendant_data:
+                # send to frontend api
+                try:
+                    frontend_push_socket.send_json(
+                        pendant_state_dict,
+                        flags=zmq.NOBLOCK,
+                    )
+                except zmq.ZMQError:
+                    # Queue is likely full
+                    slogger.warning(
+                        "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                    )
+                time_of_last_frontend_packet = time.time()
             
             # No need to go full blast.
             time.sleep(0.05)
