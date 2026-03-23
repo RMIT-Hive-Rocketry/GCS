@@ -36,7 +36,6 @@ from cli.start_replay_system import (
 from cli.start_pendant_daemon import start_pendant_daemon
 
 
-
 logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message

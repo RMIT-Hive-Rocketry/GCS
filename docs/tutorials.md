@@ -9,7 +9,7 @@ To create a new service requires the creation of 2 new files one inside the cli 
 
 1. firstly locate the "cli" and "backend" folders inside the codebase.
 
-2. Create a new file in each with the naming conventions used in respective folders. 
+2. Create a new file in each with the naming conventions used in respective folders.
     > e.g. start_[service-name].py for cli and [service-name].py for backend.
 
 3. Copy inside of each the template code listed below for the respective files.
@@ -114,9 +114,9 @@ def main():
 
     # the while loop continues until the signal from the process handler tells to stop
     while not service_helper.time_to_stop()::
-        # Do Nothing But Wait 
+        # Do Nothing But Wait
         time.sleep(1)
-        
+
 
 
 
