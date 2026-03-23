@@ -34,6 +34,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 - [Development](docs/development.md)
 - [Frontend](docs/frontend.md)
 - [Glossary](docs/glossary.md)
+- [tutorial](docs/dummy_tutorial.md)
 
 <!-- ### Notes
 
