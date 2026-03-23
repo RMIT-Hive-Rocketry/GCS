@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -58,12 +59,21 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
     return -1;
   }
 
+  // For heartbeat traffic, suppress duplicate payloads sent too recently.
+  auto now = std::chrono::steady_clock::now();
+  bool is_duplicate_payload = (data == last_payload_);
+  bool within_heartbeat_window =
+      (now - last_send_time_) < middleware_timing::TCP_HEARTBEAT;
+  if (is_duplicate_payload && within_heartbeat_window) {
+    return static_cast<ssize_t>(data.size());
+  }
+
   const uint8_t* buf = data.data();
   size_t total = 0;
   while (total < data.size()) {
     std::string hex_output =
         debug::vectorToHexString(data, static_cast<ssize_t>(data.size()));
-    slogger::info("Sending data (Hex): " + hex_output);
+    slogger::debug("Sending data (Hex): " + hex_output);
     ssize_t n = ::send(sock_fd_, buf + total, data.size() - total, 0);
     if (n < 0) {
       if (errno == EINTR) continue;
@@ -73,6 +83,11 @@ ssize_t TcpInterface::write_data(const std::vector<uint8_t>& data) {
     }
     if (n == 0) break;
     total += static_cast<size_t>(n);
+  }
+
+  if (total == data.size()) {
+    last_payload_ = data;
+    last_send_time_ = now;
   }
 
   return static_cast<ssize_t>(total);
@@ -144,12 +159,19 @@ bool TcpInterface::connect_socket_locked_() {
   }
 
   slogger::warning("(TCP SIGNAL LOST)");
-
   if (::connect(sock_fd_, reinterpret_cast<sockaddr*>(&remote_addr_),
                 sizeof(remote_addr_)) < 0) {
     mark_disconnected_locked_("Failed to connect TCP interface: " +
                               std::string(std::strerror(errno)));
     return false;
+  }
+
+  timeval tv;
+  tv.tv_sec = static_cast<time_t>(middleware_timing::TCP_SEND_TIMEOUT.count());
+  tv.tv_usec = 0;
+  if (setsockopt(sock_fd_, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
+    slogger::warning("Failed to set SO_SNDTIMEO on TCP socket: " +
+                     std::string(std::strerror(errno)));
   }
 
   connection_state_ = ConnectionState::CONNECTED;
@@ -177,7 +199,7 @@ bool TcpInterface::ensure_connected_or_retry_locked_() {
   auto next_backoff_ms =
       std::min<int64_t>(retry_backoff_.count() * 2,
                         middleware_timing::MAX_TCP_RETRY_BACKOFF.count());
-  retry_backoff_ = std::chrono::milliseconds(next_backoff_ms);
+  retry_backoff_ = Millis(next_backoff_ms);
   return false;
 }
 
