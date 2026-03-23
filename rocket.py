@@ -26,8 +26,7 @@ from cli.start_replay_system import (
     SimulationType,
 )
 from cli.start_pendant_daemon import start_pendant_daemon
-
-
+from cli.start_dummy_service import start_dummy_service
 logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
@@ -437,7 +436,11 @@ def start_services(
         start_frontend_api(logger, "gcs_rocket")
         # 7. Start the frontend web server
         start_frontend_webserver(logger)
-
+        
+    #dummy service activation
+    start_dummy_service(logger)
+    
+    
 
 @click.group()
 def cli():
