@@ -60,6 +60,12 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         pendant_sub_socket.setsockopt(zmq.CONFLATE, 1) # only keep the most recent state
         pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
+        # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
+        # ^ more about Poller
+        poller = zmq.Poller()
+        poller.register(server_sub_socket, zmq.POLLIN)
+        poller.register(pendant_sub_socket, zmq.POLLIN)
+
         packet_handlers = {
             3: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
             4: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
@@ -71,8 +77,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         while not shutdown_event.is_set():
             try:
                 # poll pendant_daemon socket
-                pendant_events = await pendant_sub_socket.poll(timeout=100)
-                if pendant_events:
+                events = dict(poller.poll(timeout=100))
+                if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
                     packet = {"id": PENDANT_PACKET_ID, "data": pendant_state_dict}
@@ -81,8 +87,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     except websockets.ConnectionClosedOK:
                         pass
 
-                server_events = await server_sub_socket.poll(timeout=100)
-                if server_events:
+                if server_sub_socket in events:
                     packet_id = int.from_bytes(await server_sub_socket.recv(), "big")
                     message = await server_sub_socket.recv()
 
