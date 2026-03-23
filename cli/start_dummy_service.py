@@ -4,7 +4,7 @@ import os
 
 
 def start_dummy_service(logger: logging.Logger):
-    SERVICE_NAME = "pendant_daemon"
+    SERVICE_NAME = "DUMMY SERVICE"
     try:
 
         DAEMON_COMMAND = [
