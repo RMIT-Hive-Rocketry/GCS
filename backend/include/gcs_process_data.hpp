@@ -13,6 +13,8 @@
 #include "middleware_timing.hpp"
 #include "server_args.hpp"
 
+
+
 // Singleton?
 class PendantData {
  public:
@@ -54,9 +56,9 @@ class WebsocketData {
 };
 
 /// Thread-safe container for pendant and websocket data shared between
-/// server_listen_loop (writer) and main loop (reader). Single mutex guards
-/// all access; use the methods below instead of touching payload/lastCommand
-/// directly.
+/// server_listen_loop (gcs radio TX requests) and main loop (gcs radio RX).
+/// Single mutex guards all access
+/// Also contains the sequence data for Avionics E5 comms
 class SharedGcsState {
  public:
   SharedGcsState() = default;
@@ -68,11 +70,30 @@ class SharedGcsState {
 
   // --- Reader (main loop) ---
   void get_snapshot(PendantData& pendant_out, WebsocketData& websocket_out);
+  void set_gse_only_mode(bool mode) { gse_only_mode_ = mode; }
+  bool gse_only_mode() const { return gse_only_mode_; }
+
+  void set_manual_control_mode(bool mode) { manual_control_solenoids_ = mode; }
+  bool manual_control_mode() const { return manual_control_solenoids_; }
+
+  long get_packet_count_av() const { return packet_count_av_; }
+  long get_packet_count_gse() const { return packet_count_gse_; }
+
+  void increment_packet_count_av() { packet_count_av_++; }
+  void increment_packet_count_gse() { packet_count_gse_++; }
+
+  AvSequence av_sequence;
 
  private:
   std::mutex mtx_;
   PendantData pendant_;
   WebsocketData websocket_;
+
+  bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
+  bool manual_control_solenoids_ = false;  // Changes based on web data
+
+  long packet_count_av_ = 0;
+  long packet_count_gse_ = 0;
 };
 
 // Just listen to requests from other processes

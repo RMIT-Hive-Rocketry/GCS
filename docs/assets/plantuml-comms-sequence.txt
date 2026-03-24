@@ -1,0 +1,59 @@
+@startuml
+skin rose
+title GCS/GSE/AV Hybrid Comms Sequence (TCP & LoRa)
+skinparam sequenceMessageAlign center
+participant GSE
+participant GCS
+participant AV
+activate GCS
+activate GSE
+activate AV
+
+note over GCS, GSE: **TCP Connection (Full Duplex)** persists through all phases below
+
+par Full Duplex TCP [Continuous]
+    GSE <-> GCS: Continuous State CMD & Telemetry
+    note left: ID: 0x02 (FROM GCS) \nIDs: 0x06, 0x07 (FROM GSE)
+
+    ' Adding a hidden spacer to force vertical height if needed
+    GSE -[hidden]-> GSE
+else LoRa Sequence [State Dependent]
+
+    group Pre-Launch - Loop [every 0.2s]
+        GCS -> AV: State CMD
+        note left: ID: 0x01 \nwith continuity check CMDs
+        AV --> GCS: Ack. and Data
+        note left: Alternating ID: 0x03, 0x04 \nfor each response
+    end
+    note left: Including during fill \nNOTE: ID 0x04 will only be sent upon GPS fix \nTransistion to next stage determined by GSE control pendant indicating Ignition
+
+    group AV determining launch - Single Shot [NOT a loop]
+        GCS -> AV: State CMD w/ Broadcast flag set
+        note left: ID: 0x01
+        AV --> GCS: Ack. w/ Broadcast begin flag set
+        note left: ID: 0x03
+    end
+    note left: NOTE: If AV does not respond w/ "broadcast begin" flag set \nthen GCS shall continue to send ID 0x01 with broadcast flag \nset until AV returns with correct flags set \n\nTransition to next stage determined by GCS successful reception of ID 0x03 packet
+
+    group AV Data Transmission - Loop [for motor burn and coasting]
+        AV -> GCS: Data Packet Type #1
+        note left: ID: 0x03
+        AV -> GCS: Data Packet Type #2
+        note left: ID: 0x04
+    end
+    note left: NOTE: Transition to next stage self determined by FC - determination of apogee
+
+    group AV Data Transmission - Loop [during and post apogee]
+        AV -> GCS: Data Packet Type #1
+        note left: ID: 0x03
+        AV -> GCS: Data Packet Type #2
+        note left: ID: 0x04
+    end
+    note right: Prioritizing GPS Coords.
+
+    group AV Data Transmission - Loop [Landed/Recovery]
+        AV -> GCS: GPS Coords
+        note left: ID: 0x04
+    end
+end
+@enduml

@@ -1,7 +1,3 @@
-"""
-export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
-"""
-
 import backend.includes_python.process_logging as slogger
 
 try:
@@ -29,7 +25,7 @@ import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 import config.config as config
 import threading
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Type
 from abc import ABC, abstractmethod
 
 try:
@@ -186,6 +182,8 @@ class StateTable:
 
 class ControlDevice(ABC):
     def __init__(self):
+        # DONT instanciate a ControlDevice manually
+        # Use the get_control_device() funciton
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
         self.state_table = StateTable.get_fallback_table()
@@ -629,55 +627,245 @@ class Pygame_Device(ControlDevice):
         slogger.info("Pygame killed. Done...")
 
 
+class Emulated_Device(Pygame_Device):
+    """
+    Emulated device class, FOR TESTING ONLY
+    Based on the Pygame_Device class, even though it doesn't actually use Pygame
+    """
+
+    BUTTON_NAME_ID_MAP: Dict[str, int] = {
+        "SYS_ON": 0,
+        "ESTOP": 5,
+        "FILL_SELECTED": 6,
+        "IGNITION_SELECTED": 4,
+        "N2O_ACTIVE": 8,
+        "PURGE_ACTIVE": 3,
+        "O2_MOMENT_ACTIVE": 1,
+        "IGNITION_MOMENT_ACTIVE": 2,
+    }
+
+    BUTTON_ID_NAME_MAP: Dict[int, str] = {
+        v: k for k, v in BUTTON_NAME_ID_MAP.items()
+    }
+
+    BUTTON_SEQUENCE = [
+        [],
+        ["FILL_SELECTED"],
+        ["FILL_SELECTED", "N2O_ACTIVE"],
+        ["FILL_SELECTED"],
+        ["FILL_SELECTED", "PURGE_ACTIVE"],
+        ["FILL_SELECTED"],
+        [],
+        ["IGNITION_SELECTED"],
+        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE"],
+        ["IGNITION_SELECTED"],
+        ["IGNITION_SELECTED", "IGNITION_MOMENT_ACTIVE"],
+        ["IGNITION_SELECTED"],
+        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE", "IGNITION_MOMENT_ACTIVE"],
+        ["IGNITION_SELECTED"],
+        [],
+    ]
+
+    CONTROLLER_NAME: str = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
+    is_connected: bool = False
+
+    def __init__(self):
+        super().__init__()
+        self.buttons = {}
+
+    def _try_connect_device(self):
+        # This device never has connection issues
+        Emulated_Device.is_connected = True
+        slogger.info(
+            f"Controller initialized: {Emulated_Device.CONTROLLER_NAME}"
+        )
+
+    def _setup_device(self):
+        pygame.init()
+        self._try_connect_device()
+
+    def _update_state_table(self):
+        """Updates instance attributes"""
+        pygame.event.pump()
+
+        if Emulated_Device.is_connected:
+
+            # Loop through states and update them
+            seconds = int(time.time())
+            current_buttons = Emulated_Device.BUTTON_SEQUENCE[
+                seconds % len(Emulated_Device.BUTTON_SEQUENCE)
+            ]
+
+            for btn_name, btn_id in Emulated_Device.BUTTON_NAME_ID_MAP.items():
+                pressed = btn_name in current_buttons
+                self.buttons[btn_name] = pressed
+
+            states = {btn_name: btn for btn_name, btn in self.buttons.items()}
+
+            # Temporary fix for neutral state which isn't wired
+            states["SYS_ON"] = not states["ESTOP"]
+            states["NEUTRAL_ACTIVE"] = (
+                states["SYS_ON"]
+                and not states["N2O_ACTIVE"]
+                and not states["PURGE_ACTIVE"]
+            )
+            self.state_table = StateTable(**states)
+        else:
+            self.state_table = StateTable.get_fallback_table()
+
+    def cleanup(self):
+        """Internal cleaup code"""
+        slogger.info("Quitting pygame...")
+        pygame.quit()
+        slogger.info("Pygame killed. Done...")
+
+
+instances: Dict[str, None | ControlDevice] = {
+    "rpi_gpio_device": None,
+    "hid_device": None,
+    "pygame_device": None,
+    "emulated_device": None,
+}
+
+
 def get_control_device(key: str) -> ControlDevice:
-    key = key.lower().strip()
-    return {
+    # instead of making each control device a singleton we can add logic here to only instanciate it once
+    global instances
+
+    str_to_device: Dict[str, Type[ControlDevice]] = {
         "rpi_gpio_device": RPI_GPIO_Device,
         "hid_device": HID_Device,
         "pygame_device": Pygame_Device,
-    }.get(key, None)
+        "emulated_device": Emulated_Device,
+    }
+
+    key = key.lower().strip()
+
+    if key not in instances:
+        error_str = f"Control Device `{key}` not recognised, check that `controller` is set correctly in config.ini"
+        slogger.error(error_str)
+        raise ValueError(error_str)
+
+    if instances[key] is None:
+        instances[key] = str_to_device[key]()
+
+    return instances[key]
 
 
 def send_packet():
+    CONFIG = config.get_config()
+
+    CONTROL_TYPE = CONFIG["hardware"]["controller"]
+
     context = zmq.Context()
 
     # Wait LINGER_TIME_MS before giving up on push request
     LINGER_TIME_MS = 300
 
+    # send packets on an interval of TIME_BETWEEN_PACKETS and also when there is a change
+    TIME_BETWEEN_GSE_PACKETS_S = 0.1  # so server doesnt think we died
+    TIME_BETWEEN_FRONTEND_PACKETS_S = 1.0
+
     try:
-        push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.get_config()
-        SOCKET_PATH = os.path.abspath(
+        controller: ControlDevice = get_control_device(CONTROL_TYPE)
+
+        # path to the socket that gets forwarded to GSE in the c++ server
+        GSE_SOCKET_PATH = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
         )
-        CONTROL_TYPE = CONFIG["hardware"]["controller"]
-        controller: ControlDevice = get_control_device(CONTROL_TYPE)()
 
-        push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
-        push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
-        push_socket.connect(f"ipc://{SOCKET_PATH}")
+        # path to the socket read by frontend api
+        FRONTEND_SOCKET_PATH = os.path.abspath(
+            os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
+        )
+
+        gse_push_socket = context.socket(zmq.PUSH)
+        gse_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        gse_push_socket.setsockopt(
+            zmq.SNDHWM, 1
+        )  # Limit send buffer to 1 message
+        gse_push_socket.connect(f"ipc://{GSE_SOCKET_PATH}")
+
+        frontend_push_socket = context.socket(zmq.PUSH)
+        frontend_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        frontend_push_socket.setsockopt(
+            zmq.SNDHWM, 1
+        )  # Limit send buffer to 1 message
+        frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
+
+        time_of_last_gse_packet = 0
+        time_of_last_frontend_packet = 0
+        previous_packet = {}
+
+        # wait for other services to open
+        time.sleep(10)
 
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
-            states = controller.get_states_dict()
-            state_command = device_emulator.GCStoGSEStateCMD(**states)
-            try:
-                push_socket.send(
-                    state_command.get_payload_bytes(EXTERNAL=True),
-                    flags=zmq.NOBLOCK,
-                )
-            except zmq.ZMQError:
-                # Queue is likely full
-                slogger.warning(
-                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping"
-                )
-                time.sleep(1)
+            pendant_state_dict = controller.get_states_dict()
+            state_command = device_emulator.GCStoGSEStateCMD(
+                **pendant_state_dict
+            )
+
+            time_since_last_gse_packet = time.time() - time_of_last_gse_packet
+            time_since_last_frontend_packet = (
+                time.time() - time_of_last_frontend_packet
+            )
+
+            change_in_pendant_data = previous_packet != pendant_state_dict
+
+            previous_packet = pendant_state_dict
+
+            # NEVER SEND PACKET FROM THE EMULATED_DEVICE TO THE SERVER
+            not_emulated_device = CONTROL_TYPE != "emulated_device"
+            time_check_gse = (
+                time_since_last_gse_packet > TIME_BETWEEN_GSE_PACKETS_S
+            )
+
+            if not_emulated_device and (
+                time_check_gse or change_in_pendant_data
+            ):
+                # send to c++ server to forward to GSE
+                try:
+                    gse_push_socket.send(
+                        state_command.get_payload_bytes(EXTERNAL=True),
+                        flags=zmq.NOBLOCK,
+                    )
+                except zmq.ZMQError:
+                    # Queue is likely full
+                    slogger.warning(
+                        "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                    )
+                    time.sleep(1)
+
+                time_of_last_gse_packet = time.time()
+
+            time_check_frontend = (
+                time_since_last_frontend_packet
+                > TIME_BETWEEN_FRONTEND_PACKETS_S
+            )
+            if time_check_frontend or change_in_pendant_data:
+                # send to frontend api
+                try:
+                    frontend_push_socket.send_json(
+                        pendant_state_dict,
+                        flags=zmq.NOBLOCK,
+                    )
+                except zmq.ZMQError:
+                    # Queue is likely full
+                    slogger.warning(
+                        "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                    )
+                    time.sleep(0.25)
+                time_of_last_frontend_packet = time.time()
+
             # No need to go full blast.
             time.sleep(0.05)
     finally:
         slogger.debug("Packet sender closing socket")
-        push_socket.close()
+        gse_push_socket.close()
+        frontend_push_socket.close()
         slogger.debug("Packet sender closed socket")
         slogger.debug(f"Packet sender closing context (<{LINGER_TIME_MS}ms)")
         context.term()

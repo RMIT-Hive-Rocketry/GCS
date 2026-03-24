@@ -44,6 +44,17 @@ std::pair<std::string, uint16_t> parse_tcp_endpoint(
 
 }  // namespace
 
+// Override for when config is not needed
+std::shared_ptr<RadioInterface> create_interface(
+    const std::string& INTERFACE_NAME, const std::string& DEVICE_PATH) {
+  // If you are using UART for E5 you need the config. This is the wrong call
+  if (INTERFACE_NAME.find("UART_E5") != std::string::npos) {
+    throw std::runtime_error("UART E5 interface needs a lora config");
+  }
+  // Otherwise you can pass a blank because it is ignored
+  return create_interface(INTERFACE_NAME, DEVICE_PATH, {});
+}
+
 std::shared_ptr<RadioInterface> create_interface(
     const std::string& INTERFACE_NAME, const std::string& DEVICE_PATH,
     const LoraConfig& lora_cfg) {
