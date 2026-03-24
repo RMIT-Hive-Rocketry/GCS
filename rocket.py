@@ -28,6 +28,7 @@ from cli.start_replay_system import (
 from cli.start_pendant_daemon import start_pendant_daemon
 from cli.runtime_launch_config import RuntimeLaunchConfig
 
+
 logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
@@ -62,6 +63,7 @@ class ControllerTypes(enum.Enum):
     RPI_GPIO_DEVICE = enum.auto()
     HID_DEVICE = enum.auto()
     PYGAME_DEVICE = enum.auto()
+    EMULATED_DEVICE = enum.auto()
     NOT_IMPLIMENTED = enum.auto()
 
 
@@ -251,6 +253,8 @@ def get_controller_enum() -> ControllerTypes:
             return ControllerTypes.HID_DEVICE
         case "pygame_device":
             return ControllerTypes.PYGAME_DEVICE
+        case "emulated_device":
+            return ControllerTypes.EMULATED_DEVICE
         case _:
             raise RuntimeError(
                 "Pendant controller option not found in config.ini"
