@@ -198,6 +198,12 @@ class LoggedSubProcess:
             case "INFO":
                 self._logger_adapter.info(_format(stream_name, stripped_line))
             case "SUCCESS":
+                print("success log detected")  # Debug line to check if success logs are detected
+                print(stripped_line)  # Debug line to check the content of the success log
+                print(stream_name)  # Debug line to check the stream name of the success log
+                print(hasattr(self._logger_adapter, 'success'))  # Debug line to check the logger adapter
+                print(self._logger_adapter.__dict__)  # Debug line to check the attributes of the logger adapter
+                print(_format(stream_name, stripped_line))
                 self._logger_adapter.success(
                     _format(stream_name, stripped_line)
                 )
