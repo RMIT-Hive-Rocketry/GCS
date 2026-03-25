@@ -10,12 +10,11 @@
 // This file hosts locking mechanisms to orchestrate the packet sequence
 
 /// @brief Thread save mutex lock with timeout features for sequence diagram
-AvSequenceLock::AvSequenceLock(const std::string NAME,
-                               const std::string ANS_COLOR)
-    : LOCK_NAME(NAME), ANS_COLOR(ANS_COLOR) {
+AvSequenceLock::AvSequenceLock(WarningString warningString)
+    : warningString(warningString) {
   // Set last lock time as little as possible so timeout initially works
   // instantly
-  last_lock_time_ = std::chrono::steady_clock::time_point::min();
+  last_lock_time_ = TimePoint::min();
 }
 
 void AvSequenceLock::lock() {
@@ -24,7 +23,8 @@ void AvSequenceLock::lock() {
   last_lock_time_ = std::chrono::steady_clock::now();
 #ifdef DEBUG
   // Create a lock file for device emulator to use
-  const std::string LOCK_PATH = "/tmp/gcs_await_" + LOCK_NAME + ".lock";
+  const std::string LOCK_PATH =
+      "/tmp/gcs_await_" + warningString.name + ".lock";
   std::ofstream lock_file(LOCK_PATH);
   if (lock_file.is_open()) {
     lock_file << "server_seqeunce_lock";
@@ -51,9 +51,9 @@ bool AvSequenceLock::unlock_if_timed_out_() {
   if (std::chrono::steady_clock::now() - getLastLockTime() >
       middleware_timing::SEQUENCE_LOCK_TIMEOUT) {
     unlock();
-    slogger::warning("(NO RESPONSE: " + ANS_COLOR + "\033[1m" + LOCK_NAME +
-                     "\033[0m" + slogger::WARNING_COLOUR + ") Timeout on " +
-                     LOCK_NAME + " sequence lock");
+    slogger::warning("(NO RESPONSE: " + warningString.color + "\033[1m" +
+                     warningString.name + "\033[0m" + slogger::WARNING_COLOUR +
+                     ") Timeout on " + warningString.name + " sequence lock");
     return true;
   } else {
     return false;

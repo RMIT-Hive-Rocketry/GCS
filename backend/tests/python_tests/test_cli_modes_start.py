@@ -157,11 +157,14 @@ class CliStartup(ABC):
         r"\[STDERR\](?!.*(?:This is a development server|Running on|Press CTRL\+C to quit)).*",
         r"Traceback \(most recent call last\)",
     ]
+    # Note that these patterns must match the detailed_logging_prefix logs
+    # See config.ini
     DEFAULT_SUCCESS_PATTERNS = [
         "Starting Soteria",
         "socat: Stopping socat callbacks",  # found devices
-        r"middleware_server: \[STDOUT] Starting middleware server",
-        r"middleware_server: \[STDOUT] Interface initialised for type: TEST",
+        r"server: \[STDOUT] Starting middleware server",
+        r"server: \[STDOUT] Interface \[GSE] initialised with type: TEST*",
+        r"server: \[STDOUT] Interface  \[AV] reusing GSE interface \(same type/path\)",
         r"event viewer: \[STDOUT] Listening for messages\.\.\.",
         r"event viewer: \[STDOUT] Supersonic flight detected",
     ]
