@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from backend.includes_python.state_table import StateTable
+from backend.includes_python.devices.state_table import StateTable
 import backend.includes_python.process_logging as slogger
 
-
+# i thought of making this more abstract (PygameControlDevice etc)
+# but I dont think its a good idea because if we ever need to make changes like adding a dial etc it will be a nighmare
 
 class ControlDevice(ABC):
     def __init__(self):
