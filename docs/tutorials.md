@@ -42,6 +42,13 @@ This setup has a few key benefits, the cli layer allows for true multithreading 
 8. at the top of [rocket.py](../rocket.py) in the includes the starting script inside the cli folder needs to be included. the import name after the file name needs to exactly match the starting function in the service.
     > from cli.start_template_service import start_template_service
 
+
+##  Key Libraries
+The `includes_python` folder contains a couple of useful files that are imported in the template code below. This includes:
+
+- [process_logging.py](../backend/includes_python/process_logging.py) -  which enforces consistent logging format across all processes for correct CLI parsing. 
+- [service_helper.py](../backend/includes_python/service_helper.py) - which adds signal handlers that allow for correct shut down of the system. For example: when CTRL+C or ESC is detected. 
+
 <br><br>
 ___
 ___
@@ -101,7 +108,7 @@ def main():
     slogger.info("Template Service info Test Message")
     slogger.success("Template Service success Test Message")
     slogger.warning("Template Service warning Test Message")
-    slogger.error("Template Service  error Test Message")
+    slogger.error("Template Service error Test Message")
     slogger.critical("Template Service critical Test Message")
 
     # the while loop continues until the signal from the process handler tells to stop
