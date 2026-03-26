@@ -6,6 +6,17 @@ from typing import List, Dict
 import pygame
 import time
 
+_TA320_BUTTON_NAME_ID_MAP: Dict[str, int] = {
+    "SYS_ON": 16,  # thrust
+    # "ESTOP":                    idk
+    "FILL_SELECTED": 1,  # top trigger
+    "IGNITION_SELECTED": 0,  # bottom trigger
+    "N2O_ACTIVE": 7,  # bottom left button on right side
+    "PURGE_ACTIVE": 2,  # spherical button
+    "O2_MOMENT_ACTIVE": 6,  # top left button on right side
+    "IGNITION_MOMENT_ACTIVE": 3,  # red button
+}
+
 class Pygame_Button:
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
 
