@@ -4,7 +4,7 @@ This tutorial will help you write your first service for the GCS System!
 
 # General Idea
 
-Services in the GCS are background processes that run alongside and are started by the main `rocket.py` file. Currently some of the existing services include the C++ middleware, The frontend API/WS Server, Pendant Emulator and the Event Viewer. All services are started as a cli process which is started through another python script.
+Services in the GCS are background processes that run alongside and are started by the main `rocket.py` file. Currently some of the existing services include the C++ middleware, The frontend API/WS Server, Pendant Emulator and the Event Viewer. All services are started as a cli process which is started through another python script. 
 
 There are 3 key parts of writing a service for the GCS:
 1. Write your service in /backend
@@ -46,8 +46,8 @@ This setup has a few key benefits, the cli layer allows for true multithreading 
 ##  Key Libraries
 The `includes_python` folder contains a couple of useful files that are imported in the template code below. This includes:
 
-- [process_logging.py](../backend/includes_python/process_logging.py) -  which enforces consistent logging format across all processes for correct CLI parsing.
-- [service_helper.py](../backend/includes_python/service_helper.py) - which adds signal handlers that allow for correct shut down of the system. For example: when CTRL+C or ESC is detected.
+- [process_logging.py](../backend/includes_python/process_logging.py) -  which enforces consistent logging format across all processes for correct CLI parsing. 
+- [service_helper.py](../backend/includes_python/service_helper.py) - which adds signal handlers that allow for correct shut down of the system. For example: when CTRL+C or ESC is detected. 
 
 <br><br>
 ___
