@@ -155,10 +155,17 @@ def initialise():
     return logger
 
 
-def success(self, message, *args, **kwargs):
+
+def success(self, msg, *args, **kwargs):
+    if self.isEnabledFor(SUCCESS_LEVEL_NUM):
+        self._log(SUCCESS_LEVEL_NUM, msg, args, **kwargs)
+
+logging.Logger.success = success
+
+def adapter_success(self, message, *args, **kwargs):
     self.log(SUCCESS_LEVEL_NUM, message, *args, **kwargs)
 
-logging.LoggerAdapter.success = success
+logging.LoggerAdapter.success = adapter_success
 
 
 def set_console_log_level(level_name: str):
