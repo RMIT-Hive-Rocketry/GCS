@@ -1,117 +1,12 @@
 import backend.includes_python.process_logging as slogger
-
-try:
-    import hid
-except (ImportError, RuntimeError) as e:
-    """
-    if the hid module fails to import and you dont want to use a hid controller, then no harm so just warn in slogger
-    if you want the hid device (controller = rpi_gpio_device)
-    """
-    error_message = "This should not have run, make sure you set controller = rpi_gpio_device or pygame_device (config.ini) or check your hid install is correct"
-    slogger.error(
-        f"hid is not correctly installed: {e}. This is okay if your using rpi_gpio_device or pygame_device (check config.ini)"
-    )
-
-    class hid:
-        def Device():
-            raise NotImplementedError(error_message)
-
-
-import pygame
 import zmq
 import os
 import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.state_table import StateTable
 import config.config as config
-from typing import List, Dict, Tuple, Type
-
-try:
-    from gpiozero import Button
-except (ImportError, RuntimeError):
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    slogger.error(
-        "gpiozero not found, this library is only available on Raspberry Pi devices."
-    )
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
-    class Button:
-        def __init__(self, pin, pull_up=False):
-            self.pin = pin
-
-        @property
-        def is_pressed(self):
-            return False
-
-
-
-class RPI_GPIO_Device(ControlDevice):
-    """Parent class for GPIO devices on Raspberry Pi."""
-
-    # MAPPING FROM DB15 PINS
-    # From https://github.com/RMIT-Hive-Rocketry/GCS-2026/blob/main/docs/assets/pendant_wiring.png
-    # PIN1 -> POWER (5V)?
-    # DB_PIN_GPIO_0 -> (SYS_ACTIVE)
-    # DB_PIN_GPIO_1 -> (FILL_SELECTED)
-    # DB_PIN_GPIO_2 -> (IGNITION_SELECTED)
-    # DB_PIN_GPIO_3 -> (IGNITION_MOMENT_ACTIVE)
-    # DB_PIN_GPIO_4 -> (N2O_ACTIVE)
-    # DB_PIN_GPIO_5 -> (NEUTRAL_ACTIVE) *currently unwired*
-    # DB_PIN_GPIO_6 -> (O2_MOMENT_ACTIVE)
-    # DB_PIN_GPIO_7 -> (PURGE_ACTIVE)
-    # PIN9 -> GND
-
-    # What GPIO ports represent the logical input
-    PIN_MAP = {
-        4: "SYS_ON",
-        17: "FILL_SELECTED",
-        27: "IGNITION_SELECTED",
-        22: "IGNITION_MOMENT_ACTIVE",
-        10: "N2O_ACTIVE",
-        9: "NEUTRAL_ACTIVE",
-        11: "O2_MOMENT_ACTIVE",
-        5: "PURGE_ACTIVE",
-    }
-
-    def _setup_device(self):
-        self.buttons = {
-            pin: Button(pin, pull_up=False, bounce_time=0.05)
-            for pin in RPI_GPIO_Device.PIN_MAP
-        }
-
-    def __init__(self):
-        super().__init__()
-
-    def _update_state_table(self):
-        """Updates instance attributes and returns a dictionary of the current states."""
-        for pin, attr in RPI_GPIO_Device.PIN_MAP.items():
-            setattr(self, attr, self.buttons[pin].is_pressed)
-        states = {
-            attr: getattr(self, attr)
-            for attr in RPI_GPIO_Device.PIN_MAP.values()
-        }
-        # Temporary fix for neutral state which isn't wired
-        states["NEUTRAL_ACTIVE"] = (
-            self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
-        )
-        self.state_table = StateTable(**states)
-
-
-_TA320_BUTTON_NAME_ID_MAP: Dict[str, int] = {
-    "SYS_ON": 16,  # thrust
-    # "ESTOP":                    idk
-    "FILL_SELECTED": 1,  # top trigger
-    "IGNITION_SELECTED": 0,  # bottom trigger
-    "N2O_ACTIVE": 7,  # bottom left button on right side
-    "PURGE_ACTIVE": 2,  # spherical button
-    "O2_MOMENT_ACTIVE": 6,  # top left button on right side
-    "IGNITION_MOMENT_ACTIVE": 3,  # red button
-}
-
+from typing import Dict, Type
 
 instances: Dict[str, None | ControlDevice] = {
     "rpi_gpio_device": None,
@@ -119,7 +14,6 @@ instances: Dict[str, None | ControlDevice] = {
     "pygame_device": None,
     "emulated_device": None,
 }
-
 
 def get_control_device(key: str) -> ControlDevice:
     # instead of making each control device a singleton we can add logic here to only instanciate it once
