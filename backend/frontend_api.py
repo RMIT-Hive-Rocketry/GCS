@@ -320,5 +320,4 @@ def main():
 
 
 if __name__ == "__main__":
-    slogger.success("Starting frontend API")
     main()
