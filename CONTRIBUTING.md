@@ -51,6 +51,8 @@ This repository doesn't have a code of conduct just yet, so be nice.
 
 ## AI Policy
 
+> _This policy is adapted from [AI policy: guide and template v1.0, October 2025](https://www.industry.gov.au/publications/guidance-for-ai-adoption/ai-policy-guide-and-template)_
+
 ### Foreword
 
 While AI can be useful for menial tasks or automation, it's important to understand that it can't replace all the hard work.
