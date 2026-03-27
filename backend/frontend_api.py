@@ -136,7 +136,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
         server_sub_socket.close(linger=LINGER_TIME_MS)
-        pendant_sub_socket.cose(linger=LINGER_TIME_MS)
+        pendant_sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 
