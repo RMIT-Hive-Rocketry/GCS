@@ -4,6 +4,7 @@ import os
 import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
+from backend.includes_python.timers import RepeatingTimer
 from backend.includes_python.devices.control_device import ControlDevice
 import config.config as config
 from typing import Dict, Type
@@ -50,8 +51,8 @@ def send_packet():
     LINGER_TIME_MS = 300
 
     # send packets on an interval of TIME_BETWEEN_PACKETS and also when there is a change
-    TIME_BETWEEN_GSE_PACKETS_S = 0.1  # so server doesnt think we died
-    TIME_BETWEEN_FRONTEND_PACKETS_S = 1.0
+    gse_packet_send_timer = RepeatingTimer(0.05)
+    frontend_packet_send_timer = RepeatingTimer(0.5)
 
     try:
         controller: ControlDevice = get_control_device(CONTROL_TYPE)
@@ -80,8 +81,6 @@ def send_packet():
         )  # Limit send buffer to 1 message
         frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
 
-        time_of_last_gse_packet = 0
-        time_of_last_frontend_packet = 0
         previous_packet = {}
 
         # wait for other services to open
@@ -95,23 +94,14 @@ def send_packet():
                 **pendant_state_dict
             )
 
-            time_since_last_gse_packet = time.time() - time_of_last_gse_packet
-            time_since_last_frontend_packet = (
-                time.time() - time_of_last_frontend_packet
-            )
-
             change_in_pendant_data = previous_packet != pendant_state_dict
-
             previous_packet = pendant_state_dict
 
             # NEVER SEND PACKET FROM THE EMULATED_DEVICE TO THE SERVER
             not_emulated_device = CONTROL_TYPE != "emulated_device"
-            time_check_gse = (
-                time_since_last_gse_packet > TIME_BETWEEN_GSE_PACKETS_S
-            )
 
             if not_emulated_device and (
-                time_check_gse or change_in_pendant_data
+                gse_packet_send_timer.time_has_passed() or change_in_pendant_data
             ):
                 # send to c++ server to forward to GSE
                 try:
@@ -126,13 +116,7 @@ def send_packet():
                     )
                     time.sleep(1)
 
-                time_of_last_gse_packet = time.time()
-
-            time_check_frontend = (
-                time_since_last_frontend_packet
-                > TIME_BETWEEN_FRONTEND_PACKETS_S
-            )
-            if time_check_frontend or change_in_pendant_data:
+            if frontend_packet_send_timer.time_has_passed() or change_in_pendant_data:
                 # send to frontend api
                 try:
                     frontend_push_socket.send_json(
@@ -145,7 +129,6 @@ def send_packet():
                         "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
                     )
                     time.sleep(0.25)
-                time_of_last_frontend_packet = time.time()
 
             # No need to go full blast.
             time.sleep(0.05)
