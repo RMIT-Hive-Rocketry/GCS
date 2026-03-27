@@ -22,8 +22,7 @@ class ControlDeviceManager:
 
     def get_control_device(self) -> ControlDevice:
         if self.instance is not None:
-            slogger.critical("get_control_device called when instance is not none")
-            raise RuntimeError("get_control_device called when instance is not none")
+            return self.instance
 
         config_dict = config.get_config()
         control_type = config_dict["hardware"]["controller"]
@@ -32,6 +31,10 @@ class ControlDeviceManager:
             device_reference: Type[ControlDevice] = self.managed_devices[control_type]()
             self.instance = device_reference()
             return self.instance
+        else:
+            error_msg = f"Control device `{control_type}` not found"
+            slogger.critical(error_msg)
+            raise RuntimeError(error_msg)
 
 if __name__ == "__main__":
     slogger.critical("How tf did this even manage to run")
