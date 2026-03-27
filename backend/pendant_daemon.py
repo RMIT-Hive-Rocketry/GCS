@@ -5,68 +5,72 @@ import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 from backend.includes_python.timers import RepeatingTimer
+from backend.includes_python.devices.control_device_manager import ControlDeviceManager
 from backend.includes_python.devices.control_device import ControlDevice
+
 import config.config as config
 from typing import Dict, Type
 
-instances: Dict[str, None | ControlDevice] = {
-    "rpi_gpio_device": None,
-    "hid_device": None,
-    "pygame_device": None,
-    "emulated_device": None,
-}
+# Wait LINGER_TIME_MS before giving up on push request
+LINGER_TIME_MS = 300
 
-def get_control_device(key: str) -> ControlDevice:
-    # instead of making each control device a singleton we can add logic here to only instanciate it once
-    global instances
+# path to the socket that gets forwarded to GSE in the c++ server
+GSE_SOCKET_PATH = os.path.abspath(
+    os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
+)
 
-    str_to_device: Dict[str, Type[ControlDevice]] = {
-        "rpi_gpio_device": RPI_GPIO_Device,
-        "hid_device": HID_Device,
-        "pygame_device": Pygame_Device,
-        "emulated_device": Emulated_Device,
-    }
+# path to the socket read by frontend api
+FRONTEND_SOCKET_PATH = os.path.abspath(
+    os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
+)
 
-    key = key.lower().strip()
-
-    if key not in instances:
-        error_str = f"Control Device `{key}` not recognised, check that `controller` is set correctly in config.ini"
-        slogger.error(error_str)
-        raise ValueError(error_str)
-
-    if instances[key] is None:
-        instances[key] = str_to_device[key]()
-
-    return instances[key]
-
+# "rpi_gpio_device": None,
+# "hid_device": None,
+# "pygame_device": None,
+# "emulated_device": None,
 
 def send_packet():
-    CONFIG = config.get_config()
-
-    CONTROL_TYPE = CONFIG["hardware"]["controller"]
-
     context = zmq.Context()
-
-    # Wait LINGER_TIME_MS before giving up on push request
-    LINGER_TIME_MS = 300
 
     # send packets on an interval of TIME_BETWEEN_PACKETS and also when there is a change
     gse_packet_send_timer = RepeatingTimer(0.05)
     frontend_packet_send_timer = RepeatingTimer(0.5)
 
+    # get control device
+    manager = ControlDeviceManager()
+
+    #TODO: make these match pep-8 CapWords naming convention instead of Snake_Case
+    
+    def rpi_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+        return RPI_GPIO_Device
+
+    def hid_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.hid_device import HID_Device
+        return HID_Device
+
+    def pygame_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.pygame_device import Pygame_Device
+        return Pygame_Device
+
+    manager.add_managed_device(
+        name = "rpi_gpio_device",
+        import_func = rpi_import
+    )
+
+    manager.add_managed_device(
+        name = "hid_device",
+        import_func = hid_import
+    )
+
+    manager.add_managed_device(
+        name = "pygame_device",
+        import_func = pygame_import
+    )
+
+    controller = manager.get_control_device()
+
     try:
-        controller: ControlDevice = get_control_device(CONTROL_TYPE)
-
-        # path to the socket that gets forwarded to GSE in the c++ server
-        GSE_SOCKET_PATH = os.path.abspath(
-            os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
-        )
-
-        # path to the socket read by frontend api
-        FRONTEND_SOCKET_PATH = os.path.abspath(
-            os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
-        )
-
         gse_push_socket = context.socket(zmq.PUSH)
         gse_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         gse_push_socket.setsockopt(
@@ -98,11 +102,7 @@ def send_packet():
             previous_packet = pendant_state_dict
 
             # NEVER SEND PACKET FROM THE EMULATED_DEVICE TO THE SERVER
-            not_emulated_device = CONTROL_TYPE != "emulated_device"
-
-            if not_emulated_device and (
-                gse_packet_send_timer.time_has_passed() or change_in_pendant_data
-            ):
+            if gse_packet_send_timer.time_has_passed() or change_in_pendant_data:
                 # send to c++ server to forward to GSE
                 try:
                     gse_push_socket.send(
