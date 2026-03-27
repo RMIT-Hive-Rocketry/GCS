@@ -9,7 +9,7 @@ from backend.includes_python.devices.control_device_manager import ControlDevice
 from backend.includes_python.devices.control_device import ControlDevice
 
 import config.config as config
-from typing import Dict, Type
+from typing import Type
 
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
@@ -29,14 +29,7 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
 # "pygame_device": None,
 # "emulated_device": None,
 
-def send_packet():
-    context = zmq.Context()
-
-    # send packets on an interval of TIME_BETWEEN_PACKETS and also when there is a change
-    gse_packet_send_timer = RepeatingTimer(0.05)
-    frontend_packet_send_timer = RepeatingTimer(0.5)
-
-    # get control device
+def get_control_device():
     manager = ControlDeviceManager()
 
     #TODO: make these match pep-8 CapWords naming convention instead of Snake_Case
@@ -68,7 +61,17 @@ def send_packet():
         import_func = pygame_import
     )
 
-    controller = manager.get_control_device()
+    return manager.get_control_device()
+
+def send_packet():
+    context = zmq.Context()
+
+    gse_packet_send_timer = RepeatingTimer(0.05)
+    frontend_packet_send_timer = RepeatingTimer(0.5)
+    gse_complain_timer = RepeatingTimer(5)
+    frontend_complain_timer = RepeatingTimer(5)
+
+    controller = get_control_device()
 
     try:
         gse_push_socket = context.socket(zmq.PUSH)
@@ -86,9 +89,6 @@ def send_packet():
         frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         previous_packet = {}
-
-        # wait for other services to open
-        time.sleep(10)
 
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
@@ -111,10 +111,10 @@ def send_packet():
                     )
                 except zmq.ZMQError:
                     # Queue is likely full
-                    slogger.warning(
-                        "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
-                    )
-                    time.sleep(1)
+                    if gse_complain_timer.time_has_passed():
+                        slogger.warning(
+                            "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                        )
 
             if frontend_packet_send_timer.time_has_passed() or change_in_pendant_data:
                 # send to frontend api
@@ -125,10 +125,10 @@ def send_packet():
                     )
                 except zmq.ZMQError:
                     # Queue is likely full
-                    slogger.warning(
-                        "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
-                    )
-                    time.sleep(0.25)
+                    if frontend_complain_timer.time_has_passed():
+                        slogger.warning(
+                            "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                        )
 
             # No need to go full blast.
             time.sleep(0.05)
