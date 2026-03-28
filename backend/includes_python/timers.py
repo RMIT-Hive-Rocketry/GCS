@@ -1,10 +1,12 @@
 import time
 
+
 class RepeatingTimer:
     """
     represents a timer which repeats every time_length_s
     will drift over time, meaning it will wait time_length_s after the previous function call that returned true
     """
+
     time_of_last_true: float
     time_length_s: float
 
@@ -22,4 +24,3 @@ class RepeatingTimer:
             self.time_of_last_true = current_time
             return True
         return False
-

@@ -7,11 +7,11 @@ It also has special things such as the state table and control device manager
 ## Control Device Manager
 The ControlDeviceManager manages control devices, where a control device is a class which either takes input from a physical device or emulates input and stores a state table (mentioned later).
 
-it only ever stores a single instance of any control device. 
+it only ever stores a single instance of any control device.
 
 get_control_device() manages all config stuff so you dont have to worry
 
-to use it all you do is: 
+to use it all you do is:
 1) instantiate the ControlDeviceManager
 2) make a function which imports your device class at runtime and returns it
 3) register the device with its name and function you made

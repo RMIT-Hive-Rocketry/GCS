@@ -11,7 +11,9 @@ import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 from backend.includes_python.timers import RepeatingTimer
-from backend.includes_python.devices.control_device_manager import ControlDeviceManager
+from backend.includes_python.devices.control_device_manager import (
+    ControlDeviceManager,
+)
 from backend.includes_python.devices.control_device import ControlDevice
 
 import config.config as config
@@ -25,16 +27,17 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
     os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
 )
 
+
 def get_control_device():
     # fmt: off
     manager = ControlDeviceManager()
-    
+
     def hybrid_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import HybridPygamePendant
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
-    
+
     def rpi_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
@@ -44,19 +47,19 @@ def get_control_device():
     def f710_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
-    
+
     manager.add_managed_device("f710", f710_import)
-    
+
     def emulated_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.emulated_device import Emulated_Device
         return Emulated_Device
-    
+
     manager.add_managed_device("emulated_device", emulated_import)
 
     def hid_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.hid_device import HID_Device
         return HID_Device
-    
+
     manager.add_managed_device("hid_device", hid_import)
 
     # only really used by me (Xavier)
@@ -68,6 +71,7 @@ def get_control_device():
 
     return manager.get_control_device()
     # fmt: on
+
 
 def send_packet():
     context = zmq.Context()
@@ -95,7 +99,10 @@ def send_packet():
             change_in_pendant_data = previous_packet != pendant_state_dict
             previous_packet = pendant_state_dict
 
-            if frontend_packet_send_timer.time_has_passed() or change_in_pendant_data:
+            if (
+                frontend_packet_send_timer.time_has_passed()
+                or change_in_pendant_data
+            ):
                 # send to frontend api
                 try:
                     frontend_push_socket.send_json(

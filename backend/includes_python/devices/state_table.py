@@ -1,5 +1,6 @@
 import backend.includes_python.process_logging as slogger
 
+
 class StateTable:
     """
     Stores the states (argument) for the GSE to GCS packet. bonza cunt

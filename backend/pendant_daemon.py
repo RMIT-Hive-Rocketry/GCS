@@ -10,7 +10,9 @@ import time
 import backend.device_emulator as device_emulator
 import backend.includes_python.service_helper as service_helper
 from backend.includes_python.timers import RepeatingTimer
-from backend.includes_python.devices.control_device_manager import ControlDeviceManager
+from backend.includes_python.devices.control_device_manager import (
+    ControlDeviceManager,
+)
 from backend.includes_python.devices.control_device import ControlDevice
 
 import config.config as config
@@ -29,6 +31,7 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
     os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
 )
 
+
 def get_control_device():
     # fmt: off
     manager = ControlDeviceManager()
@@ -38,7 +41,7 @@ def get_control_device():
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
-    
+
     def rpi_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
@@ -48,11 +51,12 @@ def get_control_device():
     def f710_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
-    
+
     manager.add_managed_device("f710", f710_import)
 
     return manager.get_control_device()
     # fmt: on
+
 
 def send_packet():
     context = zmq.Context()
@@ -93,7 +97,10 @@ def send_packet():
             previous_packet = pendant_state_dict
 
             # NEVER SEND PACKET FROM THE EMULATED_DEVICE TO THE SERVER
-            if gse_packet_send_timer.time_has_passed() or change_in_pendant_data:
+            if (
+                gse_packet_send_timer.time_has_passed()
+                or change_in_pendant_data
+            ):
                 # send to c++ server to forward to GSE
                 try:
                     gse_push_socket.send(
@@ -107,7 +114,10 @@ def send_packet():
                             "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
                         )
 
-            if frontend_packet_send_timer.time_has_passed() or change_in_pendant_data:
+            if (
+                frontend_packet_send_timer.time_has_passed()
+                or change_in_pendant_data
+            ):
                 # send to frontend api
                 try:
                     frontend_push_socket.send_json(
