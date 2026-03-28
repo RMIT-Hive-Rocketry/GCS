@@ -1,3 +1,8 @@
+"""
+This file sends packets to GSE and Frontend api
+It should only have devices controlled by a human
+"""
+
 import backend.includes_python.process_logging as slogger
 import zmq
 import os

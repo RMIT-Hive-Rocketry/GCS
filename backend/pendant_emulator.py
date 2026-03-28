@@ -1,3 +1,9 @@
+"""
+This file sends packets to Frontend api
+Its safe to have any type of device, automatic or not here
+"""
+
+
 import backend.includes_python.process_logging as slogger
 import zmq
 import os
