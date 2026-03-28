@@ -1,5 +1,5 @@
 import backend.includes_python.process_logging as slogger
-
+from typing import Self, Dict
 
 class StateTable:
     """
@@ -80,7 +80,7 @@ class StateTable:
         self.IGNITION_MOMENT_ACTIVE = IGNITION_MOMENT_ACTIVE
         self.ESTOP = ESTOP
 
-    def get_states_dict(self) -> dict:
+    def get_states_dict(self) -> Dict[str, bool]:
         """returns argument dictionary for use in GCS to GSE packet"""
         # You should also check these states electronically where applicable
         # fmt: off
@@ -121,6 +121,6 @@ class StateTable:
 
         return states
 
-    def get_fallback_table() -> dict:
+    def get_fallback_table() -> Self:
         """Return an instance of StateTable which is safe"""
         return StateTable(**StateTable.FALLBACK_DICT)
