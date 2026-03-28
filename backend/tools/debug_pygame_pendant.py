@@ -1,4 +1,4 @@
-import backend.pendant_daemon as pendant_daemon
+from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick
 import backend.includes_python.service_helper as service_helper
 
 import faulthandler
@@ -10,7 +10,7 @@ faulthandler.register(signal.SIGUSR1, all_threads=True)
 
 
 def main():
-    controller = pendant_daemon.Pygame_Device()
+    controller = ThrustmasterAirbusFlightStick()
     last_state = None
     updates = 0
     while not service_helper.time_to_stop():
