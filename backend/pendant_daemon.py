@@ -33,18 +33,27 @@ def get_control_device():
     manager = ControlDeviceManager()
 
     #TODO: make these match pep-8 CapWords naming convention instead of Snake_Case
-    
+    # pendant_daemon options: f710, rpi_gpio_device, hybrid_device, hid_device
+    def f710_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
+        return LogitechGamepadF710
+
     def rpi_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
 
+    def hybrid_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import HybridPygamePendant
+        return HybridPygamePendant
+
     def hid_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.hid_device import HID_Device
         return HID_Device
-
-    def pygame_import() -> Type[ControlDevice]:
-        from backend.includes_python.devices.pygame_device import Pygame_Device
-        return Pygame_Device
+    
+    manager.add_managed_device(
+        name = "f710",
+        import_func = f710_import
+    )
 
     manager.add_managed_device(
         name = "rpi_gpio_device",
@@ -52,13 +61,13 @@ def get_control_device():
     )
 
     manager.add_managed_device(
-        name = "hid_device",
-        import_func = hid_import
+        name = "hybrid_device",
+        import_func = hybrid_import
     )
 
     manager.add_managed_device(
-        name = "pygame_device",
-        import_func = pygame_import
+        name = "hid_device",
+        import_func = hid_import
     )
 
     return manager.get_control_device()
