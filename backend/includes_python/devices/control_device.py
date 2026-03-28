@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from backend.includes_python.devices.state_table import StateTable
 import backend.includes_python.process_logging as slogger
 
+
 class ControlDevice(ABC):
     def __init__(self):
         # DONT instanciate a ControlDevice manually

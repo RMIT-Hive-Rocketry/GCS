@@ -1,4 +1,6 @@
-from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick
+from backend.includes_python.devices.pygame_devices import (
+    ThrustmasterAirbusFlightStick,
+)
 import backend.includes_python.service_helper as service_helper
 
 import faulthandler

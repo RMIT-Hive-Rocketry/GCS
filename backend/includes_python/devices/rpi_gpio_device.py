@@ -21,6 +21,7 @@ except (ImportError, RuntimeError):
         def is_pressed(self):
             return False
 
+
 class RPI_GPIO_Device(ControlDevice):
     """Parent class for GPIO devices on Raspberry Pi."""
 

@@ -9,6 +9,7 @@ from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
 import os
 
+
 class Pygame_Button:
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
 
@@ -49,6 +50,7 @@ class Pygame_Device(ControlDevice):
     ABC for devices that use pygame
     If your extending it, you must define BUTTON_NAME_ID_MAP in the child
     """
+
     # https://stackoverflow.com/questions/5960337/how-to-create-abstract-properties-in-python-abstract-classes
     @property
     @abstractmethod
@@ -63,9 +65,7 @@ class Pygame_Device(ControlDevice):
     # dont recompute every time
     @cached_property
     def BUTTON_ID_NAME_MAP(self) -> Dict[int, str]:
-        return {
-            v: k for k, v in self.BUTTON_NAME_ID_MAP.items()
-        }
+        return {v: k for k, v in self.BUTTON_NAME_ID_MAP.items()}
 
     buttons: Dict[str, Pygame_Button]
 
@@ -82,12 +82,10 @@ class Pygame_Device(ControlDevice):
 
         self.complain_timer = RepeatingTimer(10)
 
-
         super().__init__()
         self.buttons = {}
         for but_name, _ in self.BUTTON_NAME_ID_MAP.items():
             self.buttons[but_name] = Pygame_Button()
-        
 
     def _try_connect_device(self):
         should_complain = self.complain_timer.time_has_passed()
@@ -136,7 +134,7 @@ class Pygame_Device(ControlDevice):
 
     def _setup_device(self):
         # https://stackoverflow.com/questions/32900155/pygame-headless-setup
-        os.environ['SDL_VIDEODRIVER'] = 'dummy'
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.display.init()
         pygame.joystick.init()
         self._try_connect_device()
@@ -185,7 +183,7 @@ class Pygame_Device(ControlDevice):
             )
 
             # TODO: come up with some logic if estop is pressed
-            # do we want a toggle? 
+            # do we want a toggle?
             # do we want it to just send fallback table?
             # etc
 

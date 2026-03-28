@@ -44,6 +44,5 @@ def get_config(file_path=get_default_config_path()) -> Dict[str, str]:
     config.read(file_path)
 
     # TODO add range, exisitance and type checks here. Throw errors if not valid.
-    
 
     return config
