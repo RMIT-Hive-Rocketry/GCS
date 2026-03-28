@@ -1,21 +1,13 @@
 from backend.includes_python.devices.state_table import StateTable
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
-
 from typing import List, Dict
 import pygame
 import time
-
-_TA320_BUTTON_NAME_ID_MAP: Dict[str, int] = {
-    "SYS_ON": 16,  # thrust
-    # "ESTOP":                    idk
-    "FILL_SELECTED": 1,  # top trigger
-    "IGNITION_SELECTED": 0,  # bottom trigger
-    "N2O_ACTIVE": 7,  # bottom left button on right side
-    "PURGE_ACTIVE": 2,  # spherical button
-    "O2_MOMENT_ACTIVE": 6,  # top left button on right side
-    "IGNITION_MOMENT_ACTIVE": 3,  # red button
-}
+from abc import abstractmethod
+from functools import cached_property
+from backend.includes_python.timers import RepeatingTimer
+import os
 
 class Pygame_Button:
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
@@ -54,52 +46,65 @@ class Pygame_Button:
 
 class Pygame_Device(ControlDevice):
     """
-    Parent class for Pygame devices on Raspberry Pi.
-    Handles all pygame setup and shutdown
+    ABC for devices that use pygame
+    If your extending it, you must define BUTTON_NAME_ID_MAP in the child
     """
+    # https://stackoverflow.com/questions/5960337/how-to-create-abstract-properties-in-python-abstract-classes
+    @property
+    @abstractmethod
+    def BUTTON_NAME_ID_MAP(self) -> Dict[str, int]:
+        pass
 
-    BUTTON_NAME_ID_MAP: Dict[str, int] = {
-        "SYS_ON": 0,
-        "ESTOP": 5,
-        "FILL_SELECTED": 6,
-        "IGNITION_SELECTED": 4,
-        "N2O_ACTIVE": 8,
-        "PURGE_ACTIVE": 3,
-        "O2_MOMENT_ACTIVE": 1,
-        "IGNITION_MOMENT_ACTIVE": 2,
-    }
+    @property
+    @abstractmethod
+    def CONTROLLER_NAME(self) -> str:
+        pass
 
-    BUTTON_ID_NAME_MAP: Dict[int, str] = {
-        v: k for k, v in BUTTON_NAME_ID_MAP.items()
-    }
+    # dont recompute every time
+    @cached_property
+    def BUTTON_ID_NAME_MAP(self) -> Dict[int, str]:
+        return {
+            v: k for k, v in self.BUTTON_NAME_ID_MAP.items()
+        }
 
     buttons: Dict[str, Pygame_Button]
 
-    CONTROLLER_NAME: str = "DragonRise Inc. Generic USB Joystick"
+    joystick: pygame.joystick.JoystickType | None
+    joystick_id: int | None
+    is_connected: bool
 
-    joystick: pygame.joystick.JoystickType | None = None
-    joystick_id: int
-    is_connected: bool = False
+    complain_timer: RepeatingTimer
 
     def __init__(self):
+        self.joystick = None
+        self.joystick_id = None
+        self.is_connected = False
+
+        self.complain_timer = RepeatingTimer(10)
+
+
         super().__init__()
         self.buttons = {}
-        for but_name, _ in Pygame_Device.BUTTON_NAME_ID_MAP.items():
+        for but_name, _ in self.BUTTON_NAME_ID_MAP.items():
             self.buttons[but_name] = Pygame_Button()
+        
 
     def _try_connect_device(self):
+        should_complain = self.complain_timer.time_has_passed()
+
         # Attempt controller connection
         if pygame.joystick.get_count() == 0:
-            # slogger.warning("No Controllers Connected")
+            if should_complain:
+                slogger.warning("No Controllers Connected")
             return
 
         # Don't re-attempt connection if device is already connected
-        if Pygame_Device.is_connected:
+        if self.is_connected:
             return
 
         # this should only be called when these are junk (controller disconnected, startup etc)
-        # Pygame_Device.is_connected = False
-        # Pygame_Device.joystick = None
+        # self.is_connected = False
+        # self.joystick = None
         found_names = ""
 
         for i in range(pygame.joystick.get_count()):
@@ -107,38 +112,40 @@ class Pygame_Device(ControlDevice):
             jstk.init()
             found_names += jstk.get_name()
             found_names += ", "
-            if jstk.get_name() == Pygame_Device.CONTROLLER_NAME:
-                Pygame_Device.is_connected = True
-                Pygame_Device.joystick = jstk
-                Pygame_Device.joystick_id = jstk.get_instance_id()
+            if jstk.get_name() == self.CONTROLLER_NAME:
+                self.is_connected = True
+                self.joystick = jstk
+                self.joystick_id = jstk.get_instance_id()
 
                 slogger.info(
-                    f"Controller initialized: {Pygame_Device.joystick.get_name()}"
+                    f"Controller initialized: {self.joystick.get_name()}"
                 )
                 break
 
-        if not Pygame_Device.is_connected:
-            # slogger.warning(
-            #     "Did not find controller '"
-            #     + Pygame_Device.CONTROLLER_NAME
-            #     + "'"
-            #     + " found controllers '"
-            #     + found_names
-            #     + "'"
-            # )
+        if not self.is_connected:
+            if should_complain:
+                slogger.warning(
+                    "Did not find controller '"
+                    + self.CONTROLLER_NAME
+                    + "'"
+                    + " found controllers '"
+                    + found_names
+                    + "'"
+                )
             return
 
     def _setup_device(self):
-        pygame.init()
-        # pygame.mixer.quit() # https: // stackoverflow.com/a/50552161/14141223
+        # https://stackoverflow.com/questions/32900155/pygame-headless-setup
+        os.environ['SDL_VIDEODRIVER'] = 'dummy'
+        pygame.display.init()
         pygame.joystick.init()
         self._try_connect_device()
 
     def _update_state_table(self):
         """Updates instance attributes"""
-        pygame.event.pump()  # seg fault on mac if i dont do this
+        pygame.event.pump()
 
-        if not Pygame_Device.is_connected:
+        if not self.is_connected:
             self._try_connect_device()
 
         # check for disconection
@@ -146,18 +153,18 @@ class Pygame_Device(ControlDevice):
         for event in events:
             if (
                 event.type == pygame.JOYDEVICEREMOVED
-                and event.instance_id == Pygame_Device.joystick_id
+                and event.instance_id == self.joystick_id
             ):
-                Pygame_Device.joystick = None
-                Pygame_Device.is_connected = False
-                Pygame_Device.joystick_id = 0
+                self.joystick = None
+                self.is_connected = False
+                self.joystick_id = 0
                 slogger.error("Pendnat Disconnected")
 
-        if Pygame_Device.is_connected and Pygame_Device.joystick is not None:
+        if self.is_connected and self.joystick is not None:
             # polling events on mac gave me segfaults
-            for btn_name, btn_id in Pygame_Device.BUTTON_NAME_ID_MAP.items():
+            for btn_name, btn_id in self.BUTTON_NAME_ID_MAP.items():
                 try:
-                    pressed = bool(Pygame_Device.joystick.get_button(btn_id))
+                    pressed = bool(self.joystick.get_button(btn_id))
                 except Exception:
                     # Don't automatically disconnect device when an unexpected button is pressed
                     # Since the joystick sends noisy/useless data, it causes it to reconnect endlessly
