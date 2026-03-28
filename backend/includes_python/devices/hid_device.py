@@ -146,8 +146,20 @@ class HID_Device(ControlDevice):
     def __init__(self):
         super().__init__()
         self.buttons = {}
-        slogger.warning(
+        slogger.critical(
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        )
+        slogger.critical(
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        )
+        slogger.critical(
             "HID_Device is not tested, dont use it untill lab testing has been done"
+        )
+        slogger.critical(
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        )
+        slogger.critical(
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
         )
 
     def _update_state_table(self):

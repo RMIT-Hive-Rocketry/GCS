@@ -183,6 +183,12 @@ class Pygame_Device(ControlDevice):
                 and not states["N2O_ACTIVE"]
                 and not states["PURGE_ACTIVE"]
             )
+
+            # TODO: come up with some logic if estop is pressed
+            # do we want a toggle? 
+            # do we want it to just send fallback table?
+            # etc
+
             self.state_table = StateTable(**states)
         else:
             self.state_table = StateTable.get_fallback_table()
