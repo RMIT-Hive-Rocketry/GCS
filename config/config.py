@@ -44,17 +44,6 @@ def get_config(file_path=get_default_config_path()) -> Dict[str, str]:
     config.read(file_path)
 
     # TODO add range, exisitance and type checks here. Throw errors if not valid.
-
-    VALID_CONTROLLERS = [
-        "f710",
-        "rpi_gpio_device",
-        "pygame_device",
-        "emulated_device",
-    ]
-
-    if config["hardware"]["controller"] not in VALID_CONTROLLERS:
-        raise ValueError(
-            f"Controller value: {config['hardware']['controller']} is invalid"
-        )
+    
 
     return config
