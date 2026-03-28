@@ -25,36 +25,48 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
 )
 
 def get_control_device():
+    # fmt: off
     manager = ControlDeviceManager()
+    
+    def hybrid_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import HybridPygamePendant
+        return HybridPygamePendant
+
+    manager.add_managed_device("hybrid_device", hybrid_import)
+    
+    def rpi_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+        return RPI_GPIO_Device
+
+    manager.add_managed_device("rpi_gpio_device",rpi_import)
 
     def f710_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
-
-    def thrustmaster_import() -> Type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick
-        return ThrustmasterAirbusFlightStick
+    
+    manager.add_managed_device("f710", f710_import)
     
     def emulated_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.emulated_device import Emulated_Device
         return Emulated_Device
+    
+    manager.add_managed_device("emulated_device", emulated_import)
 
-    manager.add_managed_device(
-        name = "f710",
-        import_func = f710_import
-    )
+    def hid_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.hid_device import HID_Device
+        return HID_Device
+    
+    manager.add_managed_device("hid_device", hid_import)
 
-    manager.add_managed_device(
-        name = "thrustmaster",
-        import_func = thrustmaster_import
-    )
+    # only really used by me (Xavier)
+    def thrustmaster_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick
+        return ThrustmasterAirbusFlightStick
 
-    manager.add_managed_device(
-        name = "emulated_device",
-        import_func = emulated_import
-    )
+    manager.add_managed_device("thrustmaster", thrustmaster_import)
 
     return manager.get_control_device()
+    # fmt: on
 
 def send_packet():
     context = zmq.Context()

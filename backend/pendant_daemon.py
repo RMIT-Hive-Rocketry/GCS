@@ -24,53 +24,30 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
     os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
 )
 
-# "rpi_gpio_device": None,
-# "hid_device": None,
-# "pygame_device": None,
-# "emulated_device": None,
-
 def get_control_device():
+    # fmt: off
     manager = ControlDeviceManager()
-
-    #TODO: make these match pep-8 CapWords naming convention instead of Snake_Case
-    # pendant_daemon options: f710, rpi_gpio_device, hybrid_device, hid_device
-    def f710_import() -> Type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
-        return LogitechGamepadF710
-
-    def rpi_import() -> Type[ControlDevice]:
-        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
-        return RPI_GPIO_Device
 
     def hybrid_import() -> Type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import HybridPygamePendant
         return HybridPygamePendant
 
-    def hid_import() -> Type[ControlDevice]:
-        from backend.includes_python.devices.hid_device import HID_Device
-        return HID_Device
+    manager.add_managed_device("hybrid_device", hybrid_import)
     
-    manager.add_managed_device(
-        name = "f710",
-        import_func = f710_import
-    )
+    def rpi_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+        return RPI_GPIO_Device
 
-    manager.add_managed_device(
-        name = "rpi_gpio_device",
-        import_func = rpi_import
-    )
+    manager.add_managed_device("rpi_gpio_device",rpi_import)
 
-    manager.add_managed_device(
-        name = "hybrid_device",
-        import_func = hybrid_import
-    )
-
-    manager.add_managed_device(
-        name = "hid_device",
-        import_func = hid_import
-    )
+    def f710_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
+        return LogitechGamepadF710
+    
+    manager.add_managed_device("f710", f710_import)
 
     return manager.get_control_device()
+    # fmt: on
 
 def send_packet():
     context = zmq.Context()
