@@ -20,11 +20,6 @@ from typing import Type
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
 
-# path to the socket that gets forwarded to GSE in the c++ server
-GSE_SOCKET_PATH = os.path.abspath(
-    os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
-)
-
 # path to the socket read by frontend api
 FRONTEND_SOCKET_PATH = os.path.abspath(
     os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
