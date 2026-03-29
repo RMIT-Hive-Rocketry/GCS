@@ -11,7 +11,7 @@ const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
-const LINE_COLOURS = [
+const LINE_COLOURS_DEFAULT = [
     "var(--color-red-500)",
     "var(--color-green-500)",
     "var(--color-blue-500)",
@@ -22,14 +22,12 @@ const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
     ylabel: "Acceleration (g)",
-    numLines: 3,
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AV_GYRO = {
     selector: "#graph-av-gyro",
     ylabel: "Rotation Rate (°/s)",
-    numLines: 3,
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
@@ -38,7 +36,7 @@ const GRAPH_AV_VELOCITY = {
     limits: {
         yBottomMax: 0,
     },
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
@@ -47,7 +45,7 @@ const GRAPH_POS_ALT = {
     limits: {
         yBottomMax: 0,
     },
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_TRANSDUCERS = {
     selector: "#graph-aux-transducers",
@@ -56,7 +54,7 @@ const GRAPH_AUX_TRANSDUCERS = {
     limits: {
         yBottomMax: 0,
     },
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
@@ -65,7 +63,7 @@ const GRAPH_AUX_THERMOCOUPLES = {
     limits: {
         yBottomMax: 0,
     },
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_VENTTEMP = {
     selector: "#graph-aux-venttemp",
@@ -74,13 +72,12 @@ const GRAPH_AUX_VENTTEMP = {
     limits: {
         yBottomMax: 0,
     },
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_GASBOTTLES = {
     selector: "#graph-aux-gasbottles",
     ylabel: "Mass (kg)",
-    numLines: 2,
-    data: [],
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
@@ -171,8 +168,8 @@ function graphCreateLine(chart) {
 
     // Lines array to hold multiple line data sets
     chart.lines = [];
-    for (let i = 0; i < chart.numLines; i++) {
-        chart.lines.push({ data: [], color: LINE_COLOURS[i] });
+    for (let i = 0; i < numLines; i++) {
+        chart.lines.push({ data: [], color: chart.colours[i] });
     }
 
     // ResizeObserver (for dynamic graph resizing)
@@ -366,27 +363,15 @@ function graphRender(chart) {
                                 .append("path")
                                 .attr("class", "line-dot")
                                 .attr("d", symbolCircle)
-                                .attr(
-                                    "transform",
-                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`,
-                                )
-                                .attr(
-                                    "fill",
-                                    lineData.color || LINE_COLOURS[index],
-                                );
+                                .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
+                                .attr("fill", lineData.color || chart.colours[index]);
                         } else if (!d.next || !d.prev) {
                             chart.g
                                 .append("path")
                                 .attr("class", "line-dot")
                                 .attr("d", symbolCircle) // Make cross?
-                                .attr(
-                                    "transform",
-                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`,
-                                )
-                                .attr(
-                                    "fill",
-                                    lineData.color || LINE_COLOURS[index],
-                                );
+                                .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
+                                .attr("fill", lineData.color || chart.colours[index]);
                         }
                     }
 
