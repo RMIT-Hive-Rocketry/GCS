@@ -11,7 +11,7 @@ const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
-const LINE_COLOURS = [
+const LINE_COLOURS_DEFAULT = [
     "var(--color-red-500)",
     "var(--color-green-500)",
     "var(--color-blue-500)",
@@ -23,11 +23,13 @@ const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
     data: [],
     ylabel: "Acceleration (g)",
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AV_GYRO = {
     selector: "#graph-av-gyro",
     data: [],
     ylabel: "Rotation Rate (°/s)",
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
@@ -36,6 +38,7 @@ const GRAPH_AV_VELOCITY = {
     limits: {
         yBottomMax: 0,
     },
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
@@ -44,6 +47,7 @@ const GRAPH_POS_ALT = {
     limits: {
         yBottomMax: 0,
     },
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_TRANSDUCERS = {
     selector: "#graph-aux-transducers",
@@ -52,6 +56,7 @@ const GRAPH_AUX_TRANSDUCERS = {
     limits: {
         yBottomMax: 0,
     },
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
@@ -60,6 +65,7 @@ const GRAPH_AUX_THERMOCOUPLES = {
     limits: {
         yBottomMax: 0,
     },
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_INTERNALTEMP = {
     selector: "#graph-aux-internaltemp",
@@ -68,11 +74,13 @@ const GRAPH_AUX_INTERNALTEMP = {
     limits: {
         yBottomMax: 0,
     },
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 const GRAPH_AUX_GASBOTTLES = {
     selector: "#graph-aux-gasbottles",
     data: [],
     ylabel: "Mass (kg)",
+    colours: [...LINE_COLOURS_DEFAULT],
 };
 
 const symbolCircle = d3.symbol()
@@ -157,7 +165,7 @@ function graphCreateLine(chart, numLines) {
     // Lines array to hold multiple line data sets
     chart.lines = [];
     for (let i = 0; i < numLines; i++) {
-        chart.lines.push({ data: [], color: LINE_COLOURS[i] });
+        chart.lines.push({ data: [], color: chart.colours[i] });
     }
 
     // ResizeObserver (for dynamic graph resizing)
@@ -308,13 +316,13 @@ function graphRender(chart) {
                                 .attr("class", "line-dot")
                                 .attr("d", symbolCircle)
                                 .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
-                                .attr("fill", lineData.color || LINE_COLOURS[index]);
+                                .attr("fill", lineData.color || chart.colours[index]);
                         } else if (!d.next || !d.prev) {
                             chart.g.append("path")
                                 .attr("class", "line-dot")
                                 .attr("d", symbolCircle) // Make cross?
                                 .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
-                                .attr("fill", lineData.color || LINE_COLOURS[index]);
+                                .attr("fill", lineData.color || chart.colours[index]);
                         }
                     }
 
