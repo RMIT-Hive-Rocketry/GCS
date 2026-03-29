@@ -22,12 +22,12 @@ const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
     ylabel: "Acceleration (g)",
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 3),
 };
 const GRAPH_AV_GYRO = {
     selector: "#graph-av-gyro",
     ylabel: "Rotation Rate (°/s)",
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 3),
 };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
@@ -36,7 +36,7 @@ const GRAPH_AV_VELOCITY = {
     limits: {
         yBottomMax: 0,
     },
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 1),
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
@@ -45,7 +45,7 @@ const GRAPH_POS_ALT = {
     limits: {
         yBottomMax: 0,
     },
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 1),
 };
 const GRAPH_AUX_TRANSDUCERS = {
     selector: "#graph-aux-transducers",
@@ -54,7 +54,7 @@ const GRAPH_AUX_TRANSDUCERS = {
     limits: {
         yBottomMax: 0,
     },
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 3),
 };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
@@ -72,12 +72,12 @@ const GRAPH_AUX_VENTTEMP = {
     limits: {
         yBottomMax: 0,
     },
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 1),
 };
 const GRAPH_AUX_GASBOTTLES = {
     selector: "#graph-aux-gasbottles",
     ylabel: "Mass (kg)",
-    colours: [...LINE_COLOURS_DEFAULT],
+    colours: LINE_COLOURS_DEFAULT.slice(0, 2),
 };
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
