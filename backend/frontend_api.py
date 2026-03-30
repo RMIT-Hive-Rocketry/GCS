@@ -182,11 +182,10 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     except Exception as e:
         slogger.critical(f"error with frontend api: {e}")
     finally:
-        # Wait linger_time_ms before giving up on push request
-        linger_time_ms = 300
-        server_sub_socket.close(linger=linger_time_ms)
-        pendant_sub_socket.close(linger=linger_time_ms)
-        logging_sub_socket.close(linger=linger_time_ms)
+        # Wait LINGER_TIME_MS before giving up on push request
+        LINGER_TIME_MS = 300
+        server_sub_socket.close(linger=LINGER_TIME_MS)
+        pendant_sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 
