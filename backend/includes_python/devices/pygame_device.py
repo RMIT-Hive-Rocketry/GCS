@@ -4,7 +4,6 @@ import backend.includes_python.process_logging as slogger
 from typing import List, Dict
 
 import os
-os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame
 
 import time
