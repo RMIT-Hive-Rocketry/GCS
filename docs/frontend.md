@@ -64,9 +64,9 @@ It lets us make pretty graphs
 
 ### Three.js
 
-**Three.js v0.175.0 is used to render the 3D model of the rocket.**
+**Three.js r183 is used to render the 3D model of the rocket.**
 
-Included with this is the **GLTFLoader.js** loader, which lets us load .gltf and .glb model files.
+Included with this is the **GLTFLoader.js** loader and some other utils which let us load .gltf and .glb model files.
 
 ---
 

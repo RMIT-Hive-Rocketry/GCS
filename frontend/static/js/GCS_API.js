@@ -21,9 +21,10 @@ var connected = false;
 var then, now, fpsInterval;
 
 // Logging
-const logSocket = true;
+const logVerbose = false;
 const logIncomingMessages = false;
 const errors = [];
+const timeouts = {};
 
 // Global display values
 var altitudeMax;
@@ -43,135 +44,6 @@ const timers = {
     gasTimestamp: 0,
     launchTimestamp: 0,
 };
-
-// Error conditions for data
-const errorConditions = [
-    {
-        IDs: ["analogVoltageInput1"], // Rocket weight
-        discard: {
-            min: -1,
-            max: 128,
-        },
-    },
-    {
-        IDs: [
-            "accelLowX",
-            "accelLowY",
-            "accelLowZ",
-            "accelHighX",
-            "accelHighY",
-            "accelHighZ",
-        ],
-        discard: {
-            min: -32,
-            max: 32,
-        },
-    },
-    {
-        IDs: ["altitude"],
-        discard: {
-            min: -128,
-            max: 8192,
-        },
-    },
-    {
-        IDs: ["velocity"],
-        discard: {
-            min: -128,
-            max: 1024,
-        },
-    },
-    {
-        IDs: ["GPSLatitude", "GPSLongitude"],
-        discard: {
-            min: -18000,
-            max: 18000,
-        },
-    },
-    {
-        IDs: ["gyroX", "gyroY", "gyroZ"],
-        discard: {
-            min: -295,
-            max: 295,
-        },
-    },
-    {
-        IDs: ["internalTemp"],
-        discard: {
-            min: -1,
-            max: 128,
-        },
-    },
-    {
-        IDs: ["mach_speed"],
-        discard: {
-            min: -1,
-            max: 16,
-        },
-    },
-    {
-        IDs: ["qw", "qx", "qy", "qz"],
-        discard: {
-            min: -1,
-            max: 1,
-        },
-    },
-    {
-        IDs: ["navigationStatus"],
-        accept: ["NF", "DR", "G2", "G3", "D2", "D3", "RK", "TT"],
-    },
-    {
-        IDs: ["flightState"],
-        accept: [
-            "PRE_FLIGHT_NO_FLIGHT_READY",
-            "LAUNCH",
-            "COAST",
-            "APOGEE",
-            "DESCENT",
-            "LANDED",
-            "OH_NO",
-        ],
-    },
-    {
-        IDs: ["gasBottleWeight1", "gasBottleWeight2"],
-        error: {
-            min: 15.1,
-            max: 19,
-        },
-        errorMessage: "out of range",
-        discard: {
-            min: -1,
-            max: 128,
-        },
-    },
-    {
-        IDs: [
-            "thermocouple1",
-            "thermocouple2",
-            "thermocouple3",
-            "thermocouple4",
-        ],
-        error: {
-            max: 34.5,
-        },
-        errorMessage: "flag raised",
-        discard: {
-            min: -128,
-            max: 128,
-        },
-    },
-    {
-        IDs: ["transducer1", "transducer2", "transducer3"],
-        error: {
-            max: 64.5,
-        },
-        errorMessage: "flag raised",
-        discard: {
-            min: -1,
-            max: 128,
-        },
-    },
-];
 
 // Reconnecting code
 function scheduleReconnect() {
@@ -305,7 +177,7 @@ function API_socketConnect() {
     apiSocket.onopen = () => {
         connected = true;
         timestampApiConnect = undefined;
-        if (logSocket)
+        if (logVerbose)
             console.log(`Successfully connected to server at: - ${api_url}`);
         logMessage("Successfully connected", "ws");
         clearTimeout(reconnectTimeout);
@@ -410,6 +282,134 @@ function API_OnMessage(event) {
 
 // Check data for error conditions
 function checkErrorConditions(apiData) {
+    const errorConditions = [
+        {
+            IDs: ["analogVoltageInput1"], // Rocket weight
+            discard: {
+                min: -1,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "accelLowX",
+                "accelLowY",
+                "accelLowZ",
+                "accelHighX",
+                "accelHighY",
+                "accelHighZ",
+            ],
+            discard: {
+                min: -32,
+                max: 32,
+            },
+        },
+        {
+            IDs: ["altitude"],
+            discard: {
+                min: -128,
+                max: 8192,
+            },
+        },
+        {
+            IDs: ["velocity"],
+            discard: {
+                min: -128,
+                max: 1024,
+            },
+        },
+        {
+            IDs: ["GPSLatitude", "GPSLongitude"],
+            discard: {
+                min: -18000,
+                max: 18000,
+            },
+        },
+        {
+            IDs: ["gyroX", "gyroY", "gyroZ"],
+            discard: {
+                min: -295,
+                max: 295,
+            },
+        },
+        {
+            IDs: ["internalTemp"],
+            discard: {
+                min: -1,
+                max: 128,
+            },
+        },
+        {
+            IDs: ["mach_speed"],
+            discard: {
+                min: -1,
+                max: 16,
+            },
+        },
+        {
+            IDs: ["qw", "qx", "qy", "qz"],
+            discard: {
+                min: -1,
+                max: 1,
+            },
+        },
+        {
+            IDs: ["navigationStatus"],
+            accept: ["NF", "DR", "G2", "G3", "D2", "D3", "RK", "TT"],
+        },
+        {
+            IDs: ["flightState"],
+            accept: [
+                "PRE_FLIGHT_NO_FLIGHT_READY",
+                "LAUNCH",
+                "COAST",
+                "APOGEE",
+                "DESCENT",
+                "LANDED",
+                "OH_NO",
+            ],
+        },
+        {
+            IDs: ["gasBottleWeight1", "gasBottleWeight2"],
+            error: {
+                min: 15.1,
+                max: 19,
+            },
+            errorMessage: "out of range",
+            discard: {
+                min: -1,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "thermocouple1",
+                "thermocouple2",
+                "thermocouple3",
+                "thermocouple4",
+            ],
+            error: {
+                max: 34.5,
+            },
+            errorMessage: "flag raised",
+            discard: {
+                min: -128,
+                max: 128,
+            },
+        },
+        {
+            IDs: ["transducer1", "transducer2", "transducer3"],
+            error: {
+                max: 64.5,
+            },
+            errorMessage: "flag raised",
+            discard: {
+                min: -1,
+                max: 128,
+            },
+        },
+    ];
+
     // Get error flags from the API and use as overrides
     const errorOverrides = [];
     if (apiData.errorFlags != undefined) {
@@ -769,18 +769,12 @@ function gpsToDecimal(gps) {
 }
 
 /**
- * GCS Display
+ * GCS Display code
  *
  * Responsible for updating the webpage based on the API
- *
- * Functions and constants should be prefixed with "display"
  */
 
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
-var verboseLogging = false;
-const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
-const timeouts = {};
-
 // Register elements to listen for API updates
 const displayRegistry = {};
 window.addEventListener("load", (event) => {
@@ -823,6 +817,9 @@ function sendDataToRegistry(apiData) {
         if (prefix != "") {
             prefix = prefix + ".";
         }
+        if (obj == null) {
+            return;
+        }
         Object.entries(obj).forEach(([key, value]) => {
             if (typeof value == "object") {
                 flatten(prefix + key, value);
@@ -863,7 +860,7 @@ function sendDataToRegistry(apiData) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
-        if (verboseLogging)
+        if (logVerbose)
             console.debug(
                 `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
                 "color:orange",
@@ -895,7 +892,7 @@ function displaySetValue(item, value, precision = 2, error = false) {
 function displaySetString(item, string) {
     // Updates the string in a display item
     if (string != undefined) {
-        if (verboseLogging)
+        if (logVerbose)
             console.debug(
                 `new string %c${item}%c ${string}`,
                 "color:orange",
@@ -916,23 +913,11 @@ function displaySetString(item, string) {
     }
 }
 
-function displaySetError(item, error) {
-    // Adds/removed error class from element
-    let elements = document.querySelectorAll(`.${item}`);
-    if (elements && elements.length > 0) {
-        elements.forEach((elem) => {
-            if (error) {
-                elem.classList.add("error");
-            } else {
-                elem.classList.remove("error");
-            }
-        });
-    }
-}
-
 function displaySetState(item, value, timeout = {}) {
+    const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
+
     // Updates the state of an indicator
-    if (verboseLogging)
+    if (logVerbose)
         console.debug(
             `new state %c${item}%c ${value}`,
             "color:orange",
@@ -965,6 +950,25 @@ function displaySetState(item, value, timeout = {}) {
                         displaySetState(elem, state); // timeout
                     }, parseInt(ms));
                 });
+            }
+        });
+    }
+}
+
+/*
+    The following functions are still called manually and should be integrated
+    into the sendDataToRegistry() functionality
+*/
+
+function displaySetError(item, error) {
+    // Adds/removed error class from element
+    let elements = document.querySelectorAll(`.${item}`);
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
             }
         });
     }
