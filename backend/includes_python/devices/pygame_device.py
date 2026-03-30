@@ -2,12 +2,16 @@ from backend.includes_python.devices.state_table import StateTable
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
 from typing import List, Dict
+
+import os
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame
+
 import time
 from abc import abstractmethod
 from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
-import os
+
 
 
 class Pygame_Button:
@@ -134,15 +138,12 @@ class Pygame_Device(ControlDevice):
 
     def _setup_device(self):
         # https://stackoverflow.com/questions/32900155/pygame-headless-setup
-        os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.display.init()
         pygame.joystick.init()
         self._try_connect_device()
 
     def _update_state_table(self):
         """Updates instance attributes"""
-        pygame.event.pump()
-
         if not self.is_connected:
             self._try_connect_device()
 
