@@ -12,10 +12,10 @@ const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
 const LINE_COLOURS_DEFAULT = [
-    "var(--color-red-500)",
-    "var(--color-green-500)",
-    "var(--color-blue-500)",
-    "white",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFFFF",
 ];
 const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
