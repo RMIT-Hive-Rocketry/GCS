@@ -20,6 +20,7 @@ def start_pendant_emulator(logger: logging.Logger):
         env["PYTHONPATH"] = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..")
         )
+        env["SDL_VIDEODRIVER"] = "dummy"
 
         api_process = process.LoggedSubProcess(
             EMULATOR_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
