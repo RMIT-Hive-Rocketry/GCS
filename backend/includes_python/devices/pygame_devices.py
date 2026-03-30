@@ -13,7 +13,7 @@ class HybridPygamePendant(Pygame_Device):
         "IGNITION_MOMENT_ACTIVE": 2,
     }
 
-    CONTROLLER_NAME = "Generic USB Joystick"
+    CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
 
 
 class ThrustmasterAirbusFlightStick(Pygame_Device):
