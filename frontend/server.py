@@ -139,4 +139,10 @@ def create_app():
     def debug_modules():
         return render_template("templates/debug_modules.html")
 
+    # Debug control pendant
+    # Shows all modules from loaded rockets
+    @app.route("/debug/pendant")
+    def debug_pendant():
+        return render_template("templates/debug_pendant.html")
+
     return app
