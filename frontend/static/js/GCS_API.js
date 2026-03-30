@@ -808,8 +808,12 @@ window.addEventListener("load", (event) => {
     console.log(displayRegistry);
 });
 
+const skippedKeys = [];
 function sendDataToRegistry(apiData) {
-    //console.log(apiData);
+    // Don't receive data until page has loaded
+    if (Object.keys(displayRegistry).length === 0) {
+        return;
+    }
 
     // Flatten API data so that keys are in format a.b
     let flat = {};
@@ -853,6 +857,10 @@ function sendDataToRegistry(apiData) {
                         break;
                 }
             }
+        } else if (skippedKeys.indexOf(key) == -1) {
+            // Add skipped keys to a list, so we only warn about them once
+            console.warn(`${key} not found in displayRegistry, skipping`);
+            skippedKeys.push(key);
         }
     });
 }
