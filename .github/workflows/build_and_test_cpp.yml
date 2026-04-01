@@ -113,22 +113,10 @@ jobs:
             build-essential \
             tree
 
-      # --- Python virtual environment ---
-      - name: Set up Python virtual environment
-        run: |
-          python3.11 -m venv .venv
-          echo "VIRTUAL_ENV=\"${{ github.workspace }}/.venv\"" >> "$GITHUB_ENV"
-          echo "${{ github.workspace }}/.venv/bin" >> "$GITHUB_PATH"
-
-      # --- Verify python version and protobuf ---
+      # --- Setup ---
       - name: Run setup.sh
         run: |
-          source .venv/bin/activate
-          if [ "${{ steps.cache-protobuf.outputs.cache-hit }}" = "true" ]; then
-            CI_PROTOBUF_CACHED=1 bash setup.sh
-          else
-            bash setup.sh
-          fi
+          bash setup.sh -y
 
       # --- Python dependencies  ---
       - name: Install Python requirements
