@@ -1,6 +1,6 @@
 # Glossary
 
-Rocktry definitions for HIVE
+Rocktry definitions for Hive
 
 ## Rockets
 
@@ -13,7 +13,7 @@ Rocktry definitions for HIVE
 
 | Acronym | Definition | Description & Relevance |
 | --- | --- | --- |
-| HIVE | High Velocity | Rocketry club name |
+| Hive | High Velocity | Rocketry club name |
 | [RMIT](https://www.rmit.edu.au/) | Royal Melbourne Institute of Technology | You can guess this one |
 | [IREC](https://www.soundingrocket.org/2025-irec.html) | International Rocket Engineering Competition | A competition we are competing in |
 | GCS | Ground Control Station | Our mission control / telemetry visualisation system on the ground |
@@ -36,7 +36,7 @@ Rocktry definitions for HIVE
 | AV2 | Avionics board series  | Currently used for Legacy (2025) |
 
 > [!NOTE]
-> **Australis** Intends to be THE ongoing AV ecosystem for HIVE rocketry. It's designed to be ported to future rocket systems
+> **Australis** Intends to be THE ongoing AV ecosystem for Hive rocketry. It's designed to be ported to future rocket systems
 
 ![AV Board Comparison](assets/A3-Australis-rev1.png)
 

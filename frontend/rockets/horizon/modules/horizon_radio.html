@@ -1,0 +1,88 @@
+<!-- Radio module -->
+<div class="module-horizon grid grid-cols-2">
+    <div class="w-full flex gap-4 justify-end items-center">
+        <div class="grid grid-cols-1 place-items-center">
+            <p class="font-bold text-hive">AV Radio</p>
+            <div
+                data-key="state.av.radio"
+                data-type="state"
+                data-timeout='{"3000":4,"10000":5}'
+                class="indicator-state mx-0 timeout"
+            ></div>
+        </div>
+        <div class="grid grid-cols-3 grid-rows-3 text-right">
+            <label>RSSI</label>
+            <input
+                data-key="meta.av.rssi"
+                data-precision="0"
+                readonly
+                autocomplete="off"
+                class=""
+                size="4"
+            />
+            <span class="text-left">dBm</span>
+            <label>SNR</label>
+            <input
+                data-key="meta.av.snr"
+                data-precision="0"
+                readonly
+                autocomplete="off"
+                size="4"
+            />
+            <span></span>
+            <label> Packets </label>
+            <input
+                data-key="meta.av.packets"
+                data-precision="0"
+                readonly
+                autocomplete="off"
+                class=""
+                size="11"
+            />
+            <span></span>
+        </div>
+    </div>
+    <div class="w-full flex justify-end items-center">
+        <div class="grid grid-cols-1 place-items-center">
+            <p class="font-bold text-hive">GSE Radio</p>
+            <div
+                data-key="state.gse.radio"
+                data-type="state"
+                data-timeout='{"3000":4,"10000":5}'
+                class="indicator-state mx-0 timeout"
+            ></div>
+        </div>
+        <table></table>
+        <div class="grid grid-cols-3 grid-rows-3 text-right">
+            <label>RSSI</label>
+            <input
+                data-key="meta.gse.rssi"
+                data-precision="0"
+                readonly
+                autocomplete="off"
+                class=""
+                size="4"
+            />
+            <span class="text-left">dBm</span>
+            <label>SNR</label>
+            <input
+                data-key="meta.gse.snr"
+                data-precision="0"
+                readonly
+                autocomplete="off"
+                size="4"
+            />
+            <span></span>
+            <label> Packets </label>
+            <input
+                data-key="meta.gse.packets"
+                data-precision="0"
+                readonly
+                autocomplete="off"
+                class=""
+                size="11"
+            />
+            <span></span>
+        </div>
+    </div>
+</div>
