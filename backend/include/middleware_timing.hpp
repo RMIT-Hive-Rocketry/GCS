@@ -25,9 +25,10 @@ constexpr Seconds PENDANT_FALLBACK_TIMEOUT{5};
 /// For terminal printing only. This does not effect functionality
 constexpr Seconds TIMEOUT_WARNING_INTERVAL{10};
 
-// --- Read loop (interface read thread) ---
+// --- Read loop (interface read and write thread) ---
 /// Sleep when no data available to avoid busy-wait (ms).
-constexpr Millis READ_LOOP_SLEEP{1};
+constexpr Millis READ_WRITE_LOOP_SLEEP{1};
+
 /// After this many seconds with no data, log a "no data received" warning.
 /// For terminal printing only. This does not effect functionality
 constexpr Seconds READ_LOOP_NO_DATA_WARNING{3};

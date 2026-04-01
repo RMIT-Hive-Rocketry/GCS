@@ -138,7 +138,7 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
         }
       }
     } else {
-      std::this_thread::sleep_for(middleware_timing::READ_LOOP_SLEEP);
+      std::this_thread::sleep_for(middleware_timing::READ_WRITE_LOOP_SLEEP);
       auto now = std::chrono::steady_clock::now();
       Seconds seconds_waited =
           std::chrono::duration_cast<Seconds>(now - last_read_time);
@@ -174,6 +174,8 @@ void tcp_write(std::shared_ptr<RadioInterface> interface_gse,
 
     // This runs in every loop, but the interface will handle throttling
     interface_gse->write_data(gse_data);
+
+    std::this_thread::sleep_for(middleware_timing::READ_WRITE_LOOP_SLEEP);
   }
   slogger::debug("TCP write thread has closed");
 }
