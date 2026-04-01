@@ -202,7 +202,7 @@ fi
 
 # setup python venv
 if ask "Do you want to setup a python virtual environment?"; then
-    setup_venv PYTHON_CMD
+    setup_venv "$PYTHON_CMD"
 fi
 
 # check protobuf is installed
