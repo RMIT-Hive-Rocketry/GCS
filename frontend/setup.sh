@@ -8,4 +8,4 @@ source .venv/bin/activate
 python -m pip install -r ./frontend/requirements.txt
 
 # Make scripts executable
-chmod +x ./frontend/scripts/tailwind.sh
+chmod +x ./frontend/tailwind.sh

@@ -1,0 +1,15 @@
+<nav
+    class="module-horizon w-full max-w-screen h-full border-t-2 border-orange-900"
+>
+    <div class="h-full grid grid-cols-24 justify-items-center text-sm">
+        {% for page in active.PAGES %}
+        <a
+            class="h-full col-span-1 w-full grid whitespace-nowrap place-items-center border-2 border-white border-collapse"
+            href="#{{page['id']}}"
+        >
+            <div class="icon {{page['icon']}} w-10 h-10 bg-orange-600"></div>
+            <span>{{page['name']}}</span>
+        </a>
+        {% endfor %}
+    </div>
+</nav>

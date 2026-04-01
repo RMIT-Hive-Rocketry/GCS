@@ -273,7 +273,7 @@
         {
             "label": "Frontend Tailwind",
             "type": "shell",
-            "command": "./frontend/scripts/tailwind.sh",
+            "command": "./frontend/tailwind.sh",
             "icon": {
                 "id": "paintcan"
             },
