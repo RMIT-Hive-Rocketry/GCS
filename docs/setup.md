@@ -10,10 +10,6 @@ For a minimal clean slate installation, you can get away with:
 1. Setting up your Linux environment
 2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, `swig`, `zmq`, (see version below) and cpp compilers (`CXX20`) with your package manager
 3. Clone and `cd` in to the repository
-4. Run `python3.11 -m venv .venv` and `source ./.venv/bin/activate` to activate the python virtual environment
-5. Run `bash setup.sh` to verify python version and protobuf installation
-6. Run `pip install -r requirements.txt`
-7. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
 
 > [!WARNING]
 > Please message @mcloughlan with system and setup details and screenshots if that does not work ^
@@ -52,29 +48,15 @@ For a minimal clean slate installation, you can get away with:
 
 ## Setup Instructions
 
-Firstly navigate into this repository directory and ensure you have Python 3 installed
-
-```shell
-$ python3 --version
-```
-
-Then install the necessary packages
-
-```shell
-$ python3 -m pip install -r requirements.txt
-```
+1. Run `bash setup.sh` to verify installs, setup python, and the rocket alias
+2. Run `source .venv/bin/activate` to use the python environtment
+3. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
 
 > [!NOTE]
 > These packages are required for CLI usage and the production environment of the software. Testing packages are installed in the Docker container only
 
-And run the setup script to make aliases, setup permissions and install protobuf.
-
-```shell
-$ bash setup.sh
-```
-
 > [!NOTE]
->  Otherwise you can run the CLI with `$ python3 rocket.py <args>` in place of all further refferences of `$ rocket --args` if you don't run the setup file.
+>  Otherwise you can run the CLI with `$ python rocket.py <args>` in place of all further refferences of `$ rocket --args` if you don't run the setup file.
 
 ## Further Steps
 
