@@ -4,7 +4,7 @@ import os
 import frontend.config
 
 # import logging
-# import backend.includes_python.process_logging as slogger
+import backend.includes_python.process_logging as slogger
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -15,8 +15,8 @@ class SubprocessLogHandler(logging.Handler):
             getattr(slogger, level.lower())(msg)
         else:
             slogger.info(msg)  # fallback
-"""
 
+"""
 
 # Initialise flask app
 def create_app():
@@ -37,11 +37,11 @@ def create_app():
 
     """
     # Custom logging
-    if logger != None:
+    if slogger != None:
         handler = SubprocessLogHandler()
         formatter = logging.Formatter('%(message)s')  # Keep raw message for slogger
         handler.setFormatter(formatter)
-
+        
         app.logger.handlers.clear()
         app.logger.propagate = False
         app.logger.addHandler(handler)
@@ -105,17 +105,17 @@ def create_app():
 
         # Load files with valid extensions
         if filename.endswith(file_extensions) and os.path.isfile(filepath):
-            # app.logger.debug(f"Serving static file: {filename}")
+            slogger.debug(f"Serving static file: {filename}")
             return send_from_directory(static_dir, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
         elif os.path.isfile(filepath + ".html"):
-            # app.logger.debug(f"Serving static file: {filename}.html")
+            slogger.debug(f"Serving static file: {filename}.html")
             return send_from_directory(static_dir, filename + ".html")
 
         # 404 page not found
         else:
-            # app.logger.warning(f"404 not found: {filename}")
+            slogger.warning(f"404 not found: {filename}")
             abort(404)
 
     # Debugging
