@@ -2,12 +2,35 @@
 <header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50 overflow-visible!">
     <div class="w-3/10">
         <!-- Logos and project/launch information module -->
-        <div class="module-legacy flex-row p-2 pl-4 pb-0 justify-evenly items-center gap-4">
-            <img src="/img/logo-rmit.svg" width="163" height="58" class="max-h-16 w-auto h-auto py-2 px-1" />
-            <img src="/img/logo-hive.256.png" width="256" height="256" class="max-h-20 w-auto h-auto cursor-pointer"
-                onclick="window.location.href = '/'" />
-            <img src="/horizon/static/img/logo-horizon-gradient.png" width="1680" height="387"
-                class="w-auto h-auto max-w-48" />
+        <div
+            class="module-legacy flex-row p-2 pl-4 pb-0 justify-evenly items-center gap-4"
+        >
+            <img
+                src="/img/logo-rmit.svg"
+                width="163"
+                height="58"
+                class="max-h-16 w-auto h-auto py-2 px-1"
+            />
+            <a 
+                href="/"
+                title="Back to rocket selection"
+                style="border-radius: 8px; padding: 4px; transition: background 150ms ease; cursor: pointer;"
+                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+                onmouseout="this.style.background='transparent'"
+            >
+                <img
+                    src="/img/logo-hive.256.png"
+                    width="256"
+                    height="256"
+                    class="max-h-20 w-auto h-auto"
+                />
+            </a>
+            <img
+                src="/legacy/static/img/logo-legacy3.svg"
+                width="418"
+                height="51"
+                class="w-auto h-auto max-w-48"
+            />
         </div>
     </div>
     <nav
