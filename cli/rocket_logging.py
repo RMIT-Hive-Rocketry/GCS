@@ -93,6 +93,29 @@ class PlainFormatter(CustomFormatter):
         # Strip ANSI escape sequences using regex
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         return ansi_escape.sub("", formatted_message)
+    
+class CSVFormatter(logging.Formatter):
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+
+    def format(self, record):
+        # Strip ANSI from message
+        message = self.ansi_escape.sub("", record.getMessage())
+
+        time = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
+        level = record.levelname
+
+        # Escape commas and quotes for CSV safety
+        def clean(field):
+            field = str(field).replace('"', '""')
+            return f'"{field}"'
+
+        return ",".join([
+            clean(time),
+            clean(level),
+            clean(message)
+        ])
+
+
 
 
 def create_handler(
@@ -114,6 +137,18 @@ def create_file_handler(log_file_path: str) -> logging.FileHandler:
     fh.setFormatter(PlainFormatter(detailed_prefix=True))
     return fh
 
+def create_interscript_comms_handler(log_file_path: str, LEVEL: int = logging.INFO)  -> logging.FileHandler:
+    """Create file handler to write logs to a file"""
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+    with open(log_file_path, 'w') as file1:
+        pass
+
+    fh = logging.FileHandler(log_file_path)
+    fh.setLevel(LEVEL)
+    fh.setFormatter(CSVFormatter())
+    return fh
 
 def initialise():
     """One time logging setup run as soon as the program starts"""
@@ -141,16 +176,16 @@ def initialise():
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
+    interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
+
+
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
     logger.setLevel(logging.DEBUG)
 
-    logger.addHandler(
-        create_handler(
-            LOG_LEVEL_OBJECT, detailed_prefix=DETAILED_LOGGING_PREFIX
-        )
-    )
-    # Always debug
-    logger.addHandler(create_file_handler(log_file_path))
+    # Add both console and file handlers with different levels
+    logger.addHandler(create_handler(LOG_LEVEL_OBJECT))
+    logger.addHandler(create_file_handler(log_file_path))  # Always DEBUG
+    logger.addHandler(create_interscript_comms_handler(interscript_file_path))#LOG_LEVEL_OBJECT))
 
     return logger
 

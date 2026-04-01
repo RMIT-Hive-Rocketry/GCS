@@ -16,12 +16,43 @@ import websockets
 import zmq
 import zmq.asyncio
 import os
+import csv
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
+LOG_DIR_PATH = None
 
 # NOTE. if this starts getting big, consider just adding things from this into
 # the backend server output trhough protobuf anyway
+
+def on_recv_log():
+    return
+    
+
+
+def get_newest_messages():
+    interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
+    
+    formatedlines = []
+    with open(interscript_file_path, 'r', newline='') as f:
+        reader = csv.reader(f)
+
+        for row in reader:
+            if len(row) == 3:
+                message_dict = {
+                    "time": row[0].strip(),
+                    "level": row[1].strip(),
+                    "message": row[2].strip()
+                }
+                formatedlines.append(message_dict)
+            else:
+                slogger.error("Invalid data passed from rocket logging")
+
+    with open(interscript_file_path, 'w') as file1:
+        pass
+
+    return formatedlines
+
 
 
 def append_data(data: dict, PACKET_ID: int) -> dict:
@@ -39,6 +70,19 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
             data["mach_number"] = Mach.mach_from_alt_estimate(
                 VELOCITY_M=data["velocity"], ALTITUDE_M=data["altitude"]
             )
+    return data
+
+def append_logs(data: dict) -> dict:
+    """Add data to the websocket structure that frontend uses
+
+    Args:
+        data (dict): protobuf data as a dict
+
+    Returns:
+        dict: updated output
+    """
+    data["slogger"] = get_newest_messages()
+    #data["slogger"] = {"loglevel": 1234, "message": 4321}
     return data
 
 
@@ -111,6 +155,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         proto_object.ParseFromString(message)
                         data = MessageToDict(proto_object)
                         data = append_data(data, packet_id)
+                        data = append_logs(data)
                         output = {"id": packet_id, "data": data}
                         try:
                             await websocket.send(json.dumps(output))
@@ -299,8 +344,17 @@ async def amain():
 
 
 def main():
-    global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS
 
+
+    global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS, LOG_DIR_PATH
+
+    LOG_DIR_PATH = config.get_config()["logging"]["cli_log_dir"].strip()
+
+
+    interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
+
+
+    #get_newest_messages()
     WEBSOCKET_HOST = "0.0.0.0"
     WEBSOCKET_PORT = 1887
 

@@ -1786,12 +1786,13 @@
     color: var(--color-yellow-300);
   }
 
-  .lowercase {
-    text-transform: lowercase;
+  .text-yellow-300 {
+    color: var(--color-yellow-300);
   }
 
-  .lowercase\! {
-    text-transform: lowercase !important;
+  .text-red-crit {
+    color: var(--color-yellow-300);
+    background-color: var(--color-red-800);
   }
 
   .uppercase {

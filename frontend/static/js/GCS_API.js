@@ -106,7 +106,7 @@ function updateTime() {
 }
 
 // Logging code
-function logMessage(message, type = "") {
+function logMessage(message, type = "", timestamp = "") {
     // Make sure log area exists
     const logArea = document.getElementById("errorLogBox");
     if (!logArea) {
@@ -115,11 +115,14 @@ function logMessage(message, type = "") {
     }
 
     // Calculate timestamp
-    let timestamp = "?";
-    if (timestampLocal != undefined && timestampApiConnect != undefined) {
-        timestamp =
-            (timestampLocal + timestampApiConnect - timeDrift).toFixed(1) + "s";
+    if(timestamp == "")
+    {
+        let timestamp = "?";
+        if (timestampLocal != undefined && timestampApiConnect != undefined) {
+            timestamp = (timestampLocal + timestampApiConnect - timeDrift).toFixed(1) + "s";
+        }
     }
+
 
     // Handle different message types
     let logName = "Notice";
@@ -129,14 +132,32 @@ function logMessage(message, type = "") {
         logName = "Error";
         textColor = "text-red-400";
         console.error(timestamp, message);
+
     } else if (type == "warning") {
         logName = "Warning";
         textColor = "text-yellow-300";
         console.warn(timestamp, message);
+
     } else if (type == "ws") {
         logName = "WebSocket";
         textColor = "text-emerald-300";
         console.debug(timestamp, message);
+
+    } else if (type == "debug") {
+        logName = "Debug";
+        textColor = "text-white-900";
+        console.debug(timestamp, message);
+
+    } else if (type == "critical") {
+        logName = "CRITICAL";
+        textColor = "text-red-crit";
+        console.error(timestamp, message);
+
+    } else if (type == "success") {
+        logName = "success";
+        textColor = "text-green-300";
+        console.debug(timestamp, message);
+
     } else {
         console.log(timestamp, message);
     }
@@ -246,6 +267,13 @@ function API_OnMessage(event) {
             hmiUpdate(apiData);
         }
 
+        // if data from api containing slogger logs exists print on website
+        if(apiData.slogger != "")
+        {
+            displaySloggerLogs(apiData.slogger);
+        }
+
+
         // Handle different packet types
         if (apiData.id == 2) {
             ///// ----- SINGLE OPERATOR PACKETS ----- /////
@@ -274,6 +302,20 @@ function API_OnMessage(event) {
             }
         } else if (apiData.id == 6 || apiData.id == 7) {
             ///// ----- GSE PACKETS ----- /////
+            // Graphs
+            if (typeof graphUpdateAuxData === "function") {
+                graphUpdateAuxData(apiData);
+            }
+        } else if (apiData.id == 8) {
+            ///// ----- GSE PACKETS ----- /////
+            // Display values
+            if (typeof displayUpdateRadio === 'function') {
+                displayUpdateRadio(apiData);
+            }
+            if (typeof displayUpdateAuxData === 'function') {
+                displayUpdateAuxData(apiData);
+            }
+
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
@@ -1082,3 +1124,5 @@ function displayUpdateFlightState(data) {
         displaySetString("fs-flightstate", stateName);
     }
 }
+
+
