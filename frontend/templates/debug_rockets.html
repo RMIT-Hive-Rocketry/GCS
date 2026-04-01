@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=1920, height=1080, initial-scale=1"
+        />
+        <title>ROCKET DEBUG - RMIT High Velocity</title>
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="/css/tailwind.css"
+            media="screen"
+        />
+    </head>
+
+    <body class="p-4">
+        <h1 class="text-2xl">Rocket debug page</h1>
+        <p>Loaded rocket modules:</p>
+
+        <style>
+            td,
+            th {
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                padding: 2px 4px;
+            }
+            table {
+                border: 2px solid var(--color-hive);
+            }
+            table th {
+                color: var(--color-hive);
+                text-align: right;
+            }
+
+            table table {
+                border: 2px solid var(--color-legacy);
+                margin: 4px 2px;
+            }
+            table table th {
+                color: var(--color-legacy);
+                text-align: right;
+            }
+
+            table table table {
+                border: 2px solid var(--color-atlas);
+            }
+            table table table th {
+                color: var(--color-atlas);
+                text-align: center;
+            }
+            #debug-page-grid {
+                background-image:
+                    linear-gradient(
+                        var(--color-hive-dark) 0 2px,
+                        transparent 2px 100%
+                    ),
+                    linear-gradient(
+                        90deg,
+                        var(--color-hive-dark) 0 2px,
+                        transparent 2px 100%
+                    );
+                background-position: -1px -1px;
+            }
+        </style>
+
+        <main class="debug w-full flex flex-col gap-8 my-4">
+            {% for rocket in config.rockets %}
+            <section
+                id="{{ rocket.name }}"
+                class="flex flex-col gap-4 p-4 border border-black bg-zinc-900 bg-hex text-white"
+            >
+                <h2 class="lowercase!">/rockets/{{ rocket.name }}</h2>
+                <table>
+                    <tr>
+                        <th>path</th>
+                        <td>{{ rocket.path }}</td>
+                    </tr>
+                    <tr>
+                        <th>package</th>
+                        <td>{{ rocket.package }}</td>
+                    </tr>
+                    <tr>
+                        <th>configs</th>
+                        <td>
+                            {% for rocketconfig in rocket.configs %}
+                            <details open>
+                                <summary class="text-legacy font-medium">
+                                    {{ rocketconfig.name }}
+                                </summary>
+
+                                <div class="flex flex-row flex-nowrap">
+                                    <table>
+                                        <tr>
+                                            <th>ROCKET_NAME</th>
+                                            <td style="font-weight: bold">
+                                                {{ rocketconfig.ROCKET_NAME }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>MODULES</th>
+                                            <td>
+                                                <table>
+                                                    {% for module in
+                                                    rocketconfig.MODULES %}
+                                                    <tr>
+                                                        {% if
+                                                        module.split("/")[-1].split(".")[0]
+                                                        in
+                                                        rocketconfig.MODULE_PAGES
+                                                        %}
+                                                        <td>
+                                                            {{
+                                                            '/'.join(module.split("/")[:-1])
+                                                            }}/<span
+                                                                class="text-legacy-gold font-medium"
+                                                                >{{module.split("/")[-1].split(".")[0]}}</span
+                                                            >.{{module.split("/")[-1].split(".")[1]}}
+                                                        </td>
+                                                        {% else %}
+                                                        <td>{{module}}</td>
+                                                        {% endif %}
+                                                    </tr>
+                                                    {% endfor %}
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>PAGES</th>
+                                            <td>
+                                                <table>
+                                                    <tr>
+                                                        <th>name</th>
+                                                        <th>icon</th>
+                                                        <th>id</th>
+                                                    </tr>
+                                                    {% for page in
+                                                    rocketconfig.PAGES %}
+                                                    <tr>
+                                                        <td>{{ page.name }}</td>
+                                                        <td>{{ page.icon }}</td>
+                                                        <td>{{ page.id }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>MODULE_PAGES</th>
+                                            <td>
+                                                <table class="text-center">
+                                                    <tr>
+                                                        <th>module</th>
+                                                        <th>page</th>
+                                                        <th>x</th>
+                                                        <th>y</th>
+                                                        <th>width</th>
+                                                        <th>height</th>
+                                                    </tr>
+
+                                                    {% for module in
+                                                    rocketconfig.MODULE_PAGES %}
+                                                    {% for module_page in
+                                                    rocketconfig.MODULE_PAGES[module]
+                                                    %}
+                                                    <tr>
+                                                        {% if loop.first %}
+                                                        <td
+                                                            class="text-legacy-gold font-medium"
+                                                            rowspan="{{ rocketconfig.MODULE_PAGES[module] | length }}"
+                                                        >
+                                                            {{module}}
+                                                        </td>
+                                                        {% endif %} {% if
+                                                        module_page in ["logos",
+                                                        "radio"] %}
+                                                        <td colspan="5">
+                                                            {{ module_page }}
+                                                        </td>
+                                                        {% else %}
+                                                        <td
+                                                            style="
+                                                                min-width: 2rem;
+                                                            "
+                                                        >
+                                                            {{ module_page[0] }}
+                                                        </td>
+                                                        <td
+                                                            style="
+                                                                min-width: 2rem;
+                                                                text-align: right;
+                                                            "
+                                                        >
+                                                            {{ module_page[1] }}
+                                                        </td>
+                                                        <td
+                                                            style="
+                                                                min-width: 2rem;
+                                                                text-align: right;
+                                                            "
+                                                        >
+                                                            {{ module_page[2] }}
+                                                        </td>
+                                                        <td
+                                                            style="
+                                                                min-width: 2rem;
+                                                                text-align: right;
+                                                            "
+                                                        >
+                                                            {{ module_page[3] }}
+                                                        </td>
+                                                        <td
+                                                            style="
+                                                                min-width: 2rem;
+                                                                text-align: right;
+                                                            "
+                                                        >
+                                                            {{ module_page[4] }}
+                                                        </td>
+                                                        {% endif %}
+                                                    </tr>
+                                                    {% endfor %} {% endfor %}
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>CSS</th>
+                                            <td>
+                                                <details closed>
+                                                    <summary
+                                                        class="text-legacy font-medium"
+                                                    >
+                                                        Generated CSS
+                                                    </summary>
+                                                    {% for line in
+                                                    rocketconfig.CSS.split('\n')
+                                                    %} {{ line }}<br />
+                                                    {% endfor %}
+                                                </details>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <div
+                                        class="w-full h-full flex flex-row flex-wrap gap-4 px-4 justify-evenly align-baseline"
+                                    >
+                                        {% for page in rocketconfig.PAGES %}
+                                        <div>
+                                            <p
+                                                class="text-hive font-medium text-center"
+                                            >
+                                                {{ page.id }}
+                                            </p>
+
+                                            <div
+                                                id="debug-page-grid"
+                                                class="outline-hive outline-2 grid grid-rows-{{rocketconfig.GRID[1]}}"
+                                                style="width: 384px; height: 216px; grid-template-columns: repeat({{rocketconfig.GRID[0]}}, minmax(0, 1fr)); grid-template-rows: repeat({{rocketconfig.GRID[1]}}, minmax(0, 1fr)); background-size: calc(384px / {{rocketconfig.GRID[0]}}) calc(216px / {{rocketconfig.GRID[1]}});"
+                                            >
+                                                {% for module in
+                                                rocketconfig.MODULE_PAGES %} {%
+                                                for module_page in
+                                                rocketconfig.MODULE_PAGES[module]
+                                                %} {% if module_page not in
+                                                ["logos", "radio"] and
+                                                module_page[0] == page.id %}
+                                                <div
+                                                    class="border-legacy-medium border bg-legacy-dark/20 text-sm"
+                                                    style="word-break: break-all; grid-column:{{module_page[1] + 1}} / span {{module_page[3]}}; grid-row: {{module_page[2] + 1}} / span {{module_page[4]}};"
+                                                >
+                                                    {{ module }}
+                                                </div>
+                                                {% endif %} {% endfor %} {%
+                                                endfor %}
+                                            </div>
+                                        </div>
+
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </details>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </table>
+            </section>
+            {% endfor %}
+        </main>
+    </body>
+</html>
