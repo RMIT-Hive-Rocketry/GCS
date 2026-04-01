@@ -7,9 +7,24 @@ PROTOBUF_MAJOR_VERSION="30"
 PYTHON_VERSION="3.11"
 BATCH_FILE="rocket.bat"
 
+# collect opts
+AUTO_YES=0 # for CI
+
+while getopts "y" opt; do
+    case $opt in
+
+    y) AUTO_YES=1 ;;
+
+    esac
+done
+
 # helper functions
 
 ask() {
+    if [[ $AUTO_YES -eq 1 ]]; then
+        return 0
+    fi
+
     REPLY=""
     read -p "$1 (y/N): " -n 1 -r
     echo
