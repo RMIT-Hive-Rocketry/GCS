@@ -1613,6 +1613,15 @@
     color: var(--color-yellow-300);
   }
 
+  .text-yellow-300 {
+    color: var(--color-yellow-300);
+  }
+
+  .text-red-crit {
+    color: var(--color-yellow-300);
+    background-color: var(--color-red-800);
+  }
+
   .uppercase {
     text-transform: uppercase;
   }

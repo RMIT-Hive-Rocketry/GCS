@@ -478,3 +478,13 @@ function displayUpdateRadio(data) {
         }
     }
 }
+
+
+function displaySloggerLogs(apiData)
+{
+    apiData.forEach(log => {
+        console.log(log);
+        logMessage(log.message, log.level.toLowerCase(), log.timestamp);
+        logMessage("LOST CONN", "critical");
+    });
+}
