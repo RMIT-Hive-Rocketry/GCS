@@ -269,6 +269,11 @@ function API_OnMessage(event) {
             hmiUpdate(apiData);
         }
 
+        if(apiData.slogger != "")
+        {
+            displaySloggerLogs(apiData.slogger);
+        }
+
         // Handle different packet types
         if (apiData.id == 3 || apiData.id == 4) {
             ///// ----- AVIONICS PACKETS ----- /////
@@ -1106,4 +1111,14 @@ function displayUpdateFlightState(data) {
 
         displaySetString("fs-flightstate", stateName);
     }
+}
+
+
+
+function displaySloggerLogs(apiData)
+{
+    apiData.forEach(log => {
+        console.log(log);
+        logMessage(log.message, log.level.toLowerCase(), log.timestamp);
+    });
 }
