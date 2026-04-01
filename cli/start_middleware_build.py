@@ -2,6 +2,7 @@ import logging
 import cli.proccess as process
 from enum import Enum
 import os
+from pathlib import Path
 
 
 class CMakeBuildModes(Enum):
@@ -21,20 +22,6 @@ class MiddlewareBuildSubprocess(process.LoggedSubProcess):
         return False
 
 
-def successful_cmake_build_callback(line: str, stream_name: str):
-    """Check if the cmake build worked"""
-
-    if "-- Build files have been written to:" in line:
-        return True
-
-
-def successful_make_build_callback(line: str, stream_name: str):
-    """Check if the make build worked"""
-
-    if "[100%] Built target" in line:
-        return True
-
-
 def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
     if not isinstance(BUILD_FLAG, CMakeBuildModes):
         raise ValueError(
@@ -48,55 +35,58 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
             BUILD_DIR = "build-release"
 
         os.makedirs(BUILD_DIR, exist_ok=True)
+        cmake_cache_path = Path(BUILD_DIR) / "CMakeCache.txt"
+        cmake_cache_exists = cmake_cache_path.exists()
+        should_configure = not cmake_cache_exists
+
         os.chdir(BUILD_DIR)
 
-        MIDDLEWARE_BUILD_COMMAND_CMAKE = [
-            "cmake",
-            f"-DCMAKE_BUILD_TYPE={BUILD_FLAG.value}",
-            "..",
-        ]
+        if should_configure:
+            MIDDLEWARE_BUILD_COMMAND_CMAKE = [
+                "cmake",
+                f"-DCMAKE_BUILD_TYPE={BUILD_FLAG.value}",
+                "-DBUILD_TESTS=OFF",
+                "..",
+            ]
 
-        logger.debug(
-            f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}"
-        )
+            logger.debug(
+                f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}"
+            )
 
-        middleware_build_process_cmake = MiddlewareBuildSubprocess(
-            MIDDLEWARE_BUILD_COMMAND_CMAKE,
-            name="middleware-build-cmake",
-        )
-        middleware_build_process_cmake.register_callback(
-            successful_cmake_build_callback
-        )
-        middleware_build_process_cmake.start()
-
-        finished = False
-        while not finished:
-            finished = middleware_build_process_cmake.get_parsed_data()
-
-        logger.info("CMake build finished")
+            middleware_build_process_cmake = MiddlewareBuildSubprocess(
+                MIDDLEWARE_BUILD_COMMAND_CMAKE,
+                name="cmake",
+            )
+            middleware_build_process_cmake.start()
+            middleware_build_process_cmake._process.wait()
+            if middleware_build_process_cmake._process.returncode != 0:
+                raise RuntimeError("CMake configure failed")
+            logger.info("CMake configure finished")
+        else:
+            logger.info("Skipping CMake configure: cache is current")
 
         # ---- Start make ----
 
-        MIDDLEWARE_BUILD_COMMAND_MAKE = ["make", f"-j{os.cpu_count()}"]
+        MIDDLEWARE_BUILD_COMMAND_MAKE = [
+            "cmake",
+            "--build",
+            ".",
+            "--parallel",
+            str(os.cpu_count()),
+        ]
 
         logger.debug(
-            f"Starting {SERVICE_NAME} build [make] with: {MIDDLEWARE_BUILD_COMMAND_MAKE}"
+            f"Starting {SERVICE_NAME} build [cmake --build] with: {MIDDLEWARE_BUILD_COMMAND_MAKE}"
         )
 
         middleware_build_process_make = MiddlewareBuildSubprocess(
             MIDDLEWARE_BUILD_COMMAND_MAKE,
-            name="middleware-build-make",
-        )
-
-        middleware_build_process_make.register_callback(
-            successful_make_build_callback
+            name="cmake-build",
         )
         middleware_build_process_make.start()
-
-        finished = False
-        while not finished:
-            finished = middleware_build_process_make.get_parsed_data()
-
+        middleware_build_process_make._process.wait()
+        if middleware_build_process_make._process.returncode != 0:
+            raise RuntimeError("CMake build failed")
         os.chdir("..")  # Back out of build dir
         logger.info("Make build finished")
 

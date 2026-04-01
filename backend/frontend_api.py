@@ -87,11 +87,30 @@ def append_logs(data: dict) -> dict:
 
 
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
-    context = zmq.asyncio.Context()
-    sub_socket = context.socket(zmq.SUB)
+    FRONTEND_SOCKET_PATH = os.path.abspath(
+        os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
+    )
+
+    PENDANT_PACKET_ID = 10
+
     try:
-        sub_socket.connect(ZMQ_SUB_SOCKET)
-        sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+        context = zmq.asyncio.Context()
+
+        server_sub_socket = context.socket(zmq.SUB)
+        server_sub_socket.connect(ZMQ_SUB_SOCKET)
+        server_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+
+        pendant_sub_socket = context.socket(zmq.PULL)
+        pendant_sub_socket.setsockopt(
+            zmq.CONFLATE, 1
+        )  # only keep the most recent state
+        pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
+
+        # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
+        # ^ more about Poller
+        poller = zmq.Poller()
+        poller.register(server_sub_socket, zmq.POLLIN)
+        poller.register(pendant_sub_socket, zmq.POLLIN)
 
         packet_handlers = {
             3: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
@@ -103,10 +122,25 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
 
         while not shutdown_event.is_set():
             try:
-                events = await sub_socket.poll(timeout=100)
-                if events:
-                    packet_id = int.from_bytes(await sub_socket.recv(), "big")
-                    message = await sub_socket.recv()
+                # poll pendant_daemon socket
+                events = dict(poller.poll(timeout=100))
+                if pendant_sub_socket in events:
+                    pendant_state_dict = await pendant_sub_socket.recv_json()
+
+                    packet = {
+                        "id": PENDANT_PACKET_ID,
+                        "data": pendant_state_dict,
+                    }
+                    try:
+                        await websocket.send(json.dumps(packet))
+                    except websockets.ConnectionClosedOK:
+                        pass
+
+                if server_sub_socket in events:
+                    packet_id = int.from_bytes(
+                        await server_sub_socket.recv(), "big"
+                    )
+                    message = await server_sub_socket.recv()
 
                     if len(message) == 1:
                         new_id = int.from_bytes(message, "big")
@@ -128,6 +162,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                             pass
                     else:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
+
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
             except websockets.ConnectionClosed:
@@ -145,7 +180,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
-        sub_socket.close(linger=LINGER_TIME_MS)
+        server_sub_socket.close(linger=LINGER_TIME_MS)
+        pendant_sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 

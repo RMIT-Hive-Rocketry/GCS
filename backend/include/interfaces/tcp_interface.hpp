@@ -37,8 +37,10 @@ class TcpInterface : public RadioInterface {
   int sock_fd_ = -1;
   ConnectionState connection_state_ = ConnectionState::DISCONNECTED_RETRYING;
   TimePoint next_retry_time_ = std::chrono::steady_clock::now();
+  TimePoint last_send_time_{};
 
   Millis retry_backoff_{middleware_timing::initial_tcp_retry_backoff};
+  std::vector<uint8_t> last_payload_;
 
   sockaddr_in remote_addr_{};
 };

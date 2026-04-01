@@ -867,12 +867,13 @@ def get_sinusoid_packets(
         corrupt_packet(ARGS_GSEtoGCSData1)
         corrupt_packet(ARGS_GSEtoGCSData2)
 
+    # Do not emulate GSE packets until new emulation is supported
     return [
         AVtoGCSData1(**ARGS_AVtoGCSData1),
         AVtoGCSData2(**ARGS_AVtoGCSData2),
         AVtoGCSData3(**ARGS_AVtoGCSData3),
-        GSEtoGCSData1(**ARGS_GSEtoGCSData1),
-        GSEtoGCSData2(**ARGS_GSEtoGCSData2),
+        # GSEtoGCSData1(**ARGS_GSEtoGCSData1),
+        # GSEtoGCSData2(**ARGS_GSEtoGCSData2),
     ]
 
 
@@ -959,13 +960,15 @@ def main():
                 f"AV emulation awaiting server sequence timing for {round(AV_AWAIT_TIME)} seconds"
             )
             last_time_av_warned = check_time
-        if (
-            GSE_AWAIT_TIME
-        ) > LOCK_WARNING_TIME and check_time - last_time_gse_warned > 3:
-            slogger.warning(
-                f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds"
-            )
-            last_time_gse_warned = check_time
+
+        # Do not emulate GSE packets until new emulation is supported
+        # if (
+        #     GSE_AWAIT_TIME
+        # ) > LOCK_WARNING_TIME and check_time - last_time_gse_warned > 3:
+        #     slogger.warning(
+        #         f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds"
+        #     )
+        #     last_time_gse_warned = check_time
 
     slogger.debug("Emulator finished")
 

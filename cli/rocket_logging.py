@@ -8,6 +8,9 @@ import re
 # Capture application start time (initialized in `initialise()`)
 APP_START_TIME: Optional[float] = None
 
+# When False, use short prefixes on console (set in initialise() from config)
+DETAILED_LOGGING_PREFIX: bool = True
+
 # log level (between INFO (20) and WARNING (30))
 SUCCESS_LEVEL_NUM = 25
 logging.addLevelName(SUCCESS_LEVEL_NUM, "SUCCESS")
@@ -31,17 +34,30 @@ class CustomFormatter(logging.Formatter):
     BOLD_RED = "\x1b[31;1m"
     GREEN = "\x1b[32;20m"
     RESET = "\x1b[0m"
-    # Maybe add %(asctime)s later if needed
     FORMAT = "[%(levelname)-7s] %(post_start_s)5s s | %(subprocess_name)s: %(message)s"
+    FORMAT_SHORT = "%(levelname_short)s %(post_start_s)ss %(subprocess_name)s | %(message)s"
 
-    FORMATS = {
-        logging.DEBUG: GREY + FORMAT + RESET,
-        logging.INFO: GREY + FORMAT + RESET,
-        SUCCESS_LEVEL_NUM: GREEN + FORMAT + RESET,
-        logging.WARNING: YELLOW + FORMAT + RESET,
-        logging.ERROR: RED + FORMAT + RESET,
-        logging.CRITICAL: BOLD_RED + FORMAT + RESET,
+    LEVEL_SHORT = {
+        logging.DEBUG: "D",
+        logging.INFO: "I",
+        SUCCESS_LEVEL_NUM: "S",
+        logging.WARNING: "W",
+        logging.ERROR: "E",
+        logging.CRITICAL: "C",
     }
+
+    COLORS = {
+        logging.DEBUG: GREY,
+        logging.INFO: GREY,
+        SUCCESS_LEVEL_NUM: GREEN,
+        logging.WARNING: YELLOW,
+        logging.ERROR: RED,
+        logging.CRITICAL: BOLD_RED,
+    }
+
+    def __init__(self, detailed_prefix: bool = True):
+        super().__init__()
+        self.detailed_prefix = detailed_prefix
 
     def format(self, record):
         if not hasattr(record, "subprocess_name"):
@@ -50,8 +66,17 @@ class CustomFormatter(logging.Formatter):
             record.post_start_s = "0000.000"
         else:
             elapsed_s = time.perf_counter() - APP_START_TIME
-            record.post_start_s = f"{elapsed_s:09.3f}"
-        log_fmt = self.FORMATS.get(record.levelno)
+            if self.detailed_prefix:
+                record.post_start_s = f"{elapsed_s:09.3f}"
+            else:
+                record.post_start_s = f"{elapsed_s:06.2f}"
+        if not self.detailed_prefix:
+            record.levelname_short = self.LEVEL_SHORT.get(
+                record.levelno, record.levelname[0] if record.levelname else "?"
+            )
+        format_str = self.FORMAT if self.detailed_prefix else self.FORMAT_SHORT
+        color = self.COLORS.get(record.levelno, self.GREY)
+        log_fmt = color + format_str + self.RESET
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
@@ -59,13 +84,16 @@ class CustomFormatter(logging.Formatter):
 class PlainFormatter(CustomFormatter):
     """A formatter that strips ANSI control characters for clean log files"""
 
+    def __init__(self, detailed_prefix: bool = True):
+        super().__init__(detailed_prefix=detailed_prefix)
+
     def format(self, record):
         # First format with the parent formatter that adds colors
         formatted_message = super().format(record)
         # Strip ANSI escape sequences using regex
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         return ansi_escape.sub("", formatted_message)
-    
+
 class CSVFormatter(logging.Formatter):
     ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -87,25 +115,23 @@ class CSVFormatter(logging.Formatter):
             clean(message)
         ])
 
-
-
-
-def create_handler(LEVEL: int = logging.DEBUG) -> logging.StreamHandler:
-    """Create console handler with specified level"""
+def create_handler(
+    LEVEL: int = logging.DEBUG,
+    detailed_prefix: bool = True,
+) -> logging.StreamHandler:
+    """Create console handler with specified level and prefix style."""
     ch = logging.StreamHandler()
     ch.setLevel(LEVEL)
-    ch.setFormatter(CustomFormatter())
+    ch.setFormatter(CustomFormatter(detailed_prefix=detailed_prefix))
     return ch
 
 
 def create_file_handler(log_file_path: str) -> logging.FileHandler:
-    """Create file handler to write logs to a file"""
-    # Ensure the directory exists
+    """Create file handler; always uses detailed prefix for full log files."""
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-
     fh = logging.FileHandler(log_file_path)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(PlainFormatter())
+    fh.setFormatter(PlainFormatter(detailed_prefix=True))
     return fh
 
 def create_interscript_comms_handler(log_file_path: str, LEVEL: int = logging.INFO)  -> logging.FileHandler:
@@ -124,7 +150,7 @@ def create_interscript_comms_handler(log_file_path: str, LEVEL: int = logging.IN
 def initialise():
     """One time logging setup run as soon as the program starts"""
 
-    global APP_START_TIME
+    global APP_START_TIME, DETAILED_LOGGING_PREFIX
     APP_START_TIME = time.perf_counter()
 
     logger = logging.getLogger("rocket")
@@ -137,38 +163,44 @@ def initialise():
 
     config = get_config()
     LOG_LEVEL = config["logging"]["level"].strip()
+    detailed_prefix_str = (
+        config["logging"].get("detailed_logging_prefix", "true").strip().lower()
+    )
+    DETAILED_LOGGING_PREFIX = detailed_prefix_str == "true"
 
     # Get log file path from config or use default
     LOG_DIR_PATH = config["logging"]["cli_log_dir"].strip()
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
-
     interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
 
 
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
-    # Parent level is debug, capture everything
     logger.setLevel(logging.DEBUG)
 
-    # Add both console and file handlers with different levels
-    logger.addHandler(create_handler(LOG_LEVEL_OBJECT))
-    logger.addHandler(create_file_handler(log_file_path))  # Always DEBUG
+    logger.addHandler(
+        create_handler(
+            LOG_LEVEL_OBJECT, detailed_prefix=DETAILED_LOGGING_PREFIX
+        )
+    )
+    # Always debug
+    logger.addHandler(create_file_handler(log_file_path))
     logger.addHandler(create_interscript_comms_handler(interscript_file_path))#LOG_LEVEL_OBJECT))
 
-    # logger.info(f"Log file created at: {log_file_path}")
+
     return logger
 
 
-def success(self, message, *args, **kws):
+def success(self, message, *args, **kwargs):
     if self.isEnabledFor(SUCCESS_LEVEL_NUM):
-        self._log(SUCCESS_LEVEL_NUM, message, args, **kws)
+        self._log(SUCCESS_LEVEL_NUM, message, args, **kwargs)
 
 
 logging.Logger.success = success
 
 
 def adapter_success(self, message, *args, **kwargs):
-    self.logger.success(message, *args, **kwargs)
+    self.log(SUCCESS_LEVEL_NUM, message, *args, **kwargs)
 
 
 logging.LoggerAdapter.success = adapter_success
@@ -198,6 +230,26 @@ def set_console_log_level(level_name: str):
             logger.debug(
                 f"Console log level set to {level_name} post intialisation"
             )
+            return
+
+    logger.warning("No console handler found")
+
+
+def set_console_low_detail(low_detail: bool):
+    """
+    Set console prefix detail at runtime to low
+    """
+    logger = logging.getLogger("rocket")
+
+    for handler in logger.handlers:
+        if isinstance(handler, logging.StreamHandler) and not isinstance(
+            handler, logging.FileHandler
+        ):
+            handler.setFormatter(
+                CustomFormatter(detailed_prefix=not low_detail)
+            )
+            global DETAILED_LOGGING_PREFIX
+            DETAILED_LOGGING_PREFIX = not low_detail
             return
 
     logger.warning("No console handler found")

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
+    <title>CONTROL PENDANT DEBUG - RMIT High Velocity</title>
+    <link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
+
+    <!-- Horizon hybrid control pendant -->
+    <style>
+        .hybridcontrolpendant img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            grid-row: 1;
+            grid-column: 1;
+        }
+    </style>
+
+    <script>
+        const states = [
+            [],
+            [],
+            ["pendant.hybrid.active", "pendant.hybrid.standby"],
+            ["pendant.hybrid.active", "pendant.hybrid.standby"],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.fill",
+                "pendant.hybrid.fill_neutral",
+            ],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.fill",
+                "pendant.hybrid.fill_N2O",
+            ],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.fill",
+                "pendant.hybrid.fill_neutral",
+            ],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.fill",
+                "pendant.hybrid.fill_purge",
+            ],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.fill",
+                "pendant.hybrid.fill_neutral",
+            ],
+            ["pendant.hybrid.active", "pendant.hybrid.standby"],
+            ["pendant.hybrid.active", "pendant.hybrid.standby"],
+            ["pendant.hybrid.active", "pendant.hybrid.armed"],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.armed",
+                "pendant.hybrid.armed_O2",
+            ],
+            [
+                "pendant.hybrid.active",
+                "pendant.hybrid.armed",
+                "pendant.hybrid.armed_O2",
+                "pendant.hybrid.armed_ignition",
+            ],
+            ["pendant.hybrid.active", "pendant.hybrid.armed"],
+            ["pendant.hybrid.active", "pendant.hybrid.standby"],
+            ["pendant.hybrid.active", "pendant.hybrid.standby"],
+        ];
+        var counter = 0;
+        function togglePendant(counter) {
+            // Turn off all images
+            document
+                .querySelectorAll("[data-key^='pendant.hybrid']")
+                .forEach((elem) => {
+                    elem.classList.add("hidden");
+                });
+
+            // Turn on specific ones
+            for (let state of states[counter % states.length]) {
+                document
+                    .querySelector(`[data-key='${state}']`)
+                    .classList.remove("hidden");
+            }
+        }
+
+
+        // For testing the animation of this system
+        // Make sure you turn this off if you want to test actual data through the radio
+        setInterval(() => {
+            togglePendant(counter++);
+        }, 800);
+
+    </script>
+</head>
+
+<body class="p-4 debug w-full h-full flex flex-col gap-8 max-h-screen max-w-screen overflow-none">
+    <h1 class="text-2xl">Control pendant debug page</h1>
+
+    <h2>Hybrid Control Pendant</h2>
+    <div class="hybridcontrolpendant flex max-h-[600px]">
+        <div class="flex min-w-0 min-h-0 grow">
+            <div class="w-full h-full max-w-full max-h-full" style="
+                display: grid;
+                grid-template-columns: 100%;
+                grid-template-rows: 100%;
+            ">
+                <img src="/img/pendant/hybrid-off.png" width="1176" height="1034" />
+                <img src="/img/pendant/hybrid-system-active.png" width="1176" height="1034"
+                    data-key="pendant.hybrid.active" data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-fill.png" width="1176" height="1034" data-key="pendant.hybrid.fill"
+                    data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-fill-N2O.png" width="1176" height="1034"
+                    data-key="pendant.hybrid.fill_N2O" data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-fill-neutral.png" width="1176" height="1034"
+                    data-key="pendant.hybrid.fill_neutral" data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-fill-purge.png" width="1176" height="1034"
+                    data-key="pendant.hybrid.fill_purge" data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-standby.png" width="1176" height="1034" data-key="pendant.hybrid.standby"
+                    data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-armed.png" width="1176" height="1034" data-key="pendant.hybrid.armed"
+                    data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-armed-O2.png" width="1176" height="1034"
+                    data-key="pendant.hybrid.armed_O2" data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-armed-ignition.png" width="1176" height="1034"
+                    data-key="pendant.hybrid.armed_ignition" data-type="img" class="hidden" />
+                <img src="/img/pendant/hybrid-estop.png" width="1176" height="1034" data-key="pendant.hybrid.estop"
+                    data-type="img" class="hidden" />
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="/js/GCS_API.js"></script>
+
+</html>

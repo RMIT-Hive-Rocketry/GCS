@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from functools import cache
-
 import click
 import cli.rocket_logging as rocket_logging
 import cli.proccess as process
@@ -13,16 +11,10 @@ import time
 import os
 import signal
 import enum
-from typing import Dict, Optional, Callable
-from cli.start_socat import start_fake_serial_device
+from typing import Optional, Callable
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
-from cli.start_middleware import (
-    start_middleware,
-    InterfaceType,
-    get_interface_type,
-    MiddlewareConfig,
-)
+from cli.start_middleware import start_middleware, InterfaceType
 from cli.start_event_viewer import start_event_viewer
 from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
@@ -34,12 +26,16 @@ from cli.start_replay_system import (
     SimulationType,
 )
 from cli.start_pendant_daemon import start_pendant_daemon
+from cli.runtime_launch_config import RuntimeLaunchConfig
+
 
 logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
 )
 running_services: bool = False  # To help close the cli automatically
+
+IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
 
 class Command(enum.Enum):
@@ -67,6 +63,7 @@ class ControllerTypes(enum.Enum):
     RPI_GPIO_DEVICE = enum.auto()
     HID_DEVICE = enum.auto()
     PYGAME_DEVICE = enum.auto()
+    EMULATED_DEVICE = enum.auto()
     NOT_IMPLIMENTED = enum.auto()
 
 
@@ -256,21 +253,12 @@ def get_controller_enum() -> ControllerTypes:
             return ControllerTypes.HID_DEVICE
         case "pygame_device":
             return ControllerTypes.PYGAME_DEVICE
+        case "emulated_device":
+            return ControllerTypes.EMULATED_DEVICE
         case _:
             raise RuntimeError(
                 "Pendant controller option not found in config.ini"
             )
-
-
-# Used to tell the sleep deprived operator what the current configs are on bootup
-# Explicit and obvious. Don't assume what frequency you are on
-
-
-def large_radio_config_print(params):
-    logger.info("----------# RADIO PARAMETERS #----------")
-    for key, value in params.items():
-        logger.info(f"{key}:\t {value}")
-    logger.info("----------# RADIO PARAMETERS #----------")
 
 
 def _validate_interface_options(
@@ -384,81 +372,21 @@ def start_services(
     else:
         logger.info("Skipping middleware build. Using pre-built binaries")
 
-    # 2. Resolve GSE and AV interface types (single = same for both; dual = separate)
-    dual_mode = interface_av_arg is not None and interface_gse_arg is not None
-
-    INTERFACE_TYPE_GSE = get_interface_type(interface_gse_arg)
-    INTERFACE_TYPE_AV = get_interface_type(interface_av_arg)
-
-    if (
-        os.environ.get("PYTEST_CURRENT_TEST") is not None
-        and os.environ.get("CI_BUILD_ENV") == "Run"
-    ):
+    if IN_TEST_ENVIRONMENT and os.environ.get("CI_BUILD_ENV") == "Run":
         # You are in testing release environment
         raise NotImplementedError("Release python testing is not implemented")
 
-    lora_config = {}
-    match INTERFACE_TYPE_GSE:
-        case InterfaceType.UART_E5:
-            logger.info("Starting UART E5 interface (GSE)")
-            devices = ("/dev/serial0", None)
-            lora_section = config.get_config()["lora"]
-            lora_config = {
-                "frequency": str(lora_section.get("frequency")),
-                "spread_factor": str(lora_section.get("spread_factor")),
-                "bandwidth": str(lora_section.get("bandwidth")),
-                "tx_preamble": str(lora_section.get("tx_preamble")),
-                "rx_preamble": str(lora_section.get("rx_preamble")),
-                "power": str(lora_section.get("power")),
-                "crc": str(lora_section.get("crc")),
-                "iq": str(lora_section.get("iq")),
-                "net": str(lora_section.get("net")),
-            }
-            large_radio_config_print(lora_section)
-        case InterfaceType.TEST_UART_E5:
-            devices = run_pseudoterm_setup(COMMAND)
-        case InterfaceType.TEST:
-            devices = run_pseudoterm_setup(COMMAND)
-        case InterfaceType.TCP:
-            logger.info("Starting TCP interface")
-            tcp_ip = str(config.get_config()["tcp"].get("gse_ip"))
-            tcp_port = int(config.get_config()["tcp"].get("gse_port"))
-            large_radio_config_print(config.get_config()["tcp"])
-            if tcp_ip is None or tcp_port is None:
-                raise RuntimeError(
-                    "Please specify gse_ip and gse_port in config/config.ini"
-                )
-            if not (1 <= tcp_port <= 65535):
-                raise RuntimeError("tcp-port must be between 1 and 65535")
-            devices = (f"{tcp_ip}:{tcp_port}", None)
-        case _:
-            logger.error("Invalid interface type")
-            raise ValueError("Invalid interface type")
+    launch_config = RuntimeLaunchConfig(
+        command=COMMAND,
+        interface_av_arg=interface_av_arg,
+        interface_gse_arg=interface_gse_arg,
+        gse_only=gse_only,
+        logger=logger,
+    )
 
     # 3. Run C++ middleware (always gse + av argv; single = same type/path for both)
     try:
-        optional_arg = "--GSE_ONLY" if gse_only else None
-        device_path = devices[0]
-        # Adding shit to the middleware args is annoying as fuck
-        # This needs to be refactored and SSOT / DRY fixed
-        mw_config = MiddlewareConfig(
-            release=COMMAND == Command.RUN,
-            interface_gse_type=INTERFACE_TYPE_GSE,
-            device_path_gse=device_path,
-            interface_av_type=INTERFACE_TYPE_AV,
-            device_path_av=device_path,
-            pendant_socket_path="gcs_rocket",
-            web_control_socket_path=os.path.abspath(
-                os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
-            ),
-            opt_arg=optional_arg,
-            lora_config=(
-                lora_config
-                if INTERFACE_TYPE_GSE == InterfaceType.UART_E5
-                else None
-            ),
-        )
-        start_middleware(logger=logger, config=mw_config)
+        start_middleware(logger=logger, config=launch_config.middleware_config)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error"
@@ -468,39 +396,33 @@ def start_services(
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
     # Would only be for convienece though. It isn't really required or critical
-    if (
-        INTERFACE_TYPE_AV in [InterfaceType.TEST, InterfaceType.TEST_UART_E5]
-        or INTERFACE_TYPE_GSE
-        in [InterfaceType.TEST, InterfaceType.TEST_UART_E5]
-        and COMMAND == Command.DEV
-    ):
-        if INTERFACE_TYPE_AV != INTERFACE_TYPE_GSE:
-            raise NotImplementedError(
-                "Device emulator does not support split emulation interfaces yet"
-            )
+    aux_service_plan = launch_config.build_aux_service_plan(
+        replay_mode=replay_mode,
+        mission_arg=MISSION_ARG,
+        simulation_arg=SIMULATION_ARG,
+    )
+    if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
             logger,
-            devices[1],
-            INTERFACE_TYPE_AV,
+            aux_service_plan.device_path,
+            aux_service_plan.interface_type,
             experimental=experimental,
             corruption=corruption,
         )
-    elif COMMAND == Command.SIMULATION:
-        start_simulator(logger, devices[1])
-    elif COMMAND == Command.REPLAY:
-        if replay_mode == "mission":
-            start_replay_system(
-                logger, devices[1], MISSION=MISSION_ARG, SIMULATION=None
-            )
-        else:
-            start_replay_system(
-                logger, devices[1], MISSION=None, SIMULATION=SIMULATION_ARG
-            )
+    elif aux_service_plan.service == "simulator":
+        start_simulator(logger, aux_service_plan.device_path)
+    elif aux_service_plan.service == "replay":
+        start_replay_system(
+            logger,
+            aux_service_plan.device_path,
+            MISSION=aux_service_plan.mission,
+            SIMULATION=aux_service_plan.simulation,
+        )
 
-    # 5. Start the event viewer
+    # 4. Start the event viewer
     start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
 
-    # 6. Start the pendent emulator
+    # 5. Start the pendent emulator
     if not nopendant:
         controller_enum = get_controller_enum()
 
@@ -512,21 +434,10 @@ def start_services(
             start_pendant_daemon(logger)
 
     if frontend:
-        # 7. Start the websocket / frontend API
+        # 6. Start the websocket / frontend API
         start_frontend_api(logger, "gcs_rocket")
-        # 8. Start the frontend web server
+        # 7. Start the frontend web server
         start_frontend_webserver(logger)
-
-
-def run_pseudoterm_setup(COMMAND: Command):
-    if COMMAND == Command.RUN:
-        logger.warning("Test interface selected in production mode")
-    logger.info("Starting pseudo-terminals for emulation")
-    devices = start_fake_serial_device(logger)
-    if devices == (None, None):
-        raise RuntimeError("Failed to start fake serial device. Exiting")
-
-    return devices
 
 
 @click.group()
@@ -545,6 +456,7 @@ def cli():
 def run(gse_only):
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
+    rocket_logging.set_console_low_detail(True)
     interface_gse_arg = config.get_config()["hardware"].get(
         "interface_release_gse"
     )
@@ -606,7 +518,8 @@ def simulation(docker, nobuild, logpkt):
     start_services(
         Command.SIMULATION,
         DOCKER=docker,
-        INTERFACE_ARG="TEST",
+        interface_av_arg="TEST",
+        interface_gse_arg="TEST",
         nobuild=nobuild,
         logpkt=logpkt,
         nopendant=True,
@@ -645,7 +558,8 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
     start_services(
         Command.REPLAY,
         DOCKER=docker,
-        INTERFACE_ARG="TEST",
+        interface_av_arg="TEST",
+        interface_gse_arg="TEST",
         nobuild=nobuild,
         logpkt=logpkt,
         nopendant=True,
@@ -729,6 +643,8 @@ def main():
 
     rocket_logging.initialise()
     logger = logging.getLogger("rocket")
+    if IN_TEST_ENVIRONMENT:
+        rocket_logging.set_console_low_detail(False)
 
     try:
         # Tell click CLI to let me handle exceptions and stuff.

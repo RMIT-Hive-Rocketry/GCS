@@ -19,7 +19,8 @@ void PendantData::no_data() {
     slogger::warning(
         "Failed to get any new pendant data from pendant service "
         "for " +
-        std::to_string(sec_waited) + " seconds");
+        std::to_string(sec_waited) + " seconds" +
+        ". This is OK if controller = emulated_device");
     last_timeout_warning_time_ = now;
   }
 }
