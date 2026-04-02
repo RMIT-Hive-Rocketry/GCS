@@ -255,6 +255,14 @@ function API_OnMessage(event) {
         // Handle incoming data
         apiLatest = JSON.parse(event.data);
 
+        // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
+        if (apiLatest.id == 8) {
+            ///// ----- sLogger PACKETS ----- /////
+            displaySloggerLogs(apiLatest.data.slogger);
+            return;
+        }
+
+
         // Flag data for errors
         checkErrorConditions(apiLatest.data);
 
@@ -265,11 +273,6 @@ function API_OnMessage(event) {
         // Legacy Legacy support
         if (typeof hmiUpdate === "function") {
             hmiUpdate(apiData);
-        }
-
-        if(apiData.slogger != "")
-        {
-            displaySloggerLogs(apiData.slogger);
         }
 
         // Handle different packet types
@@ -1127,6 +1130,7 @@ function displayUpdateFlightState(data) {
 
 function displaySloggerLogs(apiData)
 {
+    console.log(apiData);
     apiData.forEach(log => {
         console.log(log);
         logMessage(log.message, log.level.toLowerCase(), log.timestamp);

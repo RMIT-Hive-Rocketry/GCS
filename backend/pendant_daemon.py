@@ -4,6 +4,26 @@ It should only have devices controlled by a human
 """
 
 import backend.includes_python.process_logging as slogger
+from cli.rocket_logging import Logs_Loopback
+
+try:
+    import hid
+except (ImportError, RuntimeError) as e:
+    """
+    if the hid module fails to import and you dont want to use a hid controller, then no harm so just warn in slogger
+    if you want the hid device (controller = rpi_gpio_device)
+    """
+    error_message = "This should not have run, make sure you set controller = rpi_gpio_device or pygame_device (config.ini) or check your hid install is correct"
+    slogger.error(
+        f"hid is not correctly installed: {e}. This is okay if your using rpi_gpio_device or pygame_device (check config.ini)"
+    )
+
+    class hid:
+        def Device():
+            raise NotImplementedError(error_message)
+
+
+import pygame
 import zmq
 import os
 import time

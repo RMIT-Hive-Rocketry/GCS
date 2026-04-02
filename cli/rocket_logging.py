@@ -4,6 +4,9 @@ import time
 from typing import Optional
 import os
 import re
+import zmq
+from datetime import datetime
+import backend.includes_python.service_helper as service_helper
 
 # Capture application start time (initialized in `initialise()`)
 APP_START_TIME: Optional[float] = None
@@ -93,27 +96,57 @@ class PlainFormatter(CustomFormatter):
         # Strip ANSI escape sequences using regex
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         return ansi_escape.sub("", formatted_message)
-    
-class CSVFormatter(logging.Formatter):
-    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
 
-    def format(self, record):
-        # Strip ANSI from message
-        message = self.ansi_escape.sub("", record.getMessage())
+class Logs_Loopback(logging.Handler):
+    """A formatter that strips ANSI control characters for clean log files"""
 
-        time = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
-        level = record.levelname
+    def __init__(self):
+        super().__init__()
+        self.buffer = []
 
-        # Escape commas and quotes for CSV safety
-        def clean(field):
-            field = str(field).replace('"', '""')
-            return f'"{field}"'
+        context = zmq.Context()
 
-        return ",".join([
-            clean(time),
-            clean(level),
-            clean(message)
-        ])
+        # Wait LINGER_TIME_MS before giving up on push request
+        LINGER_TIME_MS = 300
+
+        # path to the socket read by frontend api
+        FRONTEND_SOCKET_PATH = os.path.abspath(
+            os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
+        )
+
+        self.frontend_push_socket = context.socket(zmq.PUSH)
+        self.frontend_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        self.frontend_push_socket.setsockopt(
+            zmq.SNDHWM, 20
+        )  # Limit send buffer to 1 message
+        self.frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
+
+    def emit(self, record):
+
+        if service_helper.time_to_stop():
+            # if stop signal given close socket and clean up handler
+            self.frontend_push_socket.close()
+
+       
+        # Append new log
+        timestamp = datetime.fromtimestamp(record.created).isoformat()
+        log_entry = [timestamp, record.levelname, record.getMessage()]
+        self.buffer.append(log_entry)
+
+        try:
+            # push new logs to socket to frountend.api and clear message buffer
+            self.frontend_push_socket.send_json(self.buffer, flags=zmq.NOBLOCK)
+            self.buffer.clear()
+
+        except Exception as ex:
+            # Safety catch for unexpected exceptions
+            #print(f"[DEBUG] Unexpected error in emit: {ex}")
+            pass
+
+
+
+                
+
 
 
 
@@ -137,17 +170,10 @@ def create_file_handler(log_file_path: str) -> logging.FileHandler:
     fh.setFormatter(PlainFormatter(detailed_prefix=True))
     return fh
 
-def create_interscript_comms_handler(log_file_path: str, LEVEL: int = logging.INFO)  -> logging.FileHandler:
+def create_interscript_comms_handler(LEVEL: int = logging.INFO)  -> logging.StreamHandler:
     """Create file handler to write logs to a file"""
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-
-    with open(log_file_path, 'w') as file1:
-        pass
-
-    fh = logging.FileHandler(log_file_path)
+    fh = Logs_Loopback()
     fh.setLevel(LEVEL)
-    fh.setFormatter(CSVFormatter())
     return fh
 
 def initialise():
@@ -176,16 +202,19 @@ def initialise():
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
-    interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
-
 
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
     logger.setLevel(logging.DEBUG)
 
-    # Add both console and file handlers with different levels
-    logger.addHandler(create_handler(LOG_LEVEL_OBJECT))
-    logger.addHandler(create_file_handler(log_file_path))  # Always DEBUG
-    logger.addHandler(create_interscript_comms_handler(interscript_file_path))#LOG_LEVEL_OBJECT))
+    logger.addHandler(
+        create_handler(
+            LOG_LEVEL_OBJECT, detailed_prefix=DETAILED_LOGGING_PREFIX
+        )
+    )
+    # Always debug
+    logger.addHandler(create_file_handler(log_file_path))
+    logger.addHandler(create_interscript_comms_handler())#LOG_LEVEL_OBJECT))
+
 
     return logger
 
