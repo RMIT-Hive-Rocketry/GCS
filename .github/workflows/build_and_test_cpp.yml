@@ -1,22 +1,25 @@
 name: Build and Test
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "setup.sh"
-      - "**/CMakeLists.txt"
-      - "backend/**"
-      - "**.c"
-      - "**.h"
-      - "**.cpp"
-      - "**.hpp"
-      - "**.proto"
-      - ".github/workflows/build_and_test_cpp.yml"
-      - "!docs/**"
-      - "!notes/**"
-      - "**/requirements.txt"
+  # While we are rationing workflow credits, ignore these
+  # Everyone should be pushing features through PRs now anyway
+  # Remove this when we reduce workflow time or go public in June
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "setup.sh"
+  #     - "**/CMakeLists.txt"
+  #     - "backend/**"
+  #     - "**.c"
+  #     - "**.h"
+  #     - "**.cpp"
+  #     - "**.hpp"
+  #     - "**.proto"
+  #     - ".github/workflows/build_and_test_cpp.yml"
+  #     - "!docs/**"
+  #     - "!notes/**"
+  #     - "**/requirements.txt"
   pull_request:
     branches:
       - main
