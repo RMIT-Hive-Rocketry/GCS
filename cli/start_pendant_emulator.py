@@ -10,7 +10,7 @@ def start_pendant_emulator(logger: logging.Logger):
         EMULATOR_COMMAND = [
             "python3",
             "-u",
-            os.path.join("backend", "pendant_daemon.py"),
+            os.path.join("backend", "pendant_emulator.py"),
         ]
 
         logger.debug(f"Starting {SERVICE_NAME} module with: {EMULATOR_COMMAND}")
