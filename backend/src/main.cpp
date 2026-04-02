@@ -237,6 +237,11 @@ int main(int argc, char* argv[]) {
 
   slogger::info("Middleware server started successfully");
   try {
+    std::vector<uint8_t> main_gse_payload_probe;
+    uint64_t main_observed_payload_version = 0;
+    gcs_state.get_gse_payload_snapshot(main_gse_payload_probe,
+                                       main_observed_payload_version);
+
     while (running) {
       PendantData pendant_data;
       WebsocketData websocket_data;
@@ -245,7 +250,12 @@ int main(int argc, char* argv[]) {
       if (pendant_data.empty()) {
         // No data to send
         // This will only be empty while the pendant software boots
-        // Fallback data should be present anyway
+        // Fallback data should be present anyway?
+        gcs_state.wait_for_gse_payload_change(
+            main_observed_payload_version,
+            middleware_timing::COMMAND_LOOP_POLL);
+        gcs_state.get_gse_payload_snapshot(main_gse_payload_probe,
+                                           main_observed_payload_version);
         continue;
       }
 
@@ -281,6 +291,11 @@ int main(int argc, char* argv[]) {
       }
 
       if (gcs_state.gse_only_mode()) {
+        gcs_state.wait_for_gse_payload_change(
+            main_observed_payload_version,
+            middleware_timing::COMMAND_LOOP_POLL);
+        gcs_state.get_gse_payload_snapshot(main_gse_payload_probe,
+                                           main_observed_payload_version);
         continue;  // Dont run the AV code below because it doesn't exist
       }
 
