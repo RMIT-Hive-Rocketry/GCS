@@ -25,34 +25,6 @@ LOG_DIR_PATH = None
 # NOTE. if this starts getting big, consider just adding things from this into
 # the backend server output trhough protobuf anyway
 
-def on_recv_log():
-    return
-    
-
-
-def get_newest_messages():
-    interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
-    
-    formatedlines = []
-    with open(interscript_file_path, 'r', newline='') as f:
-        reader = csv.reader(f)
-
-        for row in reader:
-            if len(row) == 3:
-                message_dict = {
-                    "time": row[0].strip(),
-                    "level": row[1].strip(),
-                    "message": row[2].strip()
-                }
-                formatedlines.append(message_dict)
-            else:
-                slogger.error("Invalid data passed from rocket logging")
-
-    with open(interscript_file_path, 'w') as file1:
-        pass
-
-    return formatedlines
-
 
 
 def append_data(data: dict, PACKET_ID: int) -> dict:
@@ -72,23 +44,17 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
             )
     return data
 
-def append_logs(data: dict) -> dict:
-    """Add data to the websocket structure that frontend uses
 
-    Args:
-        data (dict): protobuf data as a dict
 
-    Returns:
-        dict: updated output
-    """
-    data["slogger"] = get_newest_messages()
-    #data["slogger"] = {"loglevel": 1234, "message": 4321}
-    return data
 
 
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     FRONTEND_SOCKET_PATH = os.path.abspath(
         os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
+    )
+
+    FRONTEND_SOCKET_PATH_LOGGING = os.path.abspath(
+        os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
     )
 
     PENDANT_PACKET_ID = 10
@@ -106,12 +72,20 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         )  # only keep the most recent state
         pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
+        logging_sub_socket = context.socket(zmq.PULL)
+        logging_sub_socket.setsockopt(
+            zmq.CONFLATE, 1
+        )  # only keep the most recent state
+        logging_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH_LOGGING}")
+
         # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
         # ^ more about Poller
         poller = zmq.Poller()
         poller.register(server_sub_socket, zmq.POLLIN)
         poller.register(pendant_sub_socket, zmq.POLLIN)
+        poller.register(logging_sub_socket, zmq.POLLIN)
 
+        # Reserved 8 for sending logs ignoreing Protobuf
         packet_handlers = {
             3: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
             4: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
@@ -124,6 +98,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             try:
                 # poll pendant_daemon socket
                 events = dict(poller.poll(timeout=100))
+                #print(events)
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
@@ -154,7 +129,6 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         proto_object.ParseFromString(message)
                         data = MessageToDict(proto_object)
                         data = append_data(data, packet_id)
-                        data = append_logs(data)
                         output = {"id": packet_id, "data": data}
                         try:
                             await websocket.send(json.dumps(output))
@@ -162,6 +136,30 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                             pass
                     else:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
+
+                if logging_sub_socket in events:
+                    message = await logging_sub_socket.recv()
+                    message = message.decode()
+                    # Convert to a Python list of lists (assuming your sender encodes as JSON array of lists)
+                    try:
+                        log_entries = json.loads(message)
+                    except json.JSONDecodeError:
+                        log_entries = [[message]]  # fallback if message is not a JSON array
+
+
+                    
+                    # Convert each log entry from list -> dict for clarity
+                    log_dicts = [
+                        {"timestamp": entry[0], "level": entry[1], "message": entry[2]}
+                        for entry in log_entries
+                    ]
+
+                    output = {"id": 8, "data": {"slogger": log_dicts}}
+
+                    try:
+                        await websocket.send(json.dumps(output))
+                    except websockets.ConnectionClosedOK:
+                        pass
 
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
@@ -182,6 +180,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         LINGER_TIME_MS = 300
         server_sub_socket.close(linger=LINGER_TIME_MS)
         pendant_sub_socket.close(linger=LINGER_TIME_MS)
+        logging_sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 
@@ -346,11 +345,6 @@ def main():
 
 
     global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS, LOG_DIR_PATH
-
-    LOG_DIR_PATH = config.get_config()["logging"]["cli_log_dir"].strip()
-
-
-    interscript_file_path = os.path.join(LOG_DIR_PATH, "interprocess_comms.txt")
 
 
     #get_newest_messages()

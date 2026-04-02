@@ -1,4 +1,5 @@
 import backend.includes_python.process_logging as slogger
+from cli.rocket_logging import Logs_Loopback
 
 try:
     import hid
