@@ -33,19 +33,25 @@ PendantData::PendantData() {
 
 void SharedGcsState::set_pendant_received(std::vector<uint8_t> payload) {
   std::lock_guard<std::mutex> lock(mtx_);
+  const std::vector<uint8_t> previous_payload = current_gse_payload_locked_();
   pendant_.last_receival_ = std::chrono::steady_clock::now();
   pendant_.payload = std::move(payload);
+  notify_if_gse_payload_changed_locked_(previous_payload);
 }
 
 void SharedGcsState::pendant_no_data() {
   std::lock_guard<std::mutex> lock(mtx_);
+  const std::vector<uint8_t> previous_payload = current_gse_payload_locked_();
   pendant_.no_data();
+  notify_if_gse_payload_changed_locked_(previous_payload);
 }
 
 void SharedGcsState::set_websocket_received(std::vector<uint8_t> payload) {
   std::lock_guard<std::mutex> lock(mtx_);
+  const std::vector<uint8_t> previous_payload = current_gse_payload_locked_();
   websocket_.payload = std::move(payload);
   websocket_.proccess_data_();
+  notify_if_gse_payload_changed_locked_(previous_payload);
 }
 
 void SharedGcsState::get_snapshot(PendantData& pendant_out,
@@ -55,6 +61,55 @@ void SharedGcsState::get_snapshot(PendantData& pendant_out,
   websocket_out = websocket_;
 }
 
+void SharedGcsState::set_manual_control_mode(bool mode) {
+  std::lock_guard<std::mutex> lock(mtx_);
+  if (manual_control_solenoids_ == mode) {
+    return;
+  }
+  const std::vector<uint8_t> previous_payload = current_gse_payload_locked_();
+  manual_control_solenoids_ = mode;
+  notify_if_gse_payload_changed_locked_(previous_payload);
+}
+
+bool SharedGcsState::manual_control_mode() const {
+  std::lock_guard<std::mutex> lock(mtx_);
+  return manual_control_solenoids_;
+}
+
+bool SharedGcsState::wait_for_gse_payload_change(uint64_t last_seen_version,
+                                                 Millis timeout) {
+  std::unique_lock<std::mutex> lock(mtx_);
+  return state_cv_.wait_for(lock, timeout, [this, last_seen_version] {
+    return gse_payload_version_ != last_seen_version;
+  });
+}
+
+void SharedGcsState::get_gse_payload_snapshot(std::vector<uint8_t>& payload_out,
+                                              uint64_t& version_out) const {
+  std::lock_guard<std::mutex> lock(mtx_);
+  payload_out = current_gse_payload_locked_();
+  version_out = gse_payload_version_;
+}
+
+std::vector<uint8_t> SharedGcsState::current_gse_payload_locked_() const {
+  return manual_control_solenoids_ ? websocket_.payload : pendant_.payload;
+}
+
+// Tell everyone listening into events if the payload has changed
+void SharedGcsState::notify_if_gse_payload_changed_locked_(
+    const std::vector<uint8_t>& previous_payload) {
+  const std::vector<uint8_t> current_payload = current_gse_payload_locked_();
+  if (current_payload == previous_payload) {
+    return;
+  }
+
+  ++gse_payload_version_;
+  state_cv_.notify_all();
+}
+
+// Other pendant IPC comms have no header information.
+// The data from the websocket has some header information.
+// This method will strip it and process it accordingly
 void WebsocketData::proccess_data_() {
   // Get rid of this shit when you refactor all IPC comms
   // GRPC would be nicer than random bytes sent over IPC

@@ -36,7 +36,8 @@ constexpr Seconds READ_LOOP_NO_DATA_WARNING{3};
 // --- TCP write heartbeat ---
 /// Minimum interval between sending the same TCP payload.
 /// If a payload is unchanged and was sent within this interval, skip it.
-/// If payload changes, send immediately.
+/// If payload changes, it will send immediately anyway.
+/// This should never be longer than a second
 constexpr Millis TCP_HEARTBEAT{500};
 /// Send timeout (SO_SNDTIMEO). Prevents send() from blocking indefinitely when
 /// the peer dies or stops reading.

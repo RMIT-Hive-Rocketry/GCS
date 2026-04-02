@@ -157,25 +157,30 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
 
 void tcp_write(std::shared_ptr<RadioInterface> interface_gse,
                SharedGcsState& gcs_state) {
-  PendantData pendant_data;
-  WebsocketData websocket_data;
-  while (running) {
-    gcs_state.get_snapshot(pendant_data, websocket_data);
+  std::vector<uint8_t> gse_payload;
+  uint64_t observed_payload_version = 0;
 
-    // Are we sending manual packets or pendant controlled packets?
-    // You have to pick something to continue the networking sequence and not
-    // timeout the GSE
-    std::vector<uint8_t> gse_data;
-    if (gcs_state.manual_control_mode()) {
-      gse_data = websocket_data.payload;
-    } else {
-      gse_data = pendant_data.payload;
+  gcs_state.get_gse_payload_snapshot(gse_payload, observed_payload_version);
+  if (!gse_payload.empty()) {
+    interface_gse->write_data(gse_payload);
+  }
+
+  while (running) {
+    gcs_state.wait_for_gse_payload_change(observed_payload_version,
+                                          middleware_timing::TCP_HEARTBEAT);
+    if (!running) {
+      break;
     }
 
-    // This runs in every loop, but the interface will handle throttling
-    interface_gse->write_data(gse_data);
+    gcs_state.get_gse_payload_snapshot(gse_payload, observed_payload_version);
+    if (gse_payload.empty()) {
+      continue;
+    }
 
-    std::this_thread::sleep_for(middleware_timing::READ_WRITE_LOOP_SLEEP);
+    // Wake reasons:
+    // - payload version changed: send immediately for low-latency updates.
+    // - timeout elapsed: resend latest payload as heartbeat.
+    interface_gse->write_data(gse_payload);
   }
   slogger::debug("TCP write thread has closed");
 }
@@ -351,6 +356,7 @@ int main(int argc, char* argv[]) {
     // Cleanup
     gcs_reader.join();
     av_reader.join();
+    tcp_writer.join();
     pub_socket.close();
 
     google::protobuf::ShutdownProtobufLibrary();
