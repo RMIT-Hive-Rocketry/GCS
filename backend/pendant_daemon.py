@@ -124,11 +124,11 @@ def send_packet():
                         pendant_state_dict,
                         flags=zmq.NOBLOCK,
                     )
-                except zmq.ZMQError:
+                except zmq.ZMQError as e:
                     # Queue is likely full
                     if frontend_complain_timer.time_has_passed():
                         slogger.warning(
-                            "Frontend ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                            f"Frontend ZMQ Push socket is likely full. error: {e}"
                         )
 
             # No need to go full blast.
