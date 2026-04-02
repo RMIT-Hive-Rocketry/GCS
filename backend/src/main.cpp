@@ -138,7 +138,7 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
         }
       }
     } else {
-      std::this_thread::sleep_for(middleware_timing::READ_LOOP_SLEEP);
+      std::this_thread::sleep_for(middleware_timing::READ_WRITE_LOOP_SLEEP);
       auto now = std::chrono::steady_clock::now();
       Seconds seconds_waited =
           std::chrono::duration_cast<Seconds>(now - last_read_time);
@@ -157,23 +157,30 @@ void input_read_loop(std::shared_ptr<RadioInterface> interface,
 
 void tcp_write(std::shared_ptr<RadioInterface> interface_gse,
                SharedGcsState& gcs_state) {
-  PendantData pendant_data;
-  WebsocketData websocket_data;
-  while (running) {
-    gcs_state.get_snapshot(pendant_data, websocket_data);
+  std::vector<uint8_t> gse_payload;
+  uint64_t observed_payload_version = 0;
 
-    // Are we sending manual packets or pendant controlled packets?
-    // You have to pick something to continue the networking sequence and not
-    // timeout the GSE
-    std::vector<uint8_t> gse_data;
-    if (gcs_state.manual_control_mode()) {
-      gse_data = websocket_data.payload;
-    } else {
-      gse_data = pendant_data.payload;
+  gcs_state.get_gse_payload_snapshot(gse_payload, observed_payload_version);
+  if (!gse_payload.empty()) {
+    interface_gse->write_data(gse_payload);
+  }
+
+  while (running) {
+    gcs_state.wait_for_gse_payload_change(observed_payload_version,
+                                          middleware_timing::TCP_HEARTBEAT);
+    if (!running) {
+      break;
     }
 
-    // This runs in every loop, but the interface will handle throttling
-    interface_gse->write_data(gse_data);
+    gcs_state.get_gse_payload_snapshot(gse_payload, observed_payload_version);
+    if (gse_payload.empty()) {
+      continue;
+    }
+
+    // Wake reasons:
+    // - payload version changed: send immediately for low-latency updates.
+    // - timeout elapsed: resend latest payload as heartbeat.
+    interface_gse->write_data(gse_payload);
   }
   slogger::debug("TCP write thread has closed");
 }
@@ -230,6 +237,11 @@ int main(int argc, char* argv[]) {
 
   slogger::info("Middleware server started successfully");
   try {
+    std::vector<uint8_t> main_gse_payload_probe;
+    uint64_t main_observed_payload_version = 0;
+    gcs_state.get_gse_payload_snapshot(main_gse_payload_probe,
+                                       main_observed_payload_version);
+
     while (running) {
       PendantData pendant_data;
       WebsocketData websocket_data;
@@ -238,7 +250,12 @@ int main(int argc, char* argv[]) {
       if (pendant_data.empty()) {
         // No data to send
         // This will only be empty while the pendant software boots
-        // Fallback data should be present anyway
+        // Fallback data should be present anyway?
+        gcs_state.wait_for_gse_payload_change(
+            main_observed_payload_version,
+            middleware_timing::COMMAND_LOOP_POLL);
+        gcs_state.get_gse_payload_snapshot(main_gse_payload_probe,
+                                           main_observed_payload_version);
         continue;
       }
 
@@ -274,6 +291,11 @@ int main(int argc, char* argv[]) {
       }
 
       if (gcs_state.gse_only_mode()) {
+        gcs_state.wait_for_gse_payload_change(
+            main_observed_payload_version,
+            middleware_timing::COMMAND_LOOP_POLL);
+        gcs_state.get_gse_payload_snapshot(main_gse_payload_probe,
+                                           main_observed_payload_version);
         continue;  // Dont run the AV code below because it doesn't exist
       }
 
@@ -349,6 +371,7 @@ int main(int argc, char* argv[]) {
     // Cleanup
     gcs_reader.join();
     av_reader.join();
+    tcp_writer.join();
     pub_socket.close();
 
     google::protobuf::ShutdownProtobufLibrary();

@@ -1,0 +1,39 @@
+/* Apply to horizon rocket */
+body.horizon {
+    /* Hex background */
+    background-position: inherit;
+    background-origin: inherit;
+    background-repeat: repeat;
+    background: black url("/img/bg-hex.svg");
+
+    /* Border and text colour */
+    color: white;
+    border: 2px solid var(--color-horizon);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body.horizon nav {
+    text-align: center;
+}
+
+body.horizon nav a {
+    border: 2px solid var(--color-orange-700);
+    color: var(--color-orange-600);
+}
+
+body.horizon nav .icon {
+    background-color: var(--color-orange-600);
+}
+
+body.horizon nav .selected {
+    color: var(--color-horizon-yellow);
+    font-weight: bold;
+    border: 2px solid var(--color-horizon-yellow);
+}
+
+body.horizon nav .selected .icon {
+    background-color: var(--color-horizon-yellow);
+}
