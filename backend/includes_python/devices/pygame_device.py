@@ -12,7 +12,6 @@ from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
 
 
-
 class Pygame_Button:
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
 

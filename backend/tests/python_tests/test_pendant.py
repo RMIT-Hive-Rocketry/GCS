@@ -1,6 +1,9 @@
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.control_device_manager import ControlDeviceManager
+from backend.includes_python.devices.control_device_manager import (
+    ControlDeviceManager,
+)
 from backend.includes_python.devices.state_table import StateTable
+
 
 class ExampleControlDevice(ControlDevice):
     def _setup_device(self):
@@ -10,7 +13,6 @@ class ExampleControlDevice(ControlDevice):
         # simulate not getting packets
         pass
 
-    
 
 def test_control_device():
     device = ExampleControlDevice()
@@ -44,17 +46,15 @@ def test_control_device():
     # TODO: figure out exactly what estop does
     assert True
 
-    
-
 
 def test_state_table():
     fallback_table: StateTable = StateTable.get_fallback_table()
     fallback_dict = fallback_table.get_states_dict()
-    
+
     # fallback table should be all false
     for key in fallback_dict:
         assert not fallback_dict[key]
 
-    
+
 def test_control_device_manager():
     pass

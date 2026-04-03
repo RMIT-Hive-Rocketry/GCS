@@ -4,6 +4,7 @@ import time
 
 EPSILON = 1e-3
 
+
 def test_repeating_timer():
     timer = RepeatingTimer(0.01)
 
@@ -16,7 +17,7 @@ def test_repeating_timer():
         pass
 
     time_passed = time.monotonic() - start_time
-    
+
     # timer should return true again after the defined 0.01s
     assert abs(time_passed - 0.01) < EPSILON
 
@@ -32,7 +33,6 @@ def test_repeating_timer():
         pass
 
     time_passed = time.monotonic() - start_time
-    
+
     # timer should return true again after the defined 0.01s even after being thrown off by 0.005s
     assert abs(time_passed - 0.01) < EPSILON
-
