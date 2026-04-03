@@ -542,6 +542,25 @@
                 }
             },
             "problemMatcher": []
+        },
+        {
+            "label": "start E5 fake AV spam debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python3",
+            "args": [
+                "backend/tools/debug_e5_fake_av.py",
+                "--serial-path",
+                "${input:e5SerialPath}"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
         }
     ],
     "inputs": [
@@ -556,6 +575,12 @@
             "type": "promptString",
             "description": "Enter the psuedoterminal /dev path",
             "default": "/dev/ttys..."
+        },
+        {
+            "id": "e5SerialPath",
+            "type": "promptString",
+            "description": "Enter E5 serial device path",
+            "default": "/dev/ttyAMA0"
         }
     ]
 }
