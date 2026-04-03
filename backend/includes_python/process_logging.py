@@ -33,3 +33,8 @@ def error(MESSAGE: str):
 
 def critical(MESSAGE: str):
     _log(MESSAGE, "CRITICAL")
+
+
+# Excluded From Public Frontend
+def secret(MESSAGE: str):
+    _log(MESSAGE, "SECRET")
