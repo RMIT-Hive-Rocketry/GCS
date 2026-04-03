@@ -1120,9 +1120,7 @@ function displayUpdateFlightState(data) {
 
 function displaySloggerLogs(apiData)
 {
-    console.log(apiData);
     apiData.forEach(log => {
-        console.log(log);
         logMessage(log.message, log.level.toLowerCase(), log.timestamp);
     });
 }

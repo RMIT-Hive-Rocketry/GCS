@@ -105,7 +105,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     try:
                         await websocket.send(json.dumps(packet))
                     except websockets.ConnectionClosedOK:
-                        pass
+                        break
 
                 if server_sub_socket in events:
                     packet_id = int.from_bytes(
@@ -129,13 +129,13 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         try:
                             await websocket.send(json.dumps(output))
                         except websockets.ConnectionClosedOK:
-                            pass
+                            slogger.debug(f"Websocket Client Disconnected")
+                            break
                     else:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
 
                 if logging_sub_socket in events:
                     message = await logging_sub_socket.recv_json()
-
 
                     log_dicts = []
                     
@@ -148,12 +148,17 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         else:
                             slogger.warning("Frontend logging passthrough Received incorrect packet")
 
-                    output = {"id": 8, "data": {"slogger": log_dicts}}
+                    if(log_dicts):
+                        output = {"id": 8, "data": {"slogger": log_dicts}}
 
-                    try:
-                        await websocket.send(json.dumps(output))
-                    except websockets.ConnectionClosedOK:
-                        pass
+                        try:
+                            await websocket.send(json.dumps(output))
+                        except websockets.ConnectionClosedOK as ex:
+                            slogger.debug(f"Websocket Client Disconnected")
+                            break # critical to break out of loop and not pass otherwise will get stuck trying to send to dead client
+
+                    else:
+                        slogger.warning("Malformed data sent upstream to front end")
 
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
@@ -169,8 +174,6 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                 slogger.error(f"Error forwarding data to websocket: {e}")
                 if shutdown_event.is_set():
                     break
-    except Exception as e:
-        slogger.error("Handler error occurred", exc_info=True)
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300

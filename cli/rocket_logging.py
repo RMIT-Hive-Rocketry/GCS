@@ -140,14 +140,14 @@ class Logs_Loopback(logging.Handler):
             # filter out ANSI from chars put in earlier in stream
             raw_message = record.getMessage()
             clean_message = self.ANSI_ESCAPE.sub('', raw_message)
-
-            timestamp = datetime.fromtimestamp(record.created).isoformat()
+            timestamp = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
             log_entry = [timestamp, record.levelname, clean_message]
 
             self.buffer.append(log_entry)
 
         except Exception as ex:
-            
+            logging.error("[Logging] Error Within Log Passthrough:")
+            print(ex)
             # catch errors within the packet gen in case of malformed data and drop the packet quitely to avoid issues with cascade
             pass
 
@@ -157,6 +157,8 @@ class Logs_Loopback(logging.Handler):
             self.buffer.clear()
 
         except Exception as ex:
+            logging.error("[Logging] Error Within Log Passthrough:")
+            print(ex)
             # Safety catch for unexpected exceptions however logging this will cause issues maybe a cascade cause log will cause more errors
             pass
 
