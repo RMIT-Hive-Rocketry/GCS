@@ -16,11 +16,9 @@ import websockets
 import zmq
 import zmq.asyncio
 import os
-import csv
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
-LOG_DIR_PATH = None
 
 # NOTE. if this starts getting big, consider just adding things from this into
 # the backend server output trhough protobuf anyway
@@ -47,7 +45,7 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
 
 
 
-
+# TODO Find why might a compile error cause the script to fail silently when i ran an incorrect argument it failed silently without notice or throwing an error
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     FRONTEND_SOCKET_PATH = os.path.abspath(
         os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
@@ -73,9 +71,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         logging_sub_socket = context.socket(zmq.PULL)
-        logging_sub_socket.setsockopt(
-            zmq.CONFLATE, 1
-        )  # only keep the most recent state
+
         logging_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH_LOGGING}")
 
         # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
@@ -138,21 +134,19 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         slogger.error(f"Unexpected packet ID: {packet_id}")
 
                 if logging_sub_socket in events:
-                    message = await logging_sub_socket.recv()
-                    message = message.decode()
-                    # Convert to a Python list of lists (assuming your sender encodes as JSON array of lists)
-                    try:
-                        log_entries = json.loads(message)
-                    except json.JSONDecodeError:
-                        log_entries = [[message]]  # fallback if message is not a JSON array
+                    message = await logging_sub_socket.recv_json()
 
 
+                    log_dicts = []
                     
-                    # Convert each log entry from list -> dict for clarity
-                    log_dicts = [
-                        {"timestamp": entry[0], "level": entry[1], "message": entry[2]}
-                        for entry in log_entries
-                    ]
+                    # Go through buffer of logs sent through from handler
+                    for entry in message:
+                        # Check if correct amount of passed data
+                        if(len(entry) == 3):
+                            # Append passed logs in correct format to be sent to all web clients
+                            log_dicts.append({"timestamp": entry[0], "level": entry[1], "message": entry[2]})
+                        else:
+                            slogger.warning("Frontend logging passthrough Received incorrect packet")
 
                     output = {"id": 8, "data": {"slogger": log_dicts}}
 
@@ -172,9 +166,11 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     slogger.info("WebSocket connection closed from ws client")
                 break
             except Exception as e:
-                slogger.error(f"Error fowarding data to websocket: {e}")
+                slogger.error(f"Error forwarding data to websocket: {e}")
                 if shutdown_event.is_set():
                     break
+    except Exception as e:
+        slogger.error("Handler error occurred", exc_info=True)
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
@@ -326,7 +322,7 @@ async def amain():
         loop.add_signal_handler(sig, lambda: shutdown_event.set())
 
     server = await websockets.serve(handler, WEBSOCKET_HOST, WEBSOCKET_PORT)
-    slogger.info(
+    slogger.secret(
         f"WebSocket server started at ws://{WEBSOCKET_HOST}:{WEBSOCKET_PORT}"
     )
 
