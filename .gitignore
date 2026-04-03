@@ -29,7 +29,6 @@ libmiddleware_lib.a
 # Stupid fucking library installs because homebrew fucking sucks at providing working libraries
 # submodule will still treat as new i think
 /third_party/
-!third_party/README.md
 
 # Flight logs
 logs/
