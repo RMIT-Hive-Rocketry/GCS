@@ -32,7 +32,6 @@ libmiddleware_lib.a
 
 # Flight logs
 logs/
-# If you want to save a particular log, use !logs/foldername/
 
 # Simulation files
 flightdataexport.csv
