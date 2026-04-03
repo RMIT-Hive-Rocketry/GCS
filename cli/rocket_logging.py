@@ -33,6 +33,7 @@ LOG_MAPPING = {
 
 class CustomFormatter(logging.Formatter):
     """Logging formatter from https://stackoverflow.com/a/56944256/14141223"""
+
     DARK_YELLOW = "\x1b[33;20m"
     GREY = "\x1b[38;20m"
     YELLOW = "\x1b[33;20m"
@@ -102,6 +103,7 @@ class PlainFormatter(CustomFormatter):
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         return ansi_escape.sub("", formatted_message)
 
+
 class Logs_Loopback(logging.Handler):
     """A Logging handler that pushes all logs to the frountend api using ZMQ"""
 
@@ -124,23 +126,24 @@ class Logs_Loopback(logging.Handler):
         self.frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         # Regex pattern to match ANSI escape sequences
-        self.ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
-
+        self.ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
     def emit(self, record):
         if service_helper.time_to_stop():
             # if stop signal given close socket and clean up handler
             self.frontend_push_socket.close()
 
-        if(record.levelname =="SECRET"):
+        if record.levelname == "SECRET":
             return
-        
+
         # Append new log
         try:
             # filter out ANSI from chars put in earlier in stream
             raw_message = record.getMessage()
-            clean_message = self.ANSI_ESCAPE.sub('', raw_message)
-            timestamp = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
+            clean_message = self.ANSI_ESCAPE.sub("", raw_message)
+            timestamp = datetime.fromtimestamp(record.created).strftime(
+                "%H:%M:%S"
+            )
             log_entry = [timestamp, record.levelname, clean_message]
 
             self.buffer.append(log_entry)
@@ -163,10 +166,6 @@ class Logs_Loopback(logging.Handler):
             pass
 
 
-
-                
-
-
 def create_handler(
     LEVEL: int = logging.DEBUG,
     detailed_prefix: bool = True,
@@ -186,11 +185,15 @@ def create_file_handler(log_file_path: str) -> logging.FileHandler:
     fh.setFormatter(PlainFormatter(detailed_prefix=True))
     return fh
 
-def create_interscript_comms_handler(LEVEL: int = logging.INFO)  -> logging.StreamHandler:
+
+def create_interscript_comms_handler(
+    LEVEL: int = logging.INFO,
+) -> logging.StreamHandler:
     """Create Log Handler to pass logs to the frontend"""
     fh = Logs_Loopback()
     fh.setLevel(LEVEL)
     return fh
+
 
 def initialise():
     """One time logging setup run as soon as the program starts"""
@@ -219,7 +222,6 @@ def initialise():
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
-
     LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
     logger.setLevel(logging.DEBUG)
 
@@ -239,6 +241,7 @@ def success(self, message, *args, **kwargs):
     if self.isEnabledFor(SUCCESS_LEVEL_NUM):
         self._log(SUCCESS_LEVEL_NUM, message, args, **kwargs)
 
+
 def secret(self, message, *args, **kwargs):
     if self.isEnabledFor(SECRET_LEVEL_NUM):
         self._log(SECRET_LEVEL_NUM, message, args, **kwargs)
@@ -251,11 +254,14 @@ logging.Logger.secret = secret
 def adapter_success(self, message, *args, **kwargs):
     self.log(SUCCESS_LEVEL_NUM, message, *args, **kwargs)
 
+
 def adapter_secret(self, message, *args, **kwargs):
     self.log(SECRET_LEVEL_NUM, message, *args, **kwargs)
 
+
 logging.LoggerAdapter.success = adapter_success
 logging.LoggerAdapter.secret = adapter_secret
+
 
 def set_console_log_level(level_name: str):
     """

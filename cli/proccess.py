@@ -184,17 +184,18 @@ class LoggedSubProcess:
                     self._logger_adapter.error(
                         _format(stream_name, f"LEVEL_UNDEF:{stripped_line}")
                     )
-                    
+
                 else:
-                    
+
                     if stream_name == "STDERR":
-                        if(stripped_line.startswith("* Running on")):
+                        if stripped_line.startswith("* Running on"):
                             self._logger_adapter.secret(
-                                _format(stream_name, stripped_line))
+                                _format(stream_name, stripped_line)
+                            )
                         else:
                             self._logger_adapter.error(
                                 _format(stream_name, stripped_line)
-                        )
+                            )
                     else:
                         self._logger_adapter.debug(
                             _format(stream_name, stripped_line)
@@ -204,9 +205,7 @@ class LoggedSubProcess:
             case "INFO":
                 self._logger_adapter.info(_format(stream_name, stripped_line))
             case "SECRET":
-                self._logger_adapter.secret(
-                    _format(stream_name, stripped_line)
-                )
+                self._logger_adapter.secret(_format(stream_name, stripped_line))
             case "SUCCESS":
                 self._logger_adapter.success(
                     _format(stream_name, stripped_line)

@@ -24,7 +24,6 @@ shutdown_event = asyncio.Event()
 # the backend server output trhough protobuf anyway
 
 
-
 def append_data(data: dict, PACKET_ID: int) -> dict:
     """Add data to the websocket structure that frontend uses
 
@@ -41,8 +40,6 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
                 VELOCITY_M=data["velocity"], ALTITUDE_M=data["altitude"]
             )
     return data
-
-
 
 
 # TODO Find why might a compile error cause the script to fail silently when i ran an incorrect argument it failed silently without notice or throwing an error
@@ -94,7 +91,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             try:
                 # poll pendant_daemon socket
                 events = dict(poller.poll(timeout=100))
-                #print(events)
+                # print(events)
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
@@ -138,27 +135,37 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     message = await logging_sub_socket.recv_json()
 
                     log_dicts = []
-                    
+
                     # Go through buffer of logs sent through from handler
                     for entry in message:
                         # Check if correct amount of passed data
-                        if(len(entry) == 3):
+                        if len(entry) == 3:
                             # Append passed logs in correct format to be sent to all web clients
-                            log_dicts.append({"timestamp": entry[0], "level": entry[1], "message": entry[2]})
+                            log_dicts.append(
+                                {
+                                    "timestamp": entry[0],
+                                    "level": entry[1],
+                                    "message": entry[2],
+                                }
+                            )
                         else:
-                            slogger.warning("Frontend logging passthrough Received incorrect packet")
+                            slogger.warning(
+                                "Frontend logging passthrough Received incorrect packet"
+                            )
 
-                    if(log_dicts):
+                    if log_dicts:
                         output = {"id": 8, "data": {"slogger": log_dicts}}
 
                         try:
                             await websocket.send(json.dumps(output))
                         except websockets.ConnectionClosedOK as ex:
                             slogger.debug(f"Websocket Client Disconnected")
-                            break # critical to break out of loop and not pass otherwise will get stuck trying to send to dead client
+                            break  # critical to break out of loop and not pass otherwise will get stuck trying to send to dead client
 
                     else:
-                        slogger.warning("Malformed data sent upstream to front end")
+                        slogger.warning(
+                            "Malformed data sent upstream to front end"
+                        )
 
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
@@ -342,11 +349,9 @@ async def amain():
 
 def main():
 
-
     global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS, LOG_DIR_PATH
 
-
-    #get_newest_messages()
+    # get_newest_messages()
     WEBSOCKET_HOST = "0.0.0.0"
     WEBSOCKET_PORT = 1887
 
