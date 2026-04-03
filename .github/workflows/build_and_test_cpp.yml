@@ -124,12 +124,11 @@ jobs:
       - name: Run setup.sh
         run: |
           source .venv/bin/activate
-          bash setup.sh
-      - name: Run setup.sh (venv/symlink only; protobuf already installed from cache)
-        if: steps.cache-protobuf.outputs.cache-hit == 'true' && steps.protobuf-from-cache.outputs.installed == 'true'
-        run: |
-          source .venv/bin/activate
-          CI_PROTOBUF_CACHED=1 bash setup.sh
+          if [ "${{ steps.cache-protobuf.outputs.cache-hit }}" = "true" ]; then
+            CI_PROTOBUF_CACHED=1 bash setup.sh
+          else
+            bash setup.sh
+          fi
 
       # --- Python dependencies  ---
       - name: Install Python requirements
