@@ -113,14 +113,7 @@ jobs:
             build-essential \
             tree
 
-      # --- Python virtual environment ---
-      - name: Set up Python virtual environment
-        run: |
-          python3.11 -m venv .venv
-          echo "VIRTUAL_ENV=\"${{ github.workspace }}/.venv\"" >> "$GITHUB_ENV"
-          echo "${{ github.workspace }}/.venv/bin" >> "$GITHUB_PATH"
-
-      # --- Verify python version and protobuf ---
+      # --- Setup ---
       - name: Run setup.sh
         run: |
           source .venv/bin/activate
@@ -134,8 +127,6 @@ jobs:
       - name: Install Python requirements
         run: |
           source .venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
 
       # Install dependencies only locally when ACT=true
       - name: Install Act dependencies

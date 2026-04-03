@@ -166,6 +166,23 @@
             "problemMatcher": []
         },
         {
+            "label": "start Pygame input decoder",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_pygame_controller.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "start websocket debug subscriber",
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",
