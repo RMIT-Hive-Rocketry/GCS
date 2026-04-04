@@ -90,6 +90,8 @@ def get_middleware_path(
 
     # Cmake folder
     BUILD_PATH_ABS = os.path.join(os.getcwd(), BUILD_DIR)
+    if not os.path.exists(BUILD_PATH_ABS):
+        os.makedirs(BUILD_PATH_ABS)
     build_path_files = [
         os.path.join(BUILD_PATH_ABS, x) for x in os.listdir(BUILD_PATH_ABS)
     ]
