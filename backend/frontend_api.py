@@ -59,7 +59,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         pendant_sub_socket = context.socket(zmq.SUB)
         pendant_sub_socket.setsockopt(
             zmq.CONFLATE, 1
-        ) # only keep the most recent state
+        )  # only keep the most recent state
         pendant_sub_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
         pendant_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
