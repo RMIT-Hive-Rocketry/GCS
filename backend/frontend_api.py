@@ -21,7 +21,7 @@ import os
 shutdown_event = asyncio.Event()
 
 # NOTE. if this starts getting big, consider just adding things from this into
-# the backend server output trhough protobuf anyway
+# the backend server output through protobuf anyway
 
 
 
@@ -56,6 +56,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     )
 
     PENDANT_PACKET_ID = 10
+    SLOGGER_PACKET_ID = 40
 
     try:
         context = zmq.asyncio.Context()
@@ -82,7 +83,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         poller.register(pendant_sub_socket, zmq.POLLIN)
         poller.register(logging_sub_socket, zmq.POLLIN)
 
-        # Reserved 8 for sending logs ignoreing Protobuf
+        # Reserved 40 for sending logs ignoring Protobuf
+        # reserved 10 for pendant
         packet_handlers = {
             3: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
             4: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
@@ -149,8 +151,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         else:
                             slogger.warning("Frontend logging passthrough Received incorrect packet")
 
-                    if(log_dicts):
-                        output = {"id": 8, "data": {"slogger": log_dicts}}
+                    if log_dicts:
+                        output = {"id": SLOGGER_PACKET_ID, "data": {"slogger": log_dicts}}
 
                         try:
                             await websocket.send(json.dumps(output))
@@ -343,8 +345,7 @@ async def amain():
 
 def main():
 
-
-    global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS, LOG_DIR_PATH
+    global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS
 
 
     #get_newest_messages()
