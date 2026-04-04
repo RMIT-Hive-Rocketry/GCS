@@ -258,7 +258,7 @@ function API_OnMessage(event) {
         apiLatest = JSON.parse(event.data);
 
         // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
-        if (apiLatest.id == 8) {
+        if (apiLatest.id == 40) {
             ///// ----- sLogger PACKETS ----- /////
             displaySloggerLogs(apiLatest.data.slogger);
             return;
