@@ -28,7 +28,7 @@ GSE_SOCKET_PATH = os.path.abspath(
 
 # path to the socket read by frontend api
 FRONTEND_SOCKET_PATH = os.path.abspath(
-    os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
+    os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pub.sock")
 )
 
 
@@ -76,12 +76,12 @@ def send_packet():
         )  # Limit send buffer to 1 message
         gse_push_socket.connect(f"ipc://{GSE_SOCKET_PATH}")
 
-        frontend_push_socket = context.socket(zmq.PUSH)
-        frontend_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
-        frontend_push_socket.setsockopt(
+        frontend_pub_socket = context.socket(zmq.PUB)
+        frontend_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        frontend_pub_socket.setsockopt(
             zmq.SNDHWM, 1
         )  # Limit send buffer to 1 message
-        frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
+        frontend_pub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         previous_packet = {}
 
@@ -120,7 +120,7 @@ def send_packet():
             ):
                 # send to frontend api
                 try:
-                    frontend_push_socket.send_json(
+                    frontend_pub_socket.send_json(
                         pendant_state_dict,
                         flags=zmq.NOBLOCK,
                     )
@@ -136,7 +136,7 @@ def send_packet():
     finally:
         slogger.debug("Packet sender closing socket")
         gse_push_socket.close()
-        frontend_push_socket.close()
+        frontend_pub_socket.close()
         slogger.debug("Packet sender closed socket")
         slogger.debug(f"Packet sender closing context (<{LINGER_TIME_MS}ms)")
         context.term()
