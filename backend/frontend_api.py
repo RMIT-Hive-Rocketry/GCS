@@ -21,7 +21,7 @@ import os
 shutdown_event = asyncio.Event()
 
 # NOTE. if this starts getting big, consider just adding things from this into
-# the backend server output trhough protobuf anyway
+# the backend server output through protobuf anyway
 
 
 def append_data(data: dict, PACKET_ID: int) -> dict:
@@ -42,12 +42,18 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
     return data
 
 
+# TODO Find why might a compile error cause the script to fail silently when i ran an incorrect argument it failed silently without notice or throwing an error
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     FRONTEND_SOCKET_PATH = os.path.abspath(
         os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pub.sock")
     )
 
+    FRONTEND_SOCKET_PATH_LOGGING = os.path.abspath(
+        os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
+    )
+
     PENDANT_PACKET_ID = 10
+    SLOGGER_PACKET_ID = 40
 
     try:
         context = zmq.asyncio.Context()
@@ -63,12 +69,19 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         pendant_sub_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
         pendant_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
+        logging_sub_socket = context.socket(zmq.PULL)
+
+        logging_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH_LOGGING}")
+
         # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
         # ^ more about Poller
         poller = zmq.Poller()
         poller.register(server_sub_socket, zmq.POLLIN)
         poller.register(pendant_sub_socket, zmq.POLLIN)
+        poller.register(logging_sub_socket, zmq.POLLIN)
 
+        # Reserved 40 for sending logs ignoring Protobuf
+        # reserved 10 for pendant
         packet_handlers = {
             3: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
             4: AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
@@ -81,6 +94,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
             try:
                 # poll pendant_daemon socket
                 events = dict(poller.poll(timeout=100))
+                # print(events)
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
@@ -91,7 +105,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     try:
                         await websocket.send(json.dumps(packet))
                     except websockets.ConnectionClosedOK:
-                        pass
+                        break
 
                 if server_sub_socket in events:
                     packet_id = int.from_bytes(
@@ -115,9 +129,49 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         try:
                             await websocket.send(json.dumps(output))
                         except websockets.ConnectionClosedOK:
-                            pass
+                            slogger.debug(f"Websocket Client Disconnected")
+                            break
                     else:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
+
+                if logging_sub_socket in events:
+                    message = await logging_sub_socket.recv_json()
+
+                    log_dicts = []
+
+                    # Go through buffer of logs sent through from handler
+                    for entry in message:
+                        # Check if correct amount of passed data
+                        if len(entry) == 3:
+                            # Append passed logs in correct format to be sent to all web clients
+                            log_dicts.append(
+                                {
+                                    "timestamp": entry[0],
+                                    "level": entry[1],
+                                    "message": entry[2],
+                                }
+                            )
+                        else:
+                            slogger.warning(
+                                "Frontend logging passthrough Received incorrect packet"
+                            )
+
+                    if log_dicts:
+                        output = {
+                            "id": SLOGGER_PACKET_ID,
+                            "data": {"slogger": log_dicts},
+                        }
+
+                        try:
+                            await websocket.send(json.dumps(output))
+                        except websockets.ConnectionClosedOK as ex:
+                            slogger.debug(f"Websocket Client Disconnected")
+                            break  # critical to break out of loop and not pass otherwise will get stuck trying to send to dead client
+
+                    else:
+                        slogger.warning(
+                            "Malformed data sent upstream to front end"
+                        )
 
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
@@ -130,7 +184,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     slogger.info("WebSocket connection closed from ws client")
                 break
             except Exception as e:
-                slogger.error(f"Error fowarding data to websocket: {e}")
+                slogger.error(f"Error forwarding data to websocket: {e}")
                 if shutdown_event.is_set():
                     break
     finally:
@@ -138,6 +192,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         LINGER_TIME_MS = 300
         server_sub_socket.close(linger=LINGER_TIME_MS)
         pendant_sub_socket.close(linger=LINGER_TIME_MS)
+        logging_sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 
@@ -283,7 +338,7 @@ async def amain():
         loop.add_signal_handler(sig, lambda: shutdown_event.set())
 
     server = await websockets.serve(handler, WEBSOCKET_HOST, WEBSOCKET_PORT)
-    slogger.info(
+    slogger.secret(
         f"WebSocket server started at ws://{WEBSOCKET_HOST}:{WEBSOCKET_PORT}"
     )
 
@@ -299,8 +354,10 @@ async def amain():
 
 
 def main():
+
     global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS
 
+    # get_newest_messages()
     WEBSOCKET_HOST = "0.0.0.0"
     WEBSOCKET_PORT = 1887
 
