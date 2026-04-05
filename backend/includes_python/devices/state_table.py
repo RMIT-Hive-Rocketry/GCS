@@ -1,5 +1,50 @@
 import backend.includes_python.process_logging as slogger
-from typing import Self
+from typing import Self, Dict
+from enum import Enum
+
+class PendantInput(Enum):
+    """
+    Represents an input from the physical pendant device
+    """
+    # important stuff
+    SYSTEM_ACTIVE = "SYSTEM_ACTIVE"
+    E_STOP = "E_STOP"
+
+    # first toggle (selector switch)
+    FILL_MODE = "FILL_MODE"
+    STANDBY = "STANDBY"
+    ARMED = "ARMED"
+
+    # second toggle
+    N2O = "N2O"
+    NEUTRAL = "NEUTRAL"
+    PURGE = "PURGE"
+
+    # buttons
+    O2 = "O2"
+    IGNITION = "IGNITION"
+
+class GSEState(Enum):
+    """
+    Represents a state to be sent to GSE
+    """
+    # important stuff
+    SYSTEM_ACTIVE = "SYS_ON"
+
+    # first toggle
+    FILL_MODE = "FILL_SELECTED"
+    ARMED = "IGNITION_SELECTED"
+
+    # second toggle
+    N2O = "N2O_ACTIVE"
+    NEUTRAL = "NEUTRAL_ACTIVE"
+    PURGE = "PURGE_ACTIVE"
+
+    # buttons
+    O2 = "O2_MOMENT_ACTIVE"
+    IGNITION = "IGNITION_MOMENT_ACTIVE"
+
+
 
 
 class StateTable:
