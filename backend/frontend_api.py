@@ -45,7 +45,7 @@ def append_data(data: dict, PACKET_ID: int) -> dict:
 # TODO Find why might a compile error cause the script to fail silently when i ran an incorrect argument it failed silently without notice or throwing an error
 async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     FRONTEND_SOCKET_PATH = os.path.abspath(
-        os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pull.sock")
+        os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pub.sock")
     )
 
     FRONTEND_SOCKET_PATH_LOGGING = os.path.abspath(
@@ -62,11 +62,12 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         server_sub_socket.connect(ZMQ_SUB_SOCKET)
         server_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
-        pendant_sub_socket = context.socket(zmq.PULL)
+        pendant_sub_socket = context.socket(zmq.SUB)
         pendant_sub_socket.setsockopt(
             zmq.CONFLATE, 1
         )  # only keep the most recent state
-        pendant_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
+        pendant_sub_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
+        pendant_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
         logging_sub_socket = context.socket(zmq.PULL)
 
