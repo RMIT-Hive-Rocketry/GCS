@@ -156,7 +156,10 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                             )
 
                     if log_dicts:
-                        output = {"id": SLOGGER_PACKET_ID, "data": {"slogger": log_dicts}}
+                        output = {
+                            "id": SLOGGER_PACKET_ID,
+                            "data": {"slogger": log_dicts},
+                        }
 
                         try:
                             await websocket.send(json.dumps(output))
