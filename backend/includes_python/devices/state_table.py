@@ -91,8 +91,8 @@ class StateTable2:
         # fmt: off    
         conditions: Dict[GSEState, Dict[str, Tuple[PendantInput]]] = {
             GSEState.SYSTEM_ACTIVE: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE),
-                REQUIRED_FALSE: (PendantInput.E_STOP),
+                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE,),
+                REQUIRED_FALSE: (PendantInput.E_STOP,),
                 NONSENSE_TO_BE_TRUE: ()
             },
 
@@ -181,9 +181,9 @@ class StateTable2:
 
         # not readable at all but it looks cool :)
         output = "Pendant States:\n"
-        output += "".join([f"{key: < KEY_COL_WIDTH}: {'[X]' if value else '[ ]'}\n" for key, value in self.states.items()])
+        output += "".join([f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n" for key, value in self.states.items()])
         output += "\nGSE States"
-        output += "".join([f"{key: < KEY_COL_WIDTH}: {'[X]' if value else '[ ]'}\n" for key, value in gse_states.items()])
+        output += "".join([f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n" for key, value in gse_states.items()])
         return output
 
     def __repr__(self):
