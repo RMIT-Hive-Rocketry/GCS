@@ -69,6 +69,8 @@ class StateTable2:
             if key not in PendantInput:
                 slogger.critical(f"key: {key} is not a PendantInput")
                 raise TypeError(f"key: {key} is not a PendantInput")
+        
+        self.states = {}
 
         # build states, assuming any missing input is false
         for key, fallback_value in self.FALLBACK_PENDANT_STATES_DICT.items():
@@ -76,8 +78,6 @@ class StateTable2:
                 self.states[key] = states[key]
             else:
                 self.states[key] = fallback_value
-
-        self.states = states
 
     def get_gse_states(self) -> Dict[GSEState, bool]:
         REQUIRED_TRUE = "required true"
@@ -148,7 +148,6 @@ class StateTable2:
             required_false_conditions = conditions[state][REQUIRED_FALSE]
             nonsense_conditions = conditions[state][NONSENSE_TO_BE_TRUE]
 
-
             state_is_true = True
             
             for required in required_true_conditions:
@@ -171,6 +170,32 @@ class StateTable2:
         
         return gse_state_dict
 
+    @staticmethod
+    def get_fallback_table():
+        return StateTable2(StateTable2.FALLBACK_PENDANT_STATES_DICT)
+    
+    def __str__(self):
+        # constant value so the states line up
+        KEY_COL_WIDTH = 30
+        gse_states = self.get_gse_states()
+
+        # not readable at all but it looks cool :)
+        output = "Pendant States:\n"
+        output += "".join([f"{key: < KEY_COL_WIDTH}: {'[X]' if value else '[ ]'}\n" for key, value in self.states.items()])
+        output += "\nGSE States"
+        output += "".join([f"{key: < KEY_COL_WIDTH}: {'[X]' if value else '[ ]'}\n" for key, value in gse_states.items()])
+        return output
+
+    def __repr__(self):
+        output = "StateTable2({"
+        output += "".join([f"{key}: {'True' if value else 'False'},\n" for key, value in self.states.items()])
+        output += "})"
+        return output
+
+    def __eq__(self, other: Self):
+        print(self.states)
+        print(other.states)
+        return self.states == other.states
 
 class StateTable:
     """
