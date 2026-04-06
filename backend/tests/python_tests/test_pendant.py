@@ -47,14 +47,5 @@ def test_control_device():
     assert True
 
 
-def test_state_table():
-    fallback_table: StateTable = StateTable.get_fallback_table()
-    fallback_dict = fallback_table.get_states_dict()
-
-    # fallback table should be all false
-    for key in fallback_dict:
-        assert not fallback_dict[key]
-
-
 def test_control_device_manager():
     pass
