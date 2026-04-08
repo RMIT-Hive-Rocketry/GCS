@@ -2,7 +2,10 @@ from backend.includes_python.devices.control_device import ControlDevice
 from backend.includes_python.devices.control_device_manager import (
     ControlDeviceManager,
 )
-from backend.includes_python.devices.pendant_state import PendantState, PendantInput
+from backend.includes_python.devices.pendant_state import (
+    PendantState,
+    PendantInput,
+)
 
 
 class ExampleControlDevice(ControlDevice):
@@ -44,7 +47,10 @@ def test_control_device():
     device._update_state_table = estop_true
 
     assert device.get_state_table() == PendantState.get_fallback_table()
-    assert device.get_state_table().get_gse_states() == PendantState.get_fallback_table().get_gse_states() 
+    assert (
+        device.get_state_table().get_gse_states()
+        == PendantState.get_fallback_table().get_gse_states()
+    )
 
 
 def test_control_device_manager():

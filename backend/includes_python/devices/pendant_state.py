@@ -2,10 +2,12 @@ import backend.includes_python.process_logging as slogger
 from typing import Self, Dict, Tuple
 from enum import Enum
 
+
 class PendantInput(Enum):
     """
     Represents an input from the physical pendant device
     """
+
     # important stuff
     SYSTEM_ACTIVE = "SYSTEM_ACTIVE"
     E_STOP = "E_STOP"
@@ -22,11 +24,13 @@ class PendantInput(Enum):
     O2 = "O2"
     IGNITION = "IGNITION"
 
+
 class GSEState(Enum):
     """
     Represents a state to be sent to GSE
     Enum values correspond to legacy names used for device_emulator
     """
+
     # important stuff
     SYSTEM_ACTIVE = "SYS_ON"
 
@@ -50,13 +54,13 @@ class PendantState:
     Has methods which return a Dict suitable for conversion to a GSE packet
     Also has two fallback dicts for the GSE and Pendant
     """
-    
+
     FALLBACK_PENDANT_STATES_DICT: Dict[PendantInput, bool] = {
-        pi : False for pi in PendantInput
+        pi: False for pi in PendantInput
     }
 
     FALLBACK_GSE_STATES_DICT: Dict[GSEState, bool] = {
-        gs : False for gs in GSEState
+        gs: False for gs in GSEState
     }
 
     states: Dict[PendantInput, bool]
@@ -69,7 +73,7 @@ class PendantState:
             if key not in PendantInput:
                 slogger.critical(f"key: {key} is not a PendantInput")
                 raise TypeError(f"key: {key} is not a PendantInput")
-        
+
         self.states = {}
 
         # build states, assuming any missing input is false
@@ -88,7 +92,7 @@ class PendantState:
         # REQUIRED_FALSE are all the pendant states that are required to be off, but is okay if it is on
         # NONSENSE_TO_BE_TRUE are all the pendant states that do not make logical sense to be on, given the GSEState evaluates to true
 
-        # fmt: off    
+        # fmt: off
         conditions: Dict[GSEState, Dict[str, Tuple[PendantInput]]] = {
             GSEState.SYSTEM_ACTIVE: {
                 REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE,),
@@ -142,53 +146,69 @@ class PendantState:
 
         gse_state_dict = {}
 
-        # check conditions 
+        # check conditions
         for state in conditions:
             required_true_conditions = conditions[state][REQUIRED_TRUE]
             required_false_conditions = conditions[state][REQUIRED_FALSE]
             nonsense_conditions = conditions[state][NONSENSE_TO_BE_TRUE]
 
             state_is_true = True
-            
+
             for required in required_true_conditions:
                 if not self.states[required]:
                     state_is_true = False
                     break
-            
+
             for required in required_false_conditions:
                 if self.states[required]:
                     state_is_true = False
                     break
-            
+
             if state_is_true:
                 for nonsense in nonsense_conditions:
                     if self.states[nonsense]:
-                        slogger.warning(f"Impossible Condition detected for {state}: {nonsense}")
+                        slogger.warning(
+                            f"Impossible Condition detected for {state}: {nonsense}"
+                        )
                         return PendantState.FALLBACK_GSE_STATES_DICT
-            
+
             gse_state_dict[state] = state_is_true
-        
+
         return gse_state_dict
 
     @staticmethod
     def get_fallback_table():
         return PendantState(PendantState.FALLBACK_PENDANT_STATES_DICT)
-    
+
     def __str__(self):
         # constant value so the states line up
         KEY_COL_WIDTH = 30
         gse_states = self.get_gse_states()
 
-        # not readable at all but it looks cool :)
         output = "Pendant States:\n"
-        output += "".join([f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n" for key, value in self.states.items()])
+        output += "".join(
+            [
+                f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n"
+                for key, value in self.states.items()
+            ]
+        )
         output += "\nGSE States\n"
-        output += "".join([f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n" for key, value in gse_states.items()])
+        output += "".join(
+            [
+                f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n"
+                for key, value in gse_states.items()
+            ]
+        )
         return output
 
     def __repr__(self):
         output = "PendantState({"
-        output += "".join([f"{key}: {'True' if value else 'False'},\n" for key, value in self.states.items()])
+        output += "".join(
+            [
+                f"{key}: {'True' if value else 'False'},\n"
+                for key, value in self.states.items()
+            ]
+        )
         output += "})"
         return output
 

@@ -1,4 +1,7 @@
-from backend.includes_python.devices.pendant_state import PendantState, PendantInput
+from backend.includes_python.devices.pendant_state import (
+    PendantState,
+    PendantInput,
+)
 from backend.includes_python.devices.pygame_device import Pygame_Device
 import backend.includes_python.process_logging as slogger
 from typing import Dict
