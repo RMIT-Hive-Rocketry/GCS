@@ -106,7 +106,7 @@ function updateTime() {
 }
 
 // Logging code
-function logMessage(message, type = "") {
+function logMessage(message, type = "", timestamp = "") {
     // Make sure log area exists
     const logArea = document.getElementById("errorLogBox");
     if (!logArea) {
@@ -115,11 +115,16 @@ function logMessage(message, type = "") {
     }
 
     // Calculate timestamp
-    let timestamp = "?";
-    if (timestampLocal != undefined && timestampApiConnect != undefined) {
-        timestamp =
-            (timestampLocal + timestampApiConnect - timeDrift).toFixed(1) + "s";
+    if(timestamp == "")
+    {
+        let timestamp = "?";
+        if (timestampLocal != undefined && timestampApiConnect != undefined) {
+            timestamp =
+                (timestampLocal + timestampApiConnect - timeDrift).toFixed(1) + "s";
+        }
     }
+
+
 
     // Handle different message types
     let logName = "Notice";
@@ -129,14 +134,32 @@ function logMessage(message, type = "") {
         logName = "Error";
         textColor = "text-red-400";
         console.error(timestamp, message);
+
     } else if (type == "warning") {
         logName = "Warning";
         textColor = "text-yellow-300";
         console.warn(timestamp, message);
+
     } else if (type == "ws") {
         logName = "WebSocket";
         textColor = "text-emerald-300";
         console.debug(timestamp, message);
+
+    } else if (type == "debug") {
+        logName = "Debug";
+        textColor = "text-white-900";
+        console.debug(timestamp, message);
+
+    } else if (type == "critical") {
+        logName = "CRITICAL";
+        textColor = "text-red-crit";
+        console.error(timestamp, message);
+
+    } else if (type == "success") {
+        logName = "success";
+        textColor = "text-green-300";
+        console.debug(timestamp, message);
+
     } else {
         console.log(timestamp, message);
     }
@@ -233,6 +256,14 @@ function API_OnMessage(event) {
     try {
         // Handle incoming data
         apiLatest = JSON.parse(event.data);
+
+        // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
+        if (apiLatest.id == 40) {
+            ///// ----- sLogger PACKETS ----- /////
+            displaySloggerLogs(apiLatest.data.slogger);
+            return;
+        }
+
 
         // Flag data for errors
         checkErrorConditions(apiLatest.data);
@@ -1083,4 +1114,13 @@ function displayUpdateFlightState(data) {
 
         displaySetString("fs-flightstate", stateName);
     }
+}
+
+
+
+function displaySloggerLogs(apiData)
+{
+    apiData.forEach(log => {
+        logMessage(log.message, log.level.toLowerCase(), log.timestamp);
+    });
 }
