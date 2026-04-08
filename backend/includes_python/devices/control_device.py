@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from backend.includes_python.devices.pendant_state import PendantState, GSEState
+from backend.includes_python.devices.pendant_state import PendantState
 import backend.includes_python.process_logging as slogger
-from typing import Dict
 
 
 class ControlDevice(ABC):
