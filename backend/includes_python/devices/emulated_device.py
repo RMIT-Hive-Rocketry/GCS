@@ -1,4 +1,4 @@
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.pendant_state import PendantState, PendantInput
 from backend.includes_python.devices.pygame_device import Pygame_Device
 import backend.includes_python.process_logging as slogger
 from typing import Dict
@@ -12,19 +12,15 @@ class Emulated_Device(Pygame_Device):
     Based on the Pygame_Device class, even though it doesn't actually use Pygame
     """
 
-    BUTTON_NAME_ID_MAP: Dict[str, int] = {
-        "SYS_ON": 0,
-        "ESTOP": 5,
-        "FILL_SELECTED": 6,
-        "IGNITION_SELECTED": 4,
-        "N2O_ACTIVE": 8,
-        "PURGE_ACTIVE": 3,
-        "O2_MOMENT_ACTIVE": 1,
-        "IGNITION_MOMENT_ACTIVE": 2,
-    }
-
-    BUTTON_ID_NAME_MAP: Dict[int, str] = {
-        v: k for k, v in BUTTON_NAME_ID_MAP.items()
+    BUTTON_INPUT_MAP: Dict[PendantInput, int] = {
+        PendantInput.SYSTEM_ACTIVE: 0,
+        PendantInput.E_STOP: 5,
+        PendantInput.FILL_MODE: 6,
+        PendantInput.ARMED: 4,
+        PendantInput.N2O: 8,
+        PendantInput.PURGE: 3,
+        PendantInput.O2: 1,
+        PendantInput.IGNITION: 2,
     }
 
     BUTTON_SEQUENCE = [
@@ -82,15 +78,10 @@ class Emulated_Device(Pygame_Device):
             states = {btn_name: btn for btn_name, btn in self.buttons.items()}
 
             # Temporary fix for neutral state which isn't wired
-            states["SYS_ON"] = not states["ESTOP"]
-            states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"]
-                and not states["N2O_ACTIVE"]
-                and not states["PURGE_ACTIVE"]
-            )
-            self.state_table = StateTable(**states)
+            states[PendantInput.SYSTEM_ACTIVE] = not states[PendantInput.E_STOP]
+            self.state_table = PendantState(states)
         else:
-            self.state_table = StateTable.get_fallback_table()
+            self.state_table = PendantState.get_fallback_table()
 
     def cleanup(self):
         """Internal cleaup code"""

@@ -1,9 +1,8 @@
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.pendant_state import PendantState, PendantInput
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
 from typing import List, Dict
 
-import os
 import pygame
 
 import time
@@ -56,7 +55,7 @@ class Pygame_Device(ControlDevice):
     # https://stackoverflow.com/questions/5960337/how-to-create-abstract-properties-in-python-abstract-classes
     @property
     @abstractmethod
-    def BUTTON_NAME_ID_MAP(self) -> Dict[str, int]:
+    def BUTTON_NAME_ID_MAP(self) -> Dict[PendantInput, int]:
         pass
 
     @property
@@ -66,10 +65,10 @@ class Pygame_Device(ControlDevice):
 
     # dont recompute every time
     @cached_property
-    def BUTTON_ID_NAME_MAP(self) -> Dict[int, str]:
+    def BUTTON_ID_NAME_MAP(self) -> Dict[int, PendantInput]:
         return {v: k for k, v in self.BUTTON_NAME_ID_MAP.items()}
 
-    buttons: Dict[str, Pygame_Button]
+    buttons: Dict[PendantInput, Pygame_Button]
 
     joystick: pygame.joystick.JoystickType | None
     joystick_id: int | None
@@ -174,21 +173,11 @@ class Pygame_Device(ControlDevice):
             }
 
             # Temporary fix for neutral state which isn't wired
-            states["SYS_ON"] = not states["ESTOP"]
-            states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"]
-                and not states["N2O_ACTIVE"]
-                and not states["PURGE_ACTIVE"]
-            )
+            states[PendantInput.SYSTEM_ACTIVE] = not states[PendantInput.E_STOP]
 
-            # TODO: come up with some logic if estop is pressed
-            # do we want a toggle?
-            # do we want it to just send fallback table?
-            # etc
-
-            self.state_table = StateTable(**states)
+            self.state_table = PendantState(states)
         else:
-            self.state_table = StateTable.get_fallback_table()
+            self.state_table = PendantState.get_fallback_table()
 
     def cleanup(self):
         """Internal cleaup code"""
