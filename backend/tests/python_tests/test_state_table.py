@@ -1,19 +1,19 @@
-from backend.includes_python.devices.state_table import StateTable2, PendantInput, GSEState
+from backend.includes_python.devices.pendant_state import PendantState, PendantInput, GSEState
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
 
 def test_eq_and_constructor():
-    table_1 = StateTable2({})
-    table_2 = StateTable2.get_fallback_table()
+    table_1 = PendantState({})
+    table_2 = PendantState.get_fallback_table()
 
     assert table_1 == table_2
 
-    table_1 = StateTable2({
+    table_1 = PendantState({
         PendantInput.SYSTEM_ACTIVE: True,
         PendantInput.E_STOP: True,
         PendantInput.FILL_MODE: True
     })
-    table_2 = StateTable2({
+    table_2 = PendantState({
         PendantInput.SYSTEM_ACTIVE: True,
         PendantInput.E_STOP: True,
         PendantInput.FILL_MODE: True
@@ -22,7 +22,7 @@ def test_eq_and_constructor():
     assert table_1 == table_2
 
 def test_repr():
-    table_1 = StateTable2.get_fallback_table()
+    table_1 = PendantState.get_fallback_table()
 
     assert table_1 == eval(repr(table_1))
 
@@ -154,7 +154,7 @@ def test_all_correct_states():
     ]
 
     for case in correct_test_cases:
-        table = StateTable2(case[0].to_dict())
+        table = PendantState(case[0].to_dict())
         assert table.get_gse_states() == case[1].to_dict()
 
 def test_nonsense_states():
@@ -164,7 +164,7 @@ def test_nonsense_states():
     ]
 
     for state in nonsense_states:
-        table = StateTable2(state.to_dict())
+        table = PendantState(state.to_dict())
 
         assert table.get_gse_states() == table.get_fallback_table().get_gse_states()
 

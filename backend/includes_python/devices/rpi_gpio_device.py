@@ -1,5 +1,5 @@
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.pendant_state import PendantState
 import backend.includes_python.process_logging as slogger
 
 try:
@@ -67,11 +67,4 @@ class RPI_GPIO_Device(ControlDevice):
             attr: getattr(self, attr)
             for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
-        # Temporary fix for neutral state which isn't wired
-        states["NEUTRAL_ACTIVE"] = (
-            self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
-        )
-        self.state_table = StateTable(**states)
-
-    def cleanup(self) -> None:
-        return super().cleanup()
+        self.state_table = PendantState(states)

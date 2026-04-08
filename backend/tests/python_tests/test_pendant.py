@@ -1,5 +1,8 @@
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.control_device_manager import (
+    ControlDeviceManager,
+)
+from backend.includes_python.devices.pendant_state import PendantState, PendantInput
 
 
 class ExampleControlDevice(ControlDevice):
@@ -17,8 +20,8 @@ class ExampleControlDevice(ControlDevice):
 def test_control_device():
     device = ExampleControlDevice()
 
-    # if _update_state_table returns nothing then we should get get_fallback_table
-    assert device.get_state_table() == StateTable.get_fallback_table()
+    # if _update_state_table retuns nothing then we should get get_fallback_table
+    assert device.get_state_table() == PendantState.get_fallback_table()
 
     def raise_exception(self):
         raise RuntimeError("test")
@@ -26,25 +29,25 @@ def test_control_device():
     device._update_state_table = raise_exception
 
     # if it throws an error we should get_fallback_table
-    assert device.get_state_table() == StateTable.get_fallback_table()
+    assert device.get_state_table() == PendantState.get_fallback_table()
 
-    def estop_true(self):
+    def estop_true(self: ExampleControlDevice):
         estop_true_state = {
-            "SYS_ON": True,
-            "ESTOP": True,
-            "FILL_SELECTED": True,
-            "IGNITION_SELECTED": False,
-            "N2O_ACTIVE": True,
-            "PURGE_ACTIVE": False,
-            "O2_MOMENT_ACTIVE": False,
-            "IGNITION_MOMENT_ACTIVE": False,
+            PendantInput.SYSTEM_ACTIVE: True,
+            PendantInput.E_STOP: True,
+            PendantInput.FILL_MODE: True,
+            PendantInput.ARMED: False,
+            PendantInput.N2O: True,
+            PendantInput.PURGE: False,
+            PendantInput.O2: False,
+            PendantInput.IGNITION: False,
         }
-        return estop_true_state
+        self.state_table = PendantState(estop_true_state)
 
     device._update_state_table = estop_true
 
-    # TODO: figure out exactly what estop does
-    assert True
+    assert device.get_state_table() == PendantState.get_fallback_table()
+    assert device.get_state_table().get_gse_states() == PendantState.get_fallback_table().get_gse_states() 
 
 
 def test_control_device_manager():

@@ -1,4 +1,4 @@
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.pendant_state import PendantState, PendantInput
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
 
@@ -108,15 +108,15 @@ class HID_Device(ControlDevice):
 
     # THESE ARE PROB WRONG, wiring has changed since i got these
     # name: (byte, bit)
-    BITMAP: dict[str, tuple[int, int]] = {
-        "SYS_ON": (1, 5),
-        # "ESTOP": (1, 6),
-        "FILL_SELECTED": (0, 2),
-        "IGNITION_SELECTED": (0, 1),
-        "N2O_ACTIVE": (0, 0),
-        "PURGE_ACTIVE": (1, 7),
-        "O2_MOMENT_ACTIVE": (1, 4),
-        "IGNITION_MOMENT_ACTIVE": (1, 3),
+    BITMAP: Dict[str, Tuple[int, int]] = {
+        PendantInput.SYSTEM_ACTIVE: (1, 5),
+        PendantInput.E_STOP: (1, 6),
+        PendantInput.FILL_MODE: (0, 2),
+        PendantInput.ARMED: (0, 1),
+        PendantInput.N2O: (0, 0),
+        PendantInput.PURGE: (1, 7),
+        PendantInput.O2: (1, 4),
+        PendantInput.IGNITION: (1, 3),
     }
 
     buttons: dict[str, HID_Button]
@@ -170,18 +170,12 @@ class HID_Device(ControlDevice):
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
-            # Temporary fix for neutral state which isn't wired
-            states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"]
-                and not states["N2O_ACTIVE"]
-                and not states["PURGE_ACTIVE"]
-            )
 
-            self.state_table = StateTable(**states)
+            self.state_table = PendantState(states)
 
         except OSError:
             self.device_is_connected = False
-            self.state_table = StateTable.get_fallback_table()
+            self.state_table = PendantState.get_fallback_table()
 
     def cleanup(self):
         self.device.close()
