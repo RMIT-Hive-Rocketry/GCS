@@ -27,6 +27,19 @@ class SubprocessLogHandler(logging.Handler):
 
 """
 
+
+valid_file_extensions = (
+    ".css",
+    ".js",  # CSS, JavaScript
+    ".png",
+    ".jpg",
+    ".ico",
+    ".svg",  # Images
+    ".glb",  # 3D models
+    # Sounds (insert string with appropriate extension when more is known)
+)
+
+
 # Initialise flask app
 def create_app() -> Flask:
     # Create flask app
