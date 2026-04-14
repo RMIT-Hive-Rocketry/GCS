@@ -44,6 +44,16 @@ const timers = {
     launchTimestamp: 0,
 };
 
+var soundOn = true; // Must manually override browser autoplay restrictions
+document.getElementById("toggleMute").innerText = "Mute sound";
+
+// Toggle sound muted (or not)
+function toggleMute() {
+    soundOn = !soundOn // Toggle sound
+    document.getElementById("toggleMute").innerText =
+        soundOn ? "Mute sound" : "Unmute sound";
+}
+
 // Reconnecting code
 function scheduleReconnect() {
     reconnectTimeout = setTimeout(() => {
