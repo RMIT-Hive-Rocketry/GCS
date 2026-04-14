@@ -21,6 +21,7 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_nav.html",
             "horizon/modules/horizon_overview.html",
             "horizon/modules/horizon_radio.html",
+            "horizon/modules/horizon_sounds.html",
         ]
 
         # Define pages for Horizon
@@ -37,9 +38,9 @@ class ConfigHorizon(Config):
         # Module positioning on each page
         self.MODULE_PAGES = {
             "horizon_logos": [
-                ("page-main", 0, 0, 12, 1),
-                ("page-preflight", 0, 0, 12, 1),
-                ("page-control", 0, 0, 12, 1),
+                ("page-main", 0, 0, 6, 1),
+                ("page-preflight", 0, 0, 6, 1),
+                ("page-control", 0, 0, 6, 1),
             ],
             "horizon_radio": [
                 ("page-main", 12, 0, 12, 1),
@@ -52,4 +53,9 @@ class ConfigHorizon(Config):
                 ("page-control", 0, 11, 24, 1),
             ],
             "horizon_overview": [("page-main", 0, 1, 24, 10)],
+            "horizon_sounds": [
+                ("page-main", 6, 0, 6, 1),
+                ("page-preflight", 6, 0, 6, 1),
+                ("page-control", 6, 0, 6, 1),
+            ],
         }
