@@ -1,6 +1,23 @@
 <!-- Sounds module -->
+<script> // For toggling sound on/off
+  // Assume sound is on (this will need to be manually set as such when accessing sounds)
+  soundOn = true;
+
+  function toggleMute() {
+    soundOn = !soundOn // Toggle sound
+    document.getElementById("toggleMute").innerText = soundOn ? "Mute sound"
+                                                              : "Unmute sound";
+  }
+
+  // The button needs the mute state from the get-go
+  window.onload = function() {
+    document.getElementById("toggleMute").innerText = "Mute sound";
+  };
+</script>
+
 <div>
-    <button class="btn">
-      Toggle mute/unmute
+    <button class="btn"
+            id="toggleMute"
+            onclick="toggleMute()">
     </button>
 </div>
