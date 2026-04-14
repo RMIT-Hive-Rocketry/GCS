@@ -151,10 +151,16 @@ body.horizon nav .selected .icon {
     background-color: var(--color-horizon-yellow);
 }
 
-/* Header row never needs to scroll — the row is fixed content */
-body.horizon header .module-horizon,
-body.horizon .module-horizon:has(> img[src*="logo"]),
-body.horizon .module-horizon:has([data-key^="meta.av"]),
-body.horizon .module-horizon:has([data-key^="meta.gse"]) {
-    overflow: hidden;
+.btn {
+  background-color: rgba(255, 223, 32);
+  color: red;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background-color: rgb(112, 98, 18);
 }
