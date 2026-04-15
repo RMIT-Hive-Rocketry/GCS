@@ -80,9 +80,10 @@ def send_packet():
     frontend_complain_timer = RepeatingTimer(5)
 
     controller = get_control_device()
+    
+    frontend_pub_socket = context.socket(zmq.PUB)
 
     try:
-        frontend_pub_socket = context.socket(zmq.PUB)
         frontend_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         frontend_pub_socket.setsockopt(zmq.SNDHWM, 1)
         frontend_pub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
@@ -92,7 +93,7 @@ def send_packet():
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
-            pendant_state_dict = controller.get_states_dict()
+            pendant_state_dict = controller.get_state_table().get_gse_states()
 
             change_in_pendant_data = previous_packet != pendant_state_dict
             previous_packet = pendant_state_dict
