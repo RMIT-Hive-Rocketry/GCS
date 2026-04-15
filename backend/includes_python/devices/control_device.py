@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from backend.includes_python.devices.pendant_state import PendantState
 import backend.includes_python.process_logging as slogger
+from backend.includes_python.timers import RepeatingTimer
 
 
 class ControlDevice(ABC):
@@ -10,6 +11,8 @@ class ControlDevice(ABC):
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
         self.state_table = PendantState.get_fallback_table()
+        # avoid spamming logs if something goes wrong
+        self.complain_timer = RepeatingTimer(10)
 
     @abstractmethod
     def _setup_device(self) -> None:
@@ -26,7 +29,8 @@ class ControlDevice(ABC):
         try:
             self._update_state_table()
         except Exception as e:
-            slogger.warning(f"Failed to update pendant states : {e}")
+            if self.complain_timer.time_has_passed():
+                slogger.warning(f"Failed to update pendant states : {e}")
 
         if not self.state_table:
             slogger.warning(
