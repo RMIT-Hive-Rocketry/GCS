@@ -46,13 +46,14 @@ const timers = {
 };
 
 var soundOn = false;
-const soundsList = [new Audio("sounds/Swedish Chef.mp3")];
-for (const sound in soundsList) {
+const soundsList = ['Swedish Chef'].map(src => new Audio('sounds/' + src + '.mp3'));
+for (let i = 0; i < soundsList.length; ++i) {
     /* Browser autoplay restrictions mean that all sounds are muted
      * before any user interaction has taken place, but all sounds
      * should either be muted (or not).
     */
-    sound.mute = false;
+    console.log(soundsList[i]);
+    soundsList[i].mute = false;
 }
 
 // Toggle sound muted (or not)
@@ -63,13 +64,14 @@ function toggleMute() {
     
     // Stop and reset all sounds
     if (!soundOn) {
-        for (const sound in soundsList) {
-            sound.pause(); // There is no stop method
-            sound.currentTime = 0; // Reset sound to the beginning
+        for (let i = 0; i < soundsList.length; ++i) {
+            soundsList[i].pause(); // There is no stop method
+            soundsList[i].currentTime = 0; // Reset sound to the beginning
         }
     }
-    
-    playSound("ws");
+    else {
+        playSound("ws");
+    }
 }
 
 async function playSound(type) {
