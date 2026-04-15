@@ -36,7 +36,7 @@ valid_file_extensions = (
     ".ico",
     ".svg",  # Images
     ".glb",  # 3D models
-    # Sounds (insert string with appropriate extension when more is known)
+    ".mp3",  # Sounds
 )
 
 

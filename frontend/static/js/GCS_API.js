@@ -45,26 +45,23 @@ const timers = {
 };
 
 // Use to play sounds (gainNode for controlling volume, which is 1, or full volume by default)
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioCtx = new window.AudioContext();
 const gainNode = audioCtx.createGain();
 gainNode.connect(audioCtx.destination);
 
-window.onload = function() {
-    // Mute the audio in line with the browser's autoplay restrictions
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    document.getElementById("toggleMute").innerText = "Unmute sound";
-};
+// Mute the audio in line with the browser's autoplay restrictions
+gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+document.getElementById("toggleMute").innerText = "Unmute sound";
 
 // Toggle sound muted (or not)
 function toggleMute() {
     /* Due to browser's autoplay restrictions, the audio is always muted
-     * while the context is suspended (which requires a user interaction to
-     * unsuspend)
+     * while the context is suspended (which requires a user interaction such
+     * as a click to unsuspend). Given only Horizon is being worked on, just
+     * detecting the click on its respective button is enough.
     */
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(() => {
-            console.log('AudioContext resumed successfully');
-        });
+    if ((audioCtx.state === 'suspended')) {
+        audioCtx.resume().then(() => {});
     }
     
     /* Note that setting gainNode.gain.value could introduce audio artifacts,
@@ -72,19 +69,20 @@ function toggleMute() {
     */
 
     if (gainNode.gain.value === 1) { // Mute
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        document.getElementById("toggleMute").innerText = "Mute sound";
-    }
-    else { // Unmute (the attribute should only be equal to 0 in this)
-        gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
         document.getElementById("toggleMute").innerText = "Unmute sound";
+    }
+    else { // Unmute (the attribute should only be equal to 0 in this case)
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        document.getElementById("toggleMute").innerText = "Mute sound";
+        playSound("ws"); // TEST LINE OF CODE
     }
 }
 
 async function playSound(type) {
     let url;
     if (type === "ws") {
-        url = "C:/Users/miuro/Music/Swedish Chef.mp3";
+        url = "sounds/Swedish Chef.mp3";
     }
 
     const response = await fetch(url);
