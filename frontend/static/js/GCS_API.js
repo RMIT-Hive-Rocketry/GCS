@@ -44,60 +44,45 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Use to play sounds (gainNode for controlling volume, which is 1, or full volume by default)
-const audioCtx = new window.AudioContext();
-const gainNode = audioCtx.createGain();
-gainNode.connect(audioCtx.destination);
-
-// Mute the audio in line with the browser's autoplay restrictions
-gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-document.getElementById("toggleMute").innerText = "Unmute sound";
+var soundOn = false;
+const soundsList = [new Audio("sounds/Swedish Chef.mp3")];
+for (const sound in soundsList) {
+    /* Browser autoplay restrictions mean that all sounds are muted
+     * before any user interaction has taken place, but all sounds
+     * should either be muted (or not).
+    */
+    sound.mute = false;
+}
 
 // Toggle sound muted (or not)
 function toggleMute() {
-    /* Due to browser's autoplay restrictions, the audio is always muted
-     * while the context is suspended (which requires a user interaction such
-     * as a click to unsuspend). Given only Horizon is being worked on, just
-     * detecting the click on its respective button is enough.
-    */
-    if ((audioCtx.state === 'suspended')) {
-        audioCtx.resume().then(() => {});
+    soundOn = !soundOn;
+    document.getElementById("toggleMute").innerHTML =
+            soundOn ? "Mute sound" : "Unmute sound";
+    
+    // Stop and reset all sounds
+    if (!soundOn) {
+        for (const sound in soundsList) {
+            sound.pause(); // There is no stop method
+            sound.currentTime = 0; // Reset sound to the beginning
+        }
     }
     
-    /* Note that setting gainNode.gain.value could introduce audio artifacts,
-     * hence it's recommended to use this approach
-    */
-
-    if (gainNode.gain.value === 1) { // Mute
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        document.getElementById("toggleMute").innerText = "Unmute sound";
-    }
-    else { // Unmute (the attribute should only be equal to 0 in this case)
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-        document.getElementById("toggleMute").innerText = "Mute sound";
-        playSound("ws"); // TEST LINE OF CODE
-    }
+    playSound("ws");
 }
 
 async function playSound(type) {
-    let url;
-    if (type === "ws") {
-        url = "sounds/Swedish Chef.mp3";
+    // Make sure sound is on (method should not be otherwise invoked, anyway)
+    if (soundOn) {
+        switch (type) {
+            case "ws" :
+                soundsList[0].play();
+                break;
+            default:
+                logMessage("Could not play the " + type + " sound", "warning")
+                break;
+        }
     }
-
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    
-    // Decode the raw audio data into a buffer
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  
-    // Create a source node for the buffer
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-  
-    // Connect to the gain (volume) node and play
-    source.connect(gainNode);
-    source.start();
 }
 
 // Reconnecting code
