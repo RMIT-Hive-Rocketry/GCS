@@ -4,6 +4,7 @@ from backend.includes_python.devices.pendant_state import (
 )
 from backend.includes_python.devices.pygame_device import Pygame_Device
 import backend.includes_python.process_logging as slogger
+from typing import List
 import pygame
 import time
 
@@ -14,7 +15,8 @@ class Emulated_Device(Pygame_Device):
     Based on the Pygame_Device class, even though it doesn't actually use Pygame
     """
 
-    BUTTON_INPUT_MAP: Dict[PendantInput, int] = {
+    
+    BUTTON_NAME_ID_MAP = {
         PendantInput.SYSTEM_ACTIVE: 0,
         PendantInput.E_STOP: 5,
         PendantInput.FILL_MODE: 6,
@@ -25,30 +27,34 @@ class Emulated_Device(Pygame_Device):
         PendantInput.IGNITION: 2,
     }
 
-    BUTTON_SEQUENCE = [
+    CONTROLLER_NAME = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
+
+    BUTTON_SEQUENCE: List[List[PendantInput]] = [
         [],
-        ["FILL_SELECTED"],
-        ["FILL_SELECTED", "N2O_ACTIVE"],
-        ["FILL_SELECTED"],
-        ["FILL_SELECTED", "PURGE_ACTIVE"],
-        ["FILL_SELECTED"],
+        [PendantInput.SYSTEM_ACTIVE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.N2O],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.PURGE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
+        [PendantInput.SYSTEM_ACTIVE],
         [],
-        ["IGNITION_SELECTED"],
-        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE"],
-        ["IGNITION_SELECTED"],
-        ["IGNITION_SELECTED", "IGNITION_MOMENT_ACTIVE"],
-        ["IGNITION_SELECTED"],
-        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE", "IGNITION_MOMENT_ACTIVE"],
-        ["IGNITION_SELECTED"],
+        [PendantInput.SYSTEM_ACTIVE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.IGNITION],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE],
         [],
     ]
 
-    CONTROLLER_NAME: str = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
     is_connected: bool = False
 
     def __init__(self):
         super().__init__()
-        self.buttons = {}
 
     def _try_connect_device(self):
         # This device never has connection issues
@@ -72,16 +78,17 @@ class Emulated_Device(Pygame_Device):
             current_buttons = Emulated_Device.BUTTON_SEQUENCE[
                 seconds % len(Emulated_Device.BUTTON_SEQUENCE)
             ]
-
-            for btn_name, btn_id in Emulated_Device.BUTTON_NAME_ID_MAP.items():
+             
+            for btn_name, _ in Emulated_Device.BUTTON_NAME_ID_MAP.items():
                 pressed = btn_name in current_buttons
-                self.buttons[btn_name] = pressed
+                self.buttons[btn_name].update_state(pressed)
 
-            states = {btn_name: btn for btn_name, btn in self.buttons.items()}
+            states = {btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()}
 
-            # Temporary fix for neutral state which isn't wired
-            states[PendantInput.SYSTEM_ACTIVE] = not states[PendantInput.E_STOP]
+            slogger.critical(states)
+
             self.state_table = PendantState(states)
+
         else:
             self.state_table = PendantState.get_fallback_table()
 
