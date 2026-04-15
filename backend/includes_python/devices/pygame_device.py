@@ -4,11 +4,11 @@ from backend.includes_python.devices.pendant_state import (
 )
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
+from typing import List, Dict, ClassVar
 
 import pygame
 
 import time
-from abc import abstractmethod
 from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
 
@@ -51,19 +51,10 @@ class Pygame_Button:
 class Pygame_Device(ControlDevice):
     """
     ABC for devices that use pygame
-    If your extending it, you must define BUTTON_NAME_ID_MAP in the child
+    If your extending it, you must define BUTTON_NAME_ID_MAP and CONTROLLER_NAME in the child
     """
-
-    # https://stackoverflow.com/questions/5960337/how-to-create-abstract-properties-in-python-abstract-classes
-    @property
-    @abstractmethod
-    def BUTTON_NAME_ID_MAP(self) -> Dict[PendantInput, int]:
-        pass
-
-    @property
-    @abstractmethod
-    def CONTROLLER_NAME(self) -> str:
-        pass
+    BUTTON_NAME_ID_MAP: ClassVar[Dict[PendantInput, int]]
+    CONTROLLER_NAME: ClassVar[str]
 
     # dont recompute every time
     @cached_property
@@ -159,7 +150,6 @@ class Pygame_Device(ControlDevice):
                 slogger.error("Pendnat Disconnected")
 
         if self.is_connected and self.joystick is not None:
-            # polling events on mac gave me segfaults
             for btn_name, btn_id in self.BUTTON_NAME_ID_MAP.items():
                 try:
                     pressed = bool(self.joystick.get_button(btn_id))
@@ -173,10 +163,7 @@ class Pygame_Device(ControlDevice):
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
-
-            # Temporary fix for neutral state which isn't wired
-            states[PendantInput.SYSTEM_ACTIVE] = not states[PendantInput.E_STOP]
-
+            
             self.state_table = PendantState(states)
         else:
             self.state_table = PendantState.get_fallback_table()
