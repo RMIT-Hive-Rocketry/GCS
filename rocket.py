@@ -430,7 +430,7 @@ def start_services(
     # 5. Start the pendent emulator
     if not nopendant:
         launch_pendant_daemon = (
-            config.get_config()["hardware"]["send_pendant_packets_to_gse"]
+            config.get_config()["hardware"]["send_pendant_state_to_server"]
             == "true"
         )
         if launch_pendant_daemon:
