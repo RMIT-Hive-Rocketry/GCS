@@ -45,14 +45,62 @@ const timers = {
     launchTimestamp: 0,
 };
 
-var soundOn = true; // Must manually override browser autoplay restrictions
-document.getElementById("toggleMute").innerText = "Mute sound";
+// Use to play sounds (gainNode for controlling volume, which is 1, or full volume by default)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const gainNode = audioCtx.createGain();
+gainNode.connect(audioCtx.destination);
+
+window.onload = function() {
+    // Mute the audio in line with the browser's autoplay restrictions
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    document.getElementById("toggleMute").innerText = "Unmute sound";
+};
 
 // Toggle sound muted (or not)
 function toggleMute() {
-    soundOn = !soundOn // Toggle sound
-    document.getElementById("toggleMute").innerText =
-        soundOn ? "Mute sound" : "Unmute sound";
+    /* Due to browser's autoplay restrictions, the audio is always muted
+     * while the context is suspended (which requires a user interaction to
+     * unsuspend)
+    */
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+            console.log('AudioContext resumed successfully');
+        });
+    }
+    
+    /* Note that setting gainNode.gain.value could introduce audio artifacts,
+     * hence it's recommended to use this approach
+    */
+
+    if (gainNode.gain.value === 1) { // Mute
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        document.getElementById("toggleMute").innerText = "Mute sound";
+    }
+    else { // Unmute (the attribute should only be equal to 0 in this)
+        gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+        document.getElementById("toggleMute").innerText = "Unmute sound";
+    }
+}
+
+async function playSound(type) {
+    let url;
+    if (type === "ws") {
+        url = "C:/Users/miuro/Music/Swedish Chef.mp3";
+    }
+
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // Decode the raw audio data into a buffer
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  
+    // Create a source node for the buffer
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+  
+    // Connect to the gain (volume) node and play
+    source.connect(gainNode);
+    source.start();
 }
 
 // Reconnecting code
@@ -163,8 +211,11 @@ function logMessage(message, type = "") {
         logArea.removeChild(logArea.firstChild);
     }
 
-    // Scroll to bottom of log
-    logArea.scrollTop = logArea.scrollHeight;
+    // // Play the appropriate sound
+    // if (soundOn) { playSound(type); }
+
+    // // Scroll to bottom of log
+    // logArea.scrollTop = logArea.scrollHeight;
 }
 
 document.addEventListener("visibilitychange", function () {
