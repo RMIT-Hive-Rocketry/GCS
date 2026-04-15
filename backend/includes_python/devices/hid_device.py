@@ -1,3 +1,9 @@
+'''
+This has not been tested or even ran at all
+Most likely will have some runtime error if you try it
+Test the crap out of it and fix any bugs before using
+'''
+
 from backend.includes_python.devices.pendant_state import (
     PendantState,
     PendantInput,
@@ -21,7 +27,7 @@ except (ImportError, RuntimeError) as e:
     )
 
     class hid:
-        def Device():
+        def Device(self) -> None:
             raise NotImplementedError(error_message)
 
 
@@ -40,7 +46,7 @@ class HID_Button:
     time_of_last_state_change: float
     button_is_pressed: bool = False
 
-    def __init__(self, byte, bit):
+    def __init__(self, byte: int, bit: int):
         self.byte = byte
         self.bit = bit
         self.bitmask = 1 << bit
@@ -86,7 +92,7 @@ class HID_Button:
         byte_index = HID_Button.USEFUL_BYTE_OFFSET + self.byte
         hid_byte = hid_bytes[byte_index]
 
-        self._try_update_state(hid_byte & self.bitmask)
+        self._try_update_state(bool(hid_byte & self.bitmask))
 
     def is_pressed(self) -> bool:
         return self.button_is_pressed
@@ -112,7 +118,7 @@ class HID_Device(ControlDevice):
 
     # THESE ARE PROB WRONG, wiring has changed since i got these
     # name: (byte, bit)
-    BITMAP: Dict[str, Tuple[int, int]] = {
+    BITMAP: Dict[PendantInput, Tuple[int, int]] = {
         PendantInput.SYSTEM_ACTIVE: (1, 5),
         PendantInput.E_STOP: (1, 6),
         PendantInput.FILL_MODE: (0, 2),
@@ -123,7 +129,7 @@ class HID_Device(ControlDevice):
         PendantInput.IGNITION: (1, 3),
     }
 
-    buttons: Dict[str, HID_Button]
+    buttons: Dict[PendantInput, HID_Button]
 
     device: hid.Device
     device_is_connected: bool = False
@@ -143,12 +149,12 @@ class HID_Device(ControlDevice):
     def _setup_device(self):
         self._try_connect_device()
 
-        for btn_name in HID_Device.BITMAP:
-            self.buttons[btn_name] = HID_Button(*HID_Device.BITMAP[btn_name])
-
     def __init__(self):
         super().__init__()
-        self.buttons = {}
+
+        for btn_name in HID_Device.BITMAP:
+            self.buttons[btn_name] = HID_Button(*HID_Device.BITMAP[btn_name])
+        
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical(
@@ -170,7 +176,7 @@ class HID_Device(ControlDevice):
             for _, btn in self.buttons.items():
                 btn.update_state(bytes)
 
-            states: Dict[str:bool] = {
+            states: Dict[PendantInput, bool] = {
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
