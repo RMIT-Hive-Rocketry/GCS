@@ -45,7 +45,7 @@ const timers = {
     launchTimestamp: 0,
 };
 
-const soundsList = ['Swedish_chef'].map(src => new Audio('sounds/' + src + '.mp3'));
+const soundsList = [].map(src => new Audio('sounds/' + src + '.mp3'));
 for (let i = 0; i < soundsList.length; ++i) {
     // Return all finished sounds back to the beginning
     soundsList[i].addEventListener('ended', function() {
@@ -66,9 +66,6 @@ function toggleMute() {
 
     document.getElementById("toggleMute").innerText =
         allUnmuted() ? "Mute sound" : "Unmute sound";
-    
-    // Test line of code
-    playSound("Swedish_chef");
 }
 
 async function playSound(type) {
