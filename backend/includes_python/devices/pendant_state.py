@@ -1,9 +1,8 @@
 import backend.includes_python.process_logging as slogger
-from typing import Self, Dict, Tuple
-from enum import Enum
+from typing import Dict, Tuple
+from enum import StrEnum
 
-
-class PendantInput(Enum):
+class PendantInput(StrEnum):
     """
     Represents an input from the physical pendant device
     """
@@ -24,8 +23,7 @@ class PendantInput(Enum):
     O2 = "O2"
     IGNITION = "IGNITION"
 
-
-class GSEState(Enum):
+class GSEState(StrEnum):
     """
     Represents a state to be sent to GSE
     Enum values correspond to legacy names used for device_emulator
@@ -56,11 +54,38 @@ class PendantState:
     """
 
     FALLBACK_PENDANT_STATES_DICT: Dict[PendantInput, bool] = {
-        pi: False for pi in PendantInput
+        # important stuff
+        PendantInput.SYSTEM_ACTIVE: True,
+        PendantInput.E_STOP: False,
+
+        # first toggle
+        PendantInput.FILL_MODE: False,
+        PendantInput.ARMED: False,
+
+        # second toggle
+        PendantInput.N2O: False,
+        PendantInput.PURGE: False,
+
+        # buttons
+        PendantInput.O2: False,
+        PendantInput.IGNITION: False,
     }
 
     FALLBACK_GSE_STATES_DICT: Dict[GSEState, bool] = {
-        gs: False for gs in GSEState
+        GSEState.SYSTEM_ACTIVE: True,
+
+        # first toggle
+        GSEState.FILL_MODE: False,
+        GSEState.ARMED: False,
+
+        # second toggle
+        GSEState.N2O: False,
+        GSEState.NEUTRAL: False,
+        GSEState.PURGE: False,
+
+        # buttons
+        GSEState.O2: False,
+        GSEState.IGNITION: False,
     }
 
     states: Dict[PendantInput, bool]
@@ -81,7 +106,7 @@ class PendantState:
             if key in states:
                 self.states[key] = states[key]
             else:
-                self.states[key] = fallback_value
+                self.states[key] = False
 
     def get_gse_states(self) -> Dict[GSEState, bool]:
         REQUIRED_TRUE = "required true"
@@ -93,11 +118,11 @@ class PendantState:
         # NONSENSE_TO_BE_TRUE are all the pendant states that do not make logical sense to be on, given the GSEState evaluates to true
 
         # fmt: off
-        conditions: Dict[GSEState, Dict[str, Tuple[PendantInput]]] = {
+        conditions: Dict[GSEState, Dict[str, Tuple[PendantInput, ...]]] = {
             GSEState.SYSTEM_ACTIVE: {
                 REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE,),
                 REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: ()
+                NONSENSE_TO_BE_TRUE: tuple()
             },
 
             GSEState.FILL_MODE: {
@@ -144,7 +169,7 @@ class PendantState:
         }
         # fmt: on
 
-        gse_state_dict = {}
+        gse_state_dict: Dict[GSEState, bool] = {}
 
         # check conditions
         for state in conditions:
@@ -205,14 +230,14 @@ class PendantState:
         output = "PendantState({"
         output += "".join(
             [
-                f"{key}: {'True' if value else 'False'},\n"
+                f"PendantInput.{key}: {'True' if value else 'False'},\n"
                 for key, value in self.states.items()
             ]
         )
         output += "})"
         return output
 
-    def __eq__(self, other: Self):
+    def __eq__(self, other: object):
         if not isinstance(other, PendantState):
             return NotImplemented
         return self.states == other.states
