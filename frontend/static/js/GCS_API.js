@@ -45,7 +45,10 @@ const timers = {
     launchTimestamp: 0,
 };
 
-const soundsList = [].map(src => new Audio('sounds/' + src + '.mp3'));
+const fileNames = ["Launch", "Coast", "Apogee", "Descent", "Landed",
+                   "AV_GSCE_Connect", "AV_GSCE_Disonnect"];
+const soundsList = fileNames.map(src => new Audio('sounds/' + src + '.mp3'));
+
 for (let i = 0; i < soundsList.length; ++i) {
     // Return all finished sounds back to the beginning
     soundsList[i].addEventListener('ended', function() {
@@ -1125,6 +1128,13 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
+        }
+
+        /* These are the only applicable sounds currently existing,
+         * and they are the 1st ones in the list of filenames
+        */
+        if (1 <= data.flightState <= 5) {
+            playSound(fileNames[data.flightState - 1]);
         }
 
         displaySetString("fs-flightstate", stateName);
