@@ -45,45 +45,48 @@ const timers = {
     launchTimestamp: 0,
 };
 
-var soundOn = false;
-const soundsList = ['Swedish Chef'].map(src => new Audio('sounds/' + src + '.mp3'));
+const soundsList = ['Swedish_chef'].map(src => new Audio('sounds/' + src + '.mp3'));
 for (let i = 0; i < soundsList.length; ++i) {
-    /* Browser autoplay restrictions mean that all sounds are muted
-     * before any user interaction has taken place, but all sounds
-     * should either be muted (or not).
-    */
-    console.log(soundsList[i]);
-    soundsList[i].mute = false;
+    // Return all finished sounds back to the beginning
+    soundsList[i].addEventListener('ended', function() {
+        soundsList[i].currentTime = 0;
+    });
 }
 
-// Toggle sound muted (or not)
+// Check if all sounds are unmuted
+function allUnmuted() {
+    return soundsList.every(audio => audio.muted === false);
+}
+
 function toggleMute() {
-    soundOn = !soundOn;
-    document.getElementById("toggleMute").innerHTML =
-            soundOn ? "Mute sound" : "Unmute sound";
+    // Toggle mute first, then update UI
+    for (let i = 0; i < soundsList.length; ++i) {
+        soundsList[i].muted = !soundsList[i].muted;
+    }
+
+    document.getElementById("toggleMute").innerText =
+        allUnmuted() ? "Mute sound" : "Unmute sound";
     
-    // Stop and reset all sounds
-    if (!soundOn) {
-        for (let i = 0; i < soundsList.length; ++i) {
-            soundsList[i].pause(); // There is no stop method
-            soundsList[i].currentTime = 0; // Reset sound to the beginning
-        }
-    }
-    else {
-        playSound("ws");
-    }
+    // Test line of code
+    playSound("Swedish_chef");
 }
 
 async function playSound(type) {
-    // Make sure sound is on (method should not be otherwise invoked, anyway)
-    if (soundOn) {
-        switch (type) {
-            case "ws" :
-                soundsList[0].play();
-                break;
-            default:
-                logMessage("Could not play the " + type + " sound", "warning")
-                break;
+    // Make sure sound is on (check here to avoid code repetition)
+    if (allUnmuted()) {
+        const soundNumber = soundsList.findIndex(audio => 
+            audio.src.includes(type)
+        );
+
+        /* If the sound isn't found, log it. But only invoke play()
+         * if it's paused (which is true by default and when the sound
+         * finishes).
+        */
+        if ((soundNumber >= 0) && (soundsList[soundNumber].paused)) {
+            soundsList[soundNumber].play();
+        }
+        else if (soundNumber === -1) {
+            logMessage("Could not play the " + type + " sound", "warning");
         }
     }
 }
