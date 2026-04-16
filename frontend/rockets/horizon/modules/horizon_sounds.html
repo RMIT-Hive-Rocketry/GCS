@@ -1,11 +1,8 @@
 <!-- Sounds module -->
-<script>
-    // Unmute the audio (and if the context is suspended, unsuspend it)
-    document.addEventListener('DOMContentLoaded', (event) => {
-       toggleMute();
-    });
-</script>
-
 <div>
-    <button class="btn" id="toggleMute" onclick="toggleMute()"></button>
+    <!-- Include default text as audio will already be unmuted at the start -->
+    <button class="btn"
+            id="toggleMute"
+            onclick="toggleMute()"
+            type="button">Mute sound</button>
 </div>
