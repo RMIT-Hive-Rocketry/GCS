@@ -46,7 +46,7 @@ const timers = {
 };
 
 const fileNames = ["Launch", "Coast", "Apogee", "Descent", "Landed",
-                   "AV_GSCE_Connect", "AV_GSCE_Disonnect"];
+                   "AV_GSCE_Connect", "AV_GSCE_Disonnect", "Error", "Warning"];
 const soundsList = fileNames.map(src => new Audio('sounds/' + src + '.mp3'));
 
 for (let i = 0; i < soundsList.length; ++i) {
@@ -175,10 +175,12 @@ function logMessage(message, type = "") {
         logName = "Error";
         textColor = "text-red-400";
         console.error(timestamp, message);
+        playSound(fileNames[7]);
     } else if (type == "warning") {
         logName = "Warning";
         textColor = "text-yellow-300";
         console.warn(timestamp, message);
+        playSound(fileNames[8]);
     } else if (type == "ws") {
         logName = "WebSocket";
         textColor = "text-emerald-300";
@@ -1128,6 +1130,7 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
+            playSound(fileNames[7]);
         }
 
         /* These are the only applicable sounds currently existing,
