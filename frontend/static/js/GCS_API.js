@@ -46,7 +46,7 @@ const timers = {
 };
 
 const fileNames = ["Launch", "Coast", "Apogee", "Descent", "Landed",
-                   "AV_GSE_Connect", "AV_GSE_Disconnect", "Error", "Warning"];
+                   "Connected", "Disconnected", "Error", "Warning"];
 const soundsList = fileNames.map(src => new Audio('sounds/' + src + '.mp3'));
 
 for (let i = 0; i < soundsList.length; ++i) {
