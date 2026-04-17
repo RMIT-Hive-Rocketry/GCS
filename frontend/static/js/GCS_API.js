@@ -253,6 +253,7 @@ document.addEventListener("visibilitychange", function () {
 function API_socketConnect() {
     // Log connecting and readystate
     logMessage(`Connecting to ${ws_url} (${apiSocket.readyState})`, "ws");
+    playSound(fileNames[5]);
 
     // Socket connected
     apiSocket.onopen = () => {
@@ -261,6 +262,7 @@ function API_socketConnect() {
         if (logVerbose)
             console.log(`Successfully connected to server at: - ${api_url}`);
         logMessage("Successfully connected", "ws");
+        playSound(fileNames[6]);
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -273,6 +275,7 @@ function API_socketConnect() {
         connected = false;
         timestampApiConnect = undefined;
         logMessage(`Websocket error: ${error}`, "ws");
+        playSound(fileNames[8])
     };
 
     // Socket closed
@@ -293,6 +296,7 @@ function API_socketConnect() {
 
         // Log on page
         logMessage("Connection lost error, attempting to reconnect", "ws");
+        playSound(fileNames[7]); // Disconnection
 
         // Attempt reconnecting
         scheduleReconnect();
