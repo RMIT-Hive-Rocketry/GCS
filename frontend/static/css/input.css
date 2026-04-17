@@ -59,6 +59,13 @@
         }
     }
 
+    .module-horizon {
+    & h2:first-of-type::after {
+        @apply text-horizon-pink pl-2;
+        content: "HORIZON";
+        }
+    }
+
     * {
         box-sizing: border-box;
     }
