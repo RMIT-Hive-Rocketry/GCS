@@ -57,6 +57,17 @@ for (let i = 0; i < soundsList.length; ++i) {
     });
 }
 
+async function allPaused() {
+	return new Promise((resolve) => {
+		const checkPaused = setInterval(() => {
+			if (soundsList.every(audio => audio.paused === true)) {
+				clearInterval(checkPaused); // Stop checking
+                resolve() // Move on from the promise
+			}
+		}, 888); // Guarantee that the shortest sound will only go through 2 checks
+	});
+}
+
 // Check if all sounds are unmuted
 function allUnmuted() {
     return soundsList.every(audio => audio.muted === false);
@@ -72,21 +83,18 @@ function toggleMute() {
         allUnmuted() ? "Mute sound" : "Unmute sound";
 }
 
-function playSound(type) {
+async function playSound(type) {
     // Make sure sound is on (check here to avoid code repetition)
     if (allUnmuted()) {
         const soundNumber = soundsList.findIndex(audio => 
             audio.src.includes(type)
         );
 
-        /* If the sound isn't found, log it. But only invoke play()
-         * if it's paused (which is true by default and when the sound
-         * finishes).
-        */
-        if ((soundNumber >= 0) && (soundsList[soundNumber].paused)) {
+        if (soundNumber >= 0) {
+            await allPaused(); // Wait until all sounds are playing
             soundsList[soundNumber].play();
         }
-        else if (soundNumber === -1) { // Should never execute
+        else { // Should never execute
             logMessage("Could not play the " + type + " sound", "error");
         }
     }
