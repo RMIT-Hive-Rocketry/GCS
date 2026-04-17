@@ -86,8 +86,8 @@ function playSound(type) {
         if ((soundNumber >= 0) && (soundsList[soundNumber].paused)) {
             soundsList[soundNumber].play();
         }
-        else if (soundNumber === -1) {
-            logMessage("Could not play the " + type + " sound", "warning");
+        else if (soundNumber === -1) { // Should never execute
+            logMessage("Could not play the " + type + " sound", "error");
         }
     }
 }
