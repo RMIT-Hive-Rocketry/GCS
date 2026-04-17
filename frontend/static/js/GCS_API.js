@@ -1169,7 +1169,7 @@ function displayUpdateFlightState(data) {
         /* These are the only applicable sounds currently existing,
          * and they are the 1st ones in the list of filenames
         */
-        if (1 <= data.flightState <= 5) {
+        if ((1 <= data.flightState) && (data.flightState <= 5)) {
             playSound(fileNames[data.flightState - 1]);
         }
 
