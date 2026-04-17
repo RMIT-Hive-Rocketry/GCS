@@ -1167,10 +1167,16 @@ function displayUpdateFlightState(data) {
         }
 
         /* These are the only applicable sounds currently existing,
-         * and they are the 1st ones in the list of filenames
+         * and they are the 1st ones in the list of filenames. Note that
+         * the states are displayed on the screen are because data.flightstate
+         * is the right number (or string, with stateName being the
+         * sentence-case counterpart)
         */
         if ((1 <= data.flightState) && (data.flightState <= 5)) {
             playSound(fileNames[data.flightState - 1]);
+        }
+        else if (["Launch", "Coast", "Apogee", "Descent", "Landed"].includes(stateName)) {
+            playSound(stateName);
         }
 
         displaySetString("fs-flightstate", stateName);
