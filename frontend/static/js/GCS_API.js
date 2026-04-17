@@ -45,7 +45,7 @@ const timers = {
 };
 
 const fileNames = ["Launch", "Coast", "Apogee", "Descent", "Landed",
-                   "AV_GSCE_Connect", "AV_GSCE_Disonnect"];
+                   "AV_GSCE_Connect", "AV_GSCE_Disonnect", "Error", "Warning"];
 const soundsList = fileNames.map(src => new Audio('sounds/' + src + '.mp3'));
 
 for (let i = 0; i < soundsList.length; ++i) {
@@ -201,11 +201,20 @@ function logMessage(message, logType = "", timestamp = "") {
         },
     }
 
-    let logName, textColor;
-    if (Object.keys(messageTypes).indexOf(logType) != -1) {
-        logName = messageTypes[logType].logName;
-        textColor = messageTypes[logType].textColor;
-        messageTypes[logType].function(timestamp, message);
+    if (type == "error") {
+        logName = "Error";
+        textColor = "text-red-400";
+        console.error(timestamp, message);
+        playSound(fileNames[7]);
+    } else if (type == "warning") {
+        logName = "Warning";
+        textColor = "text-yellow-300";
+        console.warn(timestamp, message);
+        playSound(fileNames[8]);
+    } else if (type == "ws") {
+        logName = "WebSocket";
+        textColor = "text-emerald-300";
+        console.debug(timestamp, message);
     } else {
         logName = "Notice";
         textColr = "text-white";
@@ -1157,6 +1166,7 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
+            playSound(fileNames[7]);
         }
 
         /* These are the only applicable sounds currently existing,
