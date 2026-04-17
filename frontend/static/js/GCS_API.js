@@ -70,7 +70,7 @@ function toggleMute() {
         allUnmuted() ? "Mute sound" : "Unmute sound";
 }
 
-async function playSound(type) {
+function playSound(type) {
     // Make sure sound is on (check here to avoid code repetition)
     if (allUnmuted()) {
         const soundNumber = soundsList.findIndex(audio => 
@@ -232,9 +232,6 @@ function logMessage(message, logType = "", timestamp = "") {
     while (logArea.children.length > maxlines) {
         logArea.removeChild(logArea.firstChild);
     }
-
-    // // Play the appropriate sound
-    // if (soundOn) { playSound(type); }
 
     // // Scroll to bottom of log
     // logArea.scrollTop = logArea.scrollHeight;
