@@ -63,8 +63,15 @@ function toggleMute() {
         soundsList[i].muted = !soundsList[i].muted;
     }
 
-    document.getElementById("toggleMute").innerText =
-        allUnmuted() ? "Mute sound" : "Unmute sound";
+    // Icon represents current state
+    if (allUnmuted()) {
+        document.getElementById("toggleMuteIcon").src = "img/icons/sound-unmute.svg";
+        document.getElementById("toggleMuteIcon").alt = "Sound unmuted";
+    }
+    else {
+        document.getElementById("toggleMuteIcon").src = "img/icons/sound-mute.svg";
+        document.getElementById("toggleMuteIcon").alt = "Sound muted";
+    }
 }
 
 function playSound(type) {
