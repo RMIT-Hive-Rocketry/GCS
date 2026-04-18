@@ -38,16 +38,7 @@ body.horizon nav .selected .icon {
     background-color: var(--color-horizon-yellow);
 }
 
-.btn {
-  background-color: rgba(255, 223, 32);
-  color: red;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.btn:hover {
-  background-color: rgb(112, 98, 18);
+.toggleMuteIcon { /* Required for .svg images */
+    filter: brightness(0) saturate(100%) invert(100%) sepia(8%)
+            saturate(7442%) hue-rotate(303deg) brightness(117%) contrast(114%);
 }

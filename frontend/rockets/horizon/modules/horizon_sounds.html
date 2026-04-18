@@ -1,8 +1,8 @@
 <!-- Sounds module -->
 <div>
-    <!-- Include default text as audio will already be unmuted at the start -->
-    <button class="btn"
-            id="toggleMute"
-            onclick="toggleMute()"
-            type="button">Mute sound</button>
+    <!-- Icon represents current state -->
+    <button id="toggleButton" type="button" onclick=toggleMute()>
+        <img id="toggleMuteIcon" class="toggleMuteIcon"
+        src="img/icons/sound-unmute.svg" alt="Sound unmuted">
+    </button>
 </div>
