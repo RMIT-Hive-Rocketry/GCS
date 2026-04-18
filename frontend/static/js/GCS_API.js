@@ -45,27 +45,12 @@ const timers = {
     launchTimestamp: 0,
 };
 
-const fileNames = ["Launch", "Coast", "Apogee", "Descent", "Landed", // Flight status (0-4)
-                   "Connecting", "Connected", "Disconnected", // Connections (5-7)
-                   "Error", "Warning"]; // logMessage()-related (8, 9)
-const soundsList = fileNames.map(src => new Audio('sounds/' + src + '.mp3'));
-
+const soundsList = [].map(src => new Audio('sounds/' + src + '.mp3'));
 for (let i = 0; i < soundsList.length; ++i) {
     // Return all finished sounds back to the beginning
     soundsList[i].addEventListener('ended', function() {
         soundsList[i].currentTime = 0;
     });
-}
-
-async function allPaused() {
-	return new Promise((resolve) => {
-		const checkPaused = setInterval(() => {
-			if (soundsList.every(audio => audio.paused === true)) {
-				clearInterval(checkPaused); // Stop checking
-                resolve() // Move on from the promise
-			}
-		}, 888); // Guarantee that the shortest sound will only go through 2 checks
-	});
 }
 
 // Check if all sounds are unmuted
@@ -83,7 +68,7 @@ function toggleMute() {
         allUnmuted() ? "Mute sound" : "Unmute sound";
 }
 
-async function playSound(type) {
+function playSound(type) {
     // Make sure sound is on (check here to avoid code repetition)
     if (allUnmuted()) {
         const soundNumber = soundsList.findIndex(audio => 
@@ -91,7 +76,6 @@ async function playSound(type) {
         );
 
         if (soundNumber >= 0) {
-            await allPaused(); // Wait until all sounds are playing
             soundsList[soundNumber].play();
         }
         else { // Should never execute
@@ -184,12 +168,10 @@ function logMessage(message, type = "") {
         logName = "Error";
         textColor = "text-red-400";
         console.error(timestamp, message);
-        playSound(fileNames[8]);
     } else if (type == "warning") {
         logName = "Warning";
         textColor = "text-yellow-300";
         console.warn(timestamp, message);
-        playSound(fileNames[9]);
     } else if (type == "ws") {
         logName = "WebSocket";
         textColor = "text-emerald-300";
@@ -229,7 +211,6 @@ document.addEventListener("visibilitychange", function () {
 function API_socketConnect() {
     // Log connecting and readystate
     logMessage(`Connecting to ${ws_url} (${apiSocket.readyState})`, "ws");
-    playSound(fileNames[5]);
 
     // Socket connected
     apiSocket.onopen = () => {
@@ -238,7 +219,6 @@ function API_socketConnect() {
         if (logVerbose)
             console.log(`Successfully connected to server at: - ${api_url}`);
         logMessage("Successfully connected", "ws");
-        playSound(fileNames[6]);
         clearTimeout(reconnectTimeout);
         reconnectInterval = initialReconnectInterval;
     };
@@ -251,7 +231,6 @@ function API_socketConnect() {
         connected = false;
         timestampApiConnect = undefined;
         logMessage(`Websocket error: ${error}`, "ws");
-        playSound(fileNames[8])
     };
 
     // Socket closed
@@ -272,7 +251,6 @@ function API_socketConnect() {
 
         // Log on page
         logMessage("Connection lost error, attempting to reconnect", "ws");
-        playSound(fileNames[7]); // Disconnection
 
         // Attempt reconnecting
         scheduleReconnect();
@@ -1140,20 +1118,6 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
-            playSound(fileNames[8]); // Error of sorts
-        }
-
-        /* These are the only applicable sounds currently existing,
-         * and they are the 1st ones in the list of filenames. Note that
-         * the states are displayed on the screen are because data.flightstate
-         * is the right number (or string, with stateName being the
-         * sentence-case counterpart)
-        */
-        if ((1 <= data.flightState) && (data.flightState <= 5)) {
-            playSound(fileNames[data.flightState - 1]);
-        }
-        else if (["Launch", "Coast", "Apogee", "Descent", "Landed"].includes(stateName)) {
-            playSound(stateName);
         }
 
         displaySetString("fs-flightstate", stateName);
