@@ -49,8 +49,7 @@
 
         const containerID = "rocketContainerHorizon";
         const canvasID = "rocketCanvasHorizon";
-        /*const rocketModel = "/horizon/static/assets/rocket_horizon.glb";*/
-        const rocketModel = "/legacy/static/assets/rocket_legacy3.glb";
+        const rocketModel = "/horizon/static/assets/rocket_horizon.glb";
 
         // === Core Variables ===
         let rocket = null; // The main rocket model group
@@ -99,10 +98,10 @@
 
             // === Lighting Configuration (balanced accordingly for model clarity) ===
             const lights = [
-                new THREE.DirectionalLight(0xffffff, 1),
-                new THREE.DirectionalLight(0xffffff, 1),
+                new THREE.DirectionalLight(0xffffff, 2),
+                new THREE.DirectionalLight(0xffffff, 2),
                 new THREE.SpotLight(0xffffff, 3),
-                new THREE.HemisphereLight(0xb1e1ff, 0x000000, 0.1),
+                new THREE.HemisphereLight(0xb1e1ff, 0x444444, 0.5),
             ];
             lights[0].position.set(15, 30, 20);
             lights[1].position.set(-15, 20, -10);
@@ -114,8 +113,13 @@
             lights.forEach((light) => scene.add(light));
 
             // Ambient light
-            const light = new THREE.AmbientLight(0xffffff); // soft white light
+            const light = new THREE.AmbientLight(0xffffff, 2); // soft white light
             scene.add(light);
+
+            // Added new camera light because horizon model still just appears too dark without it
+            const cameraLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            camera.add(cameraLight);
+            scene.add(camera); // camera must be added to scene for its children to work
 
             // === Load and Setup Rocket Model ===
             new GLTFLoader().load(
