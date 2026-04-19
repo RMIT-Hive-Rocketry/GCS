@@ -44,12 +44,11 @@ const timers = {
     launchTimestamp: 0,
 };
 
-const soundsList = ["AV", "GSE", "Dual_Board", "GPS_Fix"].map(src => new Audio('sounds/' + src + '_Loss.mp3'));
+const filenames = ["AV", "GSE", "Dual_Board", "GPS_Fix"];
+const soundsList = filenames.map(src => new Audio('sounds/' + src + '_Loss.mp3'));
 for (let i = 0; i < soundsList.length; ++i) {
-    // Return all finished sounds back to the beginning
-    soundsList[i].addEventListener('ended', function() {
-        soundsList[i].currentTime = 0;
-    });
+    // Loop all sounds until manually reset
+    soundsList[i].loop = true;
 }
 
 // Check if all sounds are unmuted
@@ -92,6 +91,23 @@ function playSound(type) {
         else { // Should never execute
             logMessage("Could not play the " + type + " sound", "error");
         }
+    }
+}
+
+function resetSound(type) { // Manual reset
+    /* Sound should be unmuted regardless, but if it isn't, this function
+     * makes no difference.
+    */
+    const soundNumber = soundsList.findIndex(audio => 
+        audio.src.includes(type)
+    );
+
+    if (soundNumber >= 0) {
+        soundsList[soundNumber].pause(); // Stop the sound
+        soundsList[soundNumber].currentTime = 0; // Reset back to the beginning
+    }
+    else { // Should never execute
+        logMessage("Could not stop the " + type + " sound", "error");
     }
 }
 
