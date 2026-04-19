@@ -84,3 +84,8 @@ body.horizon .module-horizon h2:first-of-type {
     background-position: top left;
     padding-top: 2px;
 }
+
+/* Hide overflow on the rocket module — the 3D canvas manages its own sizing */
+body.horizon .module-horizon:has(#rocketCanvasHorizon) {
+    overflow: hidden;
+}
