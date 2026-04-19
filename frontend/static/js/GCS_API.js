@@ -64,14 +64,18 @@ function toggleMute() {
         soundsList[i].muted = !soundsList[i].muted;
     }
 
-    // Icon represents current state
+    /* Icon represents current state
+     * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
+     * modified by changing the colour to a Horizon-themed gradient (and converting to PNG for
+     * the time being until I figure out how to make the same icon-button but in SVG format).
+    */
     if (allUnmuted()) {
-        document.getElementById("toggleMuteIcon").src = "img/icons/sound-unmute.svg";
-        document.getElementById("toggleMuteIcon").alt = "Sound unmuted";
+        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.png";
+        document.getElementById("toggleIcon").alt = "Sound unmuted";
     }
     else {
-        document.getElementById("toggleMuteIcon").src = "img/icons/sound-mute.svg";
-        document.getElementById("toggleMuteIcon").alt = "Sound muted";
+        document.getElementById("toggleIcon").src = "img/icons/sound-muted.png";
+        document.getElementById("toggleIcon").alt = "Sound muted";
     }
 }
 
