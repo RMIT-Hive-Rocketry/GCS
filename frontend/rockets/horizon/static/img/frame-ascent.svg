@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="630" height="700" viewBox="0 0 630 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Thin side rail guides -->
+  <line x1="5" y1="80" x2="5" y2="620" stroke="#9e193c" stroke-width="1" opacity="0.4"/>
+  <line x1="625" y1="80" x2="625" y2="620" stroke="#9e193c" stroke-width="1" opacity="0.4"/>
+
+  <!-- Altitude tick marks: left side -->
+  <g stroke="#f63356" stroke-width="1.5" opacity="0.55">
+    <line x1="5" y1="100" x2="30" y2="100"/>
+    <line x1="5" y1="150" x2="20" y2="150"/>
+    <line x1="5" y1="200" x2="30" y2="200"/>
+    <line x1="5" y1="250" x2="20" y2="250"/>
+    <line x1="5" y1="300" x2="30" y2="300"/>
+    <line x1="5" y1="350" x2="20" y2="350"/>
+    <line x1="5" y1="400" x2="30" y2="400"/>
+    <line x1="5" y1="450" x2="20" y2="450"/>
+    <line x1="5" y1="500" x2="30" y2="500"/>
+    <line x1="5" y1="550" x2="20" y2="550"/>
+    <line x1="5" y1="600" x2="30" y2="600"/>
+  </g>
+
+  <!-- Altitude tick marks: right side -->
+  <g stroke="#f63356" stroke-width="1.5" opacity="0.55">
+    <line x1="600" y1="100" x2="625" y2="100"/>
+    <line x1="610" y1="150" x2="625" y2="150"/>
+    <line x1="600" y1="200" x2="625" y2="200"/>
+    <line x1="610" y1="250" x2="625" y2="250"/>
+    <line x1="600" y1="300" x2="625" y2="300"/>
+    <line x1="610" y1="350" x2="625" y2="350"/>
+    <line x1="600" y1="400" x2="625" y2="400"/>
+    <line x1="610" y1="450" x2="625" y2="450"/>
+    <line x1="600" y1="500" x2="625" y2="500"/>
+    <line x1="610" y1="550" x2="625" y2="550"/>
+    <line x1="600" y1="600" x2="625" y2="600"/>
+  </g>
+
+  <!-- Sunrise-layered horizon lines at bottom -->
+  <line x1="50" y1="650" x2="580" y2="650" stroke="#ffd931" stroke-width="2" opacity="0.9"/>
+  <line x1="30" y1="670" x2="600" y2="670" stroke="#f63356" stroke-width="2.5" opacity="0.85"/>
+  <line x1="10" y1="690" x2="620" y2="690" stroke="#9e193c" stroke-width="3" opacity="0.8"/>
+</svg>
