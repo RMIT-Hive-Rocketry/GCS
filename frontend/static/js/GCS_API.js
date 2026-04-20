@@ -1079,7 +1079,25 @@ function displaySetState(item, value, timeout = {}) {
                  * elem.classList.value is the styling itself (use this so that
                  * in case the interested state/s exist elsewhere in the string)
                 */
-                elem.classList.value.includes("green") ? resetSound(sound) : playSound(sound);
+
+                if (elem.classList.value.includes("green")) {
+                    resetSound(sound);
+                }
+                else {
+                    /* May not be required, but prevent alarms from sounding momentarily
+                     * (as happens in --experimental mode) as that would cause a big noise.
+                    */
+                    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+                    async function wait() {
+                        await sleep(2000); // Wait out momentary transients
+                    }
+                    wait();
+
+                    // If the alarm is still there, play the sound
+                    if (elem.classList.value.includes("green")) {
+                        playSound(sound);
+                    }
+                }
             }
 
             if (timeout != undefined && Object.keys(timeout).length > 0) {
