@@ -86,7 +86,7 @@ function playSound(sound) {
         );
 
         // Play the sound if found, does nothing if already playing
-        if ((soundNumber >= 0) && soundsList[soundNumber].paused) {
+        if (soundNumber >= 0) {
             soundsList[soundNumber].play();
         }
         else { // Should never execute
