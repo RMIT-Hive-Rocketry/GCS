@@ -1085,12 +1085,11 @@ function displaySetState(item, value, timeout = {}) {
 
                 if (timeout != undefined && Object.keys(timeout).length > 0) {
                     Object.entries(timeout).forEach(([ms, state]) => {
-                        clearTimeout(timeouts[[elem, ms]]);
-                        timeouts[[elem, ms]] = setTimeout(() => {
-                            displaySetState(elem, state); // timeout
-                        }, parseInt(ms));
-                    });
-                }
+                    clearTimeout(timeouts[[elem, ms]]);
+                    timeouts[[elem, ms]] = setTimeout(() => {
+                        displaySetState(elem, state); // timeout
+                    }, parseInt(ms));
+                });
             }
         });
     }
