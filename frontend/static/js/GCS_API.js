@@ -79,28 +79,29 @@ function toggleMute() {
     }
 }
 
-function playSound(type) {
+function playSound(sound) {
     // Make sure sound is on (check here to avoid code repetition)
     if (allUnmuted()) {
         const soundNumber = soundsList.findIndex(audio => 
-            audio.src.includes(type)
+            audio.src.includes(sound)
         );
 
-        if (soundNumber >= 0) {
+        // Play the sound if found, does nothing if already playing
+        if ((soundNumber >= 0) && soundsList[soundNumber].paused) {
             soundsList[soundNumber].play();
         }
         else { // Should never execute
-            logMessage("Could not play the " + type + " sound", "error");
+            logMessage("Could not play the " + sound + " sound", "error");
         }
     }
 }
 
-function resetSound(type) { // Manual reset
+function resetSound(sound) { // Manual reset
     /* Sound should be unmuted regardless, but if it isn't, this function
      * makes no difference.
     */
     const soundNumber = soundsList.findIndex(audio => 
-        audio.src.includes(type)
+        audio.src.includes(sound)
     );
 
     if (soundNumber >= 0) {
@@ -108,7 +109,7 @@ function resetSound(type) { // Manual reset
         soundsList[soundNumber].currentTime = 0; // Reset back to the beginning
     }
     else { // Should never execute
-        logMessage("Could not stop the " + type + " sound", "error");
+        logMessage("Could not stop the " + sound + " sound", "error");
     }
 }
 
