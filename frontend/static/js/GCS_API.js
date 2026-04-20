@@ -44,12 +44,15 @@ const timers = {
     launchTimestamp: 0,
 };
 
-const filenames = ["AV", "GSE", "Dual_Board", "GPS_Fix"];
-const soundsList = filenames.map(src => new Audio('sounds/' + src + '_Loss.mp3'));
-for (let i = 0; i < soundsList.length; ++i) {
-    // Loop all sounds until manually reset
-    soundsList[i].loop = true;
-}
+// Valid names of sounds to be called
+const filenames = ["AV_Loss", "GSE_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+
+/* Store current sounds playing, so that separate Audio() objects can be called
+ * and not overload the browser (which might cause only one type of sound to ever
+ * be played).
+*/
+const soundsList = [];
+
 
 // Check if all sounds are unmuted
 function allUnmuted() {
@@ -78,37 +81,32 @@ function toggleMute() {
     }
 }
 
+// Start sound
 function playSound(sound) {
-    // Make sure sound is on (check here to avoid code repetition)
-    if (allUnmuted()) {
-        const soundNumber = soundsList.findIndex(audio => 
-            audio.src.includes(sound)
-        );
+    const soundNumber = filenames.indexOf(sound);
 
-        // Play the sound if found, does nothing if already playing
-        if (soundNumber >= 0) {
-            soundsList[soundNumber].play();
-        }
-        else { // Should never execute
-            logMessage("Could not play the " + sound + " sound", "error");
-        }
+    /* Play the sound if found, does nothing if already playing.
+     * Mute does not need to be checked in this function or the next as
+     * otherwise (for example), a sound that's meant to start would never
+     * do so if the user originally had the mute on.
+    */
+    if (soundNumber >= 0) {
+        newSound = new Audio("sounds/" + filenames[soundNumber] + ".mp3")
+        newSound.loop = true // Loop until reset
+        newSound.play();
+
+        soundsList.push(newSound); // Add to list
     }
 }
-
-function resetSound(sound) { // Manual reset
-    /* Sound should be unmuted regardless, but if it isn't, this function
-     * makes no difference.
-    */
+// Manual reset
+function resetSound(sound) {
     const soundNumber = soundsList.findIndex(audio => 
         audio.src.includes(sound)
     );
-
+    
     if (soundNumber >= 0) {
         soundsList[soundNumber].pause(); // Stop the sound
-        soundsList[soundNumber].currentTime = 0; // Reset back to the beginning
-    }
-    else { // Should never execute
-        logMessage("Could not stop the " + sound + " sound", "error");
+        soundsList.splice(soundNumber, 1); // Remove from list
     }
 }
 
@@ -1082,9 +1080,10 @@ function displaySetState(item, value, timeout = {}) {
                  * in case the interested state/s exist elsewhere in the string)
                 */
                 elem.classList.value.includes("green") ? resetSound(sound) : playSound(sound);
+            }
 
-                if (timeout != undefined && Object.keys(timeout).length > 0) {
-                    Object.entries(timeout).forEach(([ms, state]) => {
+            if (timeout != undefined && Object.keys(timeout).length > 0) {
+                Object.entries(timeout).forEach(([ms, state]) => {
                     clearTimeout(timeouts[[elem, ms]]);
                     timeouts[[elem, ms]] = setTimeout(() => {
                         displaySetState(elem, state); // timeout
