@@ -1,97 +1,84 @@
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
-    <head>
-        <meta charset="utf-8" />
-        <meta
-            name="viewport"
-            content="width=1920, height=1080, initial-scale=1"
-        />
-        <title>{{ active.ROCKET_NAME }} - RMIT High Velocity</title>
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="/css/tailwind.css"
-            media="screen"
-        />
-        <style>
-            {{ active.CSS }}
-        </style>
-        {% for stylesheet in active.STYLESHEETS %}
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="{{stylesheet}}"
-            media="screen"
-        />
-        {% endfor %}
-    </head>
 
-    <body
-        class="{{name}} max-w-screen max-h-screen w-screen h-screen flex flex-col overflow-hidden"
-    >
-        <!-- Main body grid, size is dynamically allocated depending on the config -->
-        <!-- For Legacy3, Atlas it's 12x12 (secretly 12x13 but the header is static) -->
-        <!-- For Horizon it's 24x12, with each grid section being ~80x75 pixels -->
-        <main
-            class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
-            id="{{active.PAGES[0]['id']}}"
-        >
-            {% for module in active.MODULES %} {% if
-            module.split("/")[-1].split(".")[0] in active.MODULE_PAGES %}
-            <div
-                class="{{active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}}"
-            >
-                {% include 'rockets/' ~ module %}
-            </div>
-            {% endif %} {% endfor %}
-        </main>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
+    <title>{{ active.ROCKET_NAME }} - RMIT High Velocity</title>
+    <link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
+    <style>
+        {{active.CSS}}
+    </style>
+    {% for stylesheet in active.STYLESHEETS %}
+    <link rel="stylesheet" type="text/css" href="{{stylesheet}}" media="screen" />
+    {% endfor %}
+</head>
 
-        <script src="/js/GCS_API.js"></script>
-        <script src="/js/GCS_Testing.js"></script>
+<body class="{{name}} max-w-screen max-h-screen w-screen h-screen flex flex-col overflow-visible">
+    <!-- Main body grid, size is dynamically allocated depending on the config -->
+    <!-- For Legacy3, Atlas it's 12x12 (secretly 12x13 but the header is static) -->
+    <!-- For Horizon it's 24x12, with each grid section being ~80x75 pixels -->
+    <main
+        class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
+        id="{{active.PAGES[0]['id']}}">
+        {% for module in active.MODULES %} {% if
+        module.split("/")[-1].split(".")[0] in active.MODULE_PAGES %}
+        <div class="{{active.MODULE_CLASSES[module.split('/')[-1].split('.')[0]]}} overflow-visible">
+            {% include 'rockets/' ~ module %}
+        </div>
+        {% endif %} {% endfor %}
+    </main>
 
-        <script src="/js/libraries/d3.min.js"></script>
-        <script src="/js/GCS_Graphs.js"></script>
+    <script src="/js/GCS_API.js"></script>
+    <script src="/js/GCS_Testing.js"></script>
 
-        <script>
-            // PAGE SWITCHING CODE
-            function displaySelectModule(selected) {
-                document.querySelector("main").id = selected;
-            }
+    <script src="/js/libraries/d3.min.js"></script>
+    <script src="/js/GCS_Graphs.js"></script>
 
-            if (document.querySelector("nav")) {
-                // Get selected page
-                var selected = window.location.hash
-                    ? this.window.location.hash.substring(1)
-                    : document.querySelector("nav a").href.split("#")[1];
+    <script>
+        // PAGE SWITCHING CODE
+        function displaySelectModule(selected) {
+            document.querySelector("main").id = selected;
+        }
 
-                // Determine which modules are "selected"
-                displaySelectModule(selected);
+        if (document.querySelector("nav")) {
+            // Get selected page
+            var selected = window.location.hash
+                ? this.window.location.hash.substring(1)
+                : document.querySelector("nav a").href.split("#")[1];
 
-                // Highlight selected tab link
-                document
-                    .querySelector(`a[href='#${selected}']`)
-                    .classList.add("selected");
+            // Determine which modules are "selected"
+            displaySelectModule(selected);
 
-                // Switch tabs when links are pressed
-                document.querySelectorAll("nav a").forEach((elem) => {
-                    elem.addEventListener("click", (event) => {
-                        event.preventDefault();
+            // Highlight selected tab link
+            document
+                .querySelector(`a[href='#${selected}']`)
+                .classList.add("selected");
 
-                        // Switch tabs
-                        selected = elem.href.split("#")[1];
-                        displaySelectModule(selected);
+            // Switch tabs when links are pressed
+            document.querySelectorAll("nav a").forEach((elem) => {
+                elem.addEventListener("click", (event) => {
+                    event.preventDefault();
 
-                        // Highlight new selected tab link
-                        document.querySelectorAll("nav a").forEach((elem) => {
-                            elem.classList.remove("selected");
-                        });
-                        elem.classList.add("selected");
+                    // Switch tabs
+                    selected = elem.href.split("#")[1];
+                    displaySelectModule(selected);
 
-					// Dispatch page resize event (since elements are moving around)
-					window.dispatchEvent(new Event("resize"));
-				});
-			});
-		}
-	</script>
+                    // Highlight new selected tab link
+                    document.querySelectorAll("nav a").forEach((elem) => {
+                        elem.classList.remove("selected");
+                    });
+                    elem.classList.add("selected");
+
+                    // Update URL
+                    history.replaceState(null, "", `#${selected}`);
+
+                    // Dispatch page resize event (since elements are moving around)
+                    window.dispatchEvent(new Event("resize"));
+                });
+            });
+        }
+    </script>
 </body>
+
 </html>

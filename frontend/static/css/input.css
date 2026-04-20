@@ -41,14 +41,14 @@
         @apply w-full max-w-full h-full max-h-full relative flex flex-col gap-2 border-hive-dark text-white text-base font-mono;
 
         & h2:first-of-type {
-            @apply inline-block border-hive-dark border-t-2 w-full;
+            @apply inline-block border-horizon-mauve border-t w-full;
         }
     }
 
     .module-legacy {
         & h2:first-of-type::after {
-            @apply text-legacy-dark pl-2;
-            content: "LEGACY III";
+            @apply text-horizon-mauve pl-2;
+            content: "HORIZON";
         }
     }
 
@@ -135,7 +135,7 @@
     }
 
     .icon {
-        @apply w-12 h-12 bg-white mx-auto aspect-square;
+        @apply w-10 h-10 bg-white mx-auto aspect-square;
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
         -webkit-mask-size: contain;

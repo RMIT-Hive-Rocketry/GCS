@@ -133,7 +133,7 @@ function graphCreateLine(chart) {
         )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
-        .attr("stroke-width", 2);
+        .attr("stroke-width", 1);
     chart.g.selectAll(".tick line").attr("stroke", "#f79322");
 
     // Y-axis
@@ -147,7 +147,7 @@ function graphCreateLine(chart) {
         )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
-        .attr("stroke-width", 2);
+        .attr("stroke-width", 1);
     chart.yAxis.selectAll(".tick line").attr("stroke", "#f79322");
 
     // Y-axis Label
