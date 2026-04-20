@@ -7,9 +7,10 @@
    version="1.1"
    id="svg4"
    sodipodi:docname="navbar.svg"
-   inkscape:version="1.4.1 (93de688d07, 2025-03-30)"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -21,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="673.16566"
-     inkscape:cy="196.57569"
+     inkscape:zoom="1"
+     inkscape:cx="620.49998"
+     inkscape:cy="138.5"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
      inkscape:window-x="0"
@@ -37,7 +38,33 @@
      shape-rendering="crispEdges"
      id="path1"
      inkscape:label="path1"
-     style="stroke:#f79322;stroke-width:3;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
+     style="stroke:#9e193c;stroke-width:2;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal;fill:url(#linearGradient2)" />
   <defs
-     id="defs4" />
+     id="defs4">
+    <linearGradient
+       id="linearGradient1"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#f74923;stop-opacity:0.58539021;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#f79322;stop-opacity:0.58747387;"
+         offset="0.89999998"
+         id="stop3" />
+      <stop
+         style="stop-color:#ffd931;stop-opacity:0.58956259;"
+         offset="1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1"
+       id="linearGradient2"
+       x1="450"
+       y1="-187.16612"
+       x2="450"
+       y2="221.23723"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
 </svg>
