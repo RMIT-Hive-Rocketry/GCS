@@ -98,7 +98,7 @@ class PendantState:
         self.states = {}
 
         # build states, assuming any missing input is false
-        for key, fallback_value in self.FALLBACK_PENDANT_STATES_DICT.items():
+        for key, _ in self.FALLBACK_PENDANT_STATES_DICT.items():
             if key in states:
                 self.states[key] = states[key]
             else:
@@ -202,18 +202,20 @@ class PendantState:
         return PendantState(PendantState.FALLBACK_PENDANT_STATES_DICT)
 
     def __str__(self):
-        # constant value so the states line up
-        KEY_COL_WIDTH = 30
+        slogger.critical("string")
+        
         gse_states = self.get_gse_states()
-
-        output = "Pendant States:\n"
+        KEY_COL_WIDTH = max([len(key) for key, _ in gse_states.items()])
+        print(KEY_COL_WIDTH)
+        
+        output = "\033[1mPendant States: \033[0m\n"
         output += "".join(
             [
                 f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n"
                 for key, value in self.states.items()
             ]
         )
-        output += "\nGSE States\n"
+        output += "\n\033[1mGSE States: \033[0m\n"
         output += "".join(
             [
                 f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n"
@@ -223,6 +225,7 @@ class PendantState:
         return output
 
     def __repr__(self):
+        slogger.critical("repr")
         output = "PendantState({"
         output += "".join(
             [
