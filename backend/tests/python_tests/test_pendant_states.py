@@ -6,13 +6,13 @@ from backend.includes_python.devices.pendant_state import (
 from typing import List, Dict, Tuple
 import itertools
 
+
 def test_eq_and_constructor():
     table_1 = PendantState({})
     table_2 = PendantState({})
 
     assert table_1 == table_2
     assert not table_1 != table_2
-
 
     table_1 = PendantState(
         {
@@ -53,6 +53,7 @@ def test_repr():
 
     assert table_1 == eval(repr(table_1))
 
+
 def test_all_states():
     # list of all possible correct states
     # also tests if filling in non existant states as false works
@@ -75,10 +76,14 @@ def test_all_states():
     for test_pendant_states, expected_gse_states in all_correct_states.items():
         pendant_state_dict = {s: True for s in test_pendant_states}
 
-        expected_gse_state_dict = {s: s in expected_gse_states for s in GSEState}
+        expected_gse_state_dict = {
+            s: s in expected_gse_states for s in GSEState
+        }
 
-        assert PendantState(pendant_state_dict).get_gse_states() == expected_gse_state_dict
-
+        assert (
+            PendantState(pendant_state_dict).get_gse_states()
+            == expected_gse_state_dict
+        )
 
     # check that for every other possible state, they are either all off (for estop) or the fallback table
     # https://stackoverflow.com/questions/464864/how-to-get-all-possible-2n-combinations-of-a-list-s-elements-of-any-length
@@ -97,8 +102,10 @@ def test_all_states():
             if PendantInput.E_STOP in test_pendant_states:
                 assert gse_state == {s: False for s in GSEState}
 
-            assert gse_state == PendantState.get_fallback_table().get_gse_states() or gse_state == {s: False for s in GSEState}
-
+            assert (
+                gse_state == PendantState.get_fallback_table().get_gse_states()
+                or gse_state == {s: False for s in GSEState}
+            )
 
     # make sure we go over every permutation
     # 2^num_inputs = 2^8 = 256

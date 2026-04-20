@@ -78,7 +78,7 @@ def send_packet() -> None:
     frontend_complain_timer = RepeatingTimer(5)
 
     controller = get_control_device()
-    
+
     frontend_pub_socket = context.socket(zmq.PUB)
 
     try:

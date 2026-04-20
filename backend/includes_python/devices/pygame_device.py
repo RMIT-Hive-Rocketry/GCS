@@ -53,6 +53,7 @@ class Pygame_Device(ControlDevice):
     ABC for devices that use pygame
     If your extending it, you must define BUTTON_NAME_ID_MAP and CONTROLLER_NAME in the child
     """
+
     BUTTON_NAME_ID_MAP: ClassVar[Dict[PendantInput, int]]
     CONTROLLER_NAME: ClassVar[str]
 
@@ -163,7 +164,7 @@ class Pygame_Device(ControlDevice):
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
-            
+
             self.state_table = PendantState(states)
         else:
             self.state_table = PendantState.get_fallback_table()

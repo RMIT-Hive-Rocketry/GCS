@@ -2,6 +2,7 @@ import backend.includes_python.process_logging as slogger
 from typing import Dict, Tuple
 from enum import StrEnum
 
+
 class PendantInput(StrEnum):
     """
     Represents an input from the physical pendant device
@@ -22,6 +23,7 @@ class PendantInput(StrEnum):
     # buttons
     O2 = "O2"
     IGNITION = "IGNITION"
+
 
 class GSEState(StrEnum):
     """
@@ -57,15 +59,12 @@ class PendantState:
         # important stuff
         PendantInput.SYSTEM_ACTIVE: True,
         PendantInput.E_STOP: False,
-
         # first toggle
         PendantInput.FILL_MODE: False,
         PendantInput.ARMED: False,
-
         # second toggle
         PendantInput.N2O: False,
         PendantInput.PURGE: False,
-
         # buttons
         PendantInput.O2: False,
         PendantInput.IGNITION: False,
@@ -73,16 +72,13 @@ class PendantState:
 
     FALLBACK_GSE_STATES_DICT: Dict[GSEState, bool] = {
         GSEState.SYSTEM_ACTIVE: True,
-
         # first toggle
         GSEState.FILL_MODE: False,
         GSEState.ARMED: False,
-
         # second toggle
         GSEState.N2O: False,
         GSEState.NEUTRAL: False,
         GSEState.PURGE: False,
-
         # buttons
         GSEState.O2: False,
         GSEState.IGNITION: False,
