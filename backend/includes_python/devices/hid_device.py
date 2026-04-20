@@ -1,8 +1,8 @@
-'''
+"""
 This has not been tested or even ran at all
 Most likely will have some runtime error if you try it
 Test the crap out of it and fix any bugs before using
-'''
+"""
 
 from backend.includes_python.devices.pendant_state import (
     PendantState,
@@ -154,7 +154,7 @@ class HID_Device(ControlDevice):
 
         for btn_name in HID_Device.BITMAP:
             self.buttons[btn_name] = HID_Button(*HID_Device.BITMAP[btn_name])
-        
+
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical(

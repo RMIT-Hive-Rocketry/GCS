@@ -15,7 +15,6 @@ class Emulated_Device(Pygame_Device):
     Based on the Pygame_Device class, even though it doesn't actually use Pygame
     """
 
-    
     BUTTON_NAME_ID_MAP = {
         PendantInput.SYSTEM_ACTIVE: 0,
         PendantInput.E_STOP: 5,
@@ -35,7 +34,11 @@ class Emulated_Device(Pygame_Device):
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.N2O],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
-        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.PURGE],
+        [
+            PendantInput.SYSTEM_ACTIVE,
+            PendantInput.FILL_MODE,
+            PendantInput.PURGE,
+        ],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
         [PendantInput.SYSTEM_ACTIVE],
         [],
@@ -45,7 +48,12 @@ class Emulated_Device(Pygame_Device):
         [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.IGNITION],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
-        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION],
+        [
+            PendantInput.SYSTEM_ACTIVE,
+            PendantInput.ARMED,
+            PendantInput.O2,
+            PendantInput.IGNITION,
+        ],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
         [PendantInput.SYSTEM_ACTIVE],
         [],
@@ -78,12 +86,15 @@ class Emulated_Device(Pygame_Device):
             current_buttons = Emulated_Device.BUTTON_SEQUENCE[
                 seconds % len(Emulated_Device.BUTTON_SEQUENCE)
             ]
-             
+
             for btn_name, _ in Emulated_Device.BUTTON_NAME_ID_MAP.items():
                 pressed = btn_name in current_buttons
                 self.buttons[btn_name].update_state(pressed)
 
-            states = {btn_name: btn.is_pressed() for btn_name, btn in self.buttons.items()}
+            states = {
+                btn_name: btn.is_pressed()
+                for btn_name, btn in self.buttons.items()
+            }
 
             slogger.critical(states)
 
