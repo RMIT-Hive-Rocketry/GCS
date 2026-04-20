@@ -84,13 +84,16 @@ function toggleMute() {
 // Start sound
 function playSound(sound) {
     const soundNumber = filenames.indexOf(sound);
+    const alreadyPlaying = soundsList.findIndex(audio => 
+        audio.src.includes(sound)
+    ) >= 0;
 
     /* Play the sound if found, does nothing if already playing.
      * Mute does not need to be checked in this function or the next as
      * otherwise (for example), a sound that's meant to start would never
      * do so if the user originally had the mute on.
     */
-    if (soundNumber >= 0) {
+    if ((soundNumber >= 0) && (!alreadyPlaying)) {
         newSound = new Audio("sounds/" + filenames[soundNumber] + ".mp3")
         newSound.loop = true // Loop until reset
         newSound.play();
@@ -1079,25 +1082,7 @@ function displaySetState(item, value, timeout = {}) {
                  * elem.classList.value is the styling itself (use this so that
                  * in case the interested state/s exist elsewhere in the string)
                 */
-
-                if (elem.classList.value.includes("green")) {
-                    resetSound(sound);
-                }
-                else {
-                    /* May not be required, but prevent alarms from sounding momentarily
-                     * (as happens in --experimental mode) as that would cause a big noise.
-                    */
-                    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-                    async function wait() {
-                        await sleep(2000); // Wait out momentary transients
-                    }
-                    wait();
-
-                    // If the alarm is still there, play the sound
-                    if (elem.classList.value.includes("green")) {
-                        playSound(sound);
-                    }
-                }
+                elem.classList.value.includes("green") ? resetSound(sound) : playSound(sound);
             }
 
             if (timeout != undefined && Object.keys(timeout).length > 0) {
