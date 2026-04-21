@@ -44,25 +44,81 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Valid names of sounds to be called
+// Create the context for the Web Audio API (for rapid-fire sounds)
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+// Check if state is actually being updated
+const element_log = [];
+
+// List of valid sound names to be called
 const filenames = ["AV_Loss", "GSE_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
 
-/* Store current sounds playing, so that separate Audio() objects can be called
- * and not overload the browser (which might cause only one type of sound to ever
- * be played).
-*/
-const soundsList = [];
+// Track all sounds
+let soundsList;
+populateSounds().then(data => {
+  soundsList = data;
+});
 
+// Use to track mute statuses and playing sounds
+async function populateSounds() {
+    const objectsList = [];
+    for (let i = 0; i < filenames.length; ++i) {
+        const [currSource, gainNode] = await getNodes(filenames[i]);
+        
+        /* The last 2 attributes must be null in order
+         * to be initially populated
+        */
+        objectsList.push({sound: filenames[i],
+                          playing: false, // Track play/stop
+                          source: null,
+                          gainNode: null
+                        });        
+    }
+    return objectsList;
+}
+
+// Get the sounds into a buffer
+async function loadSound(sound) {
+    const response = await fetch("sounds/" + sound + ".mp3");
+    const arrayBuffer = await response.arrayBuffer();
+    return audioCtx.decodeAudioData(arrayBuffer);
+}
 
 // Check if all sounds are unmuted
 function allUnmuted() {
-    return soundsList.every(audio => audio.muted === false);
+    return soundsList.every(sound => sound.gainNode.gain.value === 1);
+}
+
+// In case the same alarm is triggered more than once
+async function getNodes(sound) {
+    // For mute statuses
+    const gainNode = audioCtx.createGain();
+    gainNode.connect(audioCtx.destination);
+
+    // Create source node
+    const currSource = audioCtx.createBufferSource();
+    currSource.buffer = await loadSound(sound);
+    currSource.loop = true; // Loop the sound
+
+    // Connect to respective gain node for mute/unmute
+    currSource.connect(gainNode);
+
+    return [currSource, gainNode]
 }
 
 function toggleMute() {
     // Toggle mute first, then update UI
-    for (let i = 0; i < soundsList.length; ++i) {
-        soundsList[i].muted = !soundsList[i].muted;
+    for (let i = 0; i < filenames.length; ++i) {
+        let currVol = soundsList[i].gainNode.gain.value;
+        
+        // Apparently XOR'ing with 1 is a bad approach
+        if (currVol === 0) {
+            soundsList[i].gainNode.gain.value = 1;
+        }
+        else { // Should only be 1, as is the default
+            soundsList[i].gainNode.gain.value = 0;
+        }
     }
 
     /* Icon represents current state.
@@ -82,34 +138,42 @@ function toggleMute() {
 }
 
 // Start sound
-function playSound(sound) {
-    const soundNumber = filenames.indexOf(sound);
-    const alreadyPlaying = soundsList.findIndex(audio => 
-        audio.src.includes(sound)
-    ) >= 0;
-
-    /* Play the sound if found, does nothing if already playing.
-     * Mute does not need to be checked in this function or the next as
-     * otherwise (for example), a sound that's meant to start would never
-     * do so if the user originally had the mute on.
+async function playSound(sound) {
+    /* Should not be an issue as the operator would have clicked on a specific rocket
+     * in order for sounds of any kind to play (this is governed only through the
+     * currently selected rocket due to checking and updating the CSS)
     */
-    if ((soundNumber >= 0) && (!alreadyPlaying)) {
-        newSound = new Audio("sounds/" + filenames[soundNumber] + ".mp3")
-        newSound.loop = true // Loop until reset
-        newSound.play();
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 
-        soundsList.push(newSound); // Add to list
+    // Sound must be found and not already playing
+    const soundNumber = filenames.indexOf(sound);
+    if ((soundNumber >= 0) && (!soundsList[soundNumber].playing)) {
+        // Must redo the connection every time
+        const [currSource, gainNode] = await getNodes(sound);
+
+        soundsList[soundNumber].source = currSource;
+        soundsList[soundNumber].gainNode = gainNode;
+        
+        // Play sound and record as such
+        soundsList[soundNumber].source.start(0);
+        soundsList[soundNumber].playing = true;
+
     }
 }
-// Manual reset
-function resetSound(sound) {
-    const soundNumber = soundsList.findIndex(audio => 
-        audio.src.includes(sound)
-    );
-    
-    if (soundNumber >= 0) {
-        soundsList[soundNumber].pause(); // Stop the sound
-        soundsList.splice(soundNumber, 1); // Remove from list
+// Manual reset, although the sound is actually deleted here
+function stopSound(sound) {
+    const soundNumber = filenames.indexOf(sound);
+
+    // Make sure soundsList has had time to be defined
+    if ((soundNumber >= 0) && (soundsList !== undefined) && (soundsList[soundNumber].playing)) {
+        // Mute first to avoid clicks
+        soundsList[soundNumber].gainNode.gain.value = 0;
+        
+        // Stopsound and record as such
+        soundsList[soundNumber].source.stop();
+        soundsList[soundNumber].playing = false;
     }
 }
 
@@ -1026,7 +1090,7 @@ function displaySetString(item, string) {
     }
 }
 
-function displaySetState(item, value, timeout = {}) {
+function displaySetState(item, value, timeout = {}, recursive = false) {
     const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 
     // Updates the state of an indicator
@@ -1037,8 +1101,27 @@ function displaySetState(item, value, timeout = {}) {
             "color:white",
         );
 
-    // Update all instances of item
+    // Get all relevant elements and their unique texts, should only be one of the latter
     let elements = [item];
+    let textContent_unique = [...new Set(elements.map(elem => elem.attributes[0].textContent))];
+    console.log("textContent_unique", textContent_unique)
+
+    // Look through the changes in just this element
+    const element_log_curr = element_log.filter(log => 
+        log.every(elem => textContent_unique.includes(
+            elem.attributes[0].textContent
+        ))
+    );
+    console.log("element_log_curr", element_log_curr)
+
+    // Log the current state
+    element_log.push(elements);
+
+    // Don't update a state onto itself
+    if ((element_log_curr.at(-1) === elements)) {
+        return;
+    }
+    
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
@@ -1082,14 +1165,19 @@ function displaySetState(item, value, timeout = {}) {
                  * elem.classList.value is the styling itself (use this so that
                  * in case the interested state/s exist elsewhere in the string)
                 */
-                elem.classList.value.includes("green") ? resetSound(sound) : playSound(sound);
+                if (elem.classList.value.includes("green")) {
+                    stopSound(sound);
+                }
+                else if (recursive) { // Below recursion should not play a sound
+                    playSound(sound);
+                }
             }
 
             if (timeout != undefined && Object.keys(timeout).length > 0) {
                 Object.entries(timeout).forEach(([ms, state]) => {
                     clearTimeout(timeouts[[elem, ms]]);
                     timeouts[[elem, ms]] = setTimeout(() => {
-                        displaySetState(elem, state); // timeout
+                        displaySetState(elem, state, recursive=true); // timeout
                     }, parseInt(ms));
                 });
             }
