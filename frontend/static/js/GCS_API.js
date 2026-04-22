@@ -50,8 +50,11 @@ const soundsList = filenames.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
     audioObject.addEventListener('ended', () => {
-        audioObject.pause();
-        audioObject.currentTime = 0;
+        try {
+            audioObject.pause();
+            audioObject.currentTime = 0;
+        }
+        catch (e) {} // Simply prevent an error from being thrown
     });
 
     /* Active means whether the sound should be playing
@@ -62,13 +65,13 @@ const soundsList = filenames.map(src => {
 
 // Check if all sounds are unmuted
 function allUnmuted() {
-    return soundsList.every(item => !item.source.mute);
+    return soundsList.every(item => !item.source.muted);
 }
 
 function toggleMute() {
     // Toggle mute first, then update UI
     for (let i = 0; i < soundsList.length; ++i) {
-        soundsList[i].source.mute = !soundsList[i].source.mute;
+        soundsList[i].source.muted = !soundsList[i].source.muted;
     }
 
     /* Icon represents current state.
