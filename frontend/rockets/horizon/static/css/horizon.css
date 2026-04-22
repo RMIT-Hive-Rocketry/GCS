@@ -1,12 +1,26 @@
-/* Apply to horizon rocket */
+/* this is needed cos the colour, while defined in input.css, gets dropped by tailwind because nothing is using it*/
 body.horizon {
-    /* Hex background */
+    --color-horizon-mauve: #9e193c;
+}
+
+/* Old background, leaving just in case */
+/* body.horizon {
     background-position: inherit;
     background-origin: inherit;
     background-repeat: repeat;
     background: black url("/img/bg-hex.svg");
 
-    /* Border and text colour */
+    color: white;
+    border: 2px solid var(--color-horizon);
+} */
+
+/* Cool background effect, with pink glow */
+body.horizon {
+    background:
+        radial-gradient(ellipse at bottom,
+            color-mix(in oklab, var(--color-horizon-mauve) 25%, transparent) 0%,
+            transparent 70%),
+        black url("/img/bg-hex.svg");
     color: white;
     border: 2px solid var(--color-horizon);
 }
@@ -15,23 +29,122 @@ body.horizon {
     box-sizing: border-box;
 }
 
+/* VVVVV new for horizon VVVVV */
+body.horizon .module-horizon {
+    border-color: var(--color-horizon-mauve);
+
+    /* Changes the little <> arrows on graph headers */
+    & h3 {
+        &::before,
+        &::after {
+            color: var(--color-horizon-yellow);
+        }
+    }
+
+    /* Indicator panel background (the avionics strip with Pyros etc.) */
+    & .bg-hive\/20 {
+        background-color: color-mix(in oklab, var(--color-horizon-mauve) 25%, transparent);
+        border-color: var(--color-horizon-pink);
+    }
+
+}
+
+/* Cool horizontal "horizon" lines on top of modules */
+body.horizon .module-horizon h2:first-of-type {
+    border-top: none;
+    background-image: linear-gradient(90deg,
+        var(--color-horizon-yellow),
+        var(--color-horizon-pink),
+        var(--color-horizon-mauve));
+    background-size: 100% 2px;
+    background-repeat: no-repeat;
+    background-position: top left;
+    padding-top: 2px;
+}
+
+/* Hide overflow on the rocket module — the 3D canvas manages its own sizing */
+body.horizon .module-horizon:has(#rocketCanvasHorizon) {
+    overflow: hidden;
+}
+
+/* ============================================================
+ * Graph SVG positioning fix
+ * ============================================================
+ * SVGs with viewBox have an intrinsic aspect ratio that feeds
+ * into flex-item sizing via min-height: auto. On page switch,
+ * the ResizeObserver briefly sets viewBox to 0 dimensions while
+ * the module is hidden; when the module reappears, the broken
+ * aspect ratio pushes the flex container permanently larger.
+ *
+ * I spent two heckin hours trying to fix this, this is the
+ * only fix that I found. These two rules just move every SVG
+ * graph outside of the flex flow entirely. So, they now just
+ * fill whatever space the parent flex box has.
+ *
+ * This doesn't have to be CSS, if preferred, someone can move
+ * this to tailwind utility classes, but they'd have to do it
+ * for every single graph module.
+ */
+body.horizon .module-horizon div:has(> svg[id^="graph-"]) {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+}
+
+body.horizon .module-horizon svg[id^="graph-"] {
+    position: absolute;
+    inset: 0;
+}
+
+/* Styling for the three buttons at the top */
 body.horizon nav {
     text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
 }
 
 body.horizon nav a {
-    border: 2px solid var(--color-orange-700);
-    color: var(--color-orange-600);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    padding: 0.35rem 0.85rem;
+
+    border: 2px solid var(--color-horizon-mauve);
+    color: var(--color-horizon-yellow);
+    text-decoration: none;
+
+    background: color-mix(in oklab, var(--color-horizon-mauve) 18%, transparent);
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+body.horizon nav a:hover {
+    background: color-mix(in oklab, var(--color-horizon-pink) 22%, transparent);
+    border-color: var(--color-horizon-pink);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 35%, transparent);
 }
 
 body.horizon nav .icon {
-    background-color: var(--color-orange-600);
+    background-color: var(--color-horizon-mauve);
+    transition: background-color 0.15s ease;
+}
+
+body.horizon nav a:hover .icon {
+    background-color: var(--color-horizon-pink);
 }
 
 body.horizon nav .selected {
     color: var(--color-horizon-yellow);
     font-weight: bold;
-    border: 2px solid var(--color-horizon-yellow);
+    border-color: var(--color-horizon-yellow);
+    background: color-mix(in oklab, var(--color-horizon-mauve) 35%, transparent);
 }
 
 body.horizon nav .selected .icon {
