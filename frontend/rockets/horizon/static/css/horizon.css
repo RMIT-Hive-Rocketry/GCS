@@ -89,3 +89,32 @@ body.horizon .module-horizon h2:first-of-type {
 body.horizon .module-horizon:has(#rocketCanvasHorizon) {
     overflow: hidden;
 }
+
+/* ============================================================
+ * Graph SVG positioning fix
+ * ============================================================
+ * SVGs with viewBox have an intrinsic aspect ratio that feeds
+ * into flex-item sizing via min-height: auto. On page switch,
+ * the ResizeObserver briefly sets viewBox to 0 dimensions while
+ * the module is hidden; when the module reappears, the broken
+ * aspect ratio pushes the flex container permanently larger.
+ *
+ * I spent two heckin hours trying to fix this, this is the
+ * only fix that I found. These two rules just move every SVG
+ * graph outside of the flex flow entirely. So, they now just
+ * fill whatever space the parent flex box has.
+ *
+ * This doesn't have to be CSS, if preferred, someone can move
+ * this to tailwind utility classes, but they'd have to do it
+ * for every single graph module.
+ */
+body.horizon .module-horizon div:has(> svg[id^="graph-"]) {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+}
+
+body.horizon .module-horizon svg[id^="graph-"] {
+    position: absolute;
+    inset: 0;
+}
