@@ -150,3 +150,11 @@ body.horizon nav .selected {
 body.horizon nav .selected .icon {
     background-color: var(--color-horizon-yellow);
 }
+
+/* Header row never needs to scroll — the row is fixed content */
+body.horizon header .module-horizon,
+body.horizon .module-horizon:has(> img[src*="logo"]),
+body.horizon .module-horizon:has([data-key^="meta.av"]),
+body.horizon .module-horizon:has([data-key^="meta.gse"]) {
+    overflow: hidden;
+}
