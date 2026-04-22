@@ -45,81 +45,22 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Create the context for the Web Audio API (for rapid-fire sounds)
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = new AudioContext();
-
-// Check if state is actually being updated
-const element_log = [];
-
-// List of valid sound names to be called
-const filenames = ["AV_Loss", "GSE_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
-
-// Track all sounds
-let soundsList;
-populateSounds().then(data => {
-  soundsList = data;
-});
-
-// Use to track mute statuses and playing sounds
-async function populateSounds() {
-    const objectsList = [];
-    for (let i = 0; i < filenames.length; ++i) {
-        const [currSource, gainNode] = await getNodes(filenames[i]);
-        
-        /* The last 2 attributes must be null in order
-         * to be initially populated
-        */
-        objectsList.push({sound: filenames[i],
-                          playing: false, // Track play/stop
-                          source: null,
-                          gainNode: null
-                        });        
-    }
-    return objectsList;
-}
-
-// Get the sounds into a buffer
-async function loadSound(sound) {
-    const response = await fetch("sounds/" + sound + ".mp3");
-    const arrayBuffer = await response.arrayBuffer();
-    return audioCtx.decodeAudioData(arrayBuffer);
+const filenames = ["AV", "GSE", "Dual_Board", "GPS_Fix"];
+const soundsList = filenames.map(src => new Audio('sounds/' + src + '_Loss.mp3'));
+for (let i = 0; i < soundsList.length; ++i) {
+    // Loop all sounds until manually reset
+    soundsList[i].loop = true;
 }
 
 // Check if all sounds are unmuted
 function allUnmuted() {
-    return soundsList.every(sound => sound.gainNode.gain.value === 1);
-}
-
-// In case the same alarm is triggered more than once
-async function getNodes(sound) {
-    // For mute statuses
-    const gainNode = audioCtx.createGain();
-    gainNode.connect(audioCtx.destination);
-
-    // Create source node
-    const currSource = audioCtx.createBufferSource();
-    currSource.buffer = await loadSound(sound);
-    currSource.loop = true; // Loop the sound
-
-    // Connect to respective gain node for mute/unmute
-    currSource.connect(gainNode);
-
-    return [currSource, gainNode]
+    return soundsList.every(audio => audio.muted === false);
 }
 
 function toggleMute() {
     // Toggle mute first, then update UI
-    for (let i = 0; i < filenames.length; ++i) {
-        let currVol = soundsList[i].gainNode.gain.value;
-        
-        // Apparently XOR'ing with 1 is a bad approach
-        if (currVol === 0) {
-            soundsList[i].gainNode.gain.value = 1;
-        }
-        else { // Should only be 1, as is the default
-            soundsList[i].gainNode.gain.value = 0;
-        }
+    for (let i = 0; i < soundsList.length; ++i) {
+        soundsList[i].muted = !soundsList[i].muted;
     }
 
     /* Icon represents current state.
@@ -138,43 +79,37 @@ function toggleMute() {
     }
 }
 
-// Start sound
-async function playSound(sound) {
-    /* Should not be an issue as the operator would have clicked on a specific rocket
-     * in order for sounds of any kind to play (this is governed only through the
-     * currently selected rocket due to checking and updating the CSS)
-    */
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+function playSound(sound) {
+    // Make sure sound is on (check here to avoid code repetition)
+    if (allUnmuted()) {
+        const soundNumber = soundsList.findIndex(audio => 
+            audio.src.includes(sound)
+        );
 
-    // Sound must be found and not already playing
-    const soundNumber = filenames.indexOf(sound);
-    if ((soundNumber >= 0) && (!soundsList[soundNumber].playing)) {
-        // Must redo the connection every time
-        const [currSource, gainNode] = await getNodes(sound);
-
-        soundsList[soundNumber].source = currSource;
-        soundsList[soundNumber].gainNode = gainNode;
-        
-        // Play sound and record as such
-        soundsList[soundNumber].source.start(0);
-        soundsList[soundNumber].playing = true;
-
+        // Play the sound if found, does nothing if already playing
+        if (soundNumber >= 0) {
+            soundsList[soundNumber].play();
+        }
+        else { // Should never execute
+            logMessage("Could not play the " + sound + " sound", "error");
+        }
     }
 }
-// Manual reset, although the sound is actually deleted here
-function stopSound(sound) {
-    const soundNumber = filenames.indexOf(sound);
 
-    // Make sure soundsList has had time to be defined
-    if ((soundNumber >= 0) && (soundsList !== undefined) && (soundsList[soundNumber].playing)) {
-        // Mute first to avoid clicks
-        soundsList[soundNumber].gainNode.gain.value = 0;
-        
-        // Stopsound and record as such
-        soundsList[soundNumber].source.stop();
-        soundsList[soundNumber].playing = false;
+function resetSound(sound) { // Manual reset
+    /* Sound should be unmuted regardless, but if it isn't, this function
+     * makes no difference.
+    */
+    const soundNumber = soundsList.findIndex(audio => 
+        audio.src.includes(sound)
+    );
+
+    if (soundNumber >= 0) {
+        soundsList[soundNumber].pause(); // Stop the sound
+        soundsList[soundNumber].currentTime = 0; // Reset back to the beginning
+    }
+    else { // Should never execute
+        logMessage("Could not stop the " + sound + " sound", "error");
     }
 }
 
@@ -1065,72 +1000,23 @@ function displaySetState(item, value, timeout = {}) {
             "color:white",
         );
 
-    // Get all relevant elements and their unique texts, should only be one of the latter
+    // Update all instances of item
     let elements = [item];
-    // let textContent_unique = [...new Set(elements.map(elem => elem.attributes[0].textContent))];
-    // console.log("textContent_unique", textContent_unique)
-
-    // // Look through the changes in just this element
-    // const element_log_curr = element_log.filter(log => 
-    //     log.every(elem => textContent_unique.includes(
-    //         elem.attributes[0].textContent
-    //     ))
-    // );
-    // console.log("element_log_curr", element_log_curr)
-
-    // // Log the current state
-    // element_log.push(elements);
-
-    // // Don't update a state onto itself
-    // if ((element_log_curr.at(-1) === elements)) {
-    //     return;
-    // }
-    
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
+
             // Convert true/false boolean values to on/error
             if (typeof value == "boolean") {
                 value = value ? 1 : 3;
             }
 
-            // Get indicator state from value (only then change the sound)
+            // Get indicator state from value
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
-            }
-
-            // Complex way to get the required indicator
-            let indicator = elem.attributes[0].textContent;
-            let sound = "";
-
-            /* All sounds come from https://www.youtube.com/watch?v=EWnhSCFCYto
-             * except the last one (https://www.youtube.com/watch?v=W5Z-d1Zx02o)
-            */
-            if (indicator.includes("av.radio")) {
-                sound = "AV_Loss";
-            }
-            else if (indicator.includes("gse.radio")) {
-                sound = "GSE_Loss";
-            }
-            else if (indicator.includes("gpxFix")) {
-                sound = "GPS_Fix_Loss";
-            }
-            else if (indicator.includes("dualBoard")) {
-                sound = "Dual_Board_Loss";
-            }
-
-            // Should only execute with one of the above values
-            if (sound !== "") {
-                /* Can be changed, but at this stage only green is a good state,
-                 * where the sound resets (otherwise continues playing). Also,
-                 * elem.classList.value is the styling itself (use this so that
-                 * in case the interested state/s exist elsewhere in the string)
-                */
-                console.log(elem.classList.value.includes("green"));
-                elem.classList.value.includes("green") ? stopSound(sound) : playSound(sound)
             }
 
             if (timeout != undefined && Object.keys(timeout).length > 0) {
