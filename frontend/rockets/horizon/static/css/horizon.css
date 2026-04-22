@@ -29,29 +29,6 @@ body.horizon {
     box-sizing: border-box;
 }
 
-body.horizon nav {
-    text-align: center;
-}
-
-body.horizon nav a {
-    border: 2px solid var(--color-orange-700);
-    color: var(--color-orange-600);
-}
-
-body.horizon nav .icon {
-    background-color: var(--color-orange-600);
-}
-
-body.horizon nav .selected {
-    color: var(--color-horizon-yellow);
-    font-weight: bold;
-    border: 2px solid var(--color-horizon-yellow);
-}
-
-body.horizon nav .selected .icon {
-    background-color: var(--color-horizon-yellow);
-}
-
 /* VVVVV new for horizon VVVVV */
 body.horizon .module-horizon {
     border-color: var(--color-horizon-mauve);
@@ -117,4 +94,59 @@ body.horizon .module-horizon div:has(> svg[id^="graph-"]) {
 body.horizon .module-horizon svg[id^="graph-"] {
     position: absolute;
     inset: 0;
+}
+
+/* Styling for the three buttons at the top */
+body.horizon nav {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+body.horizon nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    padding: 0.35rem 0.85rem;
+
+    border: 2px solid var(--color-horizon-mauve);
+    color: var(--color-horizon-yellow);
+    text-decoration: none;
+
+    background: color-mix(in oklab, var(--color-horizon-mauve) 18%, transparent);
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+body.horizon nav a:hover {
+    background: color-mix(in oklab, var(--color-horizon-pink) 22%, transparent);
+    border-color: var(--color-horizon-pink);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 35%, transparent);
+}
+
+body.horizon nav .icon {
+    background-color: var(--color-horizon-mauve);
+    transition: background-color 0.15s ease;
+}
+
+body.horizon nav a:hover .icon {
+    background-color: var(--color-horizon-pink);
+}
+
+body.horizon nav .selected {
+    color: var(--color-horizon-yellow);
+    font-weight: bold;
+    border-color: var(--color-horizon-yellow);
+    background: color-mix(in oklab, var(--color-horizon-mauve) 35%, transparent);
+}
+
+body.horizon nav .selected .icon {
+    background-color: var(--color-horizon-yellow);
 }
