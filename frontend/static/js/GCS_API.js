@@ -124,8 +124,8 @@ function playSounds() {
     }, 1000);
 }
 
-// Play/manual reset in one go
-function updateSound(sound, newValue) {
+// Change the sound queue (followed by play if play=true)
+function updateSound(sound, newValue, play=true) {
     const soundNumber = soundsList.findIndex(
         file => file.source.src.includes(sound)
     );
@@ -135,10 +135,12 @@ function updateSound(sound, newValue) {
         soundsList[soundNumber].active = newValue;
     }
 
-    /* Don't play any sound if none are active (else
-     * that would delay any future ones by an extra second).
+    /* Don't play any sound if none are active (else that
+     * would delay any future ones by an extra second), or
+     * play is false to avoid playing only one extra sound
+     * out of an intended two (when one alarm implies another).
     */
-    if (soundsList.some(user => user.active)) {
+    if ((soundsList.some(file => file.active)) && play) {
         playSounds();
     }
 }
