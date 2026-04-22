@@ -45,7 +45,7 @@ const timers = {
 };
 
 // Generate the sounds
-const filenames = ["AV_Loss", "GSE_Loss", "Dual_Board_Loss", "GPS_Fix_Loss"];
+const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
 const soundsList = filenames.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
