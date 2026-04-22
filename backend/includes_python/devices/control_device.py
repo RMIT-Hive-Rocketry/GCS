@@ -5,12 +5,14 @@ from backend.includes_python.timers import RepeatingTimer
 
 
 class ControlDevice(ABC):
+
     def __init__(self):
         # DONT instantiate a ControlDevice manually
         # Use the get_control_device() function
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
         self.state_table = PendantState.get_fallback_table()
+        self.previous_table = self.state_table
         # avoid spamming logs if something goes wrong
         self.complain_timer = RepeatingTimer(10)
 
@@ -35,6 +37,11 @@ class ControlDevice(ABC):
                 "No inputs received from control device, using fallback state"
             )
             self.state_table = PendantState.get_fallback_table()
+
+        if self.state_table != self.previous_table:
+            slogger.info(f"Pendant State changed to {repr(self.state_table)}")
+            self.previous_table = self.state_table
+        
         return self.state_table
 
     def cleanup(self) -> None:

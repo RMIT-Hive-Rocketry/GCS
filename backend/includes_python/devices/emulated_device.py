@@ -96,8 +96,6 @@ class Emulated_Device(Pygame_Device):
                 for btn_name, btn in self.buttons.items()
             }
 
-            slogger.critical(states)
-
             self.state_table = PendantState(states)
 
         else:
