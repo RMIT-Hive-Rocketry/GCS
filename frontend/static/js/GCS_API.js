@@ -1061,7 +1061,7 @@ function displaySetState(item, value, timeout = {}) {
             else if (indicator.includes("gse.radio")) {
                 sound = "GSE_Loss";
             }
-            else if (indicator.includes("gpxFix")) {
+            else if (indicator.includes("gpsFix")) {
                 sound = "GPS_Fix_Loss";
             }
             else if (indicator.includes("dualBoard")) {
