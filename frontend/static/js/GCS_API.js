@@ -1054,7 +1054,7 @@ function displaySetString(item, string) {
     }
 }
 
-function displaySetState(item, value, timeout = {}, recursive = false) {
+function displaySetState(item, value, timeout = {}) {
     const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 
     // Updates the state of an indicator
@@ -1067,24 +1067,24 @@ function displaySetState(item, value, timeout = {}, recursive = false) {
 
     // Get all relevant elements and their unique texts, should only be one of the latter
     let elements = [item];
-    let textContent_unique = [...new Set(elements.map(elem => elem.attributes[0].textContent))];
-    console.log("textContent_unique", textContent_unique)
+    // let textContent_unique = [...new Set(elements.map(elem => elem.attributes[0].textContent))];
+    // console.log("textContent_unique", textContent_unique)
 
-    // Look through the changes in just this element
-    const element_log_curr = element_log.filter(log => 
-        log.every(elem => textContent_unique.includes(
-            elem.attributes[0].textContent
-        ))
-    );
-    console.log("element_log_curr", element_log_curr)
+    // // Look through the changes in just this element
+    // const element_log_curr = element_log.filter(log => 
+    //     log.every(elem => textContent_unique.includes(
+    //         elem.attributes[0].textContent
+    //     ))
+    // );
+    // console.log("element_log_curr", element_log_curr)
 
-    // Log the current state
-    element_log.push(elements);
+    // // Log the current state
+    // element_log.push(elements);
 
-    // Don't update a state onto itself
-    if ((element_log_curr.at(-1) === elements)) {
-        return;
-    }
+    // // Don't update a state onto itself
+    // if ((element_log_curr.at(-1) === elements)) {
+    //     return;
+    // }
     
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
@@ -1129,19 +1129,15 @@ function displaySetState(item, value, timeout = {}, recursive = false) {
                  * elem.classList.value is the styling itself (use this so that
                  * in case the interested state/s exist elsewhere in the string)
                 */
-                if (elem.classList.value.includes("green")) {
-                    stopSound(sound);
-                }
-                else if (recursive) { // Below recursion should not play a sound
-                    playSound(sound);
-                }
+                console.log(elem.classList.value.includes("green"));
+                elem.classList.value.includes("green") ? stopSound(sound) : playSound(sound)
             }
 
             if (timeout != undefined && Object.keys(timeout).length > 0) {
                 Object.entries(timeout).forEach(([ms, state]) => {
                     clearTimeout(timeouts[[elem, ms]]);
                     timeouts[[elem, ms]] = setTimeout(() => {
-                        displaySetState(elem, state, recursive=true); // timeout
+                        displaySetState(elem, state); // timeout
                     }, parseInt(ms));
                 });
             }
