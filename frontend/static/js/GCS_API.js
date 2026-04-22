@@ -44,27 +44,31 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Generate the sounds, then record that they should not be playing
-const filenames = ["AV", "GSE", "Dual_Board", "GPS_Fix"];
-const soundsList = new Map(filenames.map(src => [new Audio('sounds/' + src + '_Loss.mp3'), false]));
-
-// When a sound ends, stop and return it to the beginning
-for (const[key, value] of soundsList) {
-    key.addEventListener('ended', () => {
-        key.pause();
-        key.currentTime = 0;
+// Generate the sounds
+const filenames = ["AV_Loss", "GSE_Loss", "Dual_Board_Loss", "GPS_Fix_Loss"];
+const soundsList = filenames.map(src => {
+    // Create the audio object that will return upon ending
+    const audioObject = new Audio("sounds/" + src + ".mp3");
+    audioObject.addEventListener('ended', () => {
+        audioObject.pause();
+        audioObject.currentTime = 0;
     });
-}
+
+    /* Active means whether the sound should be playing
+     * but the mute status is stored inside source
+    */
+    return { source: audioObject, active: false };
+});
 
 // Check if all sounds are unmuted
 function allUnmuted() {
-    return Array.from(soundsList.values()).every(!muted);
+    return soundsList.every(item => !item.source.mute);
 }
 
 function toggleMute() {
     // Toggle mute first, then update UI
-    for (const [key, value] of soundsList) {
-        soundsList.get(key).muted = !soundsList.get(key).muted;
+    for (let i = 0; i < soundsList.length; ++i) {
+        soundsList[i].source.mute = !soundsList[i].source.mute;
     }
 
     /* Icon represents current state.
@@ -83,34 +87,42 @@ function toggleMute() {
     }
 }
 
-// Play/manual reset in one go
-function updateSound(sound, newValue) {
-    for (const [key, value] of soundsList) {
-        // Found the sound
-        if (key.src.includes(sound)) {
-            // Play = true, reset = false
-            soundsList.set(key, newValue);
-            return;
-        }
-    }
-}
-
 /* Plays sounds in a particular (relative) order, determined by the
  * order in which their names (rather, something close to that) appear
  * in the filenames array closer to the top.
 */
 function playSounds() {
-    for (const [key, value] of soundsList) {
-        // True means the respective alarm is on
-        if (soundsList.get(key)) {
-            // When finished, will return to the start
-            key.play();
+    for (let i = 0; i < soundsList.length; ++i) {
+        // Play the active sounds in succession
+        if (soundsList[i].active) {
+            soundsList[i].source.play();
         }
     }
+
+    // 1 second silence after all alarms finished
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    async function silence() { await sleep(1000); }
+    silence();
 }
 
-// Run the above function forever every second (produces silence in between).
-setInterval(playSounds, 1000);
+// Play/manual reset in one go
+function updateSound(sound, newValue) {
+    const soundNumber = soundsList.findIndex(
+        file => file.source.src.includes(sound)
+    );
+    
+    // If newValue is true, the sound should play when called
+    if (soundNumber >= 0) {
+        soundsList[soundNumber].active = newValue;
+    }
+
+    /* Don't play any sound if none are active (else
+     * that would delay any future ones by an extra second).
+    */
+    if (soundsList.some(user => user.active)) {
+        playSounds();
+    }
+}
 
 // Reconnecting code
 function scheduleReconnect() {
