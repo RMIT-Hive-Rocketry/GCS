@@ -91,11 +91,21 @@ function toggleMute() {
     }
 }
 
+
+/* For the below function, use to silence for 1 second after
+ * the last alarm to be played is done
+ */
+let silence = false;
+
 /* Plays sounds in a particular (relative) order, determined by the
  * order in which their names (rather, something close to that) appear
  * in the filenames array closer to the top.
 */
 function playSounds() {
+    // Return if 1 second not up, yet
+    if (silence) { return; }
+    silence = true;
+
     for (let i = 0; i < soundsList.length; ++i) {
         // Play the active sounds in succession
         if (soundsList[i].active) {
@@ -103,10 +113,10 @@ function playSounds() {
         }
     }
 
-    // 1 second silence after all alarms finished
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    async function silence() { await sleep(1000); }
-    silence();
+    // After 1 second, allow function calls
+    setTimeout(() => {
+        silence = false;
+    }, 1000);
 }
 
 // Play/manual reset in one go
