@@ -201,9 +201,7 @@ class PendantState:
     def get_fallback_table():
         return PendantState(PendantState.FALLBACK_PENDANT_STATES_DICT)
 
-    def __str__(self):
-        slogger.critical("string")
-        
+    def __str__(self):        
         gse_states = self.get_gse_states()
         KEY_COL_WIDTH = max([len(key) for key, _ in gse_states.items()])
         print(KEY_COL_WIDTH)
@@ -225,11 +223,10 @@ class PendantState:
         return output
 
     def __repr__(self):
-        slogger.critical("repr")
         output = "PendantState({"
         output += "".join(
             [
-                f"PendantInput.{key}: {'True' if value else 'False'},\n"
+                f"PendantInput.{key}: {'True' if value else 'False'},"
                 for key, value in self.states.items()
             ]
         )
