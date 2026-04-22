@@ -1076,15 +1076,15 @@ function displaySetState(item, value, timeout = {}) {
                  * in case the interested state/s exist elsewhere in the string)
                 */
                 updateSound(sound, elem.classList.value.includes("green"));
+            }
 
-                if (timeout != undefined && Object.keys(timeout).length > 0) {
-                    Object.entries(timeout).forEach(([ms, state]) => {
-                        clearTimeout(timeouts[[elem, ms]]);
-                        timeouts[[elem, ms]] = setTimeout(() => {
-                            displaySetState(elem, state); // timeout
-                        }, parseInt(ms));
-                    });
-                }
+            if (timeout != undefined && Object.keys(timeout).length > 0) {
+                Object.entries(timeout).forEach(([ms, state]) => {
+                    clearTimeout(timeouts[[elem, ms]]);
+                    timeouts[[elem, ms]] = setTimeout(() => {
+                        displaySetState(elem, state); // timeout
+                    }, parseInt(ms));
+                });
             }
         });
     }
