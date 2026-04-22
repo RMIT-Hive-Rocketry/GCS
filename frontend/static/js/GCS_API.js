@@ -1008,24 +1008,53 @@ function displaySetState(item, value, timeout = {}) {
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
-
             // Convert true/false boolean values to on/error
             if (typeof value == "boolean") {
                 value = value ? 1 : 3;
             }
 
-            // Get indicator state from value
+            // Get indicator state from value (only then change the sound)
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
             }
 
-            if (timeout != undefined && Object.keys(timeout).length > 0) {
-                Object.entries(timeout).forEach(([ms, state]) => {
-                    clearTimeout(timeouts[[elem, ms]]);
-                    timeouts[[elem, ms]] = setTimeout(() => {
-                        displaySetState(elem, state); // timeout
-                    }, parseInt(ms));
-                });
+            // Complex way to get the required indicator
+            let indicator = elem.attributes[0].textContent;
+            let sound = "";
+
+            /* All sounds come from https://www.youtube.com/watch?v=EWnhSCFCYto
+             * except the last one (https://www.youtube.com/watch?v=W5Z-d1Zx02o)
+            */
+            if (indicator.includes("av.radio")) {
+                sound = "AV_Loss";
+            }
+            else if (indicator.includes("gse.radio")) {
+                sound = "GSE_Loss";
+            }
+            else if (indicator.includes("gpxFix")) {
+                sound = "GPS_Fix_Loss";
+            }
+            else if (indicator.includes("dualBoard")) {
+                sound = "Dual_Board_Loss";
+            }
+
+            // Should only execute with one of the above values
+            if (sound !== "") {
+                /* Can be changed, but at this stage only green is a good state,
+                 * where the sound resets (otherwise continues playing). Also,
+                 * elem.classList.value is the styling itself (use this so that
+                 * in case the interested state/s exist elsewhere in the string)
+                */
+                elem.classList.value.includes("green") ? resetSound(sound) : playSound(sound);
+
+                if (timeout != undefined && Object.keys(timeout).length > 0) {
+                    Object.entries(timeout).forEach(([ms, state]) => {
+                        clearTimeout(timeouts[[elem, ms]]);
+                        timeouts[[elem, ms]] = setTimeout(() => {
+                            displaySetState(elem, state); // timeout
+                        }, parseInt(ms));
+                    });
+                }
             }
         });
     }
