@@ -86,11 +86,11 @@ function toggleMute() {
      * to be changed in the future.
     */
     if (allUnmuted()) {
-        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.png";
+        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.svg";
         document.getElementById("toggleIcon").alt = "Sound unmuted";
     }
     else {
-        document.getElementById("toggleIcon").src = "img/icons/sound-muted.png";
+        document.getElementById("toggleIcon").src = "img/icons/sound-muted.svg";
         document.getElementById("toggleIcon").alt = "Sound muted";
     }
 }
