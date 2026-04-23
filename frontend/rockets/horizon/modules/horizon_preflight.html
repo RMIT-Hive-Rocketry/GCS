@@ -1,5 +1,53 @@
 <!-- Preflight information -->
 <div class="module-horizon p-2">
-    <h2>Overview</h2>
+    <!-- Sound files -->
+    <audio id="gse" src="sounds/GSE_Loss.mp3" preload="auto"></audio>
+    <audio id="av" src="sounds/AV_Loss.mp3" preload="auto"></audio>
+    <audio id="gpsFix" src="sounds/GPS_Fix.mp3" preload="auto"></audio>
+    <audio id="dualBoard" src="sounds/Dual_Board_Loss.mp3" preload="auto"></audio>
+    <audio id="combined" src="sounds/Combined_Loss.mp3" preload="auto"></audio>
     
+    <h2>Overview</h2>
+    <p>
+        The above mute/unmute (default mute) icon can be used to toggle whether alarms play or not. The alarms themselves signify if something is wrong
+        with connections to external devices (signified by a non-green indicator), and play in a queue from top to bottom priority (GSE, AV, GPS Fix,
+        Dual Board). Since the GPS Fix is part of the AV device, if the former goes down, so will the latter. Click the following button to hear them in
+        succession (0.5 sec of silence between each): <button onclick="document.getElementById('combined').play()" controls>Play Audio</button>
+    </p>
+    Description of each sound:
+    <table>
+        <tr>
+            <th>Device (sorted by descending order of priority)</th>
+            <th>Alarm sound</th>
+            <th>Example</th>
+        </tr>
+        <tr>
+            <td>GSE</td>
+            <td>High-pitched chord</td>
+            <td>
+                <button onclick="document.getElementById('gse').play()" controls>Play Audio</button>
+            </td>
+        </tr>
+        <tr>
+            <td>AV</td>
+            <td>1kHz square wave</td>
+            <td>
+                <button onclick="document.getElementById('av').play()" controls>Play Audio</button>
+            </td>
+        </tr>
+        <tr>
+            <td>GPS Fix</td>
+            <td>~250 hZ Triangle wave (just under 2 octaves below AV)</td>
+            <td>
+                <button onclick="document.getElementById('gpsFix').play()" controls>Play Audio</button>
+            </td>
+        </tr>
+        <tr>
+            <td>Dual Board</td>
+            <td>Low-pitched sound, slightly ascending</td>
+            <td>
+                <button onclick="document.getElementById('dualBoard').play()" controls>Play Audio</button>
+            </td>
+        </tr>
+    </table>
 </div>

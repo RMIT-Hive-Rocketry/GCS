@@ -57,17 +57,17 @@ class ConfigHorizon(Config):
             ],
             "horizon_sounds": [
                 ("page-main", 6, 0, 6, 1),
-                ("page-preflight", 6, 0, 6, 1),
+                ("page-preflight", 6, 0, 9, 1),
                 ("page-control", 6, 0, 6, 1),
             ],
             "horizon_nav": [
                 ("page-main", 12, 0, 6, 1),
-                ("page-preflight", 12, 0, 6, 1),
+                ("page-preflight", 15, 0, 9, 1),
                 ("page-control", 12, 0, 6, 1),
             ],
             "horizon_radio": [
                 ("page-main", 18, 0, 6, 1),
-                ("page-preflight", 18, 0, 6, 1),
+                # ("page-preflight", 18, 0, 6, 1),
                 ("page-control", 18, 0, 6, 1),
             ],
 
