@@ -11,10 +11,7 @@ class IgnoreWebMessagesFilter(logging.Filter):
         return "GET" not in record.getMessage()
 
 
-def start_frontend_webserver(
-    logger: logging.Logger,
-) -> None:
-
+def start_frontend_webserver(logger: logging.Logger, performance_logging:process.RunningProcess):
     SERVICE_NAME = "frontend_webserver"
     try:
         frontend_config = config.get_config()["frontend"]
@@ -42,6 +39,7 @@ def start_frontend_webserver(
         )
         frontend_process._parent_logger.addFilter(IgnoreWebMessagesFilter())
         frontend_process.start()
+        performance_logging.AddNewProcess(frontend_process)
 
     except Exception as e:
         logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")

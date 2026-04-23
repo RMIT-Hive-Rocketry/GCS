@@ -3,7 +3,7 @@ import cli.process as process
 import os
 
 
-def start_frontend_api(logger: logging.Logger, SUB_SOCKET_PATH: str):
+def start_frontend_api(logger: logging.Logger, performance_logging:process.RunningProcess, SUB_SOCKET_PATH: str):
     SERVICE_NAME = "frontend_api"
     try:
 
@@ -29,6 +29,7 @@ def start_frontend_api(logger: logging.Logger, SUB_SOCKET_PATH: str):
             API_SERVICE_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
         )
         api_process.start()
+        performance_logging.AddNewProcess(api_process)
 
     except Exception as e:
         logger.error(

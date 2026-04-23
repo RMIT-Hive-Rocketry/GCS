@@ -3,8 +3,8 @@ import cli.process as process
 import os
 
 
-def start_pendant_emulator(logger: logging.Logger) -> tuple[None, None] | None:
-    service_name = "pendant_emulator"
+def start_pendant_emulator(logger: logging.Logger, performance_logging:process.RunningProcess):
+    SERVICE_NAME = "pendant_emulator"
     try:
         emulator_command = [
             "python3",
@@ -25,6 +25,7 @@ def start_pendant_emulator(logger: logging.Logger) -> tuple[None, None] | None:
             emulator_command, name=service_name, env=env, parse_output=True
         )
         api_process.start()
+        performance_logging.AddNewProcess(api_process)
 
     except Exception as e:
         logger.error(
