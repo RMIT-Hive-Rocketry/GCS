@@ -989,7 +989,7 @@ function sendDataToRegistry(apiData) {
                         displaySetString(elem, value);
                         break;
                     case "state":
-                        displaySetState(elem, value, timeout);
+                        displaySetState(elem, value, timeout, apiData);
                         break;
                 }
             }
@@ -1057,7 +1057,8 @@ function displaySetString(item, string) {
     }
 }
 
-function displaySetState(item, value, timeout = {}) {
+// apiData required for conditional alarms
+function displaySetState(item, value, timeout = {}, apiData) {
     const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 
     // Updates the state of an indicator
@@ -1073,6 +1074,7 @@ function displaySetState(item, value, timeout = {}) {
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
+    
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
@@ -1113,9 +1115,49 @@ function displaySetState(item, value, timeout = {}) {
                  * elem.classList.value is the styling itself (use this so that
                  * in case the interested state/s exist elsewhere in the string)
                 */
-                updateSound(sound, elem.classList.value.includes("green"));
+                const errorState = !elem.classList.value.includes("green");
+                
+                // If GPS_Fix is down, so must be AV
+                if (errorState && (indicator.includes("gpsFix"))) {
+                    // Easier to copy the code from the other place
+                    let flat = {};
+                    function flatten(flat_INCOMING, prefix, obj) {
+                        if (prefix != "") {
+                            prefix = prefix + ".";
+                        }
+                        if (obj == null) {
+                            return;
+                        }
+                        Object.entries(obj).forEach(([key, value]) => {
+                            if (typeof value == "object") {
+                                flatten(prefix + key, value);
+                            } else {
+                                flat_INCOMING[prefix + key] = value;
+                            }
+                        });
+
+                        return flat_INCOMING;
+                    }
+                    flat = flatten(flat, "", apiData);
+                    
+                    // Should only execute once
+                    for (const reg of displayRegistry["state.av.radio"]) {
+                        /* Add sound to queue (error state should be true) but
+                         * do not play any sounds until all elements are added
+                        */
+                        updateSound(sound, errorState, play=false);
+
+                        // Use the current value for updating the other state
+                        displaySetState(reg.e, flat["state.gpsFix"], reg.t);
+                    }
+                }
+                else {
+                    // Add sound to queue if error state (otherwise remove)
+                    updateSound(sound, errorState);
+                }
             }
 
+            // Don't update the state too quickly
             if (timeout != undefined && Object.keys(timeout).length > 0) {
                 Object.entries(timeout).forEach(([ms, state]) => {
                     clearTimeout(timeouts[[elem, ms]]);
