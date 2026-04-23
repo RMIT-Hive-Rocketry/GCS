@@ -21,6 +21,18 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_nav.html",
             "horizon/modules/horizon_radio.html",
             "horizon/modules/horizon_sounds.html",
+
+            # Main page modules (mirrors Legacy III's main page for now)
+            "horizon/modules/horizon_avionics.html",
+            "horizon/modules/horizon_position.html",
+            "horizon/modules/horizon_avionics_position.html",
+            "horizon/modules/horizon_auxiliary_gse.html",
+            "horizon/modules/horizon_errorlog.html",
+            "horizon/modules/horizon_rocket.html",
+            "horizon/modules/horizon_timeline.html",
+
+            # Other pages
+            "horizon/modules/horizon_preflight.html",
         ]
 
         # Define pages for Horizon
@@ -57,4 +69,22 @@ class ConfigHorizon(Config):
                 ("page-preflight", 6, 0, 6, 1),
                 ("page-control", 6, 0, 6, 1),
             ],
+            "horizon_nav": [
+                ("page-main", 12, 0, 6, 1),
+                ("page-preflight", 12, 0, 6, 1),
+                ("page-control", 12, 0, 6, 1),
+            ],
+            "horizon_radio": [
+                ("page-main", 18, 0, 6, 1),
+                ("page-preflight", 18, 0, 6, 1),
+                ("page-control", 18, 0, 6, 1),
+            ],
+
+            "horizon_avionics_position": [("page-main", 0, 1, 8, 11)],
+            "horizon_rocket": [("page-main", 8, 1, 8, 8)],
+            "horizon_timeline": [("page-main", 8, 9, 8, 3)],
+            "horizon_errorlog": [("page-main", 16, 1, 8, 3)],
+            "horizon_auxiliary_gse": [("page-main", 16, 4, 8, 8)],
+
+            "horizon_preflight": [("page-preflight", 0, 1, 24, 11)]
         }
