@@ -82,9 +82,7 @@ function toggleMute() {
 
     /* Icon represents current state.
      * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
-     * modified by changing the colour to a Horizon-themed gradient (and converting to PNG so that
-     * they are easier to use as buttons). The SVGs remain in this repository if the icons need
-     * to be changed in the future.
+     * modified by changing the colour to a Horizon-themed gradient
     */
     if (allUnmuted()) {
         document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.svg";
