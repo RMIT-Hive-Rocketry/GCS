@@ -20,6 +20,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
+from cli.start_performance_monitor import start_performance_monitor
 from cli.start_replay_system import (
     start_replay_system,
     get_available_missions,
@@ -37,6 +38,9 @@ running_services: bool = False  # To help close the cli automatically
 
 IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
+RunningProcesses = process.RunningProcess()
+
+APP_START_TIME = None # Start Time Of application initilised within main before logging starts
 
 class Command(enum.Enum):
     """Command enums to help start services"""
@@ -353,12 +357,13 @@ def start_services(
 
     # 3. Run C++ middleware (always gse + av argv; single = same type/path for both)
     try:
-        start_middleware(logger=logger, config=launch_config.middleware_config)
+        start_middleware(logger=logger, performance_logging=RunningProcesses, config=launch_config.middleware_config)
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error"
         )
         raise
+
 
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
@@ -371,6 +376,7 @@ def start_services(
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
             logger,
+            RunningProcesses,
             aux_service_plan.device_path,
             aux_service_plan.interface_type,
             experimental=experimental,
@@ -386,8 +392,8 @@ def start_services(
             SIMULATION=aux_service_plan.simulation,
         )
 
-    # 4. Start the event viewer
-    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
+    # 5. Start the event viewer
+    start_event_viewer(logger=logger, performance_logging=RunningProcesses, SOCKET_PATH="gcs_rocket", file_logging_enabled=logpkt)
 
     # 5. Start the pendent emulator
     if not nopendant:
@@ -396,15 +402,21 @@ def start_services(
             == "true"
         )
         if launch_pendant_daemon:
-            start_pendant_daemon(logger)
+            start_pendant_daemon(logger, RunningProcesses)
         else:
-            start_pendant_emulator(logger)
+            start_pendant_emulator(logger, RunningProcesses)
 
     if frontend:
         # 6. Start the websocket / frontend API
-        start_frontend_api(logger, "gcs_rocket")
+        start_frontend_api(logger, RunningProcesses, SUB_SOCKET_PATH="gcs_rocket")
         # 7. Start the frontend web server
-        start_frontend_webserver(logger)
+        start_frontend_webserver(logger, RunningProcesses)
+
+
+    # 8. Start Performance Monitoring After ALl Other Services Have Started
+    global APP_START_TIME
+    start_performance_monitor(logger=logger, performance_logging=RunningProcesses, startTime=APP_START_TIME)
+
 
 
 @click.group()
@@ -608,7 +620,9 @@ def main():
     if os.path.exists(GCS_CONFIG_HELPER_PATH):
         os.remove(GCS_CONFIG_HELPER_PATH)
 
-    rocket_logging.initialise()
+    global APP_START_TIME
+    APP_START_TIME = time.perf_counter()
+    rocket_logging.initialise(APP_START_TIME)
     logger = logging.getLogger("rocket")
     if IN_TEST_ENVIRONMENT:
         rocket_logging.set_console_low_detail(False)

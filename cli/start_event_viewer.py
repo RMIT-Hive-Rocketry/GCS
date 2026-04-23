@@ -24,7 +24,7 @@ def successful_event_viewer_start_callback(line: str, stream_name: str):
 
 
 def start_event_viewer(
-    logger: logging.Logger, SOCKET_PATH: str, file_logging_enabled: bool
+    logger: logging.Logger,performance_logging:process.RunningProcess, SOCKET_PATH: str, file_logging_enabled: bool
 ):
     SERVICE_NAME = "event viewer"
     try:
@@ -57,6 +57,7 @@ def start_event_viewer(
         )
 
         event_viewer_process.start()
+        performance_logging.AddNewProcess(event_viewer_process)
 
         finished = False
         while not finished:

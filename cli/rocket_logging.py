@@ -8,7 +8,7 @@ import zmq
 from datetime import datetime
 import backend.includes_python.service_helper as service_helper
 
-# Capture application start time (initialized in `initialise()`)
+# Capture application start time (initialized in rocket.py)
 APP_START_TIME: Optional[float] = None
 
 # When False, use short prefixes on console (set in initialise() from config)
@@ -149,8 +149,7 @@ class Logs_Loopback(logging.Handler):
             self.buffer.append(log_entry)
 
         except Exception as ex:
-            logging.error("[Logging] Error Within Log Passthrough:")
-            print(ex)
+            logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # catch errors within the packet gen in case of malformed data and drop the packet quitely to avoid issues with cascade
             pass
 
@@ -160,8 +159,7 @@ class Logs_Loopback(logging.Handler):
             self.buffer.clear()
 
         except Exception as ex:
-            logging.error("[Logging] Error Within Log Passthrough:")
-            print(ex)
+            logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # Safety catch for unexpected exceptions however logging this will cause issues maybe a cascade cause log will cause more errors
             pass
 
@@ -195,11 +193,12 @@ def create_interscript_comms_handler(
     return fh
 
 
-def initialise():
+def initialise(startTime):
     """One time logging setup run as soon as the program starts"""
 
     global APP_START_TIME, DETAILED_LOGGING_PREFIX
-    APP_START_TIME = time.perf_counter()
+    #APP_START_TIME = time.perf_counter()
+    APP_START_TIME = startTime
 
     logger = logging.getLogger("rocket")
     if logger.hasHandlers():

@@ -3,7 +3,7 @@ import cli.proccess as process
 import os
 
 
-def start_pendant_emulator(logger: logging.Logger):
+def start_pendant_emulator(logger: logging.Logger, performance_logging:process.RunningProcess):
     SERVICE_NAME = "pendant_emulator"
     try:
 
@@ -26,6 +26,7 @@ def start_pendant_emulator(logger: logging.Logger):
             EMULATOR_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
         )
         api_process.start()
+        performance_logging.AddNewProcess(api_process)
 
     except Exception as e:
         logger.error(

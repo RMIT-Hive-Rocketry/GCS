@@ -5,6 +5,7 @@ import cli.start_middleware as start_middleware
 
 def start_fake_serial_device_emulator(
     logger: logging.Logger,
+    performance_logging:process.RunningProcess,
     DEVICE: str,
     INTERFACE_TYPE: start_middleware.InterfaceType,
     experimental: bool,
@@ -39,6 +40,7 @@ def start_fake_serial_device_emulator(
             EMULATOR_COMMAND, name=SERVICE_NAME, parse_output=True
         )
         emulator_process.start()
+        performance_logging.AddNewProcess(emulator_process)
 
     except Exception as e:
         logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
