@@ -1090,8 +1090,8 @@ function displaySetState(item, value, timeout = {}, apiData) {
             let indicator = elem.attributes[0].textContent;
             let sound = "";
 
-            /* All sounds come from https://www.youtube.com/watch?v=EWnhSCFCYto
-             * except the last one (https://www.youtube.com/watch?v=W5Z-d1Zx02o)
+            /* Sounds 1 and 3: https://www.youtube.com/watch?v=EWnhSCFCYto
+             * Sounds 2 and 4: https://www.youtube.com/watch?v=W5Z-d1Zx02o
             */
             if (indicator.includes("av.radio")) {
                 sound = "AV_Loss";
