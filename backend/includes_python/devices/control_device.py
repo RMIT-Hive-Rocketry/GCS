@@ -5,7 +5,6 @@ from backend.includes_python.timers import RepeatingTimer
 
 
 class ControlDevice(ABC):
-
     def __init__(self):
         # DONT instantiate a ControlDevice manually
         # Use the get_control_device() function
@@ -41,7 +40,7 @@ class ControlDevice(ABC):
         if self.state_table != self.previous_table:
             slogger.info(f"Pendant State changed to {repr(self.state_table)}")
             self.previous_table = self.state_table
-        
+
         return self.state_table
 
     def cleanup(self) -> None:
