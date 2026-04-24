@@ -201,11 +201,11 @@ class PendantState:
     def get_fallback_table():
         return PendantState(PendantState.FALLBACK_PENDANT_STATES_DICT)
 
-    def __str__(self):        
+    def __str__(self):
         gse_states = self.get_gse_states()
         KEY_COL_WIDTH = max([len(key) for key, _ in gse_states.items()])
         print(KEY_COL_WIDTH)
-        
+
         output = "\033[1mPendant States: \033[0m\n"
         output += "".join(
             [
