@@ -275,7 +275,8 @@ def main():
 
     # Get Config File and genurate location for the new performance logging log files
     config = get_config()
-    LOG_DIR_PATH = config["logging"]["performance_log_dir"].strip()
+    LOG_DIR_PATH = config["performance_monitor"]["performance_log_dir"].strip()
+    samplingInterval = float(config["performance_monitor"]["performance_sampling_interval"].strip())
 
     log_filename = f"performance_{time.strftime('%Y%m%d_%H%M%S')}.csv"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
@@ -308,17 +309,21 @@ def main():
 
 
     # Sleep To Give Initial Data time to change
-    time.sleep(1)    
+    time.sleep(samplingInterval)    
 
     while (service_helper.time_to_stop() != True):
 
+
+        # Call function to get global system data
         systemData = get_global_status()
+
+        # Calculate Values from the global data
         totalTime = systemData.user_time + systemData.idle_time + systemData.kernel_time + systemData.other_time
         totalTimeDelta = totalTime - (previousSysData.user_time + previousSysData.idle_time + previousSysData.kernel_time + previousSysData.other_time)
         idletimeDelta = systemData.idle_time - (previousSysData.idle_time)
 
 
-
+        # Global Values our services resource use
         ourRamUse = 0
         ourCPUUse = 0
         ourSysData:ProcessSystemData = []
@@ -369,11 +374,8 @@ def main():
             ourCPUsePercent = round(float((ourCPUUseDelt) * 100), 10)
 
 
-        #slogger.debug("Ram Useage: " + str(totalRamUsePercent))
-        #slogger.debug("Our Ram Useage: " + str(ourRamUsePercent))
-        #slogger.debug("Cpu Useage: " + str(totalCPUUsePercent))
-        #slogger.debug("Our Cpu Useage: " + str(ourCPUsePercent))
-
+        
+        # Gen dynamic rows for each service
         row = [
             str(time.perf_counter() - float(startTime)),
             round(totalRamUsePercent, 3),
@@ -396,21 +398,16 @@ def main():
             writer = csv.writer(file)
             writer.writerow(row)
 
-
+        # Make Current data into the old data for next loop
         previousSysData = systemData
         ourPreviousSysData.clear()
         for ActiveProcess in processesDataList:
             ourPreviousSysData.append(get_process_status(ActiveProcess[0]))
 
-        time.sleep(1)
+        time.sleep(samplingInterval)
 
 
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
