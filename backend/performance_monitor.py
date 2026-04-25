@@ -8,9 +8,9 @@ from dataclasses import dataclass
 from config.config import get_config
 import ast
 import csv
-
-
 import backend.includes_python.service_helper as service_helper
+
+
 
 startTime = None # init in start
 
@@ -65,10 +65,14 @@ else:
 
 @dataclass
 class GlobalSystemInfo:
-    user_time: int
-    kernel_time: int
-    idle_time: int
-    other_time: int # Includes involuntary waits IRQ, etc
+    userTime: float
+    kernelTime: float
+    idleTime: float
+    otherTime: float # Includes involuntary waits IRQ, etc
+
+    usedTime: float
+    usedTimeDelta: float
+    cpuUsagePercent: float
 
     vmRss: int # total system ram useage
     totalMem: int # total system ram cap
@@ -80,15 +84,17 @@ class ProcessSystemData:
     name: str
 
     vmRss: int # Ram Useage For The Process (kB)
-    user_time: int # Time in Jiffies / ticks in user mode
-    kernel_time: int # Time in Jiffies / ticks in kernel mode
+    cpuUtilPercent: float
+    memUtilPercent: float
 
-    delta_user_time: int # Time in Jiffies / ticks in user mode
-    delta_kernel_time: int # Time in Jiffies / ticks in kernel mode
 
-    delta_cpu_util: int
-    mem_util: int
+    userTime: float # Time in Jiffies / ticks in user mode
+    kernelTime: float # Time in Jiffies / ticks in kernel mode
+    cpuUsageTime: float
 
+    deltaUserTime: float # Time in Jiffies / ticks in user mode
+    deltaKernelTime: float # Time in Jiffies / ticks in kernel mode
+    deltaCpuUsageTime: float
 
 
 def filetime_to_int(ft):
@@ -96,7 +102,7 @@ def filetime_to_int(ft):
 
 # Extract from the proc Directory the details needed
 def get_process_status_linux(pid):
-    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0)
+    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0,0,0)
     try:
         with open(f"/proc/{pid}/status") as f:
             for line in f:
@@ -104,11 +110,11 @@ def get_process_status_linux(pid):
                     processData.vmRss = int(line.split()[1])
 
         with open(f"/proc/{pid}/stat") as f:
-            for line in f:
-                stat_cont = line.split()
+            stat_cont = f.read().split()
 
-                processData.user_time = int(stat_cont[13]) # Index within the files
-                processData.kernel_time = int(stat_cont[14])
+            processData.userTime = int(stat_cont[13]) # Index within the files
+            processData.kernelTime = int(stat_cont[14])
+            processData.cpuUsageTime = processData.userTime + processData.kernelTime
 
         return processData
 
@@ -117,25 +123,27 @@ def get_process_status_linux(pid):
     
 # Extract from the proc Directory the details needed meminfo 
 def get_global_status_linux():
-    sysinfo = GlobalSystemInfo(0,0,0,0,0,0)
+    sysInfo = GlobalSystemInfo(0,0,0,0,0,0,0,0,0)
     try:
         with open(f"/proc/stat") as f:
             for line in f:
                 if line.startswith("cpu"):
                     systemList = line.split()
-                    sysinfo.user_time = int(systemList[1] + systemList[2]) # User Global Time + User Nice Time
-                    sysinfo.kernel_time = int(systemList[3])
-                    sysinfo.idle_time = int(systemList[4] + systemList[5])
-                    sysinfo.other_time = int(systemList[6] + systemList[7] + systemList[8] + systemList[9] + systemList[10]) # irq, softirq, steal, guest, guest_niced
+                    sysInfo.userTime = int(systemList[1] + systemList[2]) # User Global Time + User Nice Time
+                    sysInfo.kernelTime = int(systemList[3])
+                    sysInfo.idleTime = int(systemList[4] + systemList[5])
+                    sysInfo.otherTime = int(systemList[6] + systemList[7] + systemList[8] + systemList[9] + systemList[10]) # irq, softirq, steal, guest, guest_niced
+
+                    sysInfo.usedTime = sysInfo.userTime + sysInfo.kernelTime + sysInfo.otherTime
                     break
         
         with open(f"/proc/meminfo") as f:
             for line in f:
                 if line.startswith("MemTotal"):
-                    sysinfo.totalMem = int(line.split()[1])
+                    sysInfo.totalMem = int(line.split()[1])
 
-                if line.startswith("Active"):
-                    sysinfo.vmRss = int(line.split()[1])
+                if line.startswith("MemAvailable"):
+                    sysInfo.vmRss = sysInfo.totalMem - int(line.split()[1]) # Used Memory equals the total memory - avaliable to get most acurate
     
     except FileNotFoundError:
         return None
@@ -145,7 +153,7 @@ def get_global_status_linux():
 
 
 
-    return sysinfo
+    return sysInfo
 
 
 # Extract from the proc Directory the details needed
@@ -154,15 +162,16 @@ def get_process_status_windows(pid):
     psapi = ctypes.WinDLL("psapi.dll")
     kernel32 = ctypes.WinDLL("kernel32.dll")
 
-    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0)
+    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0,0,0)
 
-    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
     PROCESS_VM_READ = 0x0010
 
-    handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
 
     if not handle:
-        return None
+        slogger.error("Invalid Hook")
+        return processData
 
     creation = FILETIME()
     exit = FILETIME()
@@ -177,19 +186,12 @@ def get_process_status_windows(pid):
         ctypes.byref(user)
     )
 
-    kernel32.CloseHandle(handle)
+    slogger.error(user, kernel, exit, creation)
 
-    processData.user_time =  filetime_to_int(user)
-    processData.kernel_time =  filetime_to_int(kernel)
+    processData.userTime =  filetime_to_int(user)
+    processData.kernelTime =  filetime_to_int(kernel)
 
     # Memory Segment
-
-
-    handle = kernel32.OpenProcess(
-        PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-        False,
-        pid
-    )
 
     if not handle:
         raise OSError("Could not open process")
@@ -211,7 +213,7 @@ def get_process_status_windows(pid):
 
 
 def get_global_status_windows():
-    sysinfo = GlobalSystemInfo(0,0,0,0,0,0)
+    sysInfo = GlobalSystemInfo(0,0,0,0,0,0,0,0,0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FILETIME()
     kernel = FILETIME()
@@ -223,9 +225,9 @@ def get_global_status_windows():
         ctypes.byref(user)
     )
 
-    sysinfo.idle_time = filetime_to_int(idle),
-    sysinfo.kernel_time = filetime_to_int(kernel),
-    sysinfo.user_time = filetime_to_int(user)
+    sysInfo.idleTime = filetime_to_int(idle)
+    sysInfo.kernelTime = filetime_to_int(kernel)
+    sysInfo.userTime = filetime_to_int(user)
 
     x = MEMORYSTATUSEX()
     x.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
@@ -233,11 +235,11 @@ def get_global_status_windows():
     ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(x))
 
 
-    sysinfo.totalMem = x.ullTotalPhys
-    sysinfo.vmRss = x.ullTotalPhys - x.ullAvailPhys
+    sysInfo.totalMem = x.ullTotalPhys
+    sysInfo.vmRss = x.ullTotalPhys - x.ullAvailPhys
 
 
-    return sysinfo
+    return sysInfo
 
 
 
@@ -266,6 +268,7 @@ def main():
     startTime = sys.argv[sys.argv.index("--startTime") + 1]
     
     processesDataList = ast.literal_eval(SERVICE_LIST)
+
 
     previousSysData = get_global_status()
     ourPreviousSysData = []
@@ -318,70 +321,68 @@ def main():
         systemData = get_global_status()
 
         # Calculate Values from the global data
-        totalTime = systemData.user_time + systemData.idle_time + systemData.kernel_time + systemData.other_time
-        totalTimeDelta = totalTime - (previousSysData.user_time + previousSysData.idle_time + previousSysData.kernel_time + previousSysData.other_time)
-        idletimeDelta = systemData.idle_time - (previousSysData.idle_time)
+        totalTime = systemData.userTime + systemData.idleTime + systemData.kernelTime + systemData.otherTime
+        totalTimeDelta = totalTime - (previousSysData.userTime + previousSysData.idleTime + previousSysData.kernelTime + previousSysData.otherTime)
+        idleTimeDelta = systemData.idleTime - (previousSysData.idleTime)
+
+        systemData.usedTimeDelta = systemData.usedTime - previousSysData.usedTime
 
 
         # Global Values our services resource use
         ourRamUse = 0
-        ourCPUUse = 0
+        ourCpuUse = 0
         ourSysData:ProcessSystemData = []
 
         for idx, ActiveProcess in enumerate(processesDataList):
             # Get Memory Data For Process
-            mem = get_process_status(ActiveProcess[0])
+            ps = get_process_status(ActiveProcess[0])
 
-            # Extract Global data from each monitered process
-            ourRamUse = ourRamUse + mem.vmRss
-            ourCPUUse = ourCPUUse + mem.kernel_time + mem.user_time
+            # Countinus Addition of ram useage percent across system from psUtil
+            ourRamUse += + ps.vmRss
 
-            # Get Delta of Cpu Use
-            ourCPUUseDelt = ourCPUUse - (ourPreviousSysData[idx].kernel_time + ourPreviousSysData[idx].user_time)
+            ps.memUtilPercent = ps.vmRss / systemData.totalMem
+
+
+            # Total Current CpuUse cycles added across all monitored processes
+            ourCpuUse += ps.cpuUsageTime
 
             # Assign Individual deltas to the processes
-            mem.delta_kernel_time = mem.kernel_time - ourPreviousSysData[idx].kernel_time
-            mem.delta_user_time = mem.user_time - ourPreviousSysData[idx].user_time
+            ps.deltaKernelTime = ps.kernelTime - ourPreviousSysData[idx].kernelTime
+            ps.deltaUserTime = ps.userTime - ourPreviousSysData[idx].userTime
+
+            ps.deltaCpuUsageTime = ps.cpuUsageTime - ourPreviousSysData[idx].cpuUsageTime
 
             # map indiviudal utilsation to each processes
-
-            mem.mem_util = float((mem.vmRss / systemData.totalMem) * 100)
-
-            try:
-                mem.delta_cpu_util = float(((mem.delta_kernel_time + mem.delta_user_time) / totalTimeDelta) * 100)
-            except ZeroDivisionError:
-                mem.delta_cpu_util = float(((mem.delta_kernel_time + mem.delta_user_time) / totalTime) * 100)
+            if(totalTimeDelta != 0):
+                ps.cpuUtilPercent = (ps.deltaCpuUsageTime / totalTimeDelta) * 100
+            else:
+                ps.cpuUtilPercent = 0
 
             # Add pid and name into the process info that was passed initially from args
-            mem.pid = ActiveProcess[0] 
-            mem.name = ActiveProcess[1]
+            ps.pid = ActiveProcess[0] 
+            ps.name = ActiveProcess[1]
  
-            ourSysData.append(mem)
-
-
-        try:
-            totalRamUsePercent = round(float((systemData.vmRss / systemData.totalMem) * 100), 3)
-            ourRamUsePercent = round(float((ourRamUse / systemData.totalMem) * 100), 3)
-        except Exception as e:
-            slogger.error(e)
+            ourSysData.append(ps)
         
-        try:
-            totalCPUUsePercent = round(float(((totalTimeDelta - idletimeDelta) / totalTimeDelta) * 100), 3)
-            ourCPUsePercent = round(float((ourCPUUseDelt / totalTimeDelta) * 100), 10)
 
-        except ZeroDivisionError:
-            totalCPUUsePercent = round(float(((totalTimeDelta - idletimeDelta) / totalTime) * 100), 3)
-            ourCPUsePercent = round(float((ourCPUUseDelt) * 100), 10)
+        if(totalTimeDelta != 0):
+            ourCpuUsePercent = (ourCpuUse / totalTimeDelta) * 100
+            systemData.cpuUsagePercent = (systemData.usedTimeDelta / totalTimeDelta) * 100
+        else:
+            ourCpuUsePercent = 0
+            systemData.cpuUsagePercent = 0
 
 
+        ourRamUsePercent = (ourRamUse / systemData.totalMem) * 100
+        totalRamUsePercent = (systemData.vmRss / systemData.totalMem) * 100
         
         # Gen dynamic rows for each service
         row = [
-            str(time.perf_counter() - float(startTime)),
+            str(round(time.perf_counter() - float(startTime), 3)),
             round(totalRamUsePercent, 3),
-            round(ourRamUsePercent, 3),
-            round(totalCPUUsePercent, 3),
-            ourCPUsePercent
+            round(ourRamUsePercent, 7),
+            round(systemData.cpuUsagePercent, 7),
+            round(ourCpuUsePercent, 7)
         ]
 
         # flatten process data
@@ -389,8 +390,8 @@ def main():
             row.extend([
                 osd.pid,
                 osd.name,
-                round(osd.delta_cpu_util, 3),
-                round(osd.mem_util, 3),
+                round(osd.cpuUtilPercent, 7),
+                round(osd.memUtilPercent, 5),
                 round(osd.vmRss, 2)
             ])
         
@@ -398,15 +399,16 @@ def main():
             writer = csv.writer(file)
             writer.writerow(row)
 
-        # Make Current data into the old data for next loop
+        # Update Old Values with current ones
         previousSysData = systemData
+
         ourPreviousSysData.clear()
         for ActiveProcess in processesDataList:
             ourPreviousSysData.append(get_process_status(ActiveProcess[0]))
 
+
+        # Wait For Next sampling Interval
         time.sleep(samplingInterval)
-
-
 
 
 if __name__ == "__main__":
