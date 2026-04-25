@@ -79,6 +79,7 @@ def send_packet() -> None:
 
     controller = get_control_device()
 
+    # define socket first to ensure its not undefined
     frontend_pub_socket = context.socket(zmq.PUB)
 
     try:

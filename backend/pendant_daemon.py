@@ -86,15 +86,17 @@ def send_packet() -> None:
 
     controller = get_control_device()
 
+    # define sockets first to ensure they are not undefined
+    gse_push_socket = context.socket(zmq.PUSH)
+    frontend_pub_socket = context.socket(zmq.PUB)
+
     try:
-        gse_push_socket = context.socket(zmq.PUSH)
         gse_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         gse_push_socket.setsockopt(
             zmq.SNDHWM, 1
         )  # Limit send buffer to 1 message
         gse_push_socket.connect(f"ipc://{GSE_SOCKET_PATH}")
 
-        frontend_pub_socket = context.socket(zmq.PUB)
         frontend_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         frontend_pub_socket.setsockopt(
             zmq.SNDHWM, 1
