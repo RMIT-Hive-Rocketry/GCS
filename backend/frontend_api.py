@@ -187,6 +187,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                 slogger.error(f"Error forwarding data to websocket: {e}")
                 if shutdown_event.is_set():
                     break
+    except Exception as e:
+        slogger.critical(f"error with frontend api: {e}")
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
