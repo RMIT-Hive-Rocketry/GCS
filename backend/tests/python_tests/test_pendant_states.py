@@ -53,6 +53,7 @@ def test_repr():
 
     assert table_1 == eval(repr(table_1))
 
+
 # fmt: off
 all_correct_states: Dict[Tuple[PendantInput, ...], Tuple[GSEState, ...]] = {
     (): (),
@@ -67,6 +68,7 @@ all_correct_states: Dict[Tuple[PendantInput, ...], Tuple[GSEState, ...]] = {
     (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION): (GSEState.SYSTEM_ACTIVE, GSEState.ARMED, GSEState.O2, GSEState.IGNITION),
 }
 # fmt: on
+
 
 def test_correct_states():
     # list of all possible correct states
@@ -85,6 +87,7 @@ def test_correct_states():
             PendantState(pendant_state_dict).get_gse_states()
             == expected_gse_state_dict
         )
+
 
 def test_invalid_key_raises():
     # passing an invalid key should raise TypeError
@@ -127,7 +130,9 @@ def test_all_state():
 
 def test_explicit_false_same_as_omitting():
     # explicitly setting a key to False should produce the same state as omitting it
-    with_false = PendantState({PendantInput.SYSTEM_ACTIVE: True, PendantInput.FILL_MODE: False})
+    with_false = PendantState(
+        {PendantInput.SYSTEM_ACTIVE: True, PendantInput.FILL_MODE: False}
+    )
     without_key = PendantState({PendantInput.SYSTEM_ACTIVE: True})
     assert with_false == without_key
 
@@ -146,13 +151,18 @@ def test_e_stop_alone_gives_all_false():
 
 def test_e_stop_overrides_system_active():
     # E_STOP should suppress SYSTEM_ACTIVE in GSE output
-    state = PendantState({PendantInput.SYSTEM_ACTIVE: True, PendantInput.E_STOP: True})
+    state = PendantState(
+        {PendantInput.SYSTEM_ACTIVE: True, PendantInput.E_STOP: True}
+    )
     assert state.get_gse_states() == {s: False for s in GSEState}
 
 
 def test_fallback_table_matches_constant():
     # get_fallback_table() GSE output should match FALLBACK_GSE_STATES_DICT
-    assert PendantState.get_fallback_table().get_gse_states() == PendantState.FALLBACK_GSE_STATES_DICT
+    assert (
+        PendantState.get_fallback_table().get_gse_states()
+        == PendantState.FALLBACK_GSE_STATES_DICT
+    )
 
 
 def test_eq_non_pendant_state():
