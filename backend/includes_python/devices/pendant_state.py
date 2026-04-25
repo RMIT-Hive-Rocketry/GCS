@@ -91,7 +91,7 @@ class PendantState:
 
         # make sure all the keys are valid
         for key in states:
-            if key not in PendantInput:
+            if not isinstance(key, PendantInput):
                 slogger.critical(f"key: {key} is not a PendantInput")
                 raise TypeError(f"key: {key} is not a PendantInput")
 
