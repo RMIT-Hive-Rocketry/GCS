@@ -39,6 +39,7 @@ class ConfigHorizon(Config):
                 "id": "page-preflight",
             },
             {"name": "Control", "icon": "icon-gamepad", "id": "page-control"},
+            {"name": "Diagnostics", "icon": "icon-signal", "id": "page-diagnostics"},
         ]
 
         # Module positioning on each page
@@ -49,16 +50,20 @@ class ConfigHorizon(Config):
                 ("page-main", 0, 0, 8, 1),
                 ("page-preflight", 0, 0, 8, 1),
                 ("page-control", 0, 0, 8, 1),
+                ("page-diagnostics", 0, 0, 8, 1),
             ],
             "horizon_nav": [
                 ("page-main", 8, 0, 8, 1),
                 ("page-preflight", 8, 0, 8, 1),
                 ("page-control", 8, 0, 8, 1),
+                ("page-diagnostics", 8, 0, 8, 1),
             ],
             "horizon_radio": [
                 ("page-main", 16, 0, 8, 1),
                 ("page-preflight", 16, 0, 8, 1),
                 ("page-control", 16, 0, 8, 1),
+                ("page-diagnostics", 16, 0, 8, 1),
+
             ],
             "horizon_avionics_position": [("page-main", 0, 1, 8, 11)],
             "horizon_rocket": [("page-main", 8, 1, 8, 8)],

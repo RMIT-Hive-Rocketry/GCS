@@ -187,6 +187,12 @@
             -webkit-mask-image: url("/img/icons/dashboard.svg");
             mask-image: url("/img/icons/dashboard.svg");
         }
+
+        &.icon-signal {
+                    -webkit-mask-image: url("/img/icons/signal.svg");
+                    mask-image: url("/img/icons/signal.svg");
+        }
+
     }
 
     /* Indicators */
