@@ -53,8 +53,45 @@ if(platform.system() == "Windows"):
         ]
 
 elif (platform.system() == "Darwin"):
-    slogger.error("Performance Monitor Is not Supported On Mac please use Linux Or Windows !")
-    sys.exit("Invalid OS")
+    import subprocess
+    import re
+    
+    import ctypes 
+    from ctypes import c_int, c_uint, c_longlong, Structure, byref
+    
+    libc = ctypes.CDLL("libc.dylib")
+
+    HOST_CPU_LOAD_INFO = 3
+    CPU_STATE_MAX = 4
+    TICK_RATE = 100
+
+    PROC_PIDTASKINFO = 4  # macOS constant
+
+    class proc_taskinfo(ctypes.Structure):
+        _fields_ = [
+            ("pti_virtual_size", ctypes.c_uint64),
+            ("pti_resident_size", ctypes.c_uint64),
+            ("pti_total_user", ctypes.c_uint64),
+            ("pti_total_system", ctypes.c_uint64),
+            ("pti_threads_user", ctypes.c_uint64),
+            ("pti_threads_system", ctypes.c_uint64),
+            ("pti_policy", ctypes.c_int),
+            ("pti_faults", ctypes.c_int),
+            ("pti_pageins", ctypes.c_int),
+            ("pti_cow_faults", ctypes.c_int),
+            ("pti_messages_sent", ctypes.c_int),
+            ("pti_messages_received", ctypes.c_int),
+            ("pti_syscalls_mach", ctypes.c_int),
+            ("pti_syscalls_unix", ctypes.c_int),
+            ("pti_csw", ctypes.c_int),
+            ("pti_threadnum", ctypes.c_int),
+            ("pti_numrunning", ctypes.c_int),
+            ("pti_priority", ctypes.c_int),
+        ]
+    class host_cpu_load_info_data_t(ctypes.Structure):
+        _fields_ = [
+        ("cpu_ticks", c_uint * CPU_STATE_MAX)
+    ]
 elif (platform.system() == "Linux"):
     pass
 else:
@@ -129,10 +166,10 @@ def get_global_status_linux():
             for line in f:
                 if line.startswith("cpu"):
                     systemList = line.split()
-                    sysInfo.userTime = int(systemList[1] + systemList[2]) # User Global Time + User Nice Time
+                    sysInfo.userTime = int(systemList[1]) + int(systemList[2]) # User Global Time + User Nice Time
                     sysInfo.kernelTime = int(systemList[3])
-                    sysInfo.idleTime = int(systemList[4] + systemList[5])
-                    sysInfo.otherTime = int(systemList[6] + systemList[7] + systemList[8] + systemList[9] + systemList[10]) # irq, softirq, steal, guest, guest_niced
+                    sysInfo.idleTime = int(systemList[4]) + int(systemList[5])
+                    sysInfo.otherTime = int(systemList[6]) + int(systemList[7]) + int(systemList[8]) + int(systemList[9]) + int(systemList[10]) # irq, softirq, steal, guest, guest_niced
 
                     sysInfo.usedTime = sysInfo.userTime + sysInfo.kernelTime + sysInfo.otherTime
                     break
@@ -146,9 +183,10 @@ def get_global_status_linux():
                     sysInfo.vmRss = sysInfo.totalMem - int(line.split()[1]) # Used Memory equals the total memory - avaliable to get most acurate
     
     except FileNotFoundError:
+        slogger.error("Process Not Found")
         return None
     except Exception as e:
-        slogger.error("Process Logging Failed to execute {e}")
+        slogger.error(f"Process Logging Failed to execute {e}")
         return None
 
 
@@ -244,6 +282,99 @@ def get_global_status_windows():
     return sysinfo
 
 
+# Extract from the proc Directory the details needed
+def get_process_status_mac(pid):
+    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0,0,0)
+
+    info = proc_taskinfo()
+    
+    size = libc.proc_pidinfo(
+        pid,
+        PROC_PIDTASKINFO,
+        0,
+        ctypes.byref(info),
+        ctypes.sizeof(info)
+    )
+
+    if size <= 0:
+        slogger.error("Unable to access Process Info: {pid}")
+        return None
+
+    # CPU times are in nanoseconds on modern macOS
+    user_time = info.pti_total_user 
+    system_time = info.pti_total_system 
+
+    rss = info.pti_resident_size  # bytes
+
+
+    processData.userTime = user_time
+    processData.kernelTime = system_time
+    processData.vmRss = rss
+    # print(processData)
+    processData.cpuUsageTime = processData.userTime + processData.kernelTime
+    return processData
+
+
+def get_global_status_mac():
+    sysInfo = GlobalSystemInfo(0,0,0,0,0,0,0,0,0)
+
+    cpu_info = host_cpu_load_info_data_t()
+    count = ctypes.c_uint(ctypes.sizeof(cpu_info) // ctypes.sizeof(c_uint))
+    CLK_TCK = os.sysconf("SC_CLK_TCK")
+
+    ret = libc.host_statistics64(
+        libc.mach_host_self(),
+        HOST_CPU_LOAD_INFO,
+        ctypes.byref(cpu_info),
+        ctypes.byref(count)
+    )
+
+    user = cpu_info.cpu_ticks[0]
+    system = cpu_info.cpu_ticks[1]
+    idle = cpu_info.cpu_ticks[2]
+
+
+    sysInfo.idleTime = idle * (1e9 / CLK_TCK)
+    sysInfo.kernelTime = system * (1e9 / CLK_TCK)
+    sysInfo.userTime = user * (1e9 / CLK_TCK)
+    sysInfo.usedTime = sysInfo.userTime + sysInfo.kernelTime
+
+    memoryData = subprocess.check_output(["vm_stat"]).decode()
+
+    lines = memoryData.split("\n")
+    vm = {}
+
+    for line in lines:
+       if ":" not in line:
+           continue
+
+       key, value = line.split(":", 1)
+       key = key.strip()
+       value = value.strip()
+
+       # extract leading number only
+       num = ""
+       for c in value:
+           if c.isdigit():
+               num += c
+           else:
+               break
+
+       if num:
+           vm[key] = int(num)
+
+    page_size = 4096  # bytes (default on macOS)
+
+    free = vm.get("Pages free", 0) * page_size
+    inactive = vm.get("Pages inactive", 0) * page_size
+    active = vm.get("Pages active", 0) * page_size
+    wired = vm.get("Pages wired down", 0) * page_size
+
+    sysInfo.totalMem = free + inactive + active + wired
+    sysInfo.vmRss = active + wired
+
+    return sysInfo
+
 
 
 
@@ -253,12 +384,16 @@ def get_process_status(pid):
         return get_process_status_windows(pid)
     elif (platform.system() == "Linux"):
         return get_process_status_linux(pid)
+    elif (platform.system() == "Darwin"):
+        return get_process_status_mac(pid)
 
 def get_global_status():
     if(platform.system() == "Windows"):
         return get_global_status_windows()
     elif (platform.system() == "Linux"):
         return get_global_status_linux()
+    elif (platform.system() == "Darwin"):
+        return get_global_status_mac()
     
 
 def main():
@@ -345,8 +480,7 @@ def main():
             ps.memUtilPercent = ps.vmRss / systemData.totalMem
 
 
-            # Total Current CpuUse cycles added across all monitored processes
-            ourCpuUse += ps.cpuUsageTime
+
 
             # Assign Individual deltas to the processes
             ps.deltaKernelTime = ps.kernelTime - ourPreviousSysData[idx].kernelTime
@@ -354,11 +488,22 @@ def main():
 
             ps.deltaCpuUsageTime = ps.cpuUsageTime - ourPreviousSysData[idx].cpuUsageTime
 
+            # Total Current CpuUse cycles added across all monitored processes
+            ourCpuUse += ps.deltaCpuUsageTime
+
             # map indiviudal utilsation to each processes
-            if(totalTimeDelta != 0):
-                ps.cpuUtilPercent = (ps.deltaCpuUsageTime / totalTimeDelta) * 100
+            if (platform.system() == "Darwin"):
+                # map indiviudal utilsation to each processes
+                if(totalTimeDelta != 0):
+                    ps.cpuUtilPercent = (ps.deltaCpuUsageTime / totalTimeDelta) * 100 / TICK_RATE
+                else:
+                    ps.cpuUtilPercent = 0                    
             else:
-                ps.cpuUtilPercent = 0
+                # map indiviudal utilsation to each processes
+                if(totalTimeDelta != 0):
+                    ps.cpuUtilPercent = (ps.deltaCpuUsageTime / totalTimeDelta) * 100
+                else:
+                     ps.cpuUtilPercent = 0
 
             # Add pid and name into the process info that was passed initially from args
             ps.pid = ActiveProcess[0] 
