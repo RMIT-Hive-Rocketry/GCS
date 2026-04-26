@@ -50,7 +50,7 @@ class RuntimeLaunchConfig:
 
         self._resolve_paths_and_radio()
 
-        self.optional_arg = "--GSE_ONLY" if gse_only else None
+        self.optional_arg = "--GSE-ONLY" if gse_only else None
         self.middleware_config = MiddlewareConfig(
             release=self.is_release,
             interface_gse_type=self.interface_gse_type,
