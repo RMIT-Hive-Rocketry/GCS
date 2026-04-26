@@ -162,7 +162,7 @@ def get_process_status_windows(pid):
     psapi = ctypes.WinDLL("psapi.dll")
     kernel32 = ctypes.WinDLL("kernel32.dll")
 
-    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0,0,0)
+    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0)
 
     PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
     PROCESS_VM_READ = 0x0010
@@ -170,7 +170,7 @@ def get_process_status_windows(pid):
     handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
 
     if not handle:
-        slogger.error("Invalid Hook")
+        print("Invalid Hook")
         return processData
 
     creation = FILETIME()
@@ -186,10 +186,11 @@ def get_process_status_windows(pid):
         ctypes.byref(user)
     )
 
-    slogger.error(user, kernel, exit, creation)
+    print(user, kernel, exit, creation)
 
     processData.userTime =  filetime_to_int(user)
     processData.kernelTime =  filetime_to_int(kernel)
+    processData.cpuUsageTime = processData.userTime + processData.kernelTime
 
     # Memory Segment
 
@@ -209,11 +210,11 @@ def get_process_status_windows(pid):
     processData.vmRss = counters.WorkingSetSize
 
     return processData
-    
+   
 
 
 def get_global_status_windows():
-    sysInfo = GlobalSystemInfo(0,0,0,0,0,0,0,0,0)
+    sysinfo = GlobalSystemInfo(0,0,0,0,0,0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FILETIME()
     kernel = FILETIME()
@@ -225,9 +226,10 @@ def get_global_status_windows():
         ctypes.byref(user)
     )
 
-    sysInfo.idleTime = filetime_to_int(idle)
-    sysInfo.kernelTime = filetime_to_int(kernel)
-    sysInfo.userTime = filetime_to_int(user)
+    sysinfo.idleTime = filetime_to_int(idle)
+    sysinfo.kernelTime = filetime_to_int(kernel)
+    sysinfo.userTime = filetime_to_int(user)
+    sysinfo.usedTime = sysinfo.userTime + sysinfo.kernelTime
 
     x = MEMORYSTATUSEX()
     x.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
@@ -235,11 +237,11 @@ def get_global_status_windows():
     ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(x))
 
 
-    sysInfo.totalMem = x.ullTotalPhys
-    sysInfo.vmRss = x.ullTotalPhys - x.ullAvailPhys
+    sysinfo.totalMem = x.ullTotalPhys
+    sysinfo.vmRss = x.ullTotalPhys - x.ullAvailPhys
 
 
-    return sysInfo
+    return sysinfo
 
 
 
