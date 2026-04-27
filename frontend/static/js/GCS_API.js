@@ -1105,12 +1105,10 @@ function displaySetState(item, value, timeout = {}, apiData) {
                     // Should only execute once
                     for (const reg of displayRegistry["state.av.radio"]) {
                         /* Add sound to queue (error state should be true) but
-                         * do not play any sounds until all elements are added
+                         * do not play any sounds until all elements are added.
+                         * State will be updated by the packet
                         */
                         updateSound(sound, errorState, play=false);
-
-                        // Use the current value for updating the other state
-                        displaySetState(reg.e, flat["state.gpsFix"], reg.t);
                     }
                 }
                 else {
