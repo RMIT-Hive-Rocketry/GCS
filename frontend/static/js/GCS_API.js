@@ -154,10 +154,9 @@ function playSounds() {
 }
 
 /* Update the given sound as to if it will play in the sound
- * queue. If play = false, the queue will not play and if
- * long = true, the alarm will change to its extended version.
+ * queue. If long = true, the alarm will change to its extended version.
 */
-function updateSound(sound, newValue, play=true, long=false) {
+function updateSound(sound, newValue, long=false) {
     const soundNumber = soundsList.findIndex(
         file => file.source.src.includes(sound)
     );
@@ -167,7 +166,7 @@ function updateSound(sound, newValue, play=true, long=false) {
         soundsList[soundNumber].active = newValue;
     }
 
-    // If long = true, change the sound to the extended version
+    // If long is true, change the sound to the extended version
     try {
         // But filepath must not already contain said suffix
         if (!audioObject.src.includes("_Extended")) {
@@ -179,11 +178,9 @@ function updateSound(sound, newValue, play=true, long=false) {
     }
 
     /* Don't play any sound if none are active (else that
-     * would delay any future ones by an extra second), or
-     * play is false to avoid playing only one extra sound
-     * out of an intended two (when one alarm implies another).
+     * would delay any future ones by an extra second).
     */
-    if ((soundsList.some(file => file.active)) && play) {
+    if (soundsList.some(file => file.active)) {
         playSounds();
     }
 }
@@ -1102,7 +1099,7 @@ function displaySetString(item, string) {
 }
 
 // apiData required for conditional alarms
-function displaySetState(item, value, timeout = {}, apiData) {
+function displaySetState(item, value, timeout = {}) {
     const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 
     // Updates the state of an indicator
@@ -1160,46 +1157,17 @@ function displaySetState(item, value, timeout = {}, apiData) {
                  * in case the interested state/s exist elsewhere in the string)
                 */
                 const errorState = !elem.classList.value.includes("green");
-                
-                // If GPS_Fix is down, so must be AV
-                if (errorState && (indicator.includes("gpsFix"))) {
-                    // Easier to copy the code from the other place
-                    let flat = {};
-                    function flatten(flat_INCOMING, prefix, obj) {
-                        if (prefix != "") {
-                            prefix = prefix + ".";
-                        }
-                        if (obj == null) {
-                            return;
-                        }
-                        Object.entries(obj).forEach(([key, value]) => {
-                            if (typeof value == "object") {
-                                flatten(prefix + key, value);
-                            } else {
-                                flat_INCOMING[prefix + key] = value;
-                            }
-                        });
+                updateSound(sound, errorState);
 
-                        return flat_INCOMING;
-                    }
-                    flat = flatten(flat, "", apiData);
-                    
-                    // Should only execute once
-                    for (const reg of displayRegistry["state.av.radio"]) {
-                        /* Add sound to queue (error state should be true) but
-                         * do not play any sounds until all elements are added.
-                         * State will be updated by the packet
-                        */
-                        updateSound(sound, errorState, play=false);
-                    }
-                }
-                else {
-                    // Add sound to queue if error state (otherwise remove)
-                    updateSound(sound, errorState);
-                }
+                /* Given that GPS is part of the AV device, the former alarm implies
+                 * the latter. In practice, however, the same packet would update both
+                 * states, hence it would be futile to do anything else (and if there is
+                 * no actual device, such as in testing, attempting to change the state to
+                 * trigger the secondary alarm would simply contradict the packets trying
+                 * to set the state to green)
+                */
             }
 
-            // Don't update the state too quickly
             if (timeout != undefined && Object.keys(timeout).length > 0) {
                 Object.entries(timeout).forEach(([ms, state]) => {
                     clearTimeout(timeouts[[elem, ms]]);
@@ -1208,7 +1176,7 @@ function displaySetState(item, value, timeout = {}, apiData) {
                     }, parseInt(ms));
                 });
             }
-        });
+        })
     }
 }
 
