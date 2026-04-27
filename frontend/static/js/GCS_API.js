@@ -78,9 +78,23 @@ const soundsList = filenames.map(src => {
     return { source: audioObject, active: false };
 });
 
-// Check if all sounds are unmuted
+// Only non-error sound, with a function to call it explicitly
+const apogee = new Audio("sounds/Apogee.mp3");
+apogee.muted = true; // Must also be muted by default
+
+// Return sound to the beginning (should not be required here)
+apogee.addEventListener('ended', () => {
+    apogee.pause();
+    apogee.currentTime = 0;
+});
+
+function apogeeSound() {
+    apogee.play();
+}
+
+// Check if all sounds are unmuted (including apogee)
 function allUnmuted() {
-    return soundsList.every(item => !item.source.muted);
+    return soundsList.every(item => !item.source.muted) && !apogee.muted;
 }
 
 function toggleMute() {
@@ -88,6 +102,7 @@ function toggleMute() {
     for (let i = 0; i < soundsList.length; ++i) {
         soundsList[i].source.muted = !soundsList[i].source.muted;
     }
+    apogee.muted = !apogee.muted; // Don't forget apogee
 
     /* Icon represents current state.
      * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
@@ -1296,10 +1311,9 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
-
-            // Play a sound for reaching the apogee
-            const apogee = new Audio("sounds/Apogee.mp3");
-            apogee.play();
+            
+            // Play the apogee sound (should only be once in practice)
+            apogeeSound();
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
