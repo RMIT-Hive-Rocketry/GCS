@@ -90,12 +90,21 @@ apogee.addEventListener('ended', () => {
 });
 
 function apogeeSound() {
-    apogee.play();
+    // Make sure a non-preflight Horizon page is selected
+    if (isHorizonNotPreflight()) {
+        apogee.play();
+    }
 }
 
 // Check if all sounds are unmuted (including apogee)
 function allUnmuted() {
     return soundsList.every(item => !item.source.muted) && !apogee.muted;
+}
+
+// Check if the page selected is of Horizon (but not preflight)
+function isHorizonNotPreflight() {
+    return window.location.href.includes("rocket=horizon") &&
+          !window.location.href.includes("#page-preflight");
 }
 
 function toggleMute() {
@@ -178,10 +187,12 @@ function updateSound(sound, newValue, long=false) {
         soundsList[soundNumber].source.src.replace("_Extended", "");
     }
 
-    /* Don't play any sound if none are active (else that
-     * would delay any future ones by an extra second).
+    /* Don't play any sound if none are active (else that would delay any
+     * future ones by an extra second). Likewise, don't do so unless Horizon
+     * is selected (but not the preflight page for separate preview of the same
+     * sounds)
     */
-    if (soundsList.some(file => file.active)) {
+    if ((soundsList.some(file => file.active)) && isHorizonNotPreflight()) {
         playSounds();
     }
 }
@@ -1118,8 +1129,7 @@ function displaySetState(item, value, timeout = {}) {
                  * elem.classList.value is the styling itself (use this so that
                  * in case the interested state/s exist elsewhere in the string)
                 */
-                const errorState = !elem.classList.value.includes("green");
-                updateSound(sound, errorState);
+                updateSound(sound, !elem.classList.value.includes("green"));
 
                 /* Given that GPS is part of the AV device, the former alarm implies
                  * the latter. In practice, however, the same packet would update both
@@ -1128,15 +1138,26 @@ function displaySetState(item, value, timeout = {}) {
                  * trigger the secondary alarm would simply contradict the packets trying
                  * to set the state to green)
                 */
-            }
+            
+                // Detect if timeouts have resolved or not
+                if ((timeout !== undefined) && (Object.keys(timeout).length > 0)) {
+                    Object.entries(timeout).forEach(([ms, state]) => {
+                        // Set timeout if not already done so
+                        if (timeouts[[elem, ms]] === null) {
+                            // Do nothing during that time
+                            timeouts[[elem, ms]] = setTimeout(() => {}, parseInt(ms));
+                        
+                            // Check if the timeout has resolved (if not, change the alarm)
+                            const stillTimeout = elem.classList.value.includes("timeout");
+                            const errorState = !elem.classList.value.includes("green");
+                            updateSound(sound, errorState, long=stillTimeout);
 
-            if (timeout != undefined && Object.keys(timeout).length > 0) {
-                Object.entries(timeout).forEach(([ms, state]) => {
-                    clearTimeout(timeouts[[elem, ms]]);
-                    timeouts[[elem, ms]] = setTimeout(() => {
-                        displaySetState(elem, state); // timeout
-                    }, parseInt(ms));
-                });
+                            if (!stillTimeout) { // If timeout has resolved
+                                timeouts[[elem, ms]] = null;
+                            }
+                        }
+                    });
+                }
             }
         })
     }
