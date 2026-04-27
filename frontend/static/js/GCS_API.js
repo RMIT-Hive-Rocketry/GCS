@@ -45,8 +45,8 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Generate the sounds (the 1st can change into a quicker version if the alarm is long)
-const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+// Generate the sounds (the 1st 2 can change into a quicker version if the alarm is long)
+const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss", "Pyro_1_Loss", "Pyro_2_Loss"];
 const soundsList = filenames.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
@@ -56,21 +56,18 @@ const soundsList = filenames.map(src => {
 
     // Self-return after playing
     audioObject.addEventListener('ended', () => {
-        try {
-            audioObject.pause();
-            audioObject.currentTime = 0;
+        audioObject.pause();
+        audioObject.currentTime = 0;
 
-            /* If an alarm finished playing in the version meant for
-             * a longer-running problem, change it back. At this stage
-             * this only applies to GSE but will work with any alarm
-             * with such versions. Should be unnecessary, but use
-             * replaceAll just in case multiple instances exist.
-            */
-            if (audioObject.src.includes("_Extended")) {
-                audioObject.src.replaceAll("_Extended", "");
-            }
+        /* If an alarm finished playing in the version meant for
+            * a longer-running problem, change it back. At this stage
+            * this only applies to GSE but will work with any alarm
+            * with such versions. Should be unnecessary, but use
+            * replaceAll just in case multiple instances exist.
+        */
+        if (audioObject.src.includes("_Extended")) {
+            audioObject.src.replaceAll("_Extended", "");
         }
-        catch (e) {} // Simply prevent an error from being thrown
     });
 
     /* Active means whether the sound should be playing
@@ -107,28 +104,6 @@ function isHorizonNotPreflight() {
           !window.location.href.includes("#page-preflight");
 }
 
-function toggleMute() {
-    // Toggle mute first, then update UI
-    for (let i = 0; i < soundsList.length; ++i) {
-        soundsList[i].source.muted = !soundsList[i].source.muted;
-    }
-    apogee.muted = !apogee.muted; // Don't forget apogee
-
-    /* Icon represents current state.
-     * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
-     * modified by changing the colour to a Horizon-themed gradient
-    */
-    if (allUnmuted()) {
-        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.svg";
-        document.getElementById("toggleIcon").alt = "Sound unmuted";
-    }
-    else {
-        document.getElementById("toggleIcon").src = "img/icons/sound-muted.svg";
-        document.getElementById("toggleIcon").alt = "Sound muted";
-    }
-}
-
-
 /* For the below function, use to silence for 1 second after
  * the last alarm to be played is done
  */
@@ -161,6 +136,27 @@ function playSounds() {
     setTimeout(() => {
         silence = false;
     }, 1000);
+}
+
+function toggleMute() {
+    // Toggle mute first, then update UI
+    for (let i = 0; i < soundsList.length; ++i) {
+        soundsList[i].source.muted = !soundsList[i].source.muted;
+    }
+    apogee.muted = !apogee.muted; // Don't forget apogee
+
+    /* Icon represents current state.
+     * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
+     * modified by changing the colour to a Horizon-themed gradient
+    */
+    if (allUnmuted()) {
+        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.svg";
+        document.getElementById("toggleIcon").alt = "Sound unmuted";
+    }
+    else {
+        document.getElementById("toggleIcon").src = "img/icons/sound-muted.svg";
+        document.getElementById("toggleIcon").alt = "Sound muted";
+    }
 }
 
 /* Update the given sound as to if it will play in the sound
@@ -1120,6 +1116,12 @@ function displaySetState(item, value, timeout = {}) {
             }
             else if (indicator.includes("dualBoard")) {
                 sound = "Dual_Board_Loss";
+            }
+            else if (indicator.includes("av-state-pyro-1")) {
+
+            }
+            else if (indicator.includes("av-state-pyro-2")) {
+                
             }
 
             // Should only execute with one of the above values
