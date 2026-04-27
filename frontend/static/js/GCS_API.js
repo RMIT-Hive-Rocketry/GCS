@@ -1261,6 +1261,10 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
+
+            // Just in case the apogee sound is playing, stop it upon error
+            const stopApogeeSound = new CustomEvent("ended");
+            apogee.dispatchEvent(stopApogeeSound);
         }
 
         displaySetString("fs-flightstate", stateName);
