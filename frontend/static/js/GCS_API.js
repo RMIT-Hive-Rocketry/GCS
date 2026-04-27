@@ -1260,6 +1260,10 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
+
+            // Play a sound for reaching the apogee
+            const apogee = new Audio("Apogee.mp3");
+            apogee.play();
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
