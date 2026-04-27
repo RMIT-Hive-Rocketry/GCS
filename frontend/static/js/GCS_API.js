@@ -44,7 +44,7 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Generate the sounds
+// Generate the sounds (the 1st can change into a quicker version if the alarm is long)
 const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
 const soundsList = filenames.map(src => {
     // Create the audio object that will return upon ending
@@ -58,6 +58,16 @@ const soundsList = filenames.map(src => {
         try {
             audioObject.pause();
             audioObject.currentTime = 0;
+
+            /* If an alarm finished playing in the version meant for
+             * a longer-running problem, change it back. At this stage
+             * this only applies to GSE but will work with any alarm
+             * with such versions. Should be unnecessary, but use
+             * replaceAll just in case multiple instances exist.
+            */
+            if (audioObject.src.includes("_Extended")) {
+                audioObject.src.replaceAll("_Extended", "");
+            }
         }
         catch (e) {} // Simply prevent an error from being thrown
     });
@@ -111,7 +121,14 @@ function playSounds() {
     for (let i = 0; i < soundsList.length; ++i) {
         // Play the active sounds in succession
         if (soundsList[i].active) {
-            soundsList[i].source.play();
+            try {
+                soundsList[i].source.play();
+            } catch (error) {
+                /* In case the extended version was called for but
+                 * nonexistent, make sure an error is not thrown (but
+                 * otherwise no extra functions required here)
+                */
+            }
         }
     }
 
@@ -121,8 +138,11 @@ function playSounds() {
     }, 1000);
 }
 
-// Change the sound queue (followed by play if play=true)
-function updateSound(sound, newValue, play=true) {
+/* Update the given sound as to if it will play in the sound
+ * queue. If play = false, the queue will not play and if
+ * long = true, the alarm will change to its extended version.
+*/
+function updateSound(sound, newValue, play=true, long=false) {
     const soundNumber = soundsList.findIndex(
         file => file.source.src.includes(sound)
     );
@@ -130,6 +150,17 @@ function updateSound(sound, newValue, play=true) {
     // If newValue is true, the sound should play when called
     if (soundNumber >= 0) {
         soundsList[soundNumber].active = newValue;
+    }
+
+    // If long = true, change the sound to the extended version
+    try {
+        // But filepath must not already contain said suffix
+        if (!audioObject.src.includes("_Extended")) {
+            soundsList[soundNumber].source.src += "_Extended";
+        }
+    } catch (e) {
+        // If no such version exists, change it back
+        soundsList[soundNumber].source.src.replace("_Extended", "");
     }
 
     /* Don't play any sound if none are active (else that
