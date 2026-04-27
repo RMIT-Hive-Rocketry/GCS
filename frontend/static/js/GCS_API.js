@@ -80,7 +80,7 @@ const soundsList = filenames.map(src => {
 });
 
 // Only non-error sound, with a function to call it explicitly
-const apogee = new Audio("sounds/Apogee.mp3");
+const apogee = new Audio("sounds/Apogee.mp3"); // MuseScore-generated
 apogee.muted = true; // Must also be muted by default
 
 // Return sound to the beginning (should not be required here)
@@ -1097,9 +1097,7 @@ function displaySetState(item, value, timeout = {}) {
             let indicator = elem.attributes[0].textContent;
             let sound = "";
 
-            /* Sounds 1 and 3: https://www.youtube.com/watch?v=EWnhSCFCYto
-             * Sounds 2 and 4: https://www.youtube.com/watch?v=W5Z-d1Zx02o
-            */
+            // See horizon_preflight.html for sources
             if (indicator.includes("av.radio")) {
                 sound = "AV_Loss";
             }
