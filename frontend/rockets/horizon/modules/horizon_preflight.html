@@ -6,18 +6,22 @@
         The above mute/unmute (default mute) icon can be used to toggle whether alarms play or not. The alarms themselves signify if something is wrong
         with connections to external devices (signified by a non-green indicator), and play in a queue from top to bottom priority (GSE, AV, GPS Fix,
         Dual Board). Since the GPS Fix is part of the AV device, if the former goes down, so will the latter. Click the following button to hear them in
-        succession (0.5 sec of silence between each):
-        <audio id="combined" src="sounds/Combined_Loss.mp3" preload="auto" controls></audio>
+        succession (same order as the below table), with 0.5 sec of silence between each:
+        <audio id="combined" src="sounds/Combined_Sounds.mp3" preload="auto" controls></audio>
     </p>
     Description of each sound:
     <table>
         <tr>
-            <th>Device (sorted by descending order of priority)</th>
+            <th>Device loss(sorted by descending order of priority)</th>
             <th>Alarm sound</th>
         </tr>
         <tr>
             <td>GSE</td>
             <td>High-pitched chord</td>
+        </tr>
+        <tr>
+            <td>GSE extended</td>
+            <td>Same as above, but in quicker succession if the device is down for at least 5 seconds</td>
         </tr>
         <tr>
             <td>AV</td>
