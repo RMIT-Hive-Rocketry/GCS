@@ -385,7 +385,7 @@ def get_mission_path():
 
 
 def main():
-    # Using parser because theres too many arguments and I couldn't get sys working
+    # Using parser because there's too many arguments and I couldn't get sys working
     parser = argparse.ArgumentParser()
     parser.add_argument("--device-rocket", required=True)
     parser.add_argument(

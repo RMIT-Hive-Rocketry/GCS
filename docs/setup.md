@@ -10,7 +10,7 @@ For a minimal clean slate installation, you can get away with:
 2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, `swig`, `zmq`, (see version below) and cpp compilers (`CXX20`) with your package manager
 3. Clone and `cd` in to the repository
 4. Run `bash setup.sh` to verify installs, setup python, and the rocket alias
-5. Run `source .venv/bin/activate` to use the python environtment
+5. Run `source .venv/bin/activate` to use the python environment
 6. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
 
 > [!NOTE]

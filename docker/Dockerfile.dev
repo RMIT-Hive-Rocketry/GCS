@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-# Install dev dependencies and regular CLI dependancies too
+# Install dev dependencies and regular CLI dependencies too
 RUN pip install --no-cache-dir -r docker/requirements.docker.txt
 RUN pip install --no-cache-dir -r requirements.txt
 

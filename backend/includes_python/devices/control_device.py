@@ -5,8 +5,8 @@ import backend.includes_python.process_logging as slogger
 
 class ControlDevice(ABC):
     def __init__(self):
-        # DONT instanciate a ControlDevice manually
-        # Use the get_control_device() funciton
+        # DONT instantiate a ControlDevice manually
+        # Use the get_control_device() function
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
         self.state_table = StateTable.get_fallback_table()

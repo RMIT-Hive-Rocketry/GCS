@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 from typing import Tuple
 import os
 

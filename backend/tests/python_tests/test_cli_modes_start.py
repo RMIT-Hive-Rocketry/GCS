@@ -321,7 +321,7 @@ class TestRunStartups(CliStartup):
         proc, scanner, resource_monitor = process_and_scanner
         fail_patterns = CliStartup.DEFAULT_FAIL_PATTERNS
         # Do not test any further until you have super sexy test cases for it
-        # Run is a subset of the dev mode anyway. Most of it will be coverted
+        # Run is a subset of the dev mode anyway. Most of it will be covered
         # The only thing this really misses is the physical interface testing
         success_patterns = [
             r"------- STARTING SOTERIA IN PRODUCTION MODE -------",

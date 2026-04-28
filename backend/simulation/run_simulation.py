@@ -258,11 +258,11 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
 
 def simulation_to_replay_data(flight_data: pd.DataFrame):
     """Convert to the Packet data struct"""
-    # Need to seperate data into seperate packets
+    # Need to separate data into separate packets
     packets = []
 
     for packet in flight_data:
-        # Need to normalise quaternions for AV2, this shouldnt be too much of an issue because we have to call it for every function anyways
+        # Need to normalise quaternions for AV2, this shouldn't be too much of an issue because we have to call it for every function anyways
         qw = packet[" e0"]
         qx = packet[" e1"]
         qy = packet[" e2"]

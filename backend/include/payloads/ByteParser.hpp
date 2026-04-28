@@ -9,7 +9,7 @@
 
 #include "subprocess_logging.hpp"
 
-// A helper to sequentialy parse data bit by bit
+// A helper to sequentially parse data bit by bit
 
 constexpr int PROTOCOL_BYTE_SIZE = 8;
 

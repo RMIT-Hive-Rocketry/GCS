@@ -11,7 +11,7 @@ logger = logging.getLogger("rocket")
 
 
 class LoggedSubProcess:
-    """Object to manage subproccess called by this CLI with centralised logging"""
+    """Object to manage subprocess called by this CLI with centralised logging"""
 
     # All instances of this class.
     _instances = []
@@ -161,7 +161,7 @@ class LoggedSubProcess:
         """When given a line and it's origin stream, log it with the appropriate level
 
         Args:
-            stripped_line (str): A line of charcater output with no trailing whitespace
+            stripped_line (str): A line of character output with no trailing whitespace
             stream_name (str): The stream name: STDERR or STDOUT for example
             level (str): The log level to use
         """
