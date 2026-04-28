@@ -39,4 +39,6 @@ ignore = [
 	"F841",
 	"F401",
 	"ANN001",
+	# overkill
+	"ANN204",
 ]
