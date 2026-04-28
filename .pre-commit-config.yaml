@@ -3,6 +3,7 @@
 default_language_version:
     python: python3.11
 
+# run locally with `pre-commit run --all-files`
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -20,3 +21,4 @@ repos:
     rev: v2.2.6
     hooks:
     -   id: codespell
+        # args: ['-w'] # uncomment to autofix
