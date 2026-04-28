@@ -65,8 +65,8 @@ const soundsList = filenames.map(src => {
          * with such versions. Should be unnecessary, but use
          * replaceAll just in case multiple instances exist.
         */
-        if (audioObject.src.includes("_Extended")) {
-            audioObject.src.replaceAll("_Extended", "");
+        if (audioObject.src.includes("_Quicker")) {
+            audioObject.src.replaceAll("_Quicker", "");
         }
     });
 
@@ -176,12 +176,12 @@ function updateSound(sound, newValue, quicker=false) {
     if (quicker) {
         try {
             // But filepath must not already contain said suffix
-            if (!audioObject.src.includes("_Extended")) {
-                soundsList[soundNumber].source.src += "_Extended";
+            if (!audioObject.src.includes("_Quicker")) {
+                soundsList[soundNumber].source.src += "_Quicker";
             }
         } catch (e) {
             // If no such version exists, change it back
-            soundsList[soundNumber].source.src.replace("_Extended", "");
+            soundsList[soundNumber].source.src.replace("_Quicker", "");
         }
     }
 
