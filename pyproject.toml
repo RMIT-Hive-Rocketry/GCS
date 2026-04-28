@@ -11,3 +11,32 @@ typeCheckingMode = "standard"
 [tool.codespell]
 skip = "*.excalidraw,*.min.js,*.svg,*.old.txt,*/libraries/*"
 ignore-words-list = "ser" # ser -> serial
+
+# ruff linter
+[tool.ruff]
+line-length = 80
+indent-width = 4
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+	"F",    # pyflakes
+	"UP",   # pyupgrade
+	"B",    # bugbear
+	"SIM",  # simplify
+	"ANN",  # annotations
+	"A",    # builtins
+	"C4",   # comprehensions
+	"PIE",  # misc
+	"RET",  # return
+	"FLY",  # fstrings
+	"PERF", # performance
+	"FURB", # refurb
+]
+
+ignore = [
+	# covered by pyright
+	"F841",
+	"F401",
+	"ANN001",
+]

@@ -20,6 +20,7 @@ python-dotenv
 
 # Development
 basedpyright
+ruff
 black
 pre-commit
 codespell
