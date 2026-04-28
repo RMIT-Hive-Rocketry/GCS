@@ -22,3 +22,4 @@ python-dotenv
 basedpyright
 black
 pre-commit
+codespell
