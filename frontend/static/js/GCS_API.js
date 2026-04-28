@@ -59,10 +59,10 @@ const soundsList = filenames.map(src => {
         audioObject.currentTime = 0;
 
         /* If an alarm finished playing in the version meant for
-            * a longer-running problem, change it back. At this stage
-            * this only applies to GSE but will work with any alarm
-            * with such versions. Should be unnecessary, but use
-            * replaceAll just in case multiple instances exist.
+         * a longer-running problem, change it back. At this stage
+         * this only applies to GSE but will work with any alarm
+         * with such versions. Should be unnecessary, but use
+         * replaceAll just in case multiple instances exist.
         */
         if (audioObject.src.includes("_Extended")) {
             audioObject.src.replaceAll("_Extended", "");
@@ -161,7 +161,7 @@ function toggleMute() {
 /* Update the given sound as to if it will play in the sound
  * queue. If long = true, the alarm will change to its extended version.
 */
-function updateSound(sound, newValue, long=false) {
+function updateSound(sound, newValue, quicker=false) {
     const soundNumber = soundsList.findIndex(
         file => file.source.src.includes(sound)
     );
@@ -1136,7 +1136,7 @@ function displaySetState(item, value, timeout = {}) {
                 elem.classList.add(indicatorStates[value]);
             }
 
-            // Complex way to get the required indicator
+            // 
             let indicator = elem.attributes[0].textContent;
             let sound = "";
 
@@ -1152,12 +1152,6 @@ function displaySetState(item, value, timeout = {}) {
             }
             else if (indicator.includes("dualBoard")) {
                 sound = "Dual_Board_Loss";
-            }
-            else if (indicator.includes("av-state-pyro-1")) {
-
-            }
-            else if (indicator.includes("av-state-pyro-2")) {
-                
             }
 
             // Should only execute with one of the above values
@@ -1178,21 +1172,17 @@ function displaySetState(item, value, timeout = {}) {
                 */
             
                 // Detect if timeouts have resolved or not
-                if ((timeout !== undefined) && (Object.keys(timeout).length > 0)) {
+                if (timeout != undefined && Object.keys(timeout).length > 0) {
                     Object.entries(timeout).forEach(([ms, state]) => {
-                        // Set timeout if not already done so
-                        if (timeouts[[elem, ms]] === null) {
-                            // Do nothing during that time
+                        // Check that the state is right and that there is no current timeout
+                        if ((elem.classList.value.includes(indicatorStates[state])) && (timeouts[[elem, ms]] == null)) {
                             timeouts[[elem, ms]] = setTimeout(() => {}, parseInt(ms));
-                        
-                            // Check if the timeout has resolved (if not, change the alarm)
-                            const stillTimeout = elem.classList.value.includes("timeout");
-                            const errorState = !elem.classList.value.includes("green");
-                            updateSound(sound, errorState, long=stillTimeout);
-
-                            if (!stillTimeout) { // If timeout has resolved
-                                timeouts[[elem, ms]] = null;
-                            }
+                            
+                            /* Set the sound to the quicker version (1st true being
+                             * that the alarm is already sounding)
+                            */
+                            updateSound(sound, true, true);
+                            timeouts[[elem, ms]] = null;
                         }
                     });
                 }
