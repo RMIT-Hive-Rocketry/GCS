@@ -121,11 +121,14 @@ function playSounds() {
         // Play the active sounds in succession
         if (soundsList[i].active) {
             try {
+                soundsList[i].source.load();
                 soundsList[i].source.play();
             } catch (error) {
                 /* In case the extended version was called for but
                  * nonexistent, make sure an error is not thrown (but
-                 * otherwise no extra functions required here)
+                 * otherwise no extra functions required here). Same
+                 * if when trying to change the URL of an already playing
+                 * sound
                 */
             }
         }
