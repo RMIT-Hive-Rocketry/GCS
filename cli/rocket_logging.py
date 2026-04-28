@@ -151,7 +151,7 @@ class Logs_Loopback(logging.Handler):
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough:")
             print(ex)
-            # catch errors within the packet gen in case of malformed data and drop the packet quitely to avoid issues with cascade
+            # catch errors within the packet gen in case of malformed data and drop the packet quietly to avoid issues with cascade
             pass
 
         try:
@@ -205,7 +205,7 @@ def initialise():
     if logger.hasHandlers():
         # Clear existing handlers to avoid duplicates
         logger.warning(
-            "Logger has been initialised before. Stop intialising it again please"
+            "Logger has been initialised before. Stop initialising it again please"
         )
         logger.handlers.clear()
 
@@ -285,7 +285,7 @@ def set_console_log_level(level_name: str):
         ):
             handler.setLevel(level)
             logger.debug(
-                f"Console log level set to {level_name} post intialisation"
+                f"Console log level set to {level_name} post initialisation"
             )
             return
 

@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 from config.config import get_config
 
 # TODO: Implement logging

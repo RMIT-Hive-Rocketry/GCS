@@ -8,7 +8,7 @@ EPSILON = 1e-3
 def test_repeating_timer():
     timer = RepeatingTimer(0.01)
 
-    # timer is supposed to retun true immidiently
+    # timer is supposed to return true immidiently
     assert timer.time_has_passed()
 
     start_time = time.monotonic()

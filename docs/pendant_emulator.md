@@ -1,6 +1,6 @@
 # Control Pendant Emulator
 
-Refference schematic
+Reference schematic
 
 ![pendant_schematic](assets/pendant_schematic.png)
 
