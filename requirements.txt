@@ -18,6 +18,7 @@ websockets>=15.0.1
 flask>=3.1
 python-dotenv
 
-# Formatter
+# Development
+basedpyright
 black
 pre-commit
