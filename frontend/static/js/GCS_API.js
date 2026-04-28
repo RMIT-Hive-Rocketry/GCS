@@ -173,14 +173,16 @@ function updateSound(sound, newValue, quicker=false) {
     }
 
     // If long is true, change the sound to the extended version
-    try {
-        // But filepath must not already contain said suffix
-        if (!audioObject.src.includes("_Extended")) {
-            soundsList[soundNumber].source.src += "_Extended";
+    if (quicker) {
+        try {
+            // But filepath must not already contain said suffix
+            if (!audioObject.src.includes("_Extended")) {
+                soundsList[soundNumber].source.src += "_Extended";
+            }
+        } catch (e) {
+            // If no such version exists, change it back
+            soundsList[soundNumber].source.src.replace("_Extended", "");
         }
-    } catch (e) {
-        // If no such version exists, change it back
-        soundsList[soundNumber].source.src.replace("_Extended", "");
     }
 
     /* Don't play any sound if none are active (else that would delay any
