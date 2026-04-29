@@ -32,6 +32,7 @@ select = [
 	"FLY",  # fstrings
 	"PERF", # performance
 	"FURB", # refurb
+	"N",    # PEP8 naming
 ]
 
 ignore = [
