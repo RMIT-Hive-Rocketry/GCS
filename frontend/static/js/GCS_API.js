@@ -103,9 +103,7 @@ function isHorizonNotPreflight() {
           !window.location.href.includes("#page-preflight");
 }
 
-/* For the below function, use to silence for 1 second after
- * the last alarm to be played is done
- */
+// Block calls to enforce silence
 let silence = false;
 
 /* Plays sounds in a particular (relative) order, determined by the
