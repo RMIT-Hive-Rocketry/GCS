@@ -21,10 +21,27 @@ var connected = false;
 var then, now, fpsInterval;
 
 // Logging
+const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 const logVerbose = false;
 const logIncomingMessages = false;
 const errors = [];
-const timeouts = {};
+
+// Combine all timeouts into one array of objects (only for radios)
+const timeoutsList = [
+    // This allows for customisation (note duration in ms)
+    {name:"av", duration:3000, state:4, rocket:"Legacy3"},
+    {name:"av", duration:10000, state:5, rocket:"Legacy3"},
+    {name:"gse", duration:3000, state:4, rocket:"Legacy3"},
+    {name:"gse", duration:10000, state:5, rocket:"Legacy3"},
+
+    {name:"av", duration:3000, state:4, rocket:"Atlas"},
+    {name:"av", duration:10000, state:5, rocket:"Atlas"},
+    {name:"gse", duration:3000, state:4, rocket:"Atlas"},
+    {name:"gse", duration:10000, state:5, rocket:"Atlas"},
+
+    {name:"av", duration:5000, state:4, rocket:"Horizon"},
+    {name:"gse", duration:5000, state:4, rocket:"Horizon"},
+];
 
 // Global display values
 var altitudeMax;
@@ -58,16 +75,6 @@ const soundsList = filenames.map(src => {
     audioObject.addEventListener('ended', () => {
         audioObject.pause();
         audioObject.currentTime = 0;
-
-        /* If an alarm finished playing in the version meant for
-         * a longer-running problem, change it back. At this stage
-         * this only applies to GSE but will work with any alarm
-         * with such versions. Should be unnecessary, but use
-         * replaceAll just in case multiple instances exist.
-        */
-        if (audioObject.src.includes("_Quicker")) {
-            audioObject.src.replaceAll("_Quicker", "");
-        }
     });
 
     /* Active means whether the sound should be playing
@@ -98,6 +105,92 @@ function allUnmuted() {
     return soundsList.every(item => !item.source.muted) && !apogee.muted;
 }
 
+// Call at the start and whenever a state updates
+function checkStateIndicator(elem = null) {
+    // Except at the start
+    if (elem !== null) {
+        let indicator = elem.attributes[0].textContent;
+        let sound = "";
+
+        // See horizon_preflight.html for sources
+        if (indicator.includes("av.radio")) {
+            sound = "AV_Loss";
+        }
+        else if (indicator.includes("gse.radio")) {
+            sound = "GSE_Loss";
+        }
+        else if (indicator.includes("gpsFix")) {
+            sound = "GPS_Fix_Loss";
+        }
+        else if (indicator.includes("dualBoard")) {
+            sound = "Dual_Board_Loss";
+        }
+        else if (indicator.includes("av-state-pyro-1")) {
+            sound = "Pyro_1_Loss";
+        }
+        else if (indicator.includes("av-state-pyro-2")) {
+            sound = "Pyro_2_Loss";
+        }
+
+        // Should only execute with one of the above values
+        if (sound !== "") {
+            /* Can be changed, but at this stage only green is a good state,
+            * where the sound resets (otherwise continues playing). Also,
+            * elem.classList.value is the styling itself (use this so that
+            * in case the interested state/s exist elsewhere in the string)
+            */
+            updateSound(sound, !elem.classList.value.includes("green"), false);
+        }
+    }
+
+    // Select rocket for below
+    let currRocket = "";
+    if (window.location.href.includes("rocket=legacy")) {
+        currRocket = "Legacy3";
+    }
+    else if (window.location.href.includes("rocket=atlas")) {
+        currRocket = "Atlas";
+    }
+    else if (window.location.href.includes("rocket=horizon")) {
+        currRocket = "Horizon";
+    }
+    
+    // Regardless, check for timeouts (currRocket shouldn't be empty, but not critical)
+    timeoutsList.filter(t1 => t1.rocket === currRocket).forEach((t1) => {
+        // Again, only radios have timeouts
+        let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
+        
+        currElems.forEach((c1) => {
+            // Use functions for recalculating the expressions
+            const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
+            const greenState = () => !c1.classList.value.includes("green");
+            const currSound = t1.name.toUpperCase() + "_Loss";
+            
+            if (timeoutState()) {
+                // At a minimum, the regular sound should be playing regardless
+                updateSound(currSound, true, false);
+
+                setTimeout(() => {
+                    /* If the timeout is still not resolved, set the sound to
+                    * the quicker version.
+                    */
+                    if (timeoutState()) {
+                        updateSound(currSound, true, true);
+                    }
+                    else {
+                        // Set the alarm back to its normal state (if the timeout went away on time)
+                        updateSound(currSound, !greenState, false);
+                    }
+                }, t1.duration);
+            }
+            else {
+                // Same code as above, except it doesn't wait (when the state was never 'unfavourable')
+                updateSound(currSound, !greenState, false);
+            }
+        })
+    })
+}
+
 // Check if the page selected is of Horizon (but not preflight)
 function isHorizonNotPreflight() {
     return window.location.href.includes("rocket=horizon") &&
@@ -119,17 +212,7 @@ function playSounds() {
     for (let i = 0; i < soundsList.length; ++i) {
         // Play the active sounds in succession
         if (soundsList[i].active) {
-            try {
-                soundsList[i].source.load();
-                soundsList[i].source.play();
-            } catch (error) {
-                /* In case the extended version was called for but
-                 * nonexistent, make sure an error is not thrown (but
-                 * otherwise no extra functions required here). Same
-                 * if when trying to change the URL of an already playing
-                 * sound
-                */
-            }
+            soundsList[i].source.play();
         }
     }
 
@@ -163,7 +246,7 @@ function toggleMute() {
 /* Update the given sound as to if it will play in the sound
  * queue. If long = true, the alarm will change to its extended version.
 */
-function updateSound(sound, newValue, quicker=false) {
+function updateSound(sound, newValue, quicker) {
     const soundNumber = soundsList.findIndex(
         file => file.source.src.includes(sound)
     );
@@ -173,26 +256,36 @@ function updateSound(sound, newValue, quicker=false) {
         soundsList[soundNumber].active = newValue;
     }
 
-    // If long is true, change the sound to the extended version
-    if (quicker) {
-        try {
-            // But filepath must not already contain said suffix
-            if (!audioObject.src.includes("_Quicker")) {
-                soundsList[soundNumber].source.src += "_Quicker";
-            }
-        } catch (e) {
-            // If no such version exists, change it back
-            soundsList[soundNumber].source.src.replace("_Quicker", "");
+    /* Custom functions just for inside this one. Note that the suffix
+     * is before the file extension, not after
+    */
+    function addQuicker() {
+        // Filepath must not already contain the differentiating suffix
+        if (!soundsList[soundNumber].source.src.includes("_Quicker")) {
+            soundsList[soundNumber].source.src = soundsList[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
         }
     }
+    function removeQuicker() {
+        // Remove the suffix
+        soundsList[soundNumber].source.src.replaceAll("_Quicker", "");
+    }
 
-    /* Don't play any sound if none are active (else that would delay any
-     * future ones by an extra second). Likewise, don't do so unless Horizon
-     * is selected (but not the preflight page for separate preview of the same
-     * sounds)
-    */
-    if ((soundsList.some(file => file.active)) && isHorizonNotPreflight()) {
-        playSounds();
+    quicker ? addQuicker() : removeQuicker();
+    try {
+        /* Don't play any sound if none are active (else that would delay any
+         * future ones by an extra second). Likewise, don't do so unless Horizon
+         * is selected (but not the preflight page for separate preview of the same
+         * sounds)
+        */
+        if ((soundsList.some(file => file.active)) && isHorizonNotPreflight()) {
+            playSounds();
+        }
+    } catch (error) {
+        /* Perform opposite operation, leading into an infinite loop
+         * if the original sound did not exist neither with, nor without
+         * "_Quicker"), which should not be the case here at this time
+        */
+        quicker ? removeQuicker() : addQuicker();
     }
 }
 
@@ -932,8 +1025,7 @@ window.addEventListener("load", (event) => {
     document.querySelectorAll("[data-key]").forEach((elem) => {
         let key = elem.getAttribute("data-key"),
             prec = elem.getAttribute("data-precision"),
-            type = elem.getAttribute("data-type"),
-            timeout = elem.getAttribute("data-timeout");
+            type = elem.getAttribute("data-type");
 
         // Defaults
         let rego = { e: elem, t: "value" };
@@ -943,10 +1035,12 @@ window.addEventListener("load", (event) => {
         if (type != null) {
             rego.t = type;
         }
-        if (timeout != null) {
-            console.log(timeout);
-            rego.to = JSON.parse(timeout);
-        }
+
+        /* Play sound if any state indicator is already problematic
+         * (which at least in --experimental mode) will be the case).
+         * Only that no specific element is in mind at this stage.
+        */
+        checkStateIndicator();
 
         // Register element
         if (key in displayRegistry) {
@@ -994,8 +1088,7 @@ function sendDataToRegistry(apiData) {
             for (const reg of displayRegistry[key]) {
                 let elem = reg.e,
                     prec = reg.p,
-                    type = reg.t,
-                    timeout = reg.to;
+                    type = reg.t;
                 switch (type) {
                     case "value":
                         displaySetValue(elem, value, prec);
@@ -1004,7 +1097,7 @@ function sendDataToRegistry(apiData) {
                         displaySetString(elem, value);
                         break;
                     case "state":
-                        displaySetState(elem, value, timeout, apiData);
+                        displaySetState(elem, value);
                         break;
                 }
             }
@@ -1073,9 +1166,7 @@ function displaySetString(item, string) {
 }
 
 // apiData required for conditional alarms
-function displaySetState(item, value, timeout = {}) {
-    const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
-
+function displaySetState(item, value, timeout) {
     // Updates the state of an indicator
     if (logVerbose)
         console.debug(
@@ -1103,57 +1194,8 @@ function displaySetState(item, value, timeout = {}) {
                 elem.classList.add(indicatorStates[value]);
             }
 
-            // 
-            let indicator = elem.attributes[0].textContent;
-            let sound = "";
-
-            // See horizon_preflight.html for sources
-            if (indicator.includes("av.radio")) {
-                sound = "AV_Loss";
-            }
-            else if (indicator.includes("gse.radio")) {
-                sound = "GSE_Loss";
-            }
-            else if (indicator.includes("gpsFix")) {
-                sound = "GPS_Fix_Loss";
-            }
-            else if (indicator.includes("dualBoard")) {
-                sound = "Dual_Board_Loss";
-            }
-
-            // Should only execute with one of the above values
-            if (sound !== "") {
-                /* Can be changed, but at this stage only green is a good state,
-                 * where the sound resets (otherwise continues playing). Also,
-                 * elem.classList.value is the styling itself (use this so that
-                 * in case the interested state/s exist elsewhere in the string)
-                */
-                updateSound(sound, !elem.classList.value.includes("green"));
-
-                /* Given that GPS is part of the AV device, the former alarm implies
-                 * the latter. In practice, however, the same packet would update both
-                 * states, hence it would be futile to do anything else (and if there is
-                 * no actual device, such as in testing, attempting to change the state to
-                 * trigger the secondary alarm would simply contradict the packets trying
-                 * to set the state to green)
-                */
-            
-                // Detect if timeouts have resolved or not
-                if (timeout != undefined && Object.keys(timeout).length > 0) {
-                    Object.entries(timeout).forEach(([ms, state]) => {
-                        // Check that the state is right and that there is no current timeout
-                        if ((elem.classList.value.includes(indicatorStates[state])) && (timeouts[[elem, ms]] == null)) {
-                            timeouts[[elem, ms]] = setTimeout(() => {}, parseInt(ms));
-                            
-                            /* Set the sound to the quicker version (1st true being
-                             * that the alarm is already sounding)
-                            */
-                            updateSound(sound, true, true);
-                            timeouts[[elem, ms]] = null;
-                        }
-                    });
-                }
-            }
+            // Check if sound needs to be played
+            checkStateIndicator(elem);
         })
     }
 }

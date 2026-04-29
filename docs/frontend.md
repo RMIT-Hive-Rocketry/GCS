@@ -21,7 +21,6 @@ Further optional fields may be added to augment the behaviour. All fields and re
 | `data-key`\*     | Any alphanumeric string delineated by '.'      | Refers to a key in the incoming data stream                                                                                                    |
 | `data-type`\*    | "value", "string", "state"                     | Changes how incoming data is handled by the element                                                                                            |
 | `data-precision` | Positive integer                               | Number of decimal places to render "value" data type with.                                                                                     |
-| `data-timeout`   | JSON dictionary in format of `{time_ms:state}` | Denotes timeout behaviour for the "state" data type. For each entry in the dictionary, a timer is started which sets a new state upon timeout. |
 
 \*Required.
 
