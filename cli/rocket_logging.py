@@ -121,9 +121,8 @@ class Logs_Loopback(logging.Handler):
             os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
         )
 
-        self.frontend_push_socket = context.socket(zmq.PUSH)
-        self.frontend_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
-        self.frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
+        self.frontend_push_socket = context.socket(zmq.PUB)
+        self.frontend_push_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         # Regex pattern to match ANSI escape sequences
         self.ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
