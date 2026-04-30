@@ -107,10 +107,9 @@ function allUnmuted() {
 
 // Call at the start and whenever a state updates
 function checkStateIndicator(elem = null) {
-    // Except at the start
-    if (elem !== null) {
-        let indicator = elem.attributes[0].textContent;
-        let sound = "";
+    function stateToSound(e1) {
+        let sound = "",
+            indicator = e1.attributes[0].textContent;
 
         // See horizon_preflight.html for sources
         if (indicator.includes("av.radio")) {
@@ -139,8 +138,24 @@ function checkStateIndicator(elem = null) {
             * elem.classList.value is the styling itself (use this so that
             * in case the interested state/s exist elsewhere in the string)
             */
-            updateSound(sound, !elem.classList.value.includes("green"), false);
+            updateSound(sound, !e1.classList.value.includes("green"), false);
         }
+    }
+    
+    if (elem !== null) {
+        stateToSound(elem);
+    }
+    else {
+        // Check all states at the start
+        const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard", "av-state-pyro-1", "av-state-pyro-2"]
+        validStates.map(key => {
+            let currElems = document.querySelectorAll(`[data-key="state.${key}"]`);
+        
+            // Activate any required alarms
+            currElems.forEach((c1) => {
+                stateToSound(c1);
+            })
+        });
     }
 
     // Select rocket for below
@@ -159,7 +174,7 @@ function checkStateIndicator(elem = null) {
     timeoutsList.filter(t1 => t1.rocket === currRocket).forEach((t1) => {
         // Again, only radios have timeouts
         let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
-        
+
         currElems.forEach((c1) => {
             // Use functions for recalculating the expressions
             const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
