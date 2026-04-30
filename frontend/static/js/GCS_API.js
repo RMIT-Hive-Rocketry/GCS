@@ -107,6 +107,18 @@ function allUnmuted() {
 
 // Call at the start and whenever a state updates
 function checkStateIndicator(elem = null) {
+    // Select rocket for below
+    let currRocket = "";
+    if (window.location.href.includes("rocket=legacy")) {
+        currRocket = "Legacy3";
+    }
+    else if (window.location.href.includes("rocket=atlas")) {
+        currRocket = "Atlas";
+    }
+    else if (window.location.href.includes("rocket=horizon")) {
+        currRocket = "Horizon";
+    }
+
     function stateToSound(e1) {
         let sound = "",
             indicator = e1.attributes[0].textContent;
@@ -139,9 +151,45 @@ function checkStateIndicator(elem = null) {
             * in case the interested state/s exist elsewhere in the string)
             */
             updateSound(sound, !e1.classList.value.includes("green"), false);
+
+            // Check for timeouts (won't execute on a non-radio state, but "av" is present in the pyro indicators)
+            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name)) &&
+                               (!indicator.includes("pyro"))).forEach((t1) => {
+                let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
+
+                currElems.forEach((c1) => {
+                    // Use functions for recalculating the expressions
+                    const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
+                    const greenState = () => !c1.classList.value.includes("green");
+                    const currSound = t1.name.toUpperCase() + "_Loss";
+                    
+                    if (timeoutState()) {
+                        // At a minimum, the regular sound should be playing regardless
+                        updateSound(currSound, true, false);
+
+                        setTimeout(() => {
+                            /* If the timeout is still not resolved, set the sound to
+                            * the quicker version.
+                            */
+                            if (timeoutState()) {
+                                updateSound(currSound, true, true);
+                            }
+                            else {
+                                // Set the alarm back to its normal state (if the timeout went away on time)
+                                updateSound(currSound, !greenState, false);
+                            }
+                        }, t1.duration);
+                    }
+                    else {
+                        // Same code as above, except it doesn't wait (when the state was never 'unfavourable')
+                        updateSound(currSound, !greenState, false);
+                    }
+                })
+            })
         }
     }
     
+    // Activate a single alarm
     if (elem !== null) {
         stateToSound(elem);
     }
@@ -157,53 +205,6 @@ function checkStateIndicator(elem = null) {
             })
         });
     }
-
-    // Select rocket for below
-    let currRocket = "";
-    if (window.location.href.includes("rocket=legacy")) {
-        currRocket = "Legacy3";
-    }
-    else if (window.location.href.includes("rocket=atlas")) {
-        currRocket = "Atlas";
-    }
-    else if (window.location.href.includes("rocket=horizon")) {
-        currRocket = "Horizon";
-    }
-    
-    // Regardless, check for timeouts (currRocket shouldn't be empty, but not critical)
-    timeoutsList.filter(t1 => t1.rocket === currRocket).forEach((t1) => {
-        // Again, only radios have timeouts
-        let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
-
-        currElems.forEach((c1) => {
-            // Use functions for recalculating the expressions
-            const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
-            const greenState = () => !c1.classList.value.includes("green");
-            const currSound = t1.name.toUpperCase() + "_Loss";
-            
-            if (timeoutState()) {
-                // At a minimum, the regular sound should be playing regardless
-                updateSound(currSound, true, false);
-
-                setTimeout(() => {
-                    /* If the timeout is still not resolved, set the sound to
-                    * the quicker version.
-                    */
-                    if (timeoutState()) {
-                        updateSound(currSound, true, true);
-                    }
-                    else {
-                        // Set the alarm back to its normal state (if the timeout went away on time)
-                        updateSound(currSound, !greenState, false);
-                    }
-                }, t1.duration);
-            }
-            else {
-                // Same code as above, except it doesn't wait (when the state was never 'unfavourable')
-                updateSound(currSound, !greenState, false);
-            }
-        })
-    })
 }
 
 // Check if the page selected is of Horizon (but not preflight)
