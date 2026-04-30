@@ -71,6 +71,13 @@ def get_control_device() -> ControlDevice:
 
     manager.add_managed_device("f710", f710_import)
 
+    # TEMPORARY: idk why this got left out but i adding it back
+    def emulated_import() -> Type[ControlDevice]:
+        from backend.includes_python.devices.emulated_device import Emulated_Device
+        return Emulated_Device
+
+    manager.add_managed_device("emulated_device", emulated_import)
+
     return manager.get_control_device()
     # fmt: on
 
