@@ -1,0 +1,147 @@
+<!--
+    Horizon Hybrid Control Pendant module.
+
+    Visualises the physical control pendant by stacking PNG layers,
+    each independently shown or hidden in response to packet ID 10.
+-->
+<div class="module-horizon module-pendant w-full h-full flex flex-col items-center">
+    <h2>Hybrid Control Pendant</h2>
+
+    <div
+        class="hybridcontrolpendant flex-1 flex justify-center items-center w-full min-h-0 min-w-0 overflow-hidden"
+    >
+        <div class="pendant-stack">
+            <img src="/img/pendant/hybrid-off.png" alt="Pendant base" />
+            <img
+                src="/img/pendant/hybrid-system-active.png"
+                data-key="pendant.hybrid.SYSTEM_ACTIVATE"
+                class="hidden"
+                alt="System active"
+            />
+            <img
+                src="/img/pendant/hybrid-standby.png"
+                data-key="pendant.hybrid.STANDBY"
+                class="hidden"
+                alt="Standby"
+            />
+            <img
+                src="/img/pendant/hybrid-fill.png"
+                data-key="pendant.hybrid.GAS_FILL_SELECTED"
+                class="hidden"
+                alt="Fill mode"
+            />
+            <img
+                src="/img/pendant/hybrid-fill-N2O.png"
+                data-key="pendant.hybrid.N2O_FILL_ACTIVATE"
+                class="hidden"
+                alt="N2O fill"
+            />
+            <img
+                src="/img/pendant/hybrid-fill-neutral.png"
+                data-key="pendant.hybrid.SELECTOR_SWITCH_NEUTRAL_POSITION"
+                class="hidden"
+                alt="Fill neutral"
+            />
+            <img
+                src="/img/pendant/hybrid-fill-purge.png"
+                data-key="pendant.hybrid.MANUAL_PURGE"
+                class="hidden"
+                alt="Purge"
+            />
+            <img
+                src="/img/pendant/hybrid-armed.png"
+                data-key="pendant.hybrid.IGNITION_SELECTED"
+                class="hidden"
+                alt="Armed"
+            />
+            <img
+                src="/img/pendant/hybrid-armed-O2.png"
+                data-key="pendant.hybrid.O2_FILL_ACTIVATE"
+                class="hidden"
+                alt="Armed O2"
+            />
+            <img
+                src="/img/pendant/hybrid-armed-ignition.png"
+                data-key="pendant.hybrid.IGNITION_FIRE"
+                class="hidden"
+                alt="Armed ignition"
+            />
+            <img
+                src="/img/pendant/hybrid-estop.png"
+                data-key="pendant.hybrid.ESTOP"
+                class="hidden"
+                alt="E-stop"
+            />
+        </div>
+    </div>
+</div>
+
+<style>
+    .pendant-stack {
+        display: grid;
+        grid-template-columns: 100%;
+        grid-template-rows: 100%;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .pendant-stack img {
+        grid-row: 1;
+        grid-column: 1;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+</style>
+
+<script>
+    // Translates a packet ID 10 payload into the set of `pendant.hybrid.*`
+    // layers that should be visible, then applies that to the DOM.
+    function updatePendantState(apiData) {
+        const new_pendant_state = [];
+
+        for (const state in apiData) {
+            if (
+                typeof apiData[state] === "boolean" &&
+                apiData[state] === true
+            ) {
+                new_pendant_state.push(`pendant.hybrid.${state}`);
+            }
+        }
+
+        // Derived state: system is on but neither rotary is engaged.
+        if (
+            apiData.SYSTEM_ACTIVATE === true &&
+            apiData.GAS_FILL_SELECTED !== true &&
+            apiData.IGNITION_SELECTED !== true
+        ) {
+            new_pendant_state.push("pendant.hybrid.STANDBY");
+        }
+
+        togglePendant(new_pendant_state);
+    }
+
+    function togglePendant(pendant_state) {
+        // Hide all pendant layers
+        document
+            .querySelectorAll("[data-key^='pendant.hybrid']")
+            .forEach((elem) => {
+                elem.classList.add("hidden");
+            });
+
+        // Show the ones that should be active
+        for (const state of pendant_state) {
+            const elem = document.querySelector(`[data-key='${state}']`);
+            if (elem) {
+                elem.classList.remove("hidden");
+            } else {
+                console.log(state);
+            }
+        }
+    }
+</script>

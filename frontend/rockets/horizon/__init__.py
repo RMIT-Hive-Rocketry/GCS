@@ -28,6 +28,8 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_errorlog.html",
             "horizon/modules/horizon_rocket.html",
             "horizon/modules/horizon_timeline.html",
+            # Control page
+            "horizon/modules/horizon_pendant.html",
         ]
 
         # Define pages for Horizon
@@ -66,4 +68,6 @@ class ConfigHorizon(Config):
             "horizon_timeline": [("page-main", 8, 9, 8, 3)],
             "horizon_errorlog": [("page-main", 16, 1, 8, 3)],
             "horizon_auxiliary_gse": [("page-main", 16, 4, 8, 8)],
+            # Control page: pendant fills the full content area (24 cols x 11 rows)
+            "horizon_pendant": [("page-control", 0, 1, 24, 11)],
         }

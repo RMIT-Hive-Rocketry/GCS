@@ -21,7 +21,7 @@ var then, now, fpsInterval;
 
 // Logging
 const logVerbose = false;
-const logIncomingMessages = false;
+const logIncomingMessages = true;
 const errors = [];
 const timeouts = {};
 
@@ -311,19 +311,10 @@ function API_OnMessage(event) {
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
             }
-        } else if (apiData.id == 8) {
-            ///// ----- GSE PACKETS ----- /////
-            // Display values
-            if (typeof displayUpdateRadio === 'function') {
-                displayUpdateRadio(apiData);
-            }
-            if (typeof displayUpdateAuxData === 'function') {
-                displayUpdateAuxData(apiData);
-            }
-
-            // Graphs
-            if (typeof graphUpdateAuxData === "function") {
-                graphUpdateAuxData(apiData);
+        } else if (apiData.id == 10) {
+            ///// ----- PENDANT ----- /////
+            if (typeof updatePendantState === "function") {
+                updatePendantState(apiData);
             }
         }
     } catch (error) {
