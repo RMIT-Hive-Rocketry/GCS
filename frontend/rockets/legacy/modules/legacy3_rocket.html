@@ -1,5 +1,5 @@
 <!-- 3D rocket module -->
-<div class="module-legacy">
+<div class="module-legacy pt-2">
     <style>
         .module-legacy .rocket-frame {
             background-image: url("/legacy/static/img/rocket-frame.svg#svgView(preserveAspectRatio(none))");
@@ -7,14 +7,14 @@
             background-repeat: no-repeat;
         }
 
-        #rocketCanvasLegacy {
-            --current-color: var(--color-legacy-medium);
+        /*#rocketCanvasLegacy {
+            --current-color: var(--color-horizon-mauve);
             filter: drop-shadow(1px 1px 0 var(--current-color)) drop-shadow(-1px 1px 0 var(--current-color)) drop-shadow(-1px -1px 0 var(--current-color)) drop-shadow(1px -1px 0 var(--current-color));
-        }
+        }*/
     </style>
 
     <div class="w-full h-full rocket-frame flex flex-col">
-        <p class="font-bold uppercase text-legacy text-center mt-4">
+        <p class="font-bold uppercase text-hive text-center mt-4">
             3DOF Rocket Visualisation
         </p>
         <div class="flex flex-row gap-4 justify-center text-center text-legacy z-10">
@@ -27,9 +27,20 @@
         </div>
 
         <!-- Viewer -->
-        <div class="grow flex items-center justify-center h-full">
+        <div class="grow flex items-center justify-center h-full p-2">
             <div id="rocketContainerLegacy" class="relative w-full h-full group">
-                <canvas id="rocketCanvasLegacy" class="w-full h-full block"></canvas>
+                <canvas id="rocketCanvasLegacy" class="w-full h-full block -z-10" style="background-image:
+                            linear-gradient(
+                                to right,
+                                rgba(0, 0, 0, 0.4),
+                                rgba(0, 0, 0, 1) 30%,
+                                rgba(0,0,0,0) 31%
+                            ),
+                            url(/horizon/static/img/logo-horizon-rotated.png);
+                        background-repeat: no-repeat;
+                        background-size: auto 90%;
+                        background-position-y: 50%;
+                        background-position-x: 25px"></canvas>
             </div>
         </div>
     </div>
@@ -48,7 +59,7 @@
 
         const containerID = "rocketContainerLegacy";
         const canvasID = "rocketCanvasLegacy";
-        const rocketModel = "/legacy/static/assets/rocket_legacy3.glb";
+        const rocketModel = "/horizon/static/assets/rocket_horizon.glb";
 
         // === Core Variables ===
         let rocket = null; // The main rocket model group
@@ -73,9 +84,9 @@
 
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.gammaOutput = true;
-            renderer.gammaFactor = 2.2;
+            //renderer.shadowMap.enabled = true;
+            //renderer.gammaOutput = true;
+            //renderer.gammaFactor = 2.2;
 
             // === Create Scene ===
             const scene = new THREE.Scene();
@@ -95,32 +106,39 @@
             camera.position.set(0, 0, 20);
             camera.lookAt(0, 0, 0);
 
-            // === Lighting Configuration (balanced accordingly for model clarity) ===
-            const lights = [
-                new THREE.DirectionalLight(0xffffff, 1),
-                new THREE.DirectionalLight(0xffffff, 1),
-                new THREE.SpotLight(0xffffff, 3),
-                new THREE.HemisphereLight(0xb1e1ff, 0x000000, 0.1),
-            ];
-            lights[0].position.set(15, 30, 20);
-            lights[1].position.set(-15, 20, -10);
-            lights[2].position.set(0, 30, 25);
-            lights[2].angle = Math.PI / 5;
-            lights[2].penumbra = 0.4;
-            lights[2].decay = 1;
-            lights[2].distance = 200;
-            lights.forEach((light) => scene.add(light));
+            // Setup environment lighting
+            // Newer versions of three.js require an environment map for lighting
+            const environmentTexture = new THREE.CubeTextureLoader().setPath('/static/img/cubemap/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+            scene.environment = environmentTexture;
+            //scene.background = environmentTexture;
+            scene.environmentIntensity = 1;
 
-            // Ambient light
-            const light = new THREE.AmbientLight(0xffffff); // soft white light
+            // Also define fixed lights (for aesthetic reasons)
+            let skyColor = 0xB1E1FF;  // light blue
+            let groundColor = 0xB97A20;  // brownish orange
+            let lightIntensity = 150;
+            let light = new THREE.HemisphereLight(groundColor, skyColor, lightIntensity);
             scene.add(light);
+
+            let light2 = new THREE.PointLight(skyColor, 20);
+            light2.position.set(10, 4, 2);
+            scene.add(light2);
+
+            let light3 = new THREE.PointLight(0xFFFFFF, 100);
+            light3.position.set(10, 2.5, 0);
+            scene.add(light3);
+
+            let light4 = new THREE.PointLight(groundColor, 50);
+            light4.position.set(-20, -4, 0);
+            scene.add(light4);
 
             // === Load and Setup Rocket Model ===
             new GLTFLoader().load(
                 rocketModel,
                 (gltf) => {
                     const model = gltf.scene;
-                    model.scale.set(2, 2, 2); // Resize for better visibility
+                    const scale = 2.5;
+                    model.scale.set(scale, scale, scale); // Resize for better visibility
 
                     // Center the model at the origin for rotation
                     const box = new THREE.Box3().setFromObject(model);
