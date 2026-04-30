@@ -212,29 +212,20 @@ function isHorizonNotPreflight() {
           !window.location.href.includes("#page-preflight");
 }
 
-// Block calls to enforce silence
-let silence = false;
-
 /* Plays sounds in a particular (relative) order, determined by the
  * order in which their names (rather, something close to that) appear
  * in the filenames array closer to the top.
 */
 function playSounds() {
-    // Return if 1 second not up, yet
-    if (silence) { return; }
-    silence = true;
-
     for (let i = 0; i < soundsList.length; ++i) {
-        // Play the active sounds in succession
-        if (soundsList[i].active) {
+        // Play the active sounds in succession (only if not already playing)
+        if ((soundsList[i].active) && (soundsList[i].source.paused)) {
             soundsList[i].source.play();
         }
     }
 
     // After 1 second, allow function calls
-    setTimeout(() => {
-        silence = false;
-    }, 1000);
+    setTimeout(() => {}, 1000);
 }
 
 function toggleMute() {
