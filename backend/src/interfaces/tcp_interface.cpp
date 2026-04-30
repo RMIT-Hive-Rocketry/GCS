@@ -35,13 +35,6 @@ bool TcpInterface::initialize() {
         "(e.g. from rocket.py). No default is allowed.");
   }
 
-  // Disable Nagle's algorithm for low-latency sends. Spam that shit
-  // See https://redisgate.kr/images/server/tcp_nodelay.png
-  int flag = 1;
-  if (setsockopt(sock_fd_, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
-    slogger::error("Failed to set TCP_NODELAY on socket");
-  }
-
   std::memset(&remote_addr_, 0, sizeof(remote_addr_));
   remote_addr_.sin_family = AF_INET;
   remote_addr_.sin_port = htons(port_);
@@ -152,7 +145,8 @@ bool TcpInterface::connect_socket_locked_() {
     return false;
   }
 
-  // Set NODELAY again. See initialisation for more comments
+  // Disable Nagle's algorithm for low-latency sends. Spam that shit
+  // See https://redisgate.kr/images/server/tcp_nodelay.png
   int flag = 1;
   if (setsockopt(sock_fd_, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
     slogger::warning("Failed to set TCP_NODELAY on socket");

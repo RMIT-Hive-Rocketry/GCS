@@ -4,11 +4,14 @@ body.legacy {
     background-position: inherit;
     background-origin: inherit;
     background-repeat: repeat;
-    background: black url("/img/bg-hex.svg");
+    /*background: black url("/img/bg-hex.svg");*/
+    background:black;
 
     /* Border and text colour */
     color: white;
-    border: 2px solid var(--color-hive);
+    border: 1px solid var(--color-horizon-mauve);
+    padding: 0.5rem;
+    padding-top: 0;
 }
 
 /* Override grid spacing so header has enough height */

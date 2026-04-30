@@ -66,8 +66,8 @@ class ConfigLegacy3(Config):
         # Define module placements on each page
         self.MODULE_PAGES = {
             "legacy3_auxiliary_gse": [
-                ("page-main", 8, 5, 4, 8),
-                ("page-live-launchpad", 8, 5, 4, 8),
+                ("page-main", 8, 1, 4, 7),
+                ("page-live-launchpad", 8, 1, 4, 7),
             ],
             "legacy3_avionics_position": [
                 ("page-main", 0, 1, 4, 12),
@@ -102,7 +102,7 @@ class ConfigLegacy3(Config):
                 ("page-live-all", 2, 9, 8, 4),
             ],
             "legacy3_errorlog": [
-                ("page-main", 8, 1, 4, 4),
-                ("page-live-launchpad", 8, 1, 4, 4),
+                ("page-main", 8, 8, 4, 4),
+                ("page-live-launchpad", 8, 8, 4, 4),
             ],
         }
