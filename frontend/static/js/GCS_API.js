@@ -204,10 +204,9 @@ function checkStateIndicator(elem = null) {
     }
 }
 
-// Check if the main page of Horizon rocket is selected
-function isHorizonMainPage() {
-    return window.location.href.includes("rocket=horizon") &&
-           window.location.href.includes("#page-main");
+// Check if the page selected is of Horizon (but not preflight)
+function isHorizonNotPreflight() {
+    return window.location.href.endsWith("rocket=horizon");
 }
 
 /* Plays sounds in a particular (relative) order, determined by the
