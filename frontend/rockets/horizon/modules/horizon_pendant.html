@@ -3,80 +3,136 @@
 
     Visualises the physical control pendant by stacking PNG layers,
     each independently shown or hidden in response to packet ID 10.
+    Alongside the pendant, a cool looking status panel displays the same data,
+    showing current phase and dots for each state/input
 -->
-<div class="module-horizon module-pendant w-full h-full flex flex-col items-center">
+<div class="module-horizon module-pendant w-full h-full flex flex-col">
     <h2>Hybrid Control Pendant</h2>
 
-    <div
-        class="hybridcontrolpendant flex-1 flex justify-center items-center w-full min-h-0 min-w-0 overflow-hidden"
-    >
-        <div class="pendant-stack">
-            <img src="/img/pendant/hybrid-off.png" alt="Pendant base" />
-            <img
-                src="/img/pendant/hybrid-system-active.png"
-                data-key="pendant.hybrid.SYSTEM_ACTIVATE"
-                class="hidden"
-                alt="System active"
-            />
-            <img
-                src="/img/pendant/hybrid-standby.png"
-                data-key="pendant.hybrid.STANDBY"
-                class="hidden"
-                alt="Standby"
-            />
-            <img
-                src="/img/pendant/hybrid-fill.png"
-                data-key="pendant.hybrid.GAS_FILL_SELECTED"
-                class="hidden"
-                alt="Fill mode"
-            />
-            <img
-                src="/img/pendant/hybrid-fill-N2O.png"
-                data-key="pendant.hybrid.N2O_FILL_ACTIVATE"
-                class="hidden"
-                alt="N2O fill"
-            />
-            <img
-                src="/img/pendant/hybrid-fill-neutral.png"
-                data-key="pendant.hybrid.SELECTOR_SWITCH_NEUTRAL_POSITION"
-                class="hidden"
-                alt="Fill neutral"
-            />
-            <img
-                src="/img/pendant/hybrid-fill-purge.png"
-                data-key="pendant.hybrid.MANUAL_PURGE"
-                class="hidden"
-                alt="Purge"
-            />
-            <img
-                src="/img/pendant/hybrid-armed.png"
-                data-key="pendant.hybrid.IGNITION_SELECTED"
-                class="hidden"
-                alt="Armed"
-            />
-            <img
-                src="/img/pendant/hybrid-armed-O2.png"
-                data-key="pendant.hybrid.O2_FILL_ACTIVATE"
-                class="hidden"
-                alt="Armed O2"
-            />
-            <img
-                src="/img/pendant/hybrid-armed-ignition.png"
-                data-key="pendant.hybrid.IGNITION_FIRE"
-                class="hidden"
-                alt="Armed ignition"
-            />
-            <img
-                src="/img/pendant/hybrid-estop.png"
-                data-key="pendant.hybrid.ESTOP"
-                class="hidden"
-                alt="E-stop"
-            />
+    <div class="pendant-layout flex-1 flex gap-6 p-5 min-h-0 min-w-0">
+        <!-- Visual pendant stack -->
+        <div
+            class="hybridcontrolpendant pendant-visual flex justify-center items-center min-h-0 min-w-0"
+        >
+            <div class="pendant-stack">
+                <img src="/img/pendant/hybrid-off.png" alt="Pendant base" />
+                <img
+                    src="/img/pendant/hybrid-system-active.png"
+                    data-key="pendant.hybrid.SYSTEM_ACTIVATE"
+                    class="hidden"
+                    alt="System active"
+                />
+                <img
+                    src="/img/pendant/hybrid-standby.png"
+                    data-key="pendant.hybrid.STANDBY"
+                    class="hidden"
+                    alt="Standby"
+                />
+                <img
+                    src="/img/pendant/hybrid-fill.png"
+                    data-key="pendant.hybrid.GAS_FILL_SELECTED"
+                    class="hidden"
+                    alt="Fill mode"
+                />
+                <img
+                    src="/img/pendant/hybrid-fill-N2O.png"
+                    data-key="pendant.hybrid.N2O_FILL_ACTIVATE"
+                    class="hidden"
+                    alt="N2O fill"
+                />
+                <img
+                    src="/img/pendant/hybrid-fill-neutral.png"
+                    data-key="pendant.hybrid.SELECTOR_SWITCH_NEUTRAL_POSITION"
+                    class="hidden"
+                    alt="Fill neutral"
+                />
+                <img
+                    src="/img/pendant/hybrid-fill-purge.png"
+                    data-key="pendant.hybrid.MANUAL_PURGE"
+                    class="hidden"
+                    alt="Purge"
+                />
+                <img
+                    src="/img/pendant/hybrid-armed.png"
+                    data-key="pendant.hybrid.IGNITION_SELECTED"
+                    class="hidden"
+                    alt="Armed"
+                />
+                <img
+                    src="/img/pendant/hybrid-armed-O2.png"
+                    data-key="pendant.hybrid.O2_FILL_ACTIVATE"
+                    class="hidden"
+                    alt="Armed O2"
+                />
+                <img
+                    src="/img/pendant/hybrid-armed-ignition.png"
+                    data-key="pendant.hybrid.IGNITION_FIRE"
+                    class="hidden"
+                    alt="Armed ignition"
+                />
+                <img
+                    src="/img/pendant/hybrid-estop.png"
+                    data-key="pendant.hybrid.ESTOP"
+                    class="hidden"
+                    alt="E-stop"
+                />
+            </div>
         </div>
+
+        <!-- Status / telemetry sidebar -->
+        <aside class="pendant-status">
+            <div class="pendant-phase">
+                <div class="pendant-section-label">Current Phase</div>
+                <div class="pendant-phase-value phase-off" data-pendant-phase>OFF</div>
+                <div class="pendant-phase-desc" data-pendant-desc>
+                    System idle. Awaiting activation.
+                </div>
+            </div>
+
+            <div class="pendant-progression">
+                <div class="pendant-section-label">Sequence</div>
+                <ol class="pendant-progression-list">
+                    <li data-progression="OFF" class="active">Off</li>
+                    <li data-progression="STANDBY">Standby</li>
+                    <li data-progression="FILL">Fill</li>
+                    <li data-progression="ARMED">Armed</li>
+                    <li data-progression="IGNITION">Ignition</li>
+                </ol>
+            </div>
+
+            <div class="pendant-inputs">
+                <div class="pendant-section-label">Inputs</div>
+                <ul class="pendant-input-list">
+                    <li data-state-check="SYSTEM_ACTIVATE"><span class="dot"></span>System activate</li>
+                    <li data-state-check="GAS_FILL_SELECTED"><span class="dot"></span>Gas fill selected</li>
+                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Selector neutral</li>
+                    <li data-state-check="N2O_FILL_ACTIVATE"><span class="dot"></span>N₂O fill active</li>
+                    <li data-state-check="MANUAL_PURGE"><span class="dot"></span>Manual purge</li>
+                    <li data-state-check="IGNITION_SELECTED"><span class="dot"></span>Ignition selected</li>
+                    <li data-state-check="O2_FILL_ACTIVATE"><span class="dot"></span>O₂ fill active</li>
+                    <li data-state-check="IGNITION_FIRE"><span class="dot"></span>Ignition fire</li>
+                    <li data-state-check="ESTOP" class="estop"><span class="dot"></span>E-STOP</li>
+                </ul>
+            </div>
+        </aside>
     </div>
 </div>
 
 <style>
+    @media (max-width: 720px) {
+        .module-pendant .pendant-layout {
+            flex-direction: column;
+        }
+        .module-pendant .pendant-status {
+            flex: 0 0 auto;
+            max-height: 40%;
+        }
+    }
+
+    .module-pendant .pendant-visual {
+        flex: 1 1 0;
+    }
+
     .pendant-stack {
         display: grid;
         grid-template-columns: 100%;
@@ -84,7 +140,8 @@
         place-items: center;
         width: 100%;
         height: 100%;
-        max-width: 100%;
+        /* Cap the pendant so it doesn't dominate on big screens. */
+        max-width: min(720px, 100%);
         max-height: 100%;
     }
 
@@ -97,10 +154,176 @@
         max-height: 100%;
         object-fit: contain;
     }
+
+    /* ---------- Status sidebar ---------- */
+
+    .module-pendant .pendant-status {
+        flex: 0 0 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.4rem;
+        font-size: 1rem;
+        min-width: 0;
+        overflow: auto;
+    }
+
+    .module-pendant .pendant-section-label {
+        font-size: 0.78rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--color-horizon-yellow);
+        border-bottom: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 60%, transparent);
+        padding-bottom: 4px;
+        margin-bottom: 10px;
+    }
+
+    .module-pendant .pendant-phase-value {
+        font-size: 2.4rem;
+        font-weight: bold;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        letter-spacing: 0.05em;
+        line-height: 1;
+        padding: 6px 0;
+        color: rgba(255, 255, 255, 0.55);
+        transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .module-pendant .pendant-phase-value.phase-standby {
+        color: var(--color-horizon-mauve);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
+    }
+    .module-pendant .pendant-phase-value.phase-fill {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+    .module-pendant .pendant-phase-value.phase-armed {
+        color: #ff3030;
+        text-shadow: 0 0 14px #ff3030;
+    }
+    .module-pendant .pendant-phase-value.phase-ignition {
+        color: var(--color-horizon-yellow);
+        text-shadow: 0 0 14px color-mix(in oklab, var(--color-horizon-yellow) 50%, transparent);
+        animation: pendantPulse 0.6s infinite alternate;
+    }
+    .module-pendant .pendant-phase-value.phase-estop {
+        color: #ff3030;
+        text-shadow: 0 0 14px #ff3030;
+        animation: pendantPulse 0.4s infinite alternate;
+    }
+
+    .module-pendant .pendant-phase-desc {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.55);
+        font-style: italic;
+        margin-top: 6px;
+        line-height: 1.35;
+    }
+
+    /* Sequence secton */
+    .module-pendant .pendant-progression-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.88rem;
+    }
+
+    .module-pendant .pendant-progression-list li {
+        padding: 5px 10px;
+        border: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
+        color: rgba(255, 255, 255, 0.4);
+        background: color-mix(in oklab, var(--color-horizon-mauve) 8%, transparent);
+        transition: all 0.15s ease;
+    }
+
+    .module-pendant .pendant-progression-list li.active {
+        color: var(--color-horizon-yellow);
+        border-color: var(--color-horizon-yellow);
+        background: color-mix(in oklab, var(--color-horizon-mauve) 30%, transparent);
+        box-shadow: 0 0 6px color-mix(in oklab, var(--color-horizon-yellow) 35%, transparent);
+    }
+
+    /* Input dots */
+    .module-pendant .pendant-input-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.95rem;
+    }
+
+    .module-pendant .pendant-input-list li {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 5px 0;
+        color: rgba(255, 255, 255, 0.4);
+        transition: color 0.15s ease;
+    }
+
+    .module-pendant .pendant-input-list .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+
+    .module-pendant .pendant-input-list li.active {
+        color: var(--color-horizon-pink);
+    }
+
+    .module-pendant .pendant-input-list li.active .dot {
+        background: var(--color-horizon-pink);
+        border-color: var(--color-horizon-pink);
+        box-shadow: 0 0 8px var(--color-horizon-pink);
+    }
+
+    .module-pendant .pendant-input-list li.estop.active {
+        color: #ff3030;
+    }
+
+    .module-pendant .pendant-input-list li.estop.active .dot {
+        background: #ff3030;
+        border-color: #ff3030;
+        box-shadow: 0 0 10px #ff3030;
+    }
+
+    @keyframes pendantPulse {
+        from { opacity: 0.7; }
+        to   { opacity: 1; }
+    }
 </style>
 
 <script>
-    // Translates a packet ID 10 payload into the set of `pendant.hybrid.*`
+    // Mapping from a phase to its display label and description
+    const PENDANT_PHASE_INFO = {
+        OFF:      { label: "OFF",      cls: "phase-off",      desc: "System idle. Awaiting activation." },
+        STANDBY:  { label: "STANDBY",  cls: "phase-standby",  desc: "System on. No selector engaged." },
+        FILL:     { label: "FILL",     cls: "phase-fill",     desc: "Fill mode selected." },
+        ARMED:    { label: "ARMED",    cls: "phase-armed",    desc: "Ignition mode selected." },
+        IGNITION: { label: "IGNITION", cls: "phase-ignition", desc: "Ignition firing." },
+        ESTOP:    { label: "E-STOP",   cls: "phase-estop",    desc: "Emergency stop active." },
+    };
+
+    // This is the "priority order" of phases, since multiple can be true at once
+    function derivePendantPhase(apiData) {
+        if (!apiData) return "OFF";
+        if (apiData.ESTOP)             return "ESTOP";
+        if (apiData.IGNITION_FIRE)     return "IGNITION";
+        if (apiData.IGNITION_SELECTED) return "ARMED";
+        if (apiData.GAS_FILL_SELECTED) return "FILL";
+        if (apiData.SYSTEM_ACTIVATE)   return "STANDBY";
+        return "OFF";
+    }
+
+    // vvvvv Entry Point vvvvv
+    // Translates a packet ID 10 payload into the set of `pendant.hybrid.[state]`
     // layers that should be visible, then applies that to the DOM.
     function updatePendantState(apiData) {
         const new_pendant_state = [];
@@ -114,7 +337,8 @@
             }
         }
 
-        // Derived state: system is on but neither rotary is engaged.
+        // Derived state, not sent directly,
+        // its when system is on but neither fill or ignition is selected
         if (
             apiData.SYSTEM_ACTIVATE === true &&
             apiData.GAS_FILL_SELECTED !== true &&
@@ -124,6 +348,7 @@
         }
 
         togglePendant(new_pendant_state);
+        updatePendantStatusPanel(apiData);
     }
 
     function togglePendant(pendant_state) {
@@ -143,5 +368,33 @@
                 console.log(state);
             }
         }
+    }
+
+    function updatePendantStatusPanel(apiData) {
+        const phase = derivePendantPhase(apiData);
+        const info = PENDANT_PHASE_INFO[phase];
+
+        const phaseEl = document.querySelector("[data-pendant-phase]");
+        if (phaseEl) {
+            phaseEl.textContent = info.label;
+            phaseEl.className = "pendant-phase-value " + info.cls;
+        }
+
+        const descEl = document.querySelector("[data-pendant-desc]");
+        if (descEl) descEl.textContent = info.desc;
+
+        // Highlight the current step in the sequence
+        document.querySelectorAll("[data-progression]").forEach((el) => {
+            el.classList.toggle(
+                "active",
+                phase !== "ESTOP" && el.dataset.progression === phase,
+            );
+        });
+
+        // Update the per-input dots
+        document.querySelectorAll("[data-state-check]").forEach((el) => {
+            const key = el.dataset.stateCheck;
+            el.classList.toggle("active", apiData && apiData[key] === true);
+        });
     }
 </script>
