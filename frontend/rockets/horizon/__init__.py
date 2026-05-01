@@ -20,7 +20,6 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_logos.html",
             "horizon/modules/horizon_nav.html",
             "horizon/modules/horizon_radio.html",
-            "horizon/modules/horizon_sounds.html",
 
             # Main page modules (mirrors Legacy III's main page for now)
             "horizon/modules/horizon_avionics.html",
@@ -53,28 +52,22 @@ class ConfigHorizon(Config):
         # Overview content area is now 24 cols x 11 rows (y = 1..11).
         self.MODULE_PAGES = {
             "horizon_logos": [
-                ("page-main", 0, 0, 6, 1),
-                ("page-preflight", 0, 0, 6, 1),
-                ("page-control", 0, 0, 6, 1),
-                ("page-diagnostics", 0, 0, 6, 1),
-            ],
-            "horizon_sounds": [
-                ("page-main", 6, 0, 6, 1),
-                ("page-preflight", 6, 0, 6, 1),
-                ("page-control", 6, 0, 6, 1),
-                ("page-diagnostics", 6, 0, 6, 1),
+                ("page-main", 0, 0, 8, 1),
+                ("page-preflight", 0, 0, 8, 1),
+                ("page-control", 0, 0, 8, 1),
+                ("page-diagnostics", 0, 0, 8, 1),
             ],
             "horizon_nav": [
-                ("page-main", 12, 0, 6, 1),
-                ("page-preflight", 12, 0, 6, 1),
-                ("page-control", 12, 0, 6, 1),
-                ("page-diagnostics", 12, 0, 6, 1),
+                ("page-main", 8, 0, 8, 1),
+                ("page-preflight", 8, 0, 8, 1),
+                ("page-control", 8, 0, 8, 1),
+                ("page-diagnostics", 8, 0, 8, 1),
             ],
             "horizon_radio": [
-                ("page-main", 18, 0, 6, 1),
-                ("page-preflight", 18, 0, 6, 1),
-                ("page-control", 18, 0, 6, 1),
-                ("page-diagnostics", 18, 0, 6, 1),
+                ("page-main", 16, 0, 8, 1),
+                ("page-preflight", 16, 0, 8, 1),
+                ("page-control", 16, 0, 8, 1),
+                ("page-diagnostics", 16, 0, 8, 1),
             ],
 
             "horizon_avionics_position": [("page-main", 0, 1, 8, 11)],
