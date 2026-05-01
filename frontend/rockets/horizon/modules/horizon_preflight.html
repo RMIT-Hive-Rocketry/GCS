@@ -1,0 +1,45 @@
+<!-- Preflight information -->
+<div class="module-horizon p-2">
+    <!-- Sound files -->
+    <h2>Overview</h2>
+    <p>
+        The above mute/unmute (default mute) icon can be used to toggle whether alarms play or not. The alarms themselves signify if something is wrong
+        with connections to external devices (signified by a non-green indicator), and play in a queue from top to bottom priority (GSE, AV, GPS Fix,
+        Dual Board). Since the GPS Fix is part of the AV device, if the former goes down, so will the latter. Click the following button to hear them in
+        succession (same order as the below table), with 0.5 sec of silence between each (including any extended alarms):
+        <audio id="combined" src="sounds/Combined_Sounds.mp3" preload="auto" controls></audio>
+    </p>
+    Description of each sound:
+    <table>
+        <tr>
+            <th>Sound (sorted by descending order of priority)</th>
+            <th>Alarm sound</th>
+            <th>Source</th>
+        </tr>
+        <tr>
+            <td>GSE loss</td>
+            <td>High-pitched chord (if timeout > 5 seconds, plays in quicker succession)</td>
+            <td>https://www.youtube.com/watch?v=EWnhSCFCYto</td>
+        </tr>
+        <tr>
+            <td>AV loss</td>
+            <td>1kHz square wave (if timeout > 5 seconds, plays in quicker succession)</td>
+            <td>https://www.youtube.com/watch?v=W5Z-d1Zx02o</td>
+        </tr>
+        <tr>
+            <td>GPS Fix loss</td>
+            <td>Triangle wave pitch-shifted to ~0.5-octave below AV (was ~250hZ)</td>
+            <td>https://www.youtube.com/watch?v=EWnhSCFCYto</td>
+        </tr>
+        <tr>
+            <td>Dual Board loss</td>
+            <td>Low-pitched sound, slightly ascending</td>
+            <td>https://www.youtube.com/watch?v=W5Z-d1Zx02o</td>
+        </tr>
+        <tr>
+            <td>Apogee flight state</td>
+            <td>Celebratory piano chord</td>
+            <td>Created in MuseScore</td>
+        </tr>
+    </table>
+</div>

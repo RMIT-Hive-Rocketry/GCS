@@ -21,10 +21,27 @@ var connected = false;
 var then, now, fpsInterval;
 
 // Logging
+const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 const logVerbose = false;
 const logIncomingMessages = false;
 const errors = [];
-const timeouts = {};
+
+// Combine all timeouts into one array of objects (only for radios)
+const timeoutsList = [
+    // This allows for customisation (note duration in ms)
+    {name:"av", duration:3000, state:4, rocket:"Legacy3"},
+    {name:"av", duration:10000, state:5, rocket:"Legacy3"},
+    {name:"gse", duration:3000, state:4, rocket:"Legacy3"},
+    {name:"gse", duration:10000, state:5, rocket:"Legacy3"},
+
+    {name:"av", duration:3000, state:4, rocket:"Atlas"},
+    {name:"av", duration:10000, state:5, rocket:"Atlas"},
+    {name:"gse", duration:3000, state:4, rocket:"Atlas"},
+    {name:"gse", duration:10000, state:5, rocket:"Atlas"},
+
+    {name:"av", duration:5000, state:4, rocket:"Horizon"},
+    {name:"gse", duration:5000, state:4, rocket:"Horizon"},
+];
 
 // Global display values
 var altitudeMax;
@@ -44,6 +61,240 @@ const timers = {
     gasTimestamp: 0,
     launchTimestamp: 0,
 };
+
+// Generate the sounds (the 1st 2 can change into a quicker version if the alarm is long)
+const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+const soundsList = filenames.map(src => {
+    // Create the audio object that will return upon ending
+    const audioObject = new Audio("sounds/" + src + ".mp3");
+
+    // Mute sound by default
+    audioObject.muted = true;
+
+    // Self-return after playing
+    audioObject.addEventListener('ended', () => {
+        audioObject.pause();
+        audioObject.currentTime = 0;
+    });
+
+    /* Active means whether the sound should be playing
+     * but the mute status is stored inside source
+    */
+    return { source: audioObject, active: false };
+});
+
+// Only non-error sound, with a function to call it explicitly
+const apogee = new Audio("sounds/Apogee.mp3"); // MuseScore-generated
+apogee.muted = true; // Must also be muted by default
+
+// Return sound to the beginning (should not be required here)
+apogee.addEventListener('ended', () => {
+    apogee.pause();
+    apogee.currentTime = 0;
+});
+
+function apogeeSound() {
+    // Make sure the main Horizon page is selected
+    if (isHorizonMain()) {
+        apogee.play();
+    }
+}
+
+// Check if all sounds are unmuted (including apogee)
+function allUnmuted() {
+    return soundsList.every(item => !item.source.muted) && !apogee.muted;
+}
+
+// Call at the start and whenever a state updates
+function checkStateIndicator(elem = null) {
+    // Select rocket for below
+    let currRocket = "";
+    if (window.location.href.includes("rocket=legacy")) {
+        currRocket = "Legacy3";
+    }
+    else if (window.location.href.includes("rocket=atlas")) {
+        currRocket = "Atlas";
+    }
+    else if (window.location.href.includes("rocket=horizon")) {
+        currRocket = "Horizon";
+    }
+
+    function stateToSound(e1) {
+        let sound = "",
+            indicator = e1.attributes[0].textContent;
+
+        // See horizon_preflight.html for sources
+        if (indicator.includes("av.radio")) {
+            sound = "AV_Loss";
+        }
+        else if (indicator.includes("gse.radio")) {
+            sound = "GSE_Loss";
+        }
+        else if (indicator.includes("gpsFix")) {
+            sound = "GPS_Fix_Loss";
+        }
+        else if (indicator.includes("dualBoard")) {
+            sound = "Dual_Board_Loss";
+        }
+
+        // Should only execute with one of the above values
+        if (sound !== "") {
+            /* Can be changed, but at this stage only green is a good state,
+            * where the sound resets (otherwise continues playing). Also,
+            * elem.classList.value is the styling itself (use this so that
+            * in case the interested state/s exist elsewhere in the string)
+            */
+            updateSound(sound, !e1.classList.value.includes("green"), false);
+
+            // Check for timeouts (won't execute on a non-radio state)
+            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name))).forEach((t1) => {
+                let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
+
+                currElems.forEach((c1) => {
+                    // Use functions for recalculating the expressions
+                    const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
+                    const greenState = () => !c1.classList.value.includes("green");
+                    const currSound = t1.name.toUpperCase() + "_Loss";
+                    
+                    if (timeoutState()) {
+                        // At a minimum, the regular sound should be playing regardless
+                        updateSound(currSound, true, false);
+
+                        setTimeout(() => {
+                            /* If the timeout is still not resolved, set the sound to
+                            * the quicker version.
+                            */
+                            if (timeoutState()) {
+                                updateSound(currSound, true, true);
+                            }
+                            else {
+                                // Set the alarm back to its normal state (if the timeout went away on time)
+                                updateSound(currSound, !greenState, false);
+                            }
+                        }, t1.duration);
+                    }
+                    else {
+                        // Same code as above, except it doesn't wait (when the state was never 'unfavourable')
+                        updateSound(currSound, !greenState, false);
+                    }
+                })
+            })
+        }
+    }
+    
+    // Activate a single alarm
+    if (elem !== null) {
+        stateToSound(elem);
+    }
+    else {
+        // Check all states at the start
+        const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard"]
+        validStates.map(key => {
+            let currElems = document.querySelectorAll(`[data-key="state.${key}"]`);
+        
+            // Activate any required alarms
+            currElems.forEach((c1) => {
+                stateToSound(c1);
+            })
+        });
+    }
+}
+
+// Check if the main Horizon page is selected
+function isHorizonMain() {
+    return window.location.href.endsWith("rocket=horizon");
+}
+
+// Block calls to enforce silence
+let silence = false;
+
+/* Plays sounds in a particular (relative) order, determined by the
+ * order in which their names (rather, something close to that) appear
+ * in the filenames array closer to the top.
+*/
+function playSounds() {
+    // Return if 1 second not up, yet
+    if (silence) { return; }
+    silence = true;
+
+    for (let i = 0; i < soundsList.length; ++i) {
+        // Play the active sounds in succession (only if not already playing)
+        if ((soundsList[i].active) && (soundsList[i].source.paused)) {
+            soundsList[i].source.play();
+        }
+    }
+
+    // After 1 second, allow function calls
+    setTimeout(() => {
+        silence = false;
+    }, 1000);
+}
+
+function toggleMute() {
+    // Toggle mute first, then update UI
+    for (let i = 0; i < soundsList.length; ++i) {
+        soundsList[i].source.muted = !soundsList[i].source.muted;
+    }
+    apogee.muted = !apogee.muted; // Don't forget apogee
+
+    /* Icon represents current state.
+     * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
+     * modified by changing the colour to a Horizon-themed gradient
+    */
+    if (allUnmuted()) {
+        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.svg";
+        document.getElementById("toggleIcon").alt = "Sound unmuted";
+    }
+    else {
+        document.getElementById("toggleIcon").src = "img/icons/sound-muted.svg";
+        document.getElementById("toggleIcon").alt = "Sound muted";
+    }
+}
+
+/* Update the given sound as to if it will play in the sound
+ * queue. If long = true, the alarm will change to its extended version.
+*/
+function updateSound(sound, newValue, quicker) {
+    const soundNumber = soundsList.findIndex(
+        file => file.source.src.includes(sound)
+    );
+    
+    // If newValue is true, the sound should play when called
+    if (soundNumber >= 0) {
+        soundsList[soundNumber].active = newValue;
+    }
+
+    /* Custom functions just for inside this one. Note that the suffix
+     * is before the file extension, not after
+    */
+    function addQuicker() {
+        // Filepath must not already contain the differentiating suffix
+        if (!soundsList[soundNumber].source.src.includes("_Quicker")) {
+            soundsList[soundNumber].source.src = soundsList[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
+        }
+    }
+    function removeQuicker() {
+        // Remove the suffix
+        soundsList[soundNumber].source.src.replaceAll("_Quicker", "");
+    }
+
+    quicker ? addQuicker() : removeQuicker();
+    try {
+        /* Don't play any sound if none are active (else that would delay any
+         * future ones by an extra second). Likewise, don't do so unless the main
+         * Horizon page is selected
+        */
+        if ((soundsList.some(file => file.active)) && isHorizonMain()) {
+            playSounds();
+        }
+    } catch (error) {
+        /* Perform opposite operation, leading into an infinite loop
+         * if the original sound did not exist neither with, nor without
+         * "_Quicker"), which should not be the case here at this time
+        */
+        quicker ? removeQuicker() : addQuicker();
+    }
+}
 
 // Reconnecting code
 function scheduleReconnect() {
@@ -176,8 +427,8 @@ function logMessage(message, type = "", timestamp = "") {
         logArea.removeChild(logArea.firstChild);
     }
 
-    // Scroll to bottom of log
-    logArea.scrollTop = logArea.scrollHeight;
+    // // Scroll to bottom of log
+    // logArea.scrollTop = logArea.scrollHeight;
 }
 
 document.addEventListener("visibilitychange", function () {
@@ -817,8 +1068,7 @@ window.addEventListener("load", (event) => {
     document.querySelectorAll("[data-key]").forEach((elem) => {
         let key = elem.getAttribute("data-key"),
             prec = elem.getAttribute("data-precision"),
-            type = elem.getAttribute("data-type"),
-            timeout = elem.getAttribute("data-timeout");
+            type = elem.getAttribute("data-type");
 
         // Defaults
         let rego = { e: elem, t: "value" };
@@ -828,10 +1078,12 @@ window.addEventListener("load", (event) => {
         if (type != null) {
             rego.t = type;
         }
-        if (timeout != null) {
-            console.log(timeout);
-            rego.to = JSON.parse(timeout);
-        }
+
+        /* Play sound if any state indicator is already problematic
+         * (which at least in --experimental mode) will be the case).
+         * Only that no specific element is in mind at this stage.
+        */
+        checkStateIndicator();
 
         // Register element
         if (key in displayRegistry) {
@@ -879,8 +1131,7 @@ function sendDataToRegistry(apiData) {
             for (const reg of displayRegistry[key]) {
                 let elem = reg.e,
                     prec = reg.p,
-                    type = reg.t,
-                    timeout = reg.to;
+                    type = reg.t;
                 switch (type) {
                     case "value":
                         displaySetValue(elem, value, prec);
@@ -889,7 +1140,7 @@ function sendDataToRegistry(apiData) {
                         displaySetString(elem, value);
                         break;
                     case "state":
-                        displaySetState(elem, value, timeout);
+                        displaySetState(elem, value);
                         break;
                 }
             }
@@ -957,9 +1208,8 @@ function displaySetString(item, string) {
     }
 }
 
-function displaySetState(item, value, timeout = {}) {
-    const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
-
+// apiData required for conditional alarms
+function displaySetState(item, value, timeout) {
     // Updates the state of an indicator
     if (logVerbose)
         console.debug(
@@ -973,29 +1223,23 @@ function displaySetState(item, value, timeout = {}) {
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
+    
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
-
             // Convert true/false boolean values to on/error
             if (typeof value == "boolean") {
                 value = value ? 1 : 3;
             }
 
-            // Get indicator state from value
+            // Get indicator state from value (only then change the sound)
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
             }
 
-            if (timeout != undefined && Object.keys(timeout).length > 0) {
-                Object.entries(timeout).forEach(([ms, state]) => {
-                    clearTimeout(timeouts[[elem, ms]]);
-                    timeouts[[elem, ms]] = setTimeout(() => {
-                        displaySetState(elem, state); // timeout
-                    }, parseInt(ms));
-                });
-            }
-        });
+            // Check if sound needs to be played
+            checkStateIndicator(elem);
+        })
     }
 }
 
@@ -1098,6 +1342,9 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
+            
+            // Play the apogee sound (should only be once in practice)
+            apogeeSound();
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
@@ -1115,6 +1362,10 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
+
+            // Just in case the apogee sound is playing, stop it upon error
+            const stopApogeeSound = new CustomEvent("ended");
+            apogee.dispatchEvent(stopApogeeSound);
         }
 
         displaySetString("fs-flightstate", stateName);

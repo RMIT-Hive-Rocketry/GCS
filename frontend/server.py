@@ -23,6 +23,7 @@ valid_file_extensions = (
     ".ico",
     ".svg",  # Images
     ".glb",  # 3D models
+    ".mp3",  # Sounds
 )
 
 
