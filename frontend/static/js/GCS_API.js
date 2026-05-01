@@ -93,8 +93,8 @@ apogee.addEventListener('ended', () => {
 });
 
 function apogeeSound() {
-    // Make sure a non-preflight Horizon page is selected
-    if (isHorizonNotPreflight()) {
+    // Make sure the main Horizon page is selected
+    if (isHorizonMainPage()) {
         apogee.play();
     }
 }
@@ -162,10 +162,8 @@ function checkStateIndicator(elem = null) {
                     const greenState = () => !c1.classList.value.includes("green");
                     const currSound = t1.name.toUpperCase() + "_Loss";
                     
-                    if (timeoutState()) {
-                        // At a minimum, the regular sound should be playing regardless
-                        updateSound(currSound, true, false);
-
+                    // Timeouts should not go ahead unless the main Horizon page is selected.
+                    if (timeoutState() && isHorizonMainPage()) {
                         setTimeout(() => {
                             /* If the timeout is still not resolved, set the sound to
                             * the quicker version.
@@ -206,10 +204,10 @@ function checkStateIndicator(elem = null) {
     }
 }
 
-// Check if the page selected is of Horizon (but not preflight)
-function isHorizonNotPreflight() {
+// Check if the main page of Horizon rocket is selected
+function isHorizonMainPage() {
     return window.location.href.includes("rocket=horizon") &&
-          !window.location.href.includes("#page-preflight");
+           window.location.href.includes("#page-main");
 }
 
 /* Plays sounds in a particular (relative) order, determined by the
@@ -279,11 +277,10 @@ function updateSound(sound, newValue, quicker) {
     quicker ? addQuicker() : removeQuicker();
     try {
         /* Don't play any sound if none are active (else that would delay any
-         * future ones by an extra second). Likewise, don't do so unless Horizon
-         * is selected (but not the preflight page for separate preview of the same
-         * sounds)
+         * future ones by an extra second). Likewise, don't do so unless the main
+         * Horizon page is selected
         */
-        if ((soundsList.some(file => file.active)) && isHorizonNotPreflight()) {
+        if ((soundsList.some(file => file.active)) && isHorizonMainPage()) {
             playSounds();
         }
     } catch (error) {
