@@ -201,7 +201,11 @@ function checkStateIndicator(elem = null) {
 
 // Check if the main Horizon page is selected
 function isHorizonMain() {
-    return window.location.href.endsWith("rocket=horizon");
+    /* Before clicking on any header page, the former will be
+     * true, afterwards, it will be the latter
+    */
+    return window.location.href.endsWith("rocket=horizon") ||
+           window.location.href.endsWith("rocket=horizon#page-main");
 }
 
 // Block calls to enforce silence
