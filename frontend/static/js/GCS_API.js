@@ -136,12 +136,6 @@ function checkStateIndicator(elem = null) {
         else if (indicator.includes("dualBoard")) {
             sound = "Dual_Board_Loss";
         }
-        else if (indicator.includes("av-state-pyro-1")) {
-            sound = "Pyro_1_Loss";
-        }
-        else if (indicator.includes("av-state-pyro-2")) {
-            sound = "Pyro_2_Loss";
-        }
 
         // Should only execute with one of the above values
         if (sound !== "") {
