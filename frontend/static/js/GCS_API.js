@@ -94,7 +94,7 @@ apogee.addEventListener('ended', () => {
 
 function apogeeSound() {
     // Make sure the main Horizon page is selected
-    if (isHorizonMainPage()) {
+    if (isHorizonMain()) {
         apogee.play();
     }
 }
@@ -145,9 +145,8 @@ function checkStateIndicator(elem = null) {
             */
             updateSound(sound, !e1.classList.value.includes("green"), false);
 
-            // Check for timeouts (won't execute on a non-radio state, but "av" is present in the pyro indicators)
-            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name)) &&
-                               (!indicator.includes("pyro"))).forEach((t1) => {
+            // Check for timeouts (won't execute on a non-radio state)
+            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name))).forEach((t1) => {
                 let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
 
                 currElems.forEach((c1) => {
@@ -156,8 +155,10 @@ function checkStateIndicator(elem = null) {
                     const greenState = () => !c1.classList.value.includes("green");
                     const currSound = t1.name.toUpperCase() + "_Loss";
                     
-                    // Timeouts should not go ahead unless the main Horizon page is selected.
-                    if (timeoutState() && isHorizonMainPage()) {
+                    if (timeoutState()) {
+                        // At a minimum, the regular sound should be playing regardless
+                        updateSound(currSound, true, false);
+
                         setTimeout(() => {
                             /* If the timeout is still not resolved, set the sound to
                             * the quicker version.
@@ -186,7 +187,7 @@ function checkStateIndicator(elem = null) {
     }
     else {
         // Check all states at the start
-        const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard", "av-state-pyro-1", "av-state-pyro-2"]
+        const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard"]
         validStates.map(key => {
             let currElems = document.querySelectorAll(`[data-key="state.${key}"]`);
         
@@ -198,16 +199,23 @@ function checkStateIndicator(elem = null) {
     }
 }
 
-// Check if the page selected is of Horizon (but not preflight)
-function isHorizonNotPreflight() {
+// Check if the main Horizon page is selected
+function isHorizonMain() {
     return window.location.href.endsWith("rocket=horizon");
 }
+
+// Block calls to enforce silence
+let silence = false;
 
 /* Plays sounds in a particular (relative) order, determined by the
  * order in which their names (rather, something close to that) appear
  * in the filenames array closer to the top.
 */
 function playSounds() {
+    // Return if 1 second not up, yet
+    if (silence) { return; }
+    silence = true;
+
     for (let i = 0; i < soundsList.length; ++i) {
         // Play the active sounds in succession (only if not already playing)
         if ((soundsList[i].active) && (soundsList[i].source.paused)) {
@@ -216,7 +224,9 @@ function playSounds() {
     }
 
     // After 1 second, allow function calls
-    setTimeout(() => {}, 1000);
+    setTimeout(() => {
+        silence = false;
+    }, 1000);
 }
 
 function toggleMute() {
@@ -273,7 +283,7 @@ function updateSound(sound, newValue, quicker) {
          * future ones by an extra second). Likewise, don't do so unless the main
          * Horizon page is selected
         */
-        if ((soundsList.some(file => file.active)) && isHorizonMainPage()) {
+        if ((soundsList.some(file => file.active)) && isHorizonMain()) {
             playSounds();
         }
     } catch (error) {
