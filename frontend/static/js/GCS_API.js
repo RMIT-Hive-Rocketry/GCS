@@ -22,7 +22,7 @@ var then, now, fpsInterval;
 
 // Logging
 const logVerbose = false;
-const logIncomingMessages = true;
+const logIncomingMessages = false;
 const errors = [];
 const timeouts = {};
 
