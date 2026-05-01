@@ -22,7 +22,7 @@ var then, now, fpsInterval;
 
 // Logging
 const logVerbose = false;
-const logIncomingMessages = false;
+const logIncomingMessages = true;
 const errors = [];
 const timeouts = {};
 
@@ -304,6 +304,11 @@ function API_OnMessage(event) {
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
+            }
+        } else if (apiData.id == 10) {
+            ///// ----- PENDANT ----- /////
+            if (typeof updatePendantState === "function") {
+                updatePendantState(apiData);
             }
         }
     } catch (error) {
