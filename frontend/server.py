@@ -2,9 +2,7 @@
 from frontend.rocket_loader import load_rockets
 from flask import Flask, send_from_directory, abort, render_template, request
 from os import path as os_path
-
-# import logging
-# import backend.includes_python.process_logging as slogger
+import backend.includes_python.process_logging as slogger
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -17,7 +15,6 @@ class SubprocessLogHandler(logging.Handler):
             slogger.info(msg)  # fallback
 """
 
-
 valid_file_extensions = (
     ".css",
     ".js",  # CSS, JavaScript
@@ -26,6 +23,7 @@ valid_file_extensions = (
     ".ico",
     ".svg",  # Images
     ".glb",  # 3D models
+    ".mp3",  # Sounds
 )
 
 
@@ -52,7 +50,7 @@ def create_app():
     """
     """
     # Custom logging
-    if logger != None:
+    if slogger != None:
         handler = SubprocessLogHandler()
         formatter = logging.Formatter('%(message)s')  # Keep raw message for slogger
         handler.setFormatter(formatter)
@@ -111,17 +109,17 @@ def create_app():
         if filename.endswith(valid_file_extensions) and os_path.isfile(
             filepath
         ):
-            # app.logger.debug(f"Serving static file: {filename}")
+            slogger.debug(f"Serving static file: {filename}")
             return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
         elif os_path.isfile(filepath + ".html"):
-            # app.logger.debug(f"Serving static file: {filename}.html")
+            slogger.debug(f"Serving static webpage: {filename}.html")
             return send_from_directory(file_directory, filename + ".html")
 
         # 404 page not found
         else:
-            # app.logger.warning(f"404 not found: {filename}")
+            slogger.warning(f"404 not found: {filename}")
             abort(404)
 
     """

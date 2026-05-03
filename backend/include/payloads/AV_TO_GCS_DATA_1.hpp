@@ -10,6 +10,7 @@
 #include "FlightState.pb.h"
 #include "PacketMeta.pb.h"
 #include "ProtoHelper.hpp"
+#include "debug_functions.hpp"
 
 class AV_TO_GCS_DATA_1 {
  public:
@@ -90,7 +91,9 @@ class AV_TO_GCS_DATA_1 {
       // Future error validation for #16
       slogger::error(
           "Unexpected parsed value for broadcast_flag_ in AV_TO_GCS_DATA_1:");
-      slogger::error("broadcast_byte");
+      std::vector<uint8_t> broadcast_byte_vector;
+      broadcast_byte_vector.push_back(broadcast_byte);
+      slogger::error(debug::vectorToHexString(broadcast_byte_vector, 1));
     }
 
     parser.extract_unsigned_bits(8);  // Discard last byte for now
