@@ -11,7 +11,7 @@
 
     <div class="pendant-layout flex-1 grid gap-6 p-5 min-h-0 min-w-0">
         <!-- Camera OR GSE, TBD -->
-        <div class="pendant-camera"></div>
+        <div class="pendant-camera">Camera</div>
 
         <!-- Visual pendant stack -->
         <div
@@ -139,12 +139,20 @@
         grid-area: camera;
         min-width: 0;
         min-height: 0;
-        /* TODO: TEMP, OUTLINE FOR THE EMPTY BOX */
-        border: 1px dashed color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
+        /* TODO: ALL TEMPORARY FOR THE PLACEHOLDER TEXT */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-horizon-yellow);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        /* TODO: TEMP OUTLINE */
+        border: 1px dashed color-mix(in oklab, var(--color-horizon-mauve) 80%, transparent);
     }
 
     .module-pendant .pendant-visual {
         grid-area: pendant;
+        padding: 1rem;
     }
 
     .module-pendant .pendant-status {
@@ -155,7 +163,8 @@
         grid-area: console;
         min-height: 140px;
         min-width: 0;
-        border: 1px dashed color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
+        /* TODO: TEMP OUTLINE */
+        border: 1px dashed color-mix(in oklab, var(--color-horizon-mauve) 80%, transparent);
     }
 
     @media (max-width: 720px) {
