@@ -1212,8 +1212,7 @@ function displaySetString(item, string) {
     }
 }
 
-// apiData required for conditional alarms
-function displaySetState(item, value, timeout) {
+function displaySetState(item, value) {
     // Updates the state of an indicator
     if (logVerbose)
         console.debug(
