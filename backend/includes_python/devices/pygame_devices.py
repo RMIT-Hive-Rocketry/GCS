@@ -4,14 +4,14 @@ from backend.includes_python.devices.pendant_state import PendantInput
 
 class HybridPygamePendant(Pygame_Device):
     BUTTON_NAME_ID_MAP = {
-        PendantInput.SYSTEM_ACTIVE: 0,
+        PendantInput.SYSTEM_ACTIVE: 2,
         PendantInput.E_STOP: 5,
         PendantInput.FILL_MODE: 6,
         PendantInput.ARMED: 4,
         PendantInput.N2O: 8,
         PendantInput.PURGE: 3,
         PendantInput.O2: 1,
-        PendantInput.IGNITION: 2,
+        PendantInput.IGNITION: 0,
     }
 
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"

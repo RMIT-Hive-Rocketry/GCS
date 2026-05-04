@@ -23,8 +23,8 @@ window.addEventListener("DOMContentLoaded", () => {
             scale: 3.42,
         },
         horizon: {
-            model: "",
-            scale: 1,
+            model: "horizon/static/assets/rocket_horizon.glb",
+            scale: 3,
         },
     };
 
@@ -89,15 +89,15 @@ window.addEventListener("DOMContentLoaded", () => {
         scene.add(light);
 
         let light2 = new THREE.PointLight(skyColor, 20);
-        light2.position.set( 10, 4, 2 );
+        light2.position.set(10, 4, 2);
         scene.add(light2);
 
         let light3 = new THREE.PointLight(0xFFFFFF, 100);
-        light3.position.set( 10, 2.5, 0 );
+        light3.position.set(10, 2.5, 0);
         scene.add(light3);
 
         let light4 = new THREE.PointLight(groundColor, 50);
-        light4.position.set( -20, -4, 0 );
+        light4.position.set(-20, -4, 0);
         scene.add(light4);
 
         // Load rocket model

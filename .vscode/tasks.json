@@ -102,7 +102,6 @@
             "icon": {
                 "id": "debug-console"
             },
-            "problemMatcher": []
         },
         {
             "label": "start emulator manually",
@@ -111,7 +110,6 @@
             "icon": {
                 "id": "debug-console"
             },
-            "problemMatcher": []
         },
         {
             "label": "start ZeroMQ debug subscriber",
@@ -129,7 +127,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start RPI pendant controller debug",
@@ -146,7 +143,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start Pygame pendant controller debug",
@@ -163,7 +159,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start Pygame input decoder",
@@ -180,7 +175,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start websocket debug subscriber",
@@ -197,7 +191,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start frontend API manually",
@@ -216,7 +209,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start frontend API manually",
@@ -235,7 +227,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start hardware pendant emulator manually",
@@ -252,7 +243,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Compile Manual Protobuf Payload",
@@ -294,7 +284,6 @@
             "icon": {
                 "id": "paintcan"
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Setup",
@@ -326,7 +315,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Dev",
@@ -352,7 +340,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Dev [EXPERIMENTAL]",
@@ -380,7 +367,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Rocket.py",
@@ -406,7 +392,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Replay 20250504",
@@ -432,7 +417,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Replay IREC2025",
@@ -458,7 +442,31 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Replay 20260428 @ White Cliffs",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "20260428"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
         },
         {
             "label": "Run Simulation",
@@ -476,7 +484,6 @@
                 }
             },
             "group": "build",
-            "problemMatcher": [],
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
@@ -500,7 +507,6 @@
                 }
             },
             "group": "build",
-            "problemMatcher": [],
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
@@ -541,7 +547,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start E5 fake AV spam debug",
@@ -560,7 +565,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         }
     ],
     "inputs": [
