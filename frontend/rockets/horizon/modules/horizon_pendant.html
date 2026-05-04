@@ -3,8 +3,12 @@
 
     Visualises the physical control pendant by stacking PNG layers,
     each independently shown or hidden in response to packet ID 10.
+
     Alongside the pendant, a cool looking status panel displays the same data,
-    showing current phase and dots for each state/input
+    showing current phase and dots for each state/input.
+
+    Also comes with a console log that automatically times how long each state,
+    has been activated for.
 -->
 <div class="module-horizon module-pendant w-full h-full flex flex-col">
     <h2>Hybrid Control Pendant</h2>
@@ -120,7 +124,10 @@
         </aside>
 
         <!-- Console row -->
-        <div class="pendant-console"></div>
+        <div class="pendant-console">
+            <div class="pendant-section-label console-header">Event Log</div>
+            <div class="console-log" data-console-log></div>
+        </div>
     </div>
 </div>
 
@@ -163,8 +170,89 @@
         grid-area: console;
         min-height: 300px;
         min-width: 0;
-        /* TODO: TEMP OUTLINE */
-        border: 1px dashed color-mix(in oklab, var(--color-horizon-mauve) 80%, transparent);
+        display: flex;
+        flex-direction: column;
+        padding: 8px 12px 10px;
+        border: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 60%, transparent);
+        background: color-mix(in oklab, var(--color-horizon-mauve) 5%, transparent);
+    }
+
+    .module-pendant .console-header {
+        flex: 0 0 auto;
+    }
+
+    .module-pendant .console-log {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        padding-right: 4px;
+    }
+
+    /* Marker line: --- LABEL --- */
+    .module-pendant .console-line-marker {
+        color: var(--color-horizon-yellow);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        text-align: center;
+        padding: 4px 0;
+    }
+
+    .module-pendant .console-line-marker.critical {
+        color: #ff3030;
+        text-shadow: 0 0 6px rgba(255, 48, 48, 0.5);
+    }
+
+    /* Timed line: LABEL .... STATUS .... 0.00 s */
+    .module-pendant .console-line-timed {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .module-pendant .console-line-timed .line-label {
+        flex: 0 0 auto;
+        min-width: 10ch;
+        color: rgba(255, 255, 255, 0.85);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .module-pendant .console-line-timed .line-leader {
+        flex: 1 1 0;
+        border-bottom: 1px dotted rgba(255, 255, 255, 0.25);
+        position: relative;
+        top: -4px;
+    }
+
+    .module-pendant .console-line-timed .line-status {
+        flex: 0 0 auto;
+        min-width: 90px;
+        text-align: center;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+    }
+
+    .module-pendant .console-line-timed.active .line-status {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 6px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+
+    .module-pendant .console-line-timed.disengaged .line-status {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .module-pendant .console-line-timed .line-time {
+        flex: 0 0 auto;
+        min-width: 70px;
+        text-align: right;
+        color: rgba(255, 255, 255, 0.7);
+        font-variant-numeric: tabular-nums;
+        font-weight: bold;
     }
 
     @media (max-width: 720px) {
@@ -398,6 +486,7 @@
 
         togglePendant(new_pendant_state);
         updatePendantStatusPanel(apiData);
+        processConsoleEvents(apiData);
     }
 
     function togglePendant(pendant_state) {
@@ -445,5 +534,166 @@
             const key = el.dataset.stateCheck;
             el.classList.toggle("active", apiData && apiData[key] === true);
         });
+    }
+
+    /* =========================================================
+     * Event log console
+     * =========================================================
+     * Watches inputs from packet ID 10 for rising/falling edges
+     * and logs them as lines in the console.
+     * The whole order of events is preserved -- each press
+     * adds a new line.
+     */
+
+    // Per-input config: how each one should appear in the log.
+    // Iteration order here also controls the order multiple
+    // simultaneous events get logged in.
+    const CONSOLE_INPUT_CONFIG = {
+        ESTOP:                            { label: "E-STOP ENGAGED",   type: "marker", critical: true },
+        SYSTEM_ACTIVATE:                  { label: "SYSTEM ACTIVE",    type: "marker" },
+        GAS_FILL_SELECTED:                { label: "ENTER FILL MODE",  type: "marker" },
+        IGNITION_SELECTED:                { label: "ENTER ARMED MODE", type: "marker" },
+        SELECTOR_SWITCH_NEUTRAL_POSITION: { label: "SELECTOR NEUTRAL", type: "marker" },
+        N2O_FILL_ACTIVATE:                { label: "N₂O FILL",         type: "timed"  },
+        MANUAL_PURGE:                     { label: "PURGE",            type: "timed"  },
+        O2_FILL_ACTIVATE:                 { label: "O₂ FILL",          type: "timed"  },
+        IGNITION_FIRE:                    { label: "IGNITION",         type: "timed"  },
+    };
+
+    // Internal state for the console
+    const consoleState = {
+        // Last packet's boolean for each input
+        lastInputs: {},
+
+        activeTimers: {},
+        tickerRunning: false,
+    };
+
+    function processConsoleEvents(apiData) {
+        // Walk inputs in predetermined order so simultaneous events
+        // log in a predictable oder
+        for (const [key, config] of Object.entries(CONSOLE_INPUT_CONFIG)) {
+            const wasActive = consoleState.lastInputs[key] === true;
+            const isActive = apiData && apiData[key] === true;
+
+            // If an input just turned on, either make a status line
+            // Like for "entering fill mode"
+            // or make a timed line
+            if (!wasActive && isActive) {
+                if (config.type === "marker") {
+                    appendMarkerLine(config);
+                } else {
+                    startTimedLine(key, config);
+                }
+            // If an input just turned off, stop the timer
+            } else if (wasActive && !isActive) {
+                if (config.type === "timed") {
+                    freezeTimedLine(key);
+                }
+            }
+
+            // If any inputs are still on, or still off, we don't care
+
+            consoleState.lastInputs[key] = isActive;
+        }
+    }
+
+    function appendMarkerLine(config) {
+        const line = document.createElement("div");
+        // TODO: this line is framework for the e-stop, but currently it isn't being sent
+        // over on packet ID 10, but I'm leaving this here
+        line.className = "console-line-marker" + (config.critical ? " critical" : "");
+
+        line.textContent = `--- ${config.label} ---`;
+        appendConsoleLine(line);
+    }
+
+    function startTimedLine(key, config) {
+        const line = document.createElement("div");
+        line.className = "console-line-timed active";
+
+        const labelEl = document.createElement("span");
+        labelEl.className = "line-label";
+        labelEl.textContent = config.label;
+
+        const leader1 = document.createElement("span");
+        leader1.className = "line-leader";
+
+        const statusEl = document.createElement("span");
+        statusEl.className = "line-status";
+        statusEl.textContent = "ACTIVE";
+
+        const leader2 = document.createElement("span");
+        leader2.className = "line-leader";
+
+        const timeEl = document.createElement("span");
+        timeEl.className = "line-time";
+        timeEl.textContent = "0.00 s";
+
+        line.append(labelEl, leader1, statusEl, leader2, timeEl);
+        appendConsoleLine(line);
+
+        // Store these for later reference, so the timer doesn't need
+        // to re-query the DOM every time
+        consoleState.activeTimers[key] = {
+            lineEl: line,
+            statusEl,
+            timeEl,
+            startedAt: performance.now(),
+        };
+        ensureTickerRunning();
+    }
+
+    function freezeTimedLine(key) {
+        const timer = consoleState.activeTimers[key];
+        if (!timer) return;
+
+        // Final timestamp rounding and CSS changes
+        const elapsed = (performance.now() - timer.startedAt) / 1000;
+        timer.timeEl.textContent = elapsed.toFixed(2) + " s";
+        timer.statusEl.textContent = "DISENGAGED";
+        timer.lineEl.classList.remove("active");
+        timer.lineEl.classList.add("disengaged");
+
+        delete consoleState.activeTimers[key];
+    }
+
+    // So, we're using RAF for the timer animation
+    // It runs at the same refresh rate as your display, and automatically
+    // pauses if focus is lost, for optimisation
+    function tickActiveTimers() {
+        const keys = Object.keys(consoleState.activeTimers);
+        if (keys.length === 0) {
+            consoleState.tickerRunning = false;
+            return;
+        }
+        const now = performance.now();
+        for (const key of keys) {
+            const timer = consoleState.activeTimers[key];
+            const elapsed = (now - timer.startedAt) / 1000;
+            timer.timeEl.textContent = elapsed.toFixed(2) + " s";
+        }
+        requestAnimationFrame(tickActiveTimers);
+    }
+
+    // Important, because otherwise every new timed line would
+    // queue another RAF and we'd have a bunch of duplicate ticker loops
+    function ensureTickerRunning() {
+        if (consoleState.tickerRunning) return;
+        consoleState.tickerRunning = true;
+        requestAnimationFrame(tickActiveTimers);
+    }
+
+    // Auto-scrolling, stick to the bottom unless the user has
+    // scrolled up to read history
+    function appendConsoleLine(lineEl) {
+        const log = document.querySelector("[data-console-log]");
+        if (!log) return;
+        const wasAtBottom =
+            log.scrollHeight - log.scrollTop - log.clientHeight <= 8;
+        log.appendChild(lineEl);
+        if (wasAtBottom) {
+            log.scrollTop = log.scrollHeight;
+        }
     }
 </script>
