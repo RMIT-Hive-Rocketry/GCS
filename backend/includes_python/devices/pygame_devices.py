@@ -3,14 +3,14 @@ from backend.includes_python.devices.pygame_device import Pygame_Device
 
 class HybridPygamePendant(Pygame_Device):
     BUTTON_NAME_ID_MAP = {
-        "SYS_ON": 0,
+        "SYS_ON": 2,
         "ESTOP": 5,
         "FILL_SELECTED": 6,
         "IGNITION_SELECTED": 4,
         "N2O_ACTIVE": 8,
         "PURGE_ACTIVE": 3,
         "O2_MOMENT_ACTIVE": 1,
-        "IGNITION_MOMENT_ACTIVE": 2,
+        "IGNITION_MOMENT_ACTIVE": 0,
     }
 
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
