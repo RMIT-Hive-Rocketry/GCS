@@ -839,8 +839,93 @@ function processDataForDisplay(apiData, apiId) {
                 packetsTable.deleteRow(i + 1);
             }
         }
+
+        // Populate devices (whether or not they exist in the table)
+        Object.keys(apiData).forEach(device => {
+            // Update data if present, otherwise add it
+            let currRow = packetsTable.querySelector(`div[data-key='${device}']`);
+            if (currRow === null) {
+                // Append 2 rows
+                let topRow = packetsTable.insertRow(-1);
+                let bottomRow = packetsTable.insertRow(-1);
+
+                // Leave a gap
+                bottomRow.style = "border-bottom: 30px solid transparent;";
+
+                // Create columns
+                let stateColumn = topRow.insertCell(0);
+                let packetLossColumn = bottomRow.insertCell(0);
+                let pingColumn = bottomRow.insertCell(1);
+                let packetCountColumn = bottomRow.insertCell(2);
+
+                // Populate the lone column of the top row
+                let stateColumn_div = document.createElement("div");
+                stateColumn_div.setAttribute('data-key', device);
+                stateColumn_div.setAttribute('data-type', 'state');
+                stateColumn_div.className = "indicator-state mx-0 timeout";
+                
+                let stateColumn_span = document.createElement("span");
+                stateColumn_span.className = "font-bold text-hive";
+                stateColumn_span.textContent = device;
+
+                stateColumn.className = "w-full flex gap-4 justify-start items-center";
+                stateColumn.appendChild(stateColumn_div);
+                stateColumn.appendChild(stateColumn_span);
+
+                // Populate the packet loss column
+                let packetLossColumn_label = document.createElement("label");
+                packetLossColumn_label.textContent = "Packet Loss:"
+
+                let packetLossColumn_input = document.createElement("input");
+                packetLossColumn_input.setAttribute('data-key', device + '.packet_loss');
+                packetLossColumn_input.setAttribute('data-precision', '4');
+                packetLossColumn_input.setAttribute('readonly', 'true');
+                packetLossColumn_input.setAttribute('autocomplete', 'off');
+                packetLossColumn_input.className = 'text-right';
+                packetLossColumn_input.size = 4;
+                if (typeof device.packet_loss !== 'undefined') {
+                    packetLossColumn_input.setAttribute('value', device.packet_loss);
+                }
+                
+                packetLossColumn.appendChild(packetLossColumn_label);
+                packetLossColumn_label.appendChild(packetLossColumn_input);
+
+                // Populate the ping column
+                let pingColumn_label = document.createElement("label");
+                pingColumn_label.textContent = "Ping:"
+
+                let pingColumn_input = document.createElement("input");
+                pingColumn_input.setAttribute('data-key', device + '.ping');
+                pingColumn_input.setAttribute('data-precision', '0');
+                pingColumn_input.setAttribute('readonly', 'true');
+                pingColumn_input.setAttribute('autocomplete', 'off');
+                pingColumn_input.size = 4;
+                if (typeof device.ping !== 'undefined') {
+                    pingColumn_input.setAttribute('value', device.ping);
+                }
+
+                pingColumn.appendChild(pingColumn_label);
+                pingColumn_label.appendChild(pingColumn_input);
+
+                // Populate the packets column
+                let packetCountColumn_label = document.createElement("label");
+                packetCountColumn_label.textContent = "Packets:"
+
+                let packetCountColumn_input = document.createElement("input");
+                packetCountColumn_input.setAttribute('data-key', device + '.packet_count');
+                packetCountColumn_input.setAttribute('data-precision', '0');
+                packetCountColumn_input.setAttribute('readonly', 'true');
+                packetCountColumn_input.setAttribute('autocomplete', 'off');
+                packetCountColumn_input.className = 'text-right';
+                packetCountColumn_input.size = 11;
+                packetCountColumn_input.value = 0; // TODO: MAKE DYNAMIC
+
+                packetCountColumn.appendChild(packetCountColumn_label);
+                packetCountColumn_label.appendChild(packetCountColumn_input);
+            }
+        });
     }
-    
+
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
         if (apiData.meta?.timestampS) {
