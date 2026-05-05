@@ -457,6 +457,7 @@ def main():
 
     # Prepare Log Header
     headers = [
+        "unix_time",
         "timestamp",
         "total_ram_percent",
         "our_ram_percent",
@@ -568,6 +569,7 @@ def main():
 
         # Gen dynamic rows for each service
         row = [
+            round(time.time(), 3),
             str(round(time.perf_counter() - float(startTime), 3)),
             round(totalRamUsePercent, 3),
             round(ourRamUsePercent, 7),
