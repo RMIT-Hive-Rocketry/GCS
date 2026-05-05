@@ -816,7 +816,31 @@ function processDataForDisplay(apiData, apiId) {
     if (processedData.meta == undefined) {
         processedData.meta = {};
     }
-
+    
+    if (apiId === 50) {
+        console.log("ON API_ID", apiId, "RECEIVED THE FOLLOWING DATA:", apiData);
+        
+        // Get the table
+        let packetsTable = document.getElementById("packets");
+        
+        /* Always ignore the <th> and double-AV rows at the start
+         * 1st row is the state indicator and name, 2nd is
+         * the packet losss, ping and packet count
+        */
+        
+        // Delete devices no longer found
+        for (let i = 4; i < packetsTable.rows.length - 1; i += 2) {
+            // Get the data-key attribute
+            const td = document.querySelector('tr td').dataset.key;
+            
+            // Delete the device (assuming it exists)
+            if ((!(td in apiData)) && (td != null)) {
+                packetsTable.deleteRow(i);
+                packetsTable.deleteRow(i + 1);
+            }
+        }
+    }
+    
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
         if (apiData.meta?.timestampS) {
