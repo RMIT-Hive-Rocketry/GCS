@@ -50,7 +50,7 @@ void SharedGcsState::set_websocket_received(std::vector<uint8_t> payload) {
   std::lock_guard<std::mutex> lock(mtx_);
   const std::vector<uint8_t> previous_payload = current_gse_payload_locked_();
   websocket_.payload = std::move(payload);
-  websocket_.proccess_data_();
+  websocket_.process_data_();
   notify_if_gse_payload_changed_locked_(previous_payload);
 }
 
@@ -110,7 +110,7 @@ void SharedGcsState::notify_if_gse_payload_changed_locked_(
 // Other pendant IPC comms have no header information.
 // The data from the websocket has some header information.
 // This method will strip it and process it accordingly
-void WebsocketData::proccess_data_() {
+void WebsocketData::process_data_() {
   // Get rid of this shit when you refactor all IPC comms
   // GRPC would be nicer than random bytes sent over IPC
   if (empty()) {
@@ -149,7 +149,7 @@ void server_listen_loop(zmq::context_t& all_context, const ParsedArgs args,
   // Only keep this many messages in buffer.
   constexpr int PULL_SOCKET_HWM = 1;
 
-  // PULL socket for fowarding commands to LoRa
+  // PULL socket for forwarding commands to LoRa
   zmq::socket_t pendant_pull_socket(all_context, ZMQ_PULL);
   pendant_pull_socket.set(zmq::sockopt::rcvhwm, PULL_SOCKET_HWM);
   pendant_pull_socket.set(zmq::sockopt::conflate, 1);

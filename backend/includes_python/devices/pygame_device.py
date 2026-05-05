@@ -138,7 +138,7 @@ class Pygame_Device(ControlDevice):
         if not self.is_connected:
             self._try_connect_device()
 
-        # check for disconection
+        # check for disconnection
         events: List[pygame.event.Event] = pygame.event.get()
         for event in events:
             if (
@@ -170,7 +170,7 @@ class Pygame_Device(ControlDevice):
             self.state_table = PendantState.get_fallback_table()
 
     def cleanup(self):
-        """Internal cleaup code"""
+        """Internal cleanup code"""
         slogger.info("Quitting pygame...")
         pygame.quit()
         slogger.info("Pygame killed. Done...")

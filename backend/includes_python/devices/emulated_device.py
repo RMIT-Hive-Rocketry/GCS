@@ -102,7 +102,7 @@ class Emulated_Device(Pygame_Device):
             self.state_table = PendantState.get_fallback_table()
 
     def cleanup(self):
-        """Internal cleaup code"""
+        """Internal cleanup code"""
         slogger.info("Quitting pygame...")
         pygame.quit()
         slogger.info("Pygame killed. Done...")

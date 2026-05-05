@@ -6,8 +6,8 @@ from backend.includes_python.timers import RepeatingTimer
 
 class ControlDevice(ABC):
     def __init__(self):
-        # DONT instanciate a ControlDevice manually
-        # Use the get_control_device() funciton
+        # DONT instantiate a ControlDevice manually
+        # Use the get_control_device() function
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
         self.state_table = PendantState.get_fallback_table()

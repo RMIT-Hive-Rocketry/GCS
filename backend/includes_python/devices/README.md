@@ -1,5 +1,5 @@
 # Devices readme
-This readme is a basic explanation of whats going on in this folder
+This readme is a basic explanation of what's going on in this folder
 
 This folder defines various classes which read inputs from control pendants, or act as control pendants.
 It also has special things such as `PendantState` and `ControlDeviceManager`.

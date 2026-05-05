@@ -6,14 +6,14 @@ import os
 # TODO
 # Add field validation to every single config option.
 # When get_config() loads it in, check that all fields are there and valid.
-# If the field is critical, throw a runtime error. If not, diplay a slogger warning
+# If the field is critical, throw a runtime error. If not, display a slogger warning
 # From fred, who is happy to chat with the next eager developer who finds this
 
 
 def get_default_config_path():
     """
     Get absolute path based on where you're running the script.
-    This is just stupid hard code because the hardware pendant is in a seperate environment/process.
+    This is just stupid hard code because the hardware pendant is in a separate environment/process.
     Can remove this crap when you don't need pendant emulator anymore.
     """
     CONFIG_LOCATOR_FILE = os.path.join(

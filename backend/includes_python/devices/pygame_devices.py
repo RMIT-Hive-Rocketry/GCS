@@ -33,7 +33,7 @@ class ThrustmasterAirbusFlightStick(Pygame_Device):
 
 
 # this ones for Freddy
-# sorry it doesnt have all the cool toggle logic :/
+# sorry it doesn't have all the cool toggle logic :/
 # I tried to match the buttons best I could
 class LogitechGamepadF710(Pygame_Device):
     BUTTON_NAME_ID_MAP = {
@@ -50,7 +50,7 @@ class LogitechGamepadF710(Pygame_Device):
     CONTROLLER_NAME = "Logitech Gamepad F710"
 
 
-# controler map for F710 if needed later
+# controller map for F710 if needed later
 # CONTROLLER_MAP = {
 #     "BTN_A": 0,
 #     "BTN_B": 1,
