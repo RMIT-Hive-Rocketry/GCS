@@ -10,8 +10,8 @@
     /* Create a gap every 2nd row (1st row is device
      * name and status, 2nd row are the value attributes)
     */
-    tr:nth-child(2n) td {
-        border-bottom: 5px solid transparent;
+    tr:nth-child(2n+1) td {
+        border-bottom: 30px solid transparent;
     }
 </style>
 
@@ -25,7 +25,7 @@
 
     <!-- Existing AV device (same attributes as the top)-->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 AV
                 <div
@@ -76,7 +76,7 @@
 
     <!-- TP-Link Router -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 TP-Link Router
                 <div
@@ -127,7 +127,7 @@
 
     <!-- GC-1 -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 GC-1
                 <div
@@ -178,7 +178,7 @@
 
     <!-- GC-2 -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 GC-2
                 <div
@@ -229,7 +229,7 @@
 
     <!-- Launchpad Camera -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 Launchpad Camera
                 <div
@@ -280,7 +280,7 @@
 
     <!-- LabJack -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 LabJack
                 <div
@@ -331,7 +331,7 @@
 
     <!-- QuantumX DAQ -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 QuantumX DAQ
                 <div
@@ -382,7 +382,7 @@
 
     <!-- DAQ 4 Channel -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 DAQ 4 Channel
                 <div
@@ -433,7 +433,7 @@
 
     <!-- Vulcan ESP32 -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 Vulcan ESP32
                 <div
@@ -484,7 +484,7 @@
     
     <!-- WiFiBridge @ Vulcan -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 WiFiBridge @ Vulcan
                 <div
@@ -535,7 +535,7 @@
 
     <!-- WiFiBridge @ GCS -->
     <tr>
-        <td
+        <td class="w-full flex gap-4 justify-start items-center">
             <p class="font-bold text-hive">
                 WiFiBridge @ GCS
                 <div
