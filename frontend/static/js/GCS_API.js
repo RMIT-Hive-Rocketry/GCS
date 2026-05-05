@@ -805,6 +805,7 @@ function checkErrorConditions(apiData) {
     });
 }
 
+const networkPackets = [];
 function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData }; // Shallow copy
@@ -818,8 +819,6 @@ function processDataForDisplay(apiData, apiId) {
     }
     
     if (apiId === 50) {
-        console.log("ON API_ID", apiId, "RECEIVED THE FOLLOWING DATA:", apiData);
-        
         // Get the table
         let packetsTable = document.getElementById("packets");
         
@@ -837,6 +836,11 @@ function processDataForDisplay(apiData, apiId) {
             if ((!(td in apiData)) && (td != null)) {
                 packetsTable.deleteRow(i);
                 packetsTable.deleteRow(i + 1);
+
+                const index = networkPackets.findIndex(device => device.name === td);
+                if (index > 0) {
+                    networkPackets.splice(index, 1);
+                }
             }
         }
 
@@ -878,14 +882,13 @@ function processDataForDisplay(apiData, apiId) {
 
                 let packetLossColumn_input = document.createElement("input");
                 packetLossColumn_input.setAttribute('data-key', device + '.packet_loss');
-                packetLossColumn_input.setAttribute('data-precision', '4');
+                packetLossColumn_input.setAttribute('data-precision', '3');
                 packetLossColumn_input.setAttribute('readonly', 'true');
                 packetLossColumn_input.setAttribute('autocomplete', 'off');
                 packetLossColumn_input.className = 'text-right';
                 packetLossColumn_input.size = 4;
-                if (typeof device.packet_loss !== 'undefined') {
-                    packetLossColumn_input.setAttribute('value', device.packet_loss);
-                }
+                packetLossColumn_input.setAttribute('value', device.packet_loss != null
+                                                    ? device.packet_loss : 0);
                 
                 packetLossColumn.appendChild(packetLossColumn_label);
                 packetLossColumn_label.appendChild(packetLossColumn_input);
@@ -900,9 +903,8 @@ function processDataForDisplay(apiData, apiId) {
                 pingColumn_input.setAttribute('readonly', 'true');
                 pingColumn_input.setAttribute('autocomplete', 'off');
                 pingColumn_input.size = 4;
-                if (typeof device.ping !== 'undefined') {
-                    pingColumn_input.setAttribute('value', device.ping);
-                }
+                pingColumn_input.setAttribute('value', device.ping != null
+                                                    ? device.ping : 0);
 
                 pingColumn.appendChild(pingColumn_label);
                 pingColumn_label.appendChild(pingColumn_input);
@@ -918,10 +920,38 @@ function processDataForDisplay(apiData, apiId) {
                 packetCountColumn_input.setAttribute('autocomplete', 'off');
                 packetCountColumn_input.className = 'text-right';
                 packetCountColumn_input.size = 11;
-                packetCountColumn_input.value = 0; // TODO: MAKE DYNAMIC
+                packetCountColumn_input.value = 0; // Update value later on
 
                 packetCountColumn.appendChild(packetCountColumn_label);
                 packetCountColumn_label.appendChild(packetCountColumn_input);
+            }
+
+            // Regardless, track packet count
+            let index = networkPackets.findIndex(item => item.name === device);
+            if (index >= 0) {
+                // If the device in question exists, update count and offset
+                networkPackets[index].count++;
+
+                // Keep offset if no value was passed in (such as at the start)
+                if (typeof device.packet_loss !== 'undefined') {
+                    networkPackets[index].offset = packet_loss;
+                }
+            }
+            else {
+                // Create a new record and update index
+                networkPackets.push({name: device, count: 1, offset: 0});
+                
+                // index was -1, now need the last element
+                index += networkPackets.length;
+            }
+
+            // Calculate packet count as the total number of packets minus the % loss
+            const actualPacketCount = Math.floor(networkPackets[index].count * ((100 - networkPackets[index].offset) / 100));
+            let inputValue = packetsTable.querySelector(`input[data-key='${device}.packet_count']`);
+            
+            // Make sure the element exists
+            if (inputValue != null) {
+                inputValue.value = actualPacketCount;
             }
         });
     }
