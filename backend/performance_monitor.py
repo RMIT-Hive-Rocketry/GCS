@@ -12,7 +12,7 @@ import backend.includes_python.service_helper as service_helper
 
 startTime = None  # init in start
 
-# Windows Intergration
+# Windows Integration
 if platform.system() == "Windows":
     import ctypes
     from ctypes import wintypes
@@ -111,7 +111,7 @@ class GlobalSystemInfo:
     usedTimeDelta: float
     cpuUsagePercent: float
 
-    vmRss: int  # total system ram useage
+    vmRss: int  # total system ram usage
     totalMem: int  # total system ram cap
 
 
@@ -120,7 +120,7 @@ class ProcessSystemData:
     pid: int
     name: str
 
-    vmRss: int  # Ram Useage For The Process (kB)
+    vmRss: int  # Ram Usage For The Process (kB)
     cpuUtilPercent: float
     memUtilPercent: float
 
@@ -201,7 +201,7 @@ def get_global_status_linux():
                 if line.startswith("MemAvailable"):
                     sysInfo.vmRss = sysInfo.totalMem - int(
                         line.split()[1]
-                    )  # Used Memory equals the total memory - avaliable to get most acurate
+                    )  # Used Memory equals the total memory - available to get most accurate
 
     except FileNotFoundError:
         slogger.error("Process Not Found")
@@ -224,7 +224,7 @@ def get_process_status_windows(pid):
     PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
     # PROCESS_VM_READ = 0x0010 Might Need In future
 
-    # Get process of kernel info with perms and for a specfic PID
+    # Get process of kernel info with perms and for a specific PID
     handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
 
     if not handle:
@@ -358,7 +358,7 @@ def get_global_status_mac():
     lines = memoryData.split("\n")
     vm = {}
 
-    # if line doesnt contain a ":" then it doesnt contain data
+    # if line doesn't contain a ":" then it doesn't contain data
     for line in lines:
         if ":" not in line:
             continue
@@ -523,7 +523,7 @@ def main():
                 processesDataList.pop(idx)
                 continue
 
-            # Countinus Addition of ram useage percent across system
+            # Countinus Addition of ram usage percent across system
             ourRamUse += +ps.vmRss
 
             ps.memUtilPercent = ps.vmRss / systemData.totalMem
@@ -541,7 +541,7 @@ def main():
             # Total Current CpuUse cycles added across all monitored processes
             ourCpuUse += ps.deltaCpuUsageTime
 
-            # map indiviudal utilsation to each processes
+            # map indiviudal utilisation to each processes
             if totalTimeDelta != 0:
                 ps.cpuUtilPercent = (
                     ps.deltaCpuUsageTime / totalTimeDelta
