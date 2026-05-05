@@ -40,7 +40,7 @@ class WebsocketData {
  public:
   std::vector<uint8_t> payload;
   bool empty() { return payload.empty(); };
-  void proccess_data_();  // should be private but cbf rn
+  void process_data_();  // should be private but cbf rn
   enum LastCommand {
     CAMERA_POWER_ON,
     CAMERA_POWER_OFF,

@@ -19,7 +19,7 @@
                 // 3 args please
                 "TEST",
                 "/dev/ttys011", // socat device. Either is fine
-                // Note that using /var/run requires elevated privleges
+                // Note that using /var/run requires elevated privileges
                 "gcs_rocket.sock",
             ],
             "preLaunchTask": "middleware build-dev + generate proto",

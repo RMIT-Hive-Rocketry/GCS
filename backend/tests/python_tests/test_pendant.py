@@ -17,7 +17,7 @@ class ExampleControlDevice(ControlDevice):
 def test_control_device():
     device = ExampleControlDevice()
 
-    # if _update_state_table retuns nothing then we should get get_fallback_table
+    # if _update_state_table returns nothing then we should get get_fallback_table
     assert device.get_state_table() == StateTable.get_fallback_table()
 
     def raise_exception(self):
