@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 from typing import Tuple
 import os
 
@@ -24,7 +24,10 @@ def successful_event_viewer_start_callback(line: str, stream_name: str):
 
 
 def start_event_viewer(
-    logger: logging.Logger,performance_logging:process.RunningProcess, SOCKET_PATH: str, file_logging_enabled: bool
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    SOCKET_PATH: str,
+    file_logging_enabled: bool,
 ):
     SERVICE_NAME = "event viewer"
     try:

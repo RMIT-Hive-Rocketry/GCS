@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import os
 import enum
 import config.config as config
@@ -177,7 +177,11 @@ def build_middleware_argv(
     return argv
 
 
-def start_middleware(logger: logging.Logger, performance_logging:process.RunningProcess, config: MiddlewareConfig) -> None:
+def start_middleware(
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    config: MiddlewareConfig,
+) -> None:
 
     SERVICE_NAME = "server"  # Formally the middleware_server
     if config.web_control_socket_path is None:
@@ -209,12 +213,12 @@ def start_middleware(logger: logging.Logger, performance_logging:process.Running
         middleware_process.register_callback(middleware_started_callback)
         middleware_process.start()
         performance_logging.AddNewProcess(middleware_process)
-        
+
         finished = False
         while not finished:
             finished = middleware_process.get_parsed_data()
 
     except Exception as e:
         logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
-        # This is important, propogate this one
+        # This is important, propagate this one
         raise

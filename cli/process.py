@@ -11,43 +11,45 @@ logger = logging.getLogger("rocket")
 
 
 class ProcessData:
-    def __init__(self, PID:int, Name:str):
-        self.PID:int = PID
-        self.Name:str = Name
+    def __init__(self, PID: int, Name: str):
+        self.PID: int = PID
+        self.Name: str = Name
 
     def GetPID(self):
         return self.PID
-    
+
     def GetName(self):
         return self.Name
-    
+
     def GetCombined(self):
         return (self.PID, self.Name)
 
+
 class RunningProcess:
     def __init__(self):
-        self.runningProcesses:ProcessData = []
+        self.runningProcesses: ProcessData = []
 
     def GetProcessInfo(self, id):
         for process in self.runningProcesses:
-            if(process.GetPID() == id):
+            if process.GetPID() == id:
                 return process
-        slogger.error("Couldnt find PID for Proccess")
+        slogger.error("Couldn't find PID for Process")
         return
-    
+
     def GetAllProcessInfo(self):
         return self.runningProcesses
-    
 
     def AddNewProcessManual(self, PID, Name):
         self.runningProcesses.append(ProcessData(PID, Name))
 
     def AddNewProcess(self, loggedSubProcess):
-        self.runningProcesses.append(ProcessData(loggedSubProcess._process.pid, loggedSubProcess._name))
+        self.runningProcesses.append(
+            ProcessData(loggedSubProcess._process.pid, loggedSubProcess._name)
+        )
 
 
 class LoggedSubProcess:
-    """Object to manage subproccess called by this CLI with centralised logging"""
+    """Object to manage subprocess called by this CLI with centralised logging"""
 
     # All instances of this class.
     _instances = []
@@ -197,7 +199,7 @@ class LoggedSubProcess:
         """When given a line and it's origin stream, log it with the appropriate level
 
         Args:
-            stripped_line (str): A line of charcater output with no trailing whitespace
+            stripped_line (str): A line of character output with no trailing whitespace
             stream_name (str): The stream name: STDERR or STDOUT for example
             level (str): The log level to use
         """

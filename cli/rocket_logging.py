@@ -121,9 +121,8 @@ class Logs_Loopback(logging.Handler):
             os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
         )
 
-        self.frontend_push_socket = context.socket(zmq.PUSH)
-        self.frontend_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
-        self.frontend_push_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
+        self.frontend_push_socket = context.socket(zmq.PUB)
+        self.frontend_push_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         # Regex pattern to match ANSI escape sequences
         self.ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
@@ -150,7 +149,7 @@ class Logs_Loopback(logging.Handler):
 
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough: {ex}")
-            # catch errors within the packet gen in case of malformed data and drop the packet quitely to avoid issues with cascade
+            # catch errors within the packet gen in case of malformed data and drop the packet quietly to avoid issues with cascade
             pass
 
         try:
@@ -197,14 +196,14 @@ def initialise(startTime):
     """One time logging setup run as soon as the program starts"""
 
     global APP_START_TIME, DETAILED_LOGGING_PREFIX
-    #APP_START_TIME = time.perf_counter()
+    # APP_START_TIME = time.perf_counter()
     APP_START_TIME = startTime
 
     logger = logging.getLogger("rocket")
     if logger.hasHandlers():
         # Clear existing handlers to avoid duplicates
         logger.warning(
-            "Logger has been initialised before. Stop intialising it again please"
+            "Logger has been initialised before. Stop initialising it again please"
         )
         logger.handlers.clear()
 
@@ -284,7 +283,7 @@ def set_console_log_level(level_name: str):
         ):
             handler.setLevel(level)
             logger.debug(
-                f"Console log level set to {level_name} post intialisation"
+                f"Console log level set to {level_name} post initialisation"
             )
             return
 

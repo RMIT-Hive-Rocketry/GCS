@@ -3,14 +3,14 @@ from backend.includes_python.devices.pygame_device import Pygame_Device
 
 class HybridPygamePendant(Pygame_Device):
     BUTTON_NAME_ID_MAP = {
-        "SYS_ON": 0,
+        "SYS_ON": 2,
         "ESTOP": 5,
         "FILL_SELECTED": 6,
         "IGNITION_SELECTED": 4,
         "N2O_ACTIVE": 8,
         "PURGE_ACTIVE": 3,
         "O2_MOMENT_ACTIVE": 1,
-        "IGNITION_MOMENT_ACTIVE": 2,
+        "IGNITION_MOMENT_ACTIVE": 0,
     }
 
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
@@ -32,7 +32,7 @@ class ThrustmasterAirbusFlightStick(Pygame_Device):
 
 
 # this ones for Freddy
-# sorry it doesnt have all the cool toggle logic :/
+# sorry it doesn't have all the cool toggle logic :/
 # I tried to match the buttons best I could
 class LogitechGamepadF710(Pygame_Device):
     BUTTON_NAME_ID_MAP = {
@@ -49,7 +49,7 @@ class LogitechGamepadF710(Pygame_Device):
     CONTROLLER_NAME = "Logitech Gamepad F710"
 
 
-# controler map for F710 if needed later
+# controller map for F710 if needed later
 # CONTROLLER_MAP = {
 #     "BTN_A": 0,
 #     "BTN_B": 1,

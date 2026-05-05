@@ -1,11 +1,11 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import cli.start_middleware as start_middleware
 
 
 def start_fake_serial_device_emulator(
     logger: logging.Logger,
-    performance_logging:process.RunningProcess,
+    performance_logging: process.RunningProcess,
     DEVICE: str,
     INTERFACE_TYPE: start_middleware.InterfaceType,
     experimental: bool,

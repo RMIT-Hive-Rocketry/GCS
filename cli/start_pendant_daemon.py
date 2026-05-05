@@ -1,9 +1,11 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import os
 
 
-def start_pendant_daemon(logger: logging.Logger, performance_logging:process.RunningProcess):
+def start_pendant_daemon(
+    logger: logging.Logger, performance_logging: process.RunningProcess
+):
     SERVICE_NAME = "pendant_daemon"
     try:
 
@@ -27,7 +29,6 @@ def start_pendant_daemon(logger: logging.Logger, performance_logging:process.Run
         )
         api_process.start()
         performance_logging.AddNewProcess(api_process)
-        
 
     except Exception as e:
         logger.error(

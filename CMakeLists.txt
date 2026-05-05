@@ -17,7 +17,7 @@ set(BUILD_TESTING OFF CACHE BOOL "Disable dependency tests" FORCE)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "18.0.0")
         message(STATUS "Using Clang compiler (${CMAKE_CXX_COMPILER_VERSION}) - enforcing ABI compatibility with version 17")
-        message(STATUS "Clang compiler forcing version 17 compatability")
+        message(STATUS "Clang compiler forcing version 17 compatibility")
         add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fclang-abi-compat=17>)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fclang-abi-compat=17")
     endif()
@@ -60,7 +60,7 @@ set(ABSL_RUN_TESTS OFF CACHE BOOL "Disable Abseil tests" FORCE)
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
 
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable Protobuf tests" FORCE)
-set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "Disable Protobuf Exmaples" FORCE)
+set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "Disable Protobuf Examples" FORCE)
 
 # Prevent Protobuf from exporting abseil-linked targets
 set(protobuf_BUILD_EXPORT OFF CACHE BOOL "Disable protobuf target exports" FORCE)
@@ -243,7 +243,7 @@ target_include_directories(middleware_lib PUBLIC
 )
 
 # Link libraries
-# Absl libaries do not link themselves. Fuck you absl
+# Absl libraries do not link themselves. Fuck you absl
 target_link_libraries(middleware_lib PUBLIC
     protobuf::libprotobuf
     $<TARGET_OBJECTS:proto-objects>

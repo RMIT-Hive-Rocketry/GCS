@@ -69,9 +69,9 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         pendant_sub_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH}")
         pendant_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
-        logging_sub_socket = context.socket(zmq.PULL)
-
-        logging_sub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH_LOGGING}")
+        logging_sub_socket = context.socket(zmq.SUB)
+        logging_sub_socket.connect(f"ipc://{FRONTEND_SOCKET_PATH_LOGGING}")
+        logging_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
         # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
         # ^ more about Poller
@@ -187,6 +187,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                 slogger.error(f"Error forwarding data to websocket: {e}")
                 if shutdown_event.is_set():
                     break
+    except Exception as e:
+        slogger.critical(f"error with frontend api: {e}")
     finally:
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300

@@ -1,9 +1,11 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import os
 
 
-def start_pendant_emulator(logger: logging.Logger, performance_logging:process.RunningProcess):
+def start_pendant_emulator(
+    logger: logging.Logger, performance_logging: process.RunningProcess
+):
     SERVICE_NAME = "pendant_emulator"
     try:
 

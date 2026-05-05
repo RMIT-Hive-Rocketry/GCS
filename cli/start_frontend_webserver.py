@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 from config.config import get_config
 
 # TODO: Implement logging
@@ -12,7 +12,9 @@ class IgnoreWebMessagesFilter(logging.Filter):
         return "GET" not in record.getMessage()
 
 
-def start_frontend_webserver(logger: logging.Logger, performance_logging:process.RunningProcess):
+def start_frontend_webserver(
+    logger: logging.Logger, performance_logging: process.RunningProcess
+):
     SERVICE_NAME = "frontend_webserver"
     try:
         FRONTEND_COMMAND = [

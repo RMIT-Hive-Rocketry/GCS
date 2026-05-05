@@ -47,7 +47,7 @@ Usage: rocket dev [OPTIONS]
 
 Options:
   -l, --log-level [DEBUG|INFO|SUCCESS|WARNING|ERROR|CRITICAL]
-                                  Overide the config log level
+                                  Override the config log level
   --docker                        Run in Docker
   --nobuild                       Do not build binaries. Search for pre-built
                                   binaries
@@ -96,7 +96,7 @@ By default for `simulation` mode:
 > [!WARNING]
 > Currently, this mode only **simulates** AVtoGCSData1 packets from ignition to landing.
 >
-> Options are being developed to replay preivous flights. We still need to fly at least once for this
+> Options are being developed to replay previous flights. We still need to fly at least once for this
 
 ## Usage for operators
 

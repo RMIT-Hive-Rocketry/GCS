@@ -1,9 +1,13 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import os
 
 
-def start_performance_monitor(logger: logging.Logger, performance_logging: process.RunningProcess, startTime):
+def start_performance_monitor(
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    startTime,
+):
     SERVICE_NAME = "performance_monitor"
     try:
         assembledProcessList = []
@@ -19,12 +23,9 @@ def start_performance_monitor(logger: logging.Logger, performance_logging: proce
             str(startTime),
             "--running_services",
             str(assembledProcessList),
-
         ]
 
-        logger.debug(
-            f"Starting {SERVICE_NAME} module with: {START_COMMAND}"
-        )
+        logger.debug(f"Starting {SERVICE_NAME} module with: {START_COMMAND}")
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
         env = os.environ.copy()
