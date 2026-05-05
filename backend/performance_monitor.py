@@ -1,6 +1,5 @@
 import os
 import backend.includes_python.process_logging as slogger
-import cli.proccess as process
 import time
 import sys
 import platform
@@ -11,11 +10,10 @@ import csv
 import backend.includes_python.service_helper as service_helper
 
 
-
-startTime = None # init in start
+startTime = None  # init in start
 
 # Windows Intergration
-if(platform.system() == "Windows"):
+if platform.system() == "Windows":
     import ctypes
     from ctypes import wintypes
 
@@ -52,13 +50,12 @@ if(platform.system() == "Windows"):
             ("PeakPagefileUsage", ctypes.c_size_t),
         ]
 
-elif (platform.system() == "Darwin"):
+elif platform.system() == "Darwin":
     import subprocess
-    import re
-    
-    import ctypes 
-    from ctypes import c_int, c_uint, c_longlong, Structure, byref
-    
+
+    import ctypes
+    from ctypes import c_uint
+
     libc = ctypes.CDLL("libc.dylib")
 
     HOST_CPU_LOAD_INFO = 3
@@ -88,31 +85,34 @@ elif (platform.system() == "Darwin"):
             ("pti_numrunning", ctypes.c_int),
             ("pti_priority", ctypes.c_int),
         ]
+
     class host_cpu_load_info_data_t(ctypes.Structure):
-        _fields_ = [
-        ("cpu_ticks", c_uint * CPU_STATE_MAX)
-    ]
-elif (platform.system() == "Linux"):
+        _fields_ = [("cpu_ticks", c_uint * CPU_STATE_MAX)]
+
+elif platform.system() == "Linux":
     pass
 else:
-    slogger.error("Performance Monitor Is not Supported On this OS please use Linux Or Windows !")
+    slogger.error(
+        "Performance Monitor Is not Supported On this OS please use Linux Or Windows !"
+    )
     sys.exit("Invalid OS")
 
 # Got most of declarations from https://docs.kernel.org/filesystems/proc.html
+
 
 @dataclass
 class GlobalSystemInfo:
     userTime: float
     kernelTime: float
     idleTime: float
-    otherTime: float # Includes involuntary waits IRQ, etc
+    otherTime: float  # Includes involuntary waits IRQ, etc
 
     usedTime: float
     usedTimeDelta: float
     cpuUsagePercent: float
 
-    vmRss: int # total system ram useage
-    totalMem: int # total system ram cap
+    vmRss: int  # total system ram useage
+    totalMem: int  # total system ram cap
 
 
 @dataclass
@@ -120,26 +120,26 @@ class ProcessSystemData:
     pid: int
     name: str
 
-    vmRss: int # Ram Useage For The Process (kB)
+    vmRss: int  # Ram Useage For The Process (kB)
     cpuUtilPercent: float
     memUtilPercent: float
 
-
-    userTime: float # Time in Jiffies / ticks in user mode
-    kernelTime: float # Time in Jiffies / ticks in kernel mode
+    userTime: float  # Time in Jiffies / ticks in user mode
+    kernelTime: float  # Time in Jiffies / ticks in kernel mode
     cpuUsageTime: float
 
-    deltaUserTime: float # Time in Jiffies / ticks in user mode
-    deltaKernelTime: float # Time in Jiffies / ticks in kernel mode
+    deltaUserTime: float  # Time in Jiffies / ticks in user mode
+    deltaKernelTime: float  # Time in Jiffies / ticks in kernel mode
     deltaCpuUsageTime: float
 
 
 def filetime_to_int(ft):
     return (ft.dwHighDateTime << 32) + ft.dwLowDateTime
 
+
 # Extract from the proc Directory the details needed
 def get_process_status_linux(pid):
-    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0,0,0)
+    processData = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
     try:
         with open(f"/proc/{pid}/status") as f:
             for line in f:
@@ -149,9 +149,11 @@ def get_process_status_linux(pid):
         with open(f"/proc/{pid}/stat") as f:
             stat_cont = f.read().split()
 
-            processData.userTime = int(stat_cont[13]) # Index within the files
+            processData.userTime = int(stat_cont[13])  # Index within the files
             processData.kernelTime = int(stat_cont[14])
-            processData.cpuUsageTime = processData.userTime + processData.kernelTime
+            processData.cpuUsageTime = (
+                processData.userTime + processData.kernelTime
+            )
 
         return processData
 
@@ -161,31 +163,46 @@ def get_process_status_linux(pid):
     except Exception as e:
         slogger.error(f"Process Logging Failed to execute {e}")
         return None
-    
-# Extract from the proc Directory the details needed meminfo 
+
+
+# Extract from the proc Directory the details needed meminfo
 def get_global_status_linux():
-    sysInfo = GlobalSystemInfo(0,0,0,0,0,0,0,0,0)
+    sysInfo = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
     try:
-        with open(f"/proc/stat") as f:
+        with open("/proc/stat") as f:
             for line in f:
                 if line.startswith("cpu"):
                     systemList = line.split()
-                    sysInfo.userTime = int(systemList[1]) + int(systemList[2]) # User Global Time + User Nice Time
+                    sysInfo.userTime = int(systemList[1]) + int(
+                        systemList[2]
+                    )  # User Global Time + User Nice Time
                     sysInfo.kernelTime = int(systemList[3])
                     sysInfo.idleTime = int(systemList[4]) + int(systemList[5])
-                    sysInfo.otherTime = int(systemList[6]) + int(systemList[7]) + int(systemList[8]) + int(systemList[9]) + int(systemList[10]) # irq, softirq, steal, guest, guest_niced
+                    sysInfo.otherTime = (
+                        int(systemList[6])
+                        + int(systemList[7])
+                        + int(systemList[8])
+                        + int(systemList[9])
+                        + int(systemList[10])
+                    )  # irq, softirq, steal, guest, guest_niced
 
-                    sysInfo.usedTime = sysInfo.userTime + sysInfo.kernelTime + sysInfo.otherTime
+                    sysInfo.usedTime = (
+                        sysInfo.userTime
+                        + sysInfo.kernelTime
+                        + sysInfo.otherTime
+                    )
                     break
-        
-        with open(f"/proc/meminfo") as f:
+
+        with open("/proc/meminfo") as f:
             for line in f:
                 if line.startswith("MemTotal"):
                     sysInfo.totalMem = int(line.split()[1])
 
                 if line.startswith("MemAvailable"):
-                    sysInfo.vmRss = sysInfo.totalMem - int(line.split()[1]) # Used Memory equals the total memory - avaliable to get most acurate
-    
+                    sysInfo.vmRss = sysInfo.totalMem - int(
+                        line.split()[1]
+                    )  # Used Memory equals the total memory - avaliable to get most acurate
+
     except FileNotFoundError:
         slogger.error("Process Not Found")
         return sysInfo
@@ -202,7 +219,7 @@ def get_process_status_windows(pid):
     psapi = ctypes.WinDLL("psapi.dll")
     kernel32 = ctypes.WinDLL("kernel32.dll")
 
-    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0)
+    processData = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0)
 
     PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
     # PROCESS_VM_READ = 0x0010 Might Need In future
@@ -224,11 +241,11 @@ def get_process_status_windows(pid):
         ctypes.byref(creation),
         ctypes.byref(exit),
         ctypes.byref(kernel),
-        ctypes.byref(user)
+        ctypes.byref(user),
     )
 
-    processData.userTime =  filetime_to_int(user)
-    processData.kernelTime =  filetime_to_int(kernel)
+    processData.userTime = filetime_to_int(user)
+    processData.kernelTime = filetime_to_int(kernel)
     processData.cpuUsageTime = processData.userTime + processData.kernelTime
 
     # Memory Segment
@@ -240,30 +257,23 @@ def get_process_status_windows(pid):
     counters = PROCESS_MEMORY_COUNTERS()
     counters.cb = ctypes.sizeof(PROCESS_MEMORY_COUNTERS)
 
-    psapi.GetProcessMemoryInfo(
-        handle,
-        ctypes.byref(counters),
-        counters.cb
-    )
+    psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb)
 
     kernel32.CloseHandle(handle)
     processData.vmRss = counters.WorkingSetSize
 
     return processData
-   
 
 
 def get_global_status_windows():
-    sysInfo = GlobalSystemInfo(0,0,0,0,0,0)
+    sysInfo = GlobalSystemInfo(0, 0, 0, 0, 0, 0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FILETIME()
     kernel = FILETIME()
     user = FILETIME()
 
     kernel32.GetSystemTimes(
-        ctypes.byref(idle),
-        ctypes.byref(kernel),
-        ctypes.byref(user)
+        ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)
     )
 
     # Convert Propritary Windows file time to seconds
@@ -277,26 +287,20 @@ def get_global_status_windows():
 
     ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(x))
 
-
     sysInfo.totalMem = x.ullTotalPhys
     sysInfo.vmRss = x.ullTotalPhys - x.ullAvailPhys
-
 
     return sysInfo
 
 
 # Extract from the proc Directory the details needed
 def get_process_status_mac(pid):
-    processData = ProcessSystemData(pid, "", 0,0,0,0,0,0,0,0,0)
+    processData = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     info = proc_taskinfo()
-    
+
     size = libc.proc_pidinfo(
-        pid,
-        PROC_PIDTASKINFO,
-        0,
-        ctypes.byref(info),
-        ctypes.sizeof(info)
+        pid, PROC_PIDTASKINFO, 0, ctypes.byref(info), ctypes.sizeof(info)
     )
 
     if size <= 0:
@@ -304,34 +308,35 @@ def get_process_status_mac(pid):
         return None
 
     # CPU times are in nanoseconds
-    user_time = info.pti_total_user 
-    system_time = info.pti_total_system 
+    user_time = info.pti_total_user
+    system_time = info.pti_total_system
 
     rss = info.pti_resident_size  # bytes
 
-
     processData.userTime = int(user_time)
     processData.kernelTime = int(system_time)
-    processData.vmRss = int(rss) / 1000 # Bytes to KB
-    processData.cpuUsageTime = int(processData.userTime) + int(processData.kernelTime)
+    processData.vmRss = int(rss) / 1000  # Bytes to KB
+    processData.cpuUsageTime = int(processData.userTime) + int(
+        processData.kernelTime
+    )
     return processData
 
 
 def get_global_status_mac():
-    sysInfo = GlobalSystemInfo(0,0,0,0,0,0,0,0,0)
+    sysInfo = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     cpu_info = host_cpu_load_info_data_t()
 
     # Calculates the expected size of the struct for the kernel to fill
     count = ctypes.c_uint(ctypes.sizeof(cpu_info) // ctypes.sizeof(c_uint))
 
-    CLK_TCK = os.sysconf("SC_CLK_TCK") # Get Current Tick rate to convert to ns
+    CLK_TCK = os.sysconf("SC_CLK_TCK")  # Get Current Tick rate to convert to ns
 
     ret = libc.host_statistics64(
         libc.mach_host_self(),
         HOST_CPU_LOAD_INFO,
         ctypes.byref(cpu_info),
-        ctypes.byref(count)
+        ctypes.byref(count),
     )
 
     user = cpu_info.cpu_ticks[0]
@@ -344,8 +349,6 @@ def get_global_status_mac():
     sysInfo.userTime = user * (1e9 / CLK_TCK)
     sysInfo.usedTime = sysInfo.userTime + sysInfo.kernelTime
 
-
-
     ### Memory
 
     # this script creates a subprocess with the command vm_stat and parses the data to get what is needed
@@ -357,23 +360,23 @@ def get_global_status_mac():
 
     # if line doesnt contain a ":" then it doesnt contain data
     for line in lines:
-       if ":" not in line:
-           continue
+        if ":" not in line:
+            continue
 
-       key, value = line.split(":", 1)
-       key = key.strip()
-       value = value.strip()
+        key, value = line.split(":", 1)
+        key = key.strip()
+        value = value.strip()
 
-       # extract leading number only letters from the numbers
-       num = ""
-       for c in value:
-           if c.isdigit():
-               num += c
-           else:
-               break
+        # extract leading number only letters from the numbers
+        num = ""
+        for c in value:
+            if c.isdigit():
+                num += c
+            else:
+                break
 
-       if num:
-           vm[key] = int(num)
+        if num:
+            vm[key] = int(num)
 
     page_size = 4096  # bytes (default on macOS)
 
@@ -388,187 +391,205 @@ def get_global_status_mac():
     return sysInfo
 
 
-
-
 def get_process_status(pid):
-    
-    if(platform.system() == "Windows"):
+
+    if platform.system() == "Windows":
         return get_process_status_windows(pid)
-    elif (platform.system() == "Linux"):
+    elif platform.system() == "Linux":
         return get_process_status_linux(pid)
-    elif (platform.system() == "Darwin"):
+    elif platform.system() == "Darwin":
         return get_process_status_mac(pid)
 
+
 def get_global_status():
-    if(platform.system() == "Windows"):
+    if platform.system() == "Windows":
         return get_global_status_windows()
-    elif (platform.system() == "Linux"):
+    elif platform.system() == "Linux":
         return get_global_status_linux()
-    elif (platform.system() == "Darwin"):
+    elif platform.system() == "Darwin":
         return get_global_status_mac()
-    
+
 
 def main():
-    
+
     # Get Arguments and Parse
     SERVICE_LIST = sys.argv[sys.argv.index("--running_services") + 1]
 
     global startTime
     startTime = sys.argv[sys.argv.index("--startTime") + 1]
 
-    if SERVICE_LIST == None:
-        slogger.error("Please Enter a valid argument e.g. --running_services [(pid1,name1), (pid2,name2)]")
+    if SERVICE_LIST is None:
+        slogger.error(
+            "Please Enter a valid argument e.g. --running_services [(pid1,name1), (pid2,name2)]"
+        )
         return
 
-    if startTime == None:
-        slogger.error("Please Enter a valid argument e.g. --startTime from time.perf_counter()")
+    if startTime is None:
+        slogger.error(
+            "Please Enter a valid argument e.g. --startTime from time.perf_counter()"
+        )
         return
 
     try:
         processesDataList = ast.literal_eval(SERVICE_LIST)
-    except Exception as e:
-        slogger.error(f"running_services argument invalid e.g. --running_services [(pid1,name1), (pid2,name2)]")
+    except Exception:
+        slogger.error(
+            "running_services argument invalid e.g. --running_services [(pid1,name1), (pid2,name2)]"
+        )
         return
-
 
     previousSysData = get_global_status()
     ourPreviousSysData = []
     for ActiveProcess in processesDataList:
         ourPreviousSysData.append(get_process_status(ActiveProcess[0]))
-    
 
     # Get Config File and genurate location for the new performance logging log files
     config = get_config()
     LOG_DIR_PATH = config["performance_monitor"]["performance_log_dir"].strip()
-    samplingInterval = float(config["performance_monitor"]["performance_sampling_interval"].strip())
+    samplingInterval = float(
+        config["performance_monitor"]["performance_sampling_interval"].strip()
+    )
 
     log_filename = f"performance_{time.strftime('%Y%m%d_%H%M%S')}.csv"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-
-
-    # Prepare Log Header 
+    # Prepare Log Header
     headers = [
         "timestamp",
         "total_ram_percent",
         "our_ram_percent",
         "total_cpu_percent",
-        "our_cpu_percent"
+        "our_cpu_percent",
     ]
 
     for i in range(len(processesDataList)):
-        headers += [
-            f"pid_{i}",
-            f"name_{i}",
-            f"cpu_{i}",
-            f"mem_{i}",
-            f"rss_{i}"
-        ]
+        headers += [f"pid_{i}", f"name_{i}", f"cpu_{i}", f"mem_{i}", f"rss_{i}"]
 
     with open(log_file_path, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(headers)
 
-    slogger.critical(processesDataList) # TODO MAKE SURE TO DELETE
-
+    slogger.critical(processesDataList)  # TODO MAKE SURE TO DELETE
 
     # Sleep To Give Initial Data time to change
-    time.sleep(samplingInterval)    
+    time.sleep(samplingInterval)
 
-    while (service_helper.time_to_stop() != True):
-
+    while not service_helper.time_to_stop():
 
         # Call function to get global system data
         systemData = get_global_status()
 
         # Calculate Values from the global data
-        totalTime = systemData.userTime + systemData.idleTime + systemData.kernelTime + systemData.otherTime
-        totalTimeDelta = totalTime - (previousSysData.userTime + previousSysData.idleTime + previousSysData.kernelTime + previousSysData.otherTime)
+        totalTime = (
+            systemData.userTime
+            + systemData.idleTime
+            + systemData.kernelTime
+            + systemData.otherTime
+        )
+        totalTimeDelta = totalTime - (
+            previousSysData.userTime
+            + previousSysData.idleTime
+            + previousSysData.kernelTime
+            + previousSysData.otherTime
+        )
         # idleTimeDelta = systemData.idleTime - (previousSysData.idleTime) Maybe useful
 
-        systemData.usedTimeDelta = systemData.usedTime - previousSysData.usedTime
-
+        systemData.usedTimeDelta = (
+            systemData.usedTime - previousSysData.usedTime
+        )
 
         # Global Values our services resource use
         ourRamUse = 0
         ourCpuUse = 0
-        ourSysData:ProcessSystemData = []
+        ourSysData: ProcessSystemData = []
 
         for idx, ActiveProcess in enumerate(processesDataList):
             # Get Memory Data For Process
             ps = get_process_status(ActiveProcess[0])
 
-            if(ActiveProcess[1] == "frontend_webserver"):
+            if ActiveProcess[1] == "frontend_webserver":
                 slogger.info(ps)
 
-            if ps == None or (ps.vmRss == 0 and ps.cpuUsageTime == ourPreviousSysData[idx].cpuUsageTime):
-                slogger.warning(f"Service {ActiveProcess[1]} Cannot Be Accessed No Longer Logging")
+            if ps is None or (
+                ps.vmRss == 0
+                and ps.cpuUsageTime == ourPreviousSysData[idx].cpuUsageTime
+            ):
+                slogger.warning(
+                    f"Service {ActiveProcess[1]} Cannot Be Accessed No Longer Logging"
+                )
                 processesDataList.pop(idx)
                 continue
 
             # Countinus Addition of ram useage percent across system
-            ourRamUse += + ps.vmRss
+            ourRamUse += +ps.vmRss
 
             ps.memUtilPercent = ps.vmRss / systemData.totalMem
 
             # Assign Individual deltas to the processes
-            ps.deltaKernelTime = ps.kernelTime - ourPreviousSysData[idx].kernelTime
+            ps.deltaKernelTime = (
+                ps.kernelTime - ourPreviousSysData[idx].kernelTime
+            )
             ps.deltaUserTime = ps.userTime - ourPreviousSysData[idx].userTime
 
-            ps.deltaCpuUsageTime = ps.cpuUsageTime - ourPreviousSysData[idx].cpuUsageTime
+            ps.deltaCpuUsageTime = (
+                ps.cpuUsageTime - ourPreviousSysData[idx].cpuUsageTime
+            )
 
             # Total Current CpuUse cycles added across all monitored processes
             ourCpuUse += ps.deltaCpuUsageTime
 
             # map indiviudal utilsation to each processes
-            if(totalTimeDelta != 0):
-                ps.cpuUtilPercent = (ps.deltaCpuUsageTime / totalTimeDelta) * 100
+            if totalTimeDelta != 0:
+                ps.cpuUtilPercent = (
+                    ps.deltaCpuUsageTime / totalTimeDelta
+                ) * 100
             else:
-                ps.cpuUtilPercent = 0     
+                ps.cpuUtilPercent = 0
 
             # Add pid and name into the process info that was passed initially from args
-            ps.pid = ActiveProcess[0] 
+            ps.pid = ActiveProcess[0]
             ps.name = ActiveProcess[1]
- 
-            ourSysData.append(ps)
-        
 
-        if(totalTimeDelta != 0):
+            ourSysData.append(ps)
+
+        if totalTimeDelta != 0:
             ourCpuUsePercent = (ourCpuUse / totalTimeDelta) * 100
-            systemData.cpuUsagePercent = (systemData.usedTimeDelta / totalTimeDelta) * 100
+            systemData.cpuUsagePercent = (
+                systemData.usedTimeDelta / totalTimeDelta
+            ) * 100
         else:
             ourCpuUsePercent = 0
             systemData.cpuUsagePercent = 0
 
-
         ourRamUsePercent = (ourRamUse / systemData.totalMem) * 100
         totalRamUsePercent = (systemData.vmRss / systemData.totalMem) * 100
-        
+
         # Gen dynamic rows for each service
         row = [
             str(round(time.perf_counter() - float(startTime), 3)),
             round(totalRamUsePercent, 3),
             round(ourRamUsePercent, 7),
             round(systemData.cpuUsagePercent, 7),
-            round(ourCpuUsePercent, 7)
+            round(ourCpuUsePercent, 7),
         ]
 
         # Generate dynamic string of processes and details to append onto log
         for osd in ourSysData:
-            row.extend([
-                osd.pid,
-                osd.name,
-                round(osd.cpuUtilPercent, 7),
-                round(osd.memUtilPercent, 5),
-                round(osd.vmRss, 2)
-            ])
-        
+            row.extend(
+                [
+                    osd.pid,
+                    osd.name,
+                    round(osd.cpuUtilPercent, 7),
+                    round(osd.memUtilPercent, 5),
+                    round(osd.vmRss, 2),
+                ]
+            )
+
         with open(log_file_path, "a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(row)
-
 
         # Update Old Values with current ones
         previousSysData = systemData
@@ -576,7 +597,6 @@ def main():
         ourPreviousSysData.clear()
         for ActiveProcess in processesDataList:
             ourPreviousSysData.append(get_process_status(ActiveProcess[0]))
-
 
         # Wait For Next sampling Interval
         time.sleep(samplingInterval)
