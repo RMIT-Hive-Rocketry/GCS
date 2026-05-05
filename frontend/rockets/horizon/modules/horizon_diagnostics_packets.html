@@ -1,12 +1,18 @@
-<!-- Invisible table -->
 <style>
-  table.invisible-table, 
-  table.invisible-table th, 
-  table.invisible-table td {
-    border: none;
-    border-collapse: collapse;
-    line-height: 5em;
-  }
+    /* Invisible table */
+    table.invisible-table, 
+    table.invisible-table th, 
+    table.invisible-table td {
+        border: none;
+        border-collapse: collapse;
+    }
+
+    /* Create a gap every 2nd row (1st row is device
+     * name and status, 2nd row are the value attributes)
+    */
+    tr:nth-child(2n) td {
+        border-bottom: 5px solid transparent;
+    }
 </style>
 
 <table>
@@ -15,38 +21,38 @@
         <td></td>
         <td></td>
         <td></td>
-        <td></td>
-        <td></td>
     </th>
 
-    <!-- Existing AV device -->
+    <!-- Existing AV device (same attributes as the top)-->
+    <tr>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                AV
+                <div
+                   data-key="state.av.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
+        </td>
+    </tr>
     <tr>
         <td>
-            <p class="font-bold text-hive">&nbsp;AV</p>
-        </td>
-        <td>
-            <div
-                data-key="state.av.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
-        <td>
             <label>
-                Packet Loss:<input
-                    data-key="meta.av.packet-loss"
+                RSSI:<input
+                    data-key="meta.av.rssi"
                     data-precision="0"
                     readonly
                     autocomplete="off"
                     class="text-right"
                     size="4"
-                />
+                />dBm
             </label>
         </td>
         <td>
             <label>
-                Ping:<input
-                    data-key="meta.av.ping"
+                SNR:<input
+                    data-key="meta.av.snr"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -70,16 +76,18 @@
 
     <!-- TP-Link Router -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;TP-Link Router</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                TP-Link Router
+                <div
+                   data-key="state.av.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.av.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
@@ -119,20 +127,22 @@
 
     <!-- GC-1 -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;GC-1</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                GC-1
+                <div
+                   data-key="state.gse.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.gse.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
-                    data-key="meta.gse.packet-loss"
+                    data-key="meta.av.packet-loss"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -144,18 +154,18 @@
         <td>
             <label>
                 Ping:<input
-                    data-key="meta.gse.ping"
+                    data-key="meta.av.ping"
                     data-precision="0"
                     readonly
                     autocomplete="off"
-                    size="11"
+                    size="4"
                 />
             </label>
         </td>
         <td>
             <label>
                 Packets:<input
-                    data-key="meta.gse.packets"
+                    data-key="meta.av.packets"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -168,16 +178,18 @@
 
     <!-- GC-2 -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;GC-2</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                GC-2
+                <div
+                   data-key="state.av.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.av.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
@@ -218,19 +230,21 @@
     <!-- Launchpad Camera -->
     <tr>
         <td
-            <p class="font-bold text-hive">&nbsp;Launchpad Camera</p>
+            <p class="font-bold text-hive">&nbsp;
+                Launchpad Camera
+                <div
+                   data-key="state.gse.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.gse.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
-                    data-key="meta.gse.packet-loss"
+                    data-key="meta.av.packet-loss"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -242,18 +256,18 @@
         <td>
             <label>
                 Ping:<input
-                    data-key="meta.gse.ping"
+                    data-key="meta.av.ping"
                     data-precision="0"
                     readonly
                     autocomplete="off"
-                    size="11"
+                    size="4"
                 />
             </label>
         </td>
         <td>
             <label>
                 Packets:<input
-                    data-key="meta.gse.packets"
+                    data-key="meta.av.packets"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -266,16 +280,18 @@
 
     <!-- LabJack -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;LabJack</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                LabJack
+                <div
+                   data-key="state.av.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.av.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
@@ -316,19 +332,21 @@
     <!-- QuantumX DAQ -->
     <tr>
         <td
-            <p class="font-bold text-hive">&nbsp;QuantumX DAQ</p>
+            <p class="font-bold text-hive">&nbsp;
+                QuantumX DAQ
+                <div
+                   data-key="state.gse.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.gse.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
-                    data-key="meta.gse.packet-loss"
+                    data-key="meta.av.packet-loss"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -340,18 +358,18 @@
         <td>
             <label>
                 Ping:<input
-                    data-key="meta.gse.ping"
+                    data-key="meta.av.ping"
                     data-precision="0"
                     readonly
                     autocomplete="off"
-                    size="11"
+                    size="4"
                 />
             </label>
         </td>
         <td>
             <label>
                 Packets:<input
-                    data-key="meta.gse.packets"
+                    data-key="meta.av.packets"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -364,16 +382,18 @@
 
     <!-- DAQ 4 Channel -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;DAQ 4 Channel</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                DAQ 4 Channel
+                <div
+                   data-key="state.av.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.av.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
@@ -413,20 +433,22 @@
 
     <!-- Vulcan ESP32 -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;Vulcan ESP32</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                Vulcan ESP32
+                <div
+                   data-key="state.gse.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.gse.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
-                    data-key="meta.gse.packet-loss"
+                    data-key="meta.av.packet-loss"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -438,18 +460,18 @@
         <td>
             <label>
                 Ping:<input
-                    data-key="meta.gse.ping"
+                    data-key="meta.av.ping"
                     data-precision="0"
                     readonly
                     autocomplete="off"
-                    size="11"
+                    size="4"
                 />
             </label>
         </td>
         <td>
             <label>
                 Packets:<input
-                    data-key="meta.gse.packets"
+                    data-key="meta.av.packets"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -462,16 +484,18 @@
     
     <!-- WiFiBridge @ Vulcan -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;WiFiBridge @ Vulcan</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                WiFiBridge @ Vulcan
+                <div
+                   data-key="state.av.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.av.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
@@ -511,20 +535,22 @@
 
     <!-- WiFiBridge @ GCS -->
     <tr>
-        <td>
-            <p class="font-bold text-hive">&nbsp;WiFiBridge @ GCS</p>
+        <td
+            <p class="font-bold text-hive">&nbsp;
+                WiFiBridge @ GCS
+                <div
+                   data-key="state.gse.radio"
+                   data-type="state"
+                   class="indicator-state mx-0 timeout"
+                ></div>
+            </p>
         </td>
-        <td>
-            <div
-                data-key="state.gse.radio"
-                data-type="state"
-                class="indicator-state mx-0 timeout"
-            ></div>
-        </td>
+    </tr>
+    <tr>
         <td>
             <label>
                 Packet Loss:<input
-                    data-key="meta.gse.packet-loss"
+                    data-key="meta.av.packet-loss"
                     data-precision="0"
                     readonly
                     autocomplete="off"
@@ -536,18 +562,18 @@
         <td>
             <label>
                 Ping:<input
-                    data-key="meta.gse.ping"
+                    data-key="meta.av.ping"
                     data-precision="0"
                     readonly
                     autocomplete="off"
-                    size="11"
+                    size="4"
                 />
             </label>
         </td>
         <td>
             <label>
                 Packets:<input
-                    data-key="meta.gse.packets"
+                    data-key="meta.av.packets"
                     data-precision="0"
                     readonly
                     autocomplete="off"
