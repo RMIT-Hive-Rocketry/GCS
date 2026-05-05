@@ -1,20 +1,4 @@
-<style>
-    /* Invisible table */
-    table.invisible-table, 
-    table.invisible-table th, 
-    table.invisible-table td {
-        border: none;
-        border-collapse: collapse;
-    }
-
-    /* Create a gap every 2nd row (1st row is device
-     * name and status, 2nd row are the value attributes)
-    */
-    tr:nth-child(2n+1) td {
-        border-bottom: 30px solid transparent;
-    }
-</style>
-
+<!-- LHS (individual statuses) of the diagnostics page -->
 <table>
     <!-- Best practice but not visually required here -->
     <th>
@@ -35,7 +19,7 @@
             <span class="font-bold text-hive">AV</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 RSSI:<input
@@ -84,7 +68,7 @@
             <span class="font-bold text-hive">TP-Link Router</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -133,7 +117,7 @@
             <span class="font-bold text-hive">GC-1</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -182,7 +166,7 @@
             <span class="font-bold text-hive">GC-2</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -231,7 +215,7 @@
             <span class="font-bold text-hive">Launchpad Camera</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -280,7 +264,7 @@
             <span class="font-bold text-hive">LabJack</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -329,7 +313,7 @@
             <span class="font-bold text-hive">QuantumX DAQ</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -378,7 +362,7 @@
             <span class="font-bold text-hive">DAQ 4 Channel</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -427,7 +411,7 @@
             <span class="font-bold text-hive">Vulcan ESP32</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -476,7 +460,7 @@
             <span class="font-bold text-hive">WiFiBridge @ Vulcan</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
@@ -525,7 +509,7 @@
             <span class="font-bold text-hive">WiFiBridge @ GCS</span>
         </td>
     </tr>
-    <tr>
+    <tr style="border-bottom: 30px solid transparent;">
         <td>
             <label>
                 Packet Loss:<input
