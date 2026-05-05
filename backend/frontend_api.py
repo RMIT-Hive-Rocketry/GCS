@@ -1,5 +1,6 @@
 from backend.includes_python.mach import Mach
 import backend.includes_python.process_logging as slogger
+import backend.includes_python.network_pings as network_pings
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
@@ -54,8 +55,12 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
         os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
     )
 
-    pendant_packet_id = 10
-    slogger_packet_id = 40
+    PENDANT_PACKET_ID = 10
+    SLOGGER_PACKET_ID = 40
+    NETWORK_DIAGNOSTICS_PACKET_ID = 50
+
+    PING_GAP_TIME_S = 2
+    next_ping_time = asyncio.get_running_loop().time()
 
     try:
         context = zmq.asyncio.Context()
@@ -135,6 +140,18 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                             break
                     else:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
+
+                if asyncio.get_running_loop().time() > next_ping_time:
+                    ping_results = await network_pings.ping_manifest()
+                    packet = {
+                        "id": NETWORK_DIAGNOSTICS_PACKET_ID,
+                        "data": ping_results
+                    }
+                    try:
+                        await websocket.send(json.dumps(packet))
+                    except websockets.ConnectionClosedOK:
+                        break
+                    next_ping_time = asyncio.get_running_loop().time() + PING_GAP_TIME_S
 
                 if logging_sub_socket in events:
                     message = await logging_sub_socket.recv_json()
