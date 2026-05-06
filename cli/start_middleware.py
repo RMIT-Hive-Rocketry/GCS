@@ -4,7 +4,6 @@ import os
 import enum
 import config.config as config
 from dataclasses import dataclass
-from typing import List, Optional
 
 
 class InterfaceType(enum.Enum):
@@ -76,9 +75,7 @@ def middleware_started_callback(line: str, stream_name: str):
         return True
 
 
-def get_middleware_path(
-    BINARY_NAME_PREFIX: str, RELEASE: bool
-) -> str | None:
+def get_middleware_path(BINARY_NAME_PREFIX: str, RELEASE: bool) -> str | None:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
     """

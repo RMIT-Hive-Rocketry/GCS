@@ -1,9 +1,6 @@
 from backend.simulation.rocket_sim import flight_simulation
 from backend.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
-from itertools import count
-from enum import Enum
 import numpy as np
-import os
 import math
 import sys
 import pandas as pd

@@ -1,6 +1,7 @@
 import logging
 import cli.process as process
-import config.config as config
+
+# TODO: Implement logging
 
 
 class IgnoreWebMessagesFilter(logging.Filter):
