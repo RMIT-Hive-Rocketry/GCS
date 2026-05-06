@@ -6,7 +6,7 @@ import importlib.util
 import sys
 
 
-class Rocket(object):
+class Rocket:
     flask_app = None
 
     def __init__(self):
