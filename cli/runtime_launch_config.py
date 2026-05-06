@@ -2,9 +2,6 @@ import enum
 import logging
 import os
 from dataclasses import dataclass
-from typing import Dict, Optional
-from functools import cache
-
 import config.config as config
 from cli.start_middleware import (
     InterfaceType,

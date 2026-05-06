@@ -4,22 +4,16 @@ Replay the following CSV files
 
 """
 
-from enum import Enum
 from dataclasses import dataclass
-import sys
 import os
 import csv
-from typing import List
 import time
 import config.config as config
 from backend.device_emulator import (
     AVtoGCSData1,
     AVtoGCSData2,
-    AVtoGCSData3,
     GSEtoGCSData1,
     GSEtoGCSData2,
-    GCStoAVStateCMD,
-    GCStoGSEStateCMD,
     MockPacket,
 )
 import backend.includes_python.process_logging as slogger

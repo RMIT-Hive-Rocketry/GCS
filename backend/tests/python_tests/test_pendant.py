@@ -1,7 +1,4 @@
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.control_device_manager import (
-    ControlDeviceManager,
-)
 from backend.includes_python.devices.state_table import StateTable
 
 

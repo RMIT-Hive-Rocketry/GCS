@@ -1,5 +1,5 @@
 import backend.includes_python.process_logging as slogger
-from typing import Self, Dict
+from typing import Self
 
 
 class StateTable:
