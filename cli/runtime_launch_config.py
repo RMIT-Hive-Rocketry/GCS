@@ -23,6 +23,8 @@ class AuxServicePlan:
 class RuntimeLaunchConfig:
     """Resolve launch-time interfaces, device paths, and middleware config."""
 
+    _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
+
     def __init__(
         self,
         command: enum.Enum,
@@ -37,6 +39,9 @@ class RuntimeLaunchConfig:
 
         self.interface_gse_type = get_interface_type(interface_gse_arg)
         self.interface_av_type = get_interface_type(interface_av_arg)
+
+        if gse_only:
+            self.interface_av_type = InterfaceType.NONE
 
         self._validate_split_emulation_support()
 
@@ -72,20 +77,19 @@ class RuntimeLaunchConfig:
         return getattr(command, "name", "").upper() == "RUN"
 
     def _validate_split_emulation_support(self) -> None:
-        test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
-        if (
-            self.interface_av_type in test_interfaces
-            or self.interface_gse_type in test_interfaces
-        ) and self.interface_av_type != self.interface_gse_type:
+        any_interface_is_test = self.interface_av_type in self._test_interfaces or self.interface_gse_type in self._test_interfaces
+        interfaces_differ = self.interface_gse_type != self.interface_av_type
+
+
+
+        if (any_interface_is_test) and interfaces_differ:
             raise NotImplementedError(
                 "Device emulator does not support split emulation interfaces yet"
             )
 
     def _resolve_paths_and_radio(self) -> None:
-        test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
-
-        gse_is_test = self.interface_gse_type in test_interfaces
-        av_is_test = self.interface_av_type in test_interfaces
+        gse_is_test = self.interface_gse_type in self._test_interfaces
+        av_is_test = self.interface_av_type in self._test_interfaces
 
         if gse_is_test and av_is_test:
             middleware_device, aux_device = self._run_pseudoterm_setup()
@@ -146,6 +150,9 @@ class RuntimeLaunchConfig:
             if not (1 <= tcp_port <= 65535):
                 raise RuntimeError("tcp-port must be between 1 and 65535")
             return f"{tcp_ip}:{tcp_port}"
+        
+        if interface_type == InterfaceType.NONE:
+            return "_"
 
         raise ValueError("Invalid interface type")
 
@@ -171,11 +178,9 @@ class RuntimeLaunchConfig:
         simulation_arg: str | None,
     ) -> AuxServicePlan:
         command_name = getattr(self.command, "name", "").upper()
-        test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
-
         if command_name == "DEV" and (
-            self.interface_av_type in test_interfaces
-            or self.interface_gse_type in test_interfaces
+            self.interface_av_type in self._test_interfaces
+            or self.interface_gse_type in self._test_interfaces
         ):
             return AuxServicePlan(
                 service="emulator",
