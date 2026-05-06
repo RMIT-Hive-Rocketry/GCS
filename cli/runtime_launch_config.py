@@ -39,11 +39,10 @@ class RuntimeLaunchConfig:
         self.logger = logger
         self.is_release = self._is_release_mode(command)
 
-        if not frontend_only:
-            self.interface_gse_type = get_interface_type(interface_gse_arg)
-            self.interface_av_type = get_interface_type(interface_av_arg)
+        self.interface_gse_type = get_interface_type(interface_gse_arg)
+        self.interface_av_type = get_interface_type(interface_av_arg)
 
-            self._validate_split_emulation_support()
+        self._validate_split_emulation_support()
 
         self.lora_config: Optional[Dict[str, str]] = None
         self.device_path_gse: str = ""
