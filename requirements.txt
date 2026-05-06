@@ -28,3 +28,4 @@ codespell
 # Testing
 # serial
 # tabulate
+# tqdm
