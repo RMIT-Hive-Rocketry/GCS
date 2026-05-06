@@ -12,14 +12,12 @@ class ControlDevice(ABC):
         self.state_table = StateTable.get_fallback_table()
 
     @abstractmethod
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         """Setup the control device"""
-        pass
 
     @abstractmethod
     def _update_state_table(self) -> None:
         """Updates state table with new values"""
-        pass
 
     def get_state_table(self) -> StateTable:
         """Updates and gets the current states from the control device."""
@@ -39,6 +37,6 @@ class ControlDevice(ABC):
         state_table = self.get_state_table()
         return state_table.get_states_dict()
 
-    def cleanup(self):
+    @abstractmethod
+    def cleanup(self) -> None:
         """Code to run after controller is no longer needed."""
-        pass
