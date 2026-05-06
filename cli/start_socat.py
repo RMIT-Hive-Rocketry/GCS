@@ -1,6 +1,6 @@
 import logging
 import re
-import cli.proccess as process
+import cli.process as process
 from typing import Optional, Tuple
 import cli.start_middleware as start_middleware
 
@@ -75,15 +75,15 @@ def start_fake_serial_device(
             "pty,raw,echo=0",
         ]
         logger.debug(f"Starting socat with: {SOCAT_COMMAND}")
-        socat_proccess = SocatSubprocess(SOCAT_COMMAND, name="socat")
-        socat_proccess.register_callback(device_name_callback)
+        socat_process = SocatSubprocess(SOCAT_COMMAND, name="socat")
+        socat_process.register_callback(device_name_callback)
 
-        socat_proccess.start()
+        socat_process.start()
 
         devices = []
         # Block until both pseudo-terminals are found
         while len(devices) < 2:
-            devices += socat_proccess.get_parsed_data()
+            devices += socat_process.get_parsed_data()
 
         logger.debug(f"Devices found: {devices}")
 

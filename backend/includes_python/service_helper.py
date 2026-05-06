@@ -32,7 +32,7 @@ def _handle_signal(signum, frame):
     if signum in SIGNAL_MAP:
         stop_reason = SIGNAL_MAP[signum]
     else:
-        stop_reason = f"Recieved unhandled signal: {signum}"
+        stop_reason = f"Received unhandled signal: {signum}"
 
     global _running
     slogger.info(f"{stop_reason} — shutting down service.")

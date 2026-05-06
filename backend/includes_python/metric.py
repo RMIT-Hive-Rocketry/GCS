@@ -190,7 +190,7 @@ class Metric:
 
     @staticmethod
     def is_valid_int3_(VALUE: int) -> bool:
-        """Check if a value is within the valid range of an unsinged 3-bit integer."""
+        """Check if a value is within the valid range of an unsigned 3-bit integer."""
         if not isinstance(VALUE, int):
             return False
         return 0b000 <= VALUE <= 0b111

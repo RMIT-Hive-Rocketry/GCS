@@ -2,7 +2,7 @@
 
 import click
 import cli.rocket_logging as rocket_logging
-import cli.proccess as process
+import cli.process as process
 import config.config as config
 import logging
 import subprocess
@@ -103,7 +103,7 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
             "--log-level",
             is_flag=False,
             type=_LOG_LEVEL_CHOICES,
-            help="Overide the config log level",
+            help="Override the config log level",
             callback=_set_level,
             expose_value=False,
         ),
@@ -122,7 +122,7 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
             "--log-level",
             is_flag=False,
             type=_LOG_LEVEL_CHOICES,
-            help="Overide the config log level",
+            help="Override the config log level",
             callback=_set_level,
             expose_value=False,
         ),
@@ -301,7 +301,7 @@ def start_services(
         interface_av_arg (Optional[str], optional): AV link type for dual-link mode. With interface_gse_arg. Defaults to None.
         interface_gse_arg (Optional[str], optional): GSE link type for dual-link mode. With interface_av_arg. Defaults to None.
         nobuild (bool, optional): Skip cmake build?. Defaults to False.
-        logpkt (bool, optional): Log recieved packets?. Defaults to False.
+        logpkt (bool, optional): Log received packets?. Defaults to False.
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
         gse_only (bool, optional): Only communicate with GSE?. Defaults to False.
         frontend (bool, optional): Start the frontend server?. Defaults to False.
@@ -335,7 +335,7 @@ def start_services(
     else:
         logger.info("Starting Soteria container in Docker")
         raise NotImplementedError(
-            "Internal Docker implimentation is out of date. Do not use"
+            "Internal Docker implementation is out of date. Do not use"
         )
         start_docker_container(logger)
 
@@ -607,7 +607,7 @@ def signal_handler(signum, frame):
     if signum in signal_map:
         cleanup_reason = signal_map[signum]
     else:
-        cleanup_reason = f"Recieved unhandled signal: {signum}"
+        cleanup_reason = f"Received unhandled signal: {signum}"
     cleanup()
     # This can be a graceful exit for now.
     # Might need to change for CI tests in future
@@ -626,7 +626,7 @@ def cleanup():
 def main():
     global logger, cleanup_reason
 
-    # Use groups for nested positional arugments `rocket run dev/prod`
+    # Use groups for nested positional arguments `rocket run dev/prod`
     cli.add_command(run)
     cli.add_command(dev)
     cli.add_command(simulation)

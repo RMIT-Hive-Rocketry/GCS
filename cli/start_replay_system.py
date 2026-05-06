@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import enum
 import os
 from typing import Optional
@@ -53,7 +53,7 @@ def start_replay_system(
         logger: Logger
         DEVICE: device
         MISSION: Mission directory name
-        SIMULATION: Simuation type
+        SIMULATION: Simulation type
     """
     SERVICE_NAME = "replay system"
     try:
@@ -93,5 +93,5 @@ def start_replay_system(
         emulator_process.start()
 
     except Exception as e:
-        logger.error(f"An error occured while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
         return None, None

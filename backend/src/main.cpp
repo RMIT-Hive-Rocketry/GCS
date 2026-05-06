@@ -330,21 +330,21 @@ int main(int argc, char* argv[]) {
           gcs_state.av_sequence.sit_and_wait_for_av();
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
-          // Just listen. This thread can just close bassically
+          // Just listen. This thread can just close basically
           if (av_broadcast) {
             interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
-          // Just listen. This thread can just close bassically
+          // Just listen. This thread can just close basically
           if (av_broadcast) {
             interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
-          // Just listen. This thread can just close bassically
+          // Just listen. This thread can just close basically
           if (av_broadcast) {
             interface_av->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));

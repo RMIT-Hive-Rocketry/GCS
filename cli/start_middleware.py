@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 import os
 import enum
 import config.config as config
@@ -214,5 +214,5 @@ def start_middleware(logger: logging.Logger, config: MiddlewareConfig) -> None:
 
     except Exception as e:
         logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
-        # This is important, propogate this one
+        # This is important, propagate this one
         raise

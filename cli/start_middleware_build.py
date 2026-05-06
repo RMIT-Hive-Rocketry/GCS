@@ -1,5 +1,5 @@
 import logging
-import cli.proccess as process
+import cli.process as process
 from enum import Enum
 import os
 from pathlib import Path
@@ -92,6 +92,6 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
 
     except Exception as e:
         logger.error(f"An error occurred while building {SERVICE_NAME}: {e}")
-        # Propogate to a blocking handler in cli
+        # Propagate to a blocking handler in cli
         raise
         # return None, None
