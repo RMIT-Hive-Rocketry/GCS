@@ -1,5 +1,4 @@
 from backend.includes_python.devices.pygame_devices import (
-    ThrustmasterAirbusFlightStick,
     HybridPygamePendant,
 )
 import backend.includes_python.service_helper as service_helper
@@ -12,7 +11,7 @@ faulthandler.enable(all_threads=True)
 faulthandler.register(signal.SIGUSR1, all_threads=True)
 
 
-def main():
+def main() -> None:
     controller = HybridPygamePendant()  # ThrustmasterAirbusFlightStick()
     last_state = None
     updates = 0
