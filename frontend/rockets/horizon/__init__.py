@@ -88,7 +88,7 @@ class ConfigHorizon(Config):
             "horizon_pendant": [("page-control", 0, 1, 24, 11)],
 
             # Diagnostics modules
-            "horizon_diagnostics_packets": [("page-diagnostics", 0, 1, 8, 11)],
-            "horizon_diagnostics_graphs": [("page-diagnostics", 8, 1, 14, 11)],
-            "horizon_diagnostics_summary": [("page-diagnostics", 22, 1, 2, 11)],
+            "horizon_diagnostics_packets": [("page-diagnostics", 0, 1, 6, 11)],
+            "horizon_diagnostics_graphs": [("page-diagnostics", 6, 1, 14, 11)],
+            "horizon_diagnostics_summary": [("page-diagnostics", 20, 1, 4, 11)],
         }

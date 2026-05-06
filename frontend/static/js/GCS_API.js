@@ -565,6 +565,11 @@ function API_OnMessage(event) {
             if (typeof updatePendantState === "function") {
                 updatePendantState(apiData);
             }
+        } else if (apiData.id == 50) {
+            ///// ----- NETWORK DIAGNOSTICS ----- /////
+            if (typeof graphUpdateDiagnostics === "function") {
+                graphUpdateDiagnostics(apiData);
+            }
         }
     } catch (error) {
         console.error("Data processing error:", error);
