@@ -256,51 +256,102 @@ function graphRender(chart) {
         return;
     }
 
-    if (
-        chart &&
-        chart?.g &&
-        chart?.x &&
-        chart?.lines &&
-        typeof timestampLocal !== "undefined"
-    ) {
-        // Get timestamp of data
-        const now = Math.max(
-            d3.max(
-                chart.lines.flatMap((line) => line.data),
-                (d) => d.x,
-            ),
-            timestampLocal + timestampApiConnect - timeDrift,
-        );
-
+    if (chart && chart?.g && chart?.x && chart?.y && chart?.lines) {
+        const allExistingPoints = chart.lines.flatMap((line) => line.data);
+        const latestPointTime = d3.max(allExistingPoints, (d) => d.x);
+    
+        // Normal telemetry graphs use API timing.
+        // Diagnostics ping graphs use Date.now()/1000, so API timing can be undefined.
+        const apiNowCandidate = timestampLocal + timestampApiConnect - timeDrift;
+        const apiNow = Number.isFinite(apiNowCandidate) ? apiNowCandidate : undefined;
+    
+        const now = Number.isFinite(latestPointTime)
+            ? Math.max(latestPointTime, apiNow ?? latestPointTime)
+            : apiNow;
+    
+        if (!Number.isFinite(now)) {
+            return;
+        }
+    
         const windowStart = now - MAX_TIME;
-
-        if (chart.lastRender != now) {
-            // Limit data to graph window
-            chart.lines.forEach((line) => {
-                line.data = line.data.filter(
-                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
-                );
-            });
-            const allPoints = chart.lines.flatMap((line) => line.data);
-
+    
+        // Limit data to graph window
+        chart.lines.forEach((line) => {
+            line.data = line.data.filter(
+                (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+            );
+        });
+    
+        const allPoints = chart.lines.flatMap((line) => line.data);
+    
+        if (allPoints.length === 0) {
+            return;
+        }
+    
+        const yMinRaw = d3.min(allPoints, (d) => d.y);
+        const yMaxRaw = d3.max(allPoints, (d) => d.y);
+    
+        if (!Number.isFinite(yMinRaw) || !Number.isFinite(yMaxRaw)) {
+            return;
+        }
+    
+        let yMin = yMinRaw - 1;
+        let yMax = yMaxRaw + 1;
+    
+        if (chart?.limits?.yBottomMax !== undefined) {
+            yMin = Math.min(yMin, chart.limits.yBottomMax);
+        }
+    
+        if (yMin === yMax) {
+            yMin -= 1;
+            yMax += 1;
+        }
+    
+        if (chart.lastRender != now || chart.lastPointCount !== allPoints.length) {
             // Update x and y domains
             chart.x.domain([windowStart, now]);
-            chart.y.domain([
-                Math.min(
-                    d3.min(allPoints, (d) => d.y) - 1,
-                    chart?.limits?.yBottomMax != undefined
-                        ? chart?.limits?.yBottomMax
-                        : Infinity,
-                ),
-                d3.max(allPoints, (d) => d.y) + 1,
-            ]); //.nice();
-
+            chart.y.domain([yMin, yMax]); //.nice();
             // Update rendering of X and Y domain
+            const xTickValues = [
+                Math.round(windowStart),
+                Math.round(windowStart + (now - windowStart) * 0.25),
+                Math.round(windowStart + (now - windowStart) * 0.50),
+                Math.round(windowStart + (now - windowStart) * 0.75),
+                Math.round(now),
+            ];
+            
             chart.g
                 .select("g")
                 .transition()
                 .duration(0)
-                .call(d3.axisBottom(chart.x).tickFormat((d) => `${d}`));
+                .call(
+                    d3.axisBottom(chart.x)
+                        .tickValues(xTickValues)
+                        .tickFormat((d, i) => {
+                            if (i === xTickValues.length - 1) {
+                                return "now";
+                            }
+
+                            const secondsAgo = Math.max(0, Math.round(now - d));
+                            return `-${secondsAgo}s`;
+                        }),
+                );
+
+            // Fix edge alignment of first and last labels
+            const xTicks = chart.g.select("g").selectAll(".tick");
+
+            xTicks
+                .filter((d, i) => i === 0)
+                .select("text")
+                .style("text-anchor", "start")
+                .attr("dx", "0.2em");
+
+            xTicks
+                .filter((d, i) => i === xTickValues.length - 1)
+                .select("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-0.2em");
+
             chart.yAxis
                 .transition()
                 .duration(0)
@@ -312,13 +363,14 @@ function graphRender(chart) {
                 );
 
             // De-emphasize hidden non-integer axis values
-            chart.g
+            chart.yAxis
                 .selectAll(".tick")
                 .filter((d) => !Number.isInteger(d))
                 .select("line")
                 .style("stroke", "#ccc")
                 .style("stroke-width", 0.5);
-            chart.g
+
+            chart.yAxis
                 .selectAll(".tick")
                 .filter((d) => !Number.isInteger(d))
                 .select("text")
@@ -394,6 +446,7 @@ function graphRender(chart) {
 
             // Update last render time
             chart.lastRender = now;
+            chart.lastPointCount = allPoints.length;
         }
     } else {
         //console.log("graphRender: chart not ready", chart);

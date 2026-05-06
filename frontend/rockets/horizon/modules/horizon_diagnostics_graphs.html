@@ -3,9 +3,9 @@
 <div class="module-horizon w-full h-full flex flex-col p-2 gap-1">
   <h2>Ping Graphs</h2>
   <div
-      id="diag-graphs-container"
-      class="flex-1 grid grid-cols-3 gap-2 min-h-0"
-      style="grid-auto-rows: 1fr;"
+    id="diag-graphs-container"
+    class="flex-1 grid grid-cols-3 gap-2 min-h-0 overflow-y-auto pr-1"
+    style="grid-auto-rows: minmax(250px, 1fr);"
   >
       <!-- Graph panels injected here by graphUpdateDiagnostics() -->
   </div>

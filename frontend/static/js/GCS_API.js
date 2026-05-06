@@ -830,7 +830,7 @@ function processDataForDisplay(apiData, apiId) {
         let packetsTable = document.getElementById("packets");
 
         // Update data if present, otherwise add it
-        Object.keys(apiData).forEach(device => {
+        Object.entries(apiData).forEach(([device, deviceData]) => {
             let currRow = packetsTable.querySelector(`tr td div[data-key='${device}']`);
             console.log("FOUND CURR ROW", currRow);
             if (currRow === null) {
@@ -852,8 +852,8 @@ function processDataForDisplay(apiData, apiId) {
                 `;
 
                 // Set state to red if no pings coming through
-                if ((device.ping == null) || (device.ping < 0)) {
-                    topRow.innerHTML.replaceAll("green", "red");
+                if ((deviceData.ping == null) || (deviceData.ping < 0)) {
+                    topRow.querySelector(".indicator-state")?.classList.replace("green", "red");
                 }
 
                 bottomRow.innerHTML = `
@@ -867,7 +867,7 @@ function processDataForDisplay(apiData, apiId) {
                                 autocomplete="off"
                                 class="text-right"
                                 size="4"
-                                value='${device.packet_loss != null ? device.packet_loss : 0}'
+                                value='${deviceData.packet_loss != null ? deviceData.packet_loss : 0}'
                             />
                         </label>
                     </td>
@@ -879,7 +879,7 @@ function processDataForDisplay(apiData, apiId) {
                                 readonly
                                 autocomplete="off"
                                 size="4"
-                                value='${device.ping != null ? device.ping : -1}'
+                                value='${deviceData.ping != null ? deviceData.ping : -1}'
                             />
                         </label>
                     </td>
@@ -908,13 +908,13 @@ function processDataForDisplay(apiData, apiId) {
                 // Update the state
                 let topRow = packetsTable.rows[index].querySelector('td div');
                 topRow.classList.value = `indicator-state mx-0 ${
-                    ((device.ping != null) && (device.ping >= 0)) ? 'green' : 'red'
+                    ((deviceData.ping != null) && (deviceData.ping >= 0)) ? 'green' : 'red'
                 }`;
 
                 // Update the packet loss then ping
                 let bottomRow = packetsTable.rows[index + 1].querySelectorAll('td label input');
-                bottomRow[0].setAttribute('value', (device.packet_loss != null) ? device.packet_loss : 0);
-                bottomRow[1].setAttribute('value', (device.ping != null) ? device.ping : -1);
+                bottomRow[0].setAttribute('value', (deviceData.packet_loss != null) ? deviceData.packet_loss : 0);
+                bottomRow[1].setAttribute('value', (deviceData.ping != null) ? deviceData.ping : -1);
             }
 
             // The below may not be required
