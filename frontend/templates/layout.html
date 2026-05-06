@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
     <title>{{ active.ROCKET_NAME }} - RMIT High Velocity</title>
     <link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
-    <style>
-        {{active.CSS}}
-    </style>
+    {{active.CSS | safe }}
     {% for stylesheet in active.STYLESHEETS %}
     <link rel="stylesheet" type="text/css" href="{{stylesheet}}" media="screen" />
     {% endfor %}
@@ -18,8 +16,7 @@
     <!-- Main body grid, size is dynamically allocated depending on the config -->
     <!-- For Legacy3, Atlas it's 12x12 (secretly 12x13 but the header is static) -->
     <!-- For Horizon it's 24x12, with each grid section being ~80x75 pixels -->
-    <main
-        class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
+    <main class="w-full h-full grid grid-cols-{{active.GRID[0]}} grid-rows-{{active.GRID[1]}} grid-flow-col"
         id="{{active.PAGES[0]['id']}}">
         {% for module in active.MODULES %} {% if
         module.split("/")[-1].split(".")[0] in active.MODULE_PAGES %}
@@ -30,10 +27,9 @@
     </main>
 
     <script>
-        // Embed backend ip into js from server
-        window.APP_CONFIG = {
-            backendIp: {{ backend_ip | tojson }}
-        };
+        // Load WebSocket config from Flask
+        _ws = {{ websocket | tojson }};
+        console.log(_ws);
     </script>
 
     <script src="/js/GCS_API.js"></script>

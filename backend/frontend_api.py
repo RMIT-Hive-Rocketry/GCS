@@ -360,8 +360,9 @@ def main():
     global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS
 
     # get_newest_messages()
-    WEBSOCKET_HOST = "0.0.0.0"
-    WEBSOCKET_PORT = 1887
+    frontend_config = config.get_config()["frontend"]
+    WEBSOCKET_HOST = frontend_config.get("ws_host")  # "0.0.0.0"
+    WEBSOCKET_PORT = frontend_config.get("ws_port")  # 1887
 
     if "--socket-path" in sys.argv:
         SOCKET_PATH = sys.argv[sys.argv.index("--socket-path") + 1]

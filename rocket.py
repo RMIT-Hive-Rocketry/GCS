@@ -11,7 +11,8 @@ import time
 import os
 import signal
 import enum
-from typing import Optional, Callable
+from typing import Optional
+from collections.abc import Callable
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
 from cli.start_middleware import start_middleware, InterfaceType
@@ -50,10 +51,9 @@ class Command(enum.Enum):
 class DecoratorSelector(enum.Enum):
     """Selection options to build a decorator"""
 
+    ALL_RUN = enum.auto()  # Give me just the GSE only and frontend only options
     ALL_DEV = enum.auto()  # Give me all the dev options
     SIM = enum.auto()  # Give me the options for simulation
-    GSE_ONLY = enum.auto()  # Give me just the GSE only option
-    FRONTEND_ONLY = enum.auto()  # Give me just the GSE only option
     REPLAY = enum.auto()
 
 
@@ -92,8 +92,9 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
 
     OPTIONS_FRONTEND_ONLY = [
         click.option(
-            "--ip", 
-            help="Only Run GSC front end server requires backend IP"
+            "--frontend-only",
+            is_flag=True,
+            help="Run the system in frontend only mode",
         ),
     ]
 
@@ -149,9 +150,12 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         ),
     ]
 
+    OPTIONS_ALL_RUN = OPTIONS_GSE_ONLY + OPTIONS_FRONTEND_ONLY
+
     OPTIONS_ALL_DEV = (
         OPTIONS_SIM
         + OPTIONS_GSE_ONLY
+        + OPTIONS_FRONTEND_ONLY
         + [
             click.option(
                 "-i",
@@ -175,7 +179,7 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                 help="Do not run the pendant emulator",
             ),
             click.option(
-                "--frontend", is_flag=True, help="Run GSC front end server"
+                "-f", "--frontend", is_flag=True, help="Run frontend web server"
             ),
             click.option(
                 "--experimental",
@@ -190,14 +194,12 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         ]
     )
 
-    if SELECTOR == DecoratorSelector.ALL_DEV:
+    if SELECTOR == DecoratorSelector.ALL_RUN:
+        OPTIONS = OPTIONS_ALL_RUN
+    elif SELECTOR == DecoratorSelector.ALL_DEV:
         OPTIONS = OPTIONS_ALL_DEV
     elif SELECTOR == DecoratorSelector.SIM:
         OPTIONS = OPTIONS_SIM
-    elif SELECTOR == DecoratorSelector.GSE_ONLY:
-        OPTIONS = OPTIONS_GSE_ONLY
-    elif SELECTOR == DecoratorSelector.FRONTEND_ONLY:
-        OPTIONS = OPTIONS_FRONTEND_ONLY
     elif SELECTOR == DecoratorSelector.REPLAY:
         OPTIONS = OPTIONS_REPLAY
 
@@ -276,6 +278,19 @@ def _validate_interface_options(
             )
 
 
+def _validate_run_options(
+    gse_only: Optional[bool], frontend_only: Optional[bool]
+) -> None:
+    """
+    Validate mutual exlusivity of --gse-only and --frontend-only.
+    Raises click.UsageError for invalid combinations.
+    """
+    if gse_only and frontend_only:
+        raise click.UsageError(
+            "Do not specify both --gse-only and --frontend-only"
+        )
+
+
 def start_services(
     COMMAND: Command,
     DOCKER: bool = False,
@@ -286,7 +301,7 @@ def start_services(
     nopendant: bool = False,
     gse_only: bool = False,
     frontend: bool = False,
-    frontend_only: Optional[str] = None,
+    frontend_only: bool = False,
     replay_mode: Optional[str] = None,
     MISSION_ARG: Optional[str] = None,
     SIMULATION_ARG: Optional[str] = None,
@@ -305,7 +320,7 @@ def start_services(
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
         gse_only (bool, optional): Only communicate with GSE?. Defaults to False.
         frontend (bool, optional): Start the frontend server?. Defaults to False.
-        frontend_only (Optional[str], optional): Only start the frontend server?. Defaults to None.
+        frontend_only (bool, optional): Only start the frontend server. Defaults to None.
         replay_mode (Optional[str], optional): _description_. Defaults to None.
         MISSION_ARG (Optional[str], optional): _description_. Defaults to None.
         SIMULATION_ARG (Optional[str], optional): _description_. Defaults to None.
@@ -339,13 +354,10 @@ def start_services(
         )
         start_docker_container(logger)
 
-
-    # 2. Check to see if using frontend_only if so interrupt loading
-    if frontend_only != None and frontend_only != False:
-        # 7. Start the frontend web server
-        start_frontend_webserver(logger, frontend_only) # pass ip of the backend through
+    # 0.2 Interrupt further process loading if --frontend-only is being used
+    if frontend_only is not None and frontend_only == True:
+        start_frontend_webserver(logger)
         return
-    
 
     # 1 Build C++ middleware
     if not nobuild:
@@ -368,6 +380,7 @@ def start_services(
         interface_av_arg=interface_av_arg,
         interface_gse_arg=interface_gse_arg,
         gse_only=gse_only,
+        frontend_only=frontend_only,
         logger=logger,
     )
 
@@ -423,9 +436,8 @@ def start_services(
     # 6. Start the websocket / frontend API
     start_frontend_api(logger, "gcs_rocket")
 
+    # 7. Start the frontend web server
     if frontend:
-        
-        # 7. Start the frontend web server
         start_frontend_webserver(logger)
 
 
@@ -441,17 +453,29 @@ def cli():
 
 
 @click.command()
-@cli_decorator_factory(DecoratorSelector.GSE_ONLY)
-def run(gse_only):
+@cli_decorator_factory(DecoratorSelector.ALL_RUN)
+def run(gse_only, frontend_only):
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
     rocket_logging.set_console_low_detail(True)
-    interface_gse_arg = config.get_config()["hardware"].get(
-        "interface_release_gse"
-    )
-    interface_av_arg = config.get_config()["hardware"].get(
-        "interface_release_av"
-    )
+    _validate_run_options(gse_only, frontend_only)
+
+    if frontend_only:
+        # Disable GSE interface if running in frontend_only
+        interface_gse_arg = "test"
+    else:
+        interface_gse_arg = config.get_config()["hardware"].get(
+            "interface_release_gse"
+        )
+
+    if frontend_only:  # or gse_only:
+        # Disable AV interface if running in frontend_only or gse_only mode
+        interface_av_arg = "test"
+    else:
+        interface_av_arg = config.get_config()["hardware"].get(
+            "interface_release_av"
+        )
+
     start_services(
         Command.RUN,
         DOCKER=False,
@@ -462,21 +486,9 @@ def run(gse_only):
         nopendant=False,  # Pendant emulator is required in production mode
         gse_only=gse_only,
         frontend=True,  # Run frontend web server in production mode
+        frontend_only=frontend_only,
     )
 
-@click.command()
-@cli_decorator_factory(DecoratorSelector.FRONTEND_ONLY)
-def frontend_only(ip):
-    start_services(
-        Command.DEV,
-        DOCKER=False,
-        nobuild=True,  # Do NOT auto build in production mode.
-        logpkt=True,  # Log packets by default in production mode
-        nopendant=True,  # Pendant emulator is required in production mode
-        gse_only=False,
-        frontend=False,  # Run frontend web server in production mode
-        frontend_only=ip # set the frontend to be true
-    )
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
@@ -490,6 +502,7 @@ def dev(
     nopendant,
     gse_only,
     frontend,
+    frontend_only,
     experimental,
     corruption,
 ):
@@ -508,7 +521,7 @@ def dev(
         nopendant=nopendant,
         gse_only=gse_only,
         frontend=frontend,
-        frontend_only=False,
+        frontend_only=frontend_only,
         experimental=experimental,
         corruption=corruption,
     )
@@ -528,7 +541,7 @@ def simulation(docker, nobuild, logpkt):
         nopendant=True,
         gse_only=False,
         frontend=True,
-        frontend_only=False
+        frontend_only=False,
     )
 
 
@@ -631,7 +644,6 @@ def main():
     cli.add_command(dev)
     cli.add_command(simulation)
     cli.add_command(replay)
-    cli.add_command(frontend_only)
 
     # Register custom signal handlers
     signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C
