@@ -35,7 +35,6 @@ from backend.includes_python.devices.control_device_manager import (
 from backend.includes_python.devices.control_device import ControlDevice
 
 import config.config as config
-from typing import Type
 
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
@@ -51,23 +50,23 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
 )
 
 
-def get_control_device():
+def get_control_device() -> ControlDevice:
     # fmt: off
     manager = ControlDeviceManager()
 
-    def hybrid_import() -> Type[ControlDevice]:
+    def hybrid_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import HybridPygamePendant
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
 
-    def rpi_import() -> Type[ControlDevice]:
+    def rpi_import() -> type[ControlDevice]:
         from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
 
     manager.add_managed_device("rpi_gpio_device",rpi_import)
 
-    def f710_import() -> Type[ControlDevice]:
+    def f710_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
 
@@ -77,7 +76,7 @@ def get_control_device():
     # fmt: on
 
 
-def send_packet():
+def send_packet() -> None:
     context = zmq.Context()
 
     gse_packet_send_timer = RepeatingTimer(0.05)
@@ -165,7 +164,7 @@ def send_packet():
         slogger.debug("Cleaned up controller")
 
 
-def main():
+def main() -> None:
     device_emulator.MockPacket.initialize_settings(
         config.get_config()['emulation'])
     slogger.debug("Starting pendant emulator")
