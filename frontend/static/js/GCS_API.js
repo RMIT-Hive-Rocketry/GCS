@@ -860,77 +860,61 @@ function processDataForDisplay(apiData, apiId) {
                 let topRow = packetsTable.insertRow(-1);
                 let bottomRow = packetsTable.insertRow(-1);
 
-                // Leave a gap
-                bottomRow.style = "border-bottom: 30px solid transparent;";
+                topRow.innerHTML = `
+                <tr>
+                    <td class="w-full flex gap-4 justify-start items-center">
+                        <div
+                            data-key="${device}"
+                            data-type="state"
+                            class="indicator-state mx-0 timeout"
+                        ></div>
+                        <span class="font-bold text-hive">${device}</span>
+                    </td>
+                </tr>
+                `;
 
-                // Create columns
-                let stateColumn = topRow.insertCell(0);
-                let packetLossColumn = bottomRow.insertCell(0);
-                let pingColumn = bottomRow.insertCell(1);
-                let packetCountColumn = bottomRow.insertCell(2);
-
-                // Populate the lone column of the top row
-                let stateColumn_div = document.createElement("div");
-                stateColumn_div.setAttribute('data-key', device);
-                stateColumn_div.setAttribute('data-type', 'state');
-                stateColumn_div.className = "indicator-state mx-0 timeout";
-                
-                let stateColumn_span = document.createElement("span");
-                stateColumn_span.className = "font-bold text-hive";
-                stateColumn_span.textContent = device;
-
-                stateColumn.className = "w-full flex gap-4 justify-start items-center";
-                stateColumn.appendChild(stateColumn_div);
-                stateColumn.appendChild(stateColumn_span);
-
-                // Populate the packet loss column
-                let packetLossColumn_label = document.createElement("label");
-                packetLossColumn_label.textContent = "Packet Loss:"
-
-                let packetLossColumn_input = document.createElement("input");
-                packetLossColumn_input.setAttribute('data-key', device + '.packet_loss');
-                packetLossColumn_input.setAttribute('data-precision', '3');
-                packetLossColumn_input.setAttribute('readonly', 'true');
-                packetLossColumn_input.setAttribute('autocomplete', 'off');
-                packetLossColumn_input.className = 'text-right';
-                packetLossColumn_input.size = 4;
-                packetLossColumn_input.setAttribute('value', device.packet_loss != null
-                                                    ? device.packet_loss : 0);
-                
-                packetLossColumn.appendChild(packetLossColumn_label);
-                packetLossColumn_label.appendChild(packetLossColumn_input);
-
-                // Populate the ping column
-                let pingColumn_label = document.createElement("label");
-                pingColumn_label.textContent = "Ping:"
-
-                let pingColumn_input = document.createElement("input");
-                pingColumn_input.setAttribute('data-key', device + '.ping');
-                pingColumn_input.setAttribute('data-precision', '0');
-                pingColumn_input.setAttribute('readonly', 'true');
-                pingColumn_input.setAttribute('autocomplete', 'off');
-                pingColumn_input.size = 4;
-                pingColumn_input.setAttribute('value', device.ping != null
-                                                    ? device.ping : 0);
-
-                pingColumn.appendChild(pingColumn_label);
-                pingColumn_label.appendChild(pingColumn_input);
-
-                // Populate the packets column
-                let packetCountColumn_label = document.createElement("label");
-                packetCountColumn_label.textContent = "Packets:"
-
-                let packetCountColumn_input = document.createElement("input");
-                packetCountColumn_input.setAttribute('data-key', device + '.packet_count');
-                packetCountColumn_input.setAttribute('data-precision', '0');
-                packetCountColumn_input.setAttribute('readonly', 'true');
-                packetCountColumn_input.setAttribute('autocomplete', 'off');
-                packetCountColumn_input.className = 'text-right';
-                packetCountColumn_input.size = 11;
-                packetCountColumn_input.value = 0; // Update value later on
-
-                packetCountColumn.appendChild(packetCountColumn_label);
-                packetCountColumn_label.appendChild(packetCountColumn_input);
+                bottomRow.innerHTML = `
+                <tr style="border-bottom: 30px solid transparent;">
+                    <td>
+                        <label>
+                            Packet Loss:<input
+                                data-key="${device}.packet_loss"
+                                data-precision="3"
+                                readonly
+                                autocomplete="off"
+                                class="text-right"
+                                size="4"
+                                value='${device.packet_loss != null ? device.packet_loss : 0}'
+                            />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            Ping:<input
+                                data-key="${device}.ping"
+                                data-precision="0"
+                                readonly
+                                autocomplete="off"
+                                size="4"
+                                value='${device.ping != null ? device.ping : 0}'
+                            />
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            Packets:<input
+                                data-key="${device}.packet_count"
+                                data-precision="0"
+                                readonly
+                                autocomplete="off"
+                                class="text-right"
+                                size="11"
+                                value = 0
+                            />
+                        </label>
+                    </td>
+                </tr>
+                `
             }
 
             // Regardless, track packet count
