@@ -1,8 +1,6 @@
 import logging
 import re
 import cli.process as process
-from typing import Optional, Tuple
-import cli.start_middleware as start_middleware
 
 
 class IgnoreWriteMessagesFilter(logging.Filter):
@@ -25,7 +23,7 @@ class SocatSubprocess(process.ERRLoggedSubProcess):
         return False
 
 
-def device_name_callback(line: str, stream_name: str):
+def device_name_callback(line: str, _stream_name: str) -> str | None:
     """Get the device name/path generated from socat"""
 
     # Example output from socat.
@@ -48,17 +46,19 @@ def device_name_callback(line: str, stream_name: str):
     # Then probably start coding the emulator and protobuf?
 
     if "N PTY is" in line:
-        REGEX_PATTERN = r"N PTY is (.+)"
-        match = re.search(REGEX_PATTERN, line)
+        regex_pattern = r"N PTY is (.+)"
+        match = re.search(regex_pattern, line)
         if match is None:
             raise RuntimeError("Socat output parsing failed to find device")
         # /dev/ttys012
         return match.group(1)
 
+    return None
+
 
 def start_fake_serial_device(
     logger: logging.Logger,
-) -> Tuple[Optional[str], Optional[str]]:
+) -> tuple[str | None, str | None]:
     """
     Starts a fake serial device using socat and logs the output.
     Returns a tuple containing the paths of the two generated pseudo-terminals.
@@ -67,15 +67,15 @@ def start_fake_serial_device(
     """
     try:
 
-        SOCAT_COMMAND = [
+        socat_command = [
             "socat",
             "-d",
             "-d",
             "pty,raw,echo=0",
             "pty,raw,echo=0",
         ]
-        logger.debug(f"Starting socat with: {SOCAT_COMMAND}")
-        socat_process = SocatSubprocess(SOCAT_COMMAND, name="socat")
+        logger.debug(f"Starting socat with: {socat_command}")
+        socat_process = SocatSubprocess(socat_command, name="socat")
         socat_process.register_callback(device_name_callback)
 
         socat_process.start()
@@ -93,4 +93,4 @@ def start_fake_serial_device(
         )
         return None, None
 
-    return devices
+    return tuple(devices)

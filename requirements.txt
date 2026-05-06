@@ -24,3 +24,8 @@ ruff
 black
 pre-commit
 codespell
+
+# Testing
+# serial
+# tabulate
+# tqdm

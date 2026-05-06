@@ -3,22 +3,18 @@ import time
 import zmq
 import os
 import csv
-import traceback
 from abc import ABC, abstractmethod
 import sys
-import subprocess
 from google.protobuf.message import Message as PbMessage
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 import backend.proto.generated.FlightState_pb2 as FlightState_pb
 import backend.proto.generated.AVStateFlags_pb2 as AVStateFlags_pb
 import backend.proto.generated.GSEErrors_pb2 as GSEErrors_pb
 import backend.proto.generated.GSEStateFlags_pb2 as GSEStateFlags_pb
-import backend.proto.generated.PacketMeta_pb2 as PacketMeta_pb
 import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
-from typing import List, Dict, Optional, Union
 import backend.includes_python.process_logging as slogger  # slog deez nuts
 import backend.includes_python.ansci as ansci
 from backend.includes_python.mach import Mach
@@ -33,7 +29,7 @@ class Packet(ABC):
 
     # Defined in _setup_logging
     _session_log_folder: str = None
-    _CSV_FILES_WITH_HEADERS: Dict[str, str] = None
+    _CSV_FILES_WITH_HEADERS: dict[str, str] = None
 
     @classmethod
     def _setup_logging(cls):
@@ -253,7 +249,7 @@ class Packet(ABC):
         if not self.__class__._setup == True:
             raise Exception("Error: Logging not set up")
 
-    def _log_to_csv(self, PROTO_DATA: List[str]):
+    def _log_to_csv(self, PROTO_DATA: list[str]):
         """Log data to the respective CSV file
 
         Args:
@@ -265,7 +261,7 @@ class Packet(ABC):
 
         def extract_proto_values(
             proto: PbMessage,
-        ) -> List[Union[str, int, float, bool]]:
+        ) -> list[str | int | float | bool]:
             values = []
             for field, value in proto.ListFields():
                 if field.label == field.LABEL_REPEATED:
@@ -355,11 +351,11 @@ class AVPacket(Packet):
 
     def _process_flight_state(
         self,
-        PROTO_DATA: Union[
-            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
-            AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
-            AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3,
-        ],
+        PROTO_DATA: (
+            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1
+            | AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2
+            | AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3
+        ),
     ) -> None:
         if AVPacket._last_flight_state != PROTO_DATA.flightState:
             # Flight state has changed. Please update it and notify
@@ -423,11 +419,11 @@ class AVPacket(Packet):
 
     def process(
         self,
-        PROTO_DATA: Union[
-            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
-            AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
-            AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3,
-        ],
+        PROTO_DATA: (
+            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1
+            | AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2
+            | AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3
+        ),
     ) -> None:
         super().process(PROTO_DATA)
         # Useful docs: https://googleapis.dev/python/protobuf/latest/google/protobuf/descriptor.html
@@ -522,8 +518,8 @@ class AV_TO_GCS_DATA_1(AVPacket):
             caller_awaiting_results = True
             # Run assumption that you've setup and named keys correctly with descriptors
             if (
-                DATA_TEST_COMPLETE
-                != AVPacket._last_test_details[KEY_TEST_COMPLETE]
+                AVPacket._last_test_details[KEY_TEST_COMPLETE]
+                != DATA_TEST_COMPLETE
             ):
                 # This value has changed ^
                 data_test_complete_changed = True
@@ -560,14 +556,14 @@ class AV_TO_GCS_DATA_1(AVPacket):
                         slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
 
                 # Update history of changed complete condition
-                AVPacket._last_test_details[
+                AVPacket._last_test_details[  # fmt issue here
                     KEY_TEST_COMPLETE
                 ] = DATA_TEST_COMPLETE
 
             # Have the results changed when the test complete flag has not?
             if (
-                DATA_TEST_RESULTS
-                != AVPacket._last_test_details[KEY_TEST_RESULTS]
+                AVPacket._last_test_details[KEY_TEST_RESULTS]
+                != DATA_TEST_RESULTS
             ) and not data_test_complete_changed:
                 slogger.error(
                     f"{KEY_TEST_RESULTS} changed without test completion"
