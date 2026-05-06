@@ -276,11 +276,11 @@ def _validate_interface_options(
             )
 
 
-def _validate_run_options(
+def _validate_mutually_exclusive_options(
     gse_only: Optional[bool], frontend_only: Optional[bool]
 ) -> None:
     """
-    Validate mutual exlusivity of --gse-only and --frontend-only.
+    Validate mutual exclusivity of --gse-only and --frontend-only.
     Raises click.UsageError for invalid combinations.
     """
     if gse_only and frontend_only:
@@ -460,23 +460,14 @@ def run(gse_only, frontend_only):
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
     rocket_logging.set_console_low_detail(True)
-    _validate_run_options(gse_only, frontend_only)
+    _validate_mutually_exclusive_options(gse_only, frontend_only)
 
-    if frontend_only:
-        # Disable GSE interface if running in frontend_only
-        interface_gse_arg = "test"
-    else:
-        interface_gse_arg = config.get_config()["hardware"].get(
-            "interface_release_gse"
-        )
-
-    if frontend_only:  # or gse_only:
-        # Disable AV interface if running in frontend_only or gse_only mode
-        interface_av_arg = "test"
-    else:
-        interface_av_arg = config.get_config()["hardware"].get(
-            "interface_release_av"
-        )
+    interface_gse_arg = config.get_config()["hardware"].get(
+        "interface_release_gse"
+    )
+    interface_av_arg = config.get_config()["hardware"].get(
+        "interface_release_av"
+    )
 
     start_services(
         Command.RUN,
@@ -510,6 +501,7 @@ def dev(
 ):
     """Start software in development mode"""
     _validate_interface_options(interface, interface_av, interface_gse)
+    _validate_mutually_exclusive_options(gse_only, frontend_only)
     if interface is not None:
         interface_av = interface
         interface_gse = interface
