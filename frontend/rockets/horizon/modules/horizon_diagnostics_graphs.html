@@ -1,3 +1,12 @@
-<div>
-  PING GRAPHS GO HERE
+<!-- Middle section of the diagnostics page -->
+<!-- Ping graph panels are created here dynamically by GCS_Graphs.js -->
+<div class="module-horizon w-full h-full flex flex-col p-2 gap-1">
+  <h2>Ping Graphs</h2>
+  <div
+      id="diag-graphs-container"
+      class="flex-1 grid grid-cols-3 gap-2 min-h-0"
+      style="grid-auto-rows: 1fr;"
+  >
+      <!-- Graph panels injected here by graphUpdateDiagnostics() -->
+  </div>
 </div>

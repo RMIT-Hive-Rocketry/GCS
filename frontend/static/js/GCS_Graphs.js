@@ -17,7 +17,7 @@ const LINE_COLOURS = [
     "var(--color-blue-500)",
     "white",
 ];
-const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
+const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 120 };
 
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
@@ -401,6 +401,9 @@ function graphRequestRender() {
     graphRender(GRAPH_AUX_THERMOCOUPLES);
     graphRender(GRAPH_AUX_INTERNALTEMP);
     graphRender(GRAPH_AUX_GASBOTTLES);
+
+    // Diagnostics ping graphs
+    graphRenderDiagnostics();
 }
 
 function graphAddValue(graph, line, timestamp, value) {
@@ -535,4 +538,124 @@ function graphUpdateAuxData(data) {
             data.gasBottleWeight2,
         );
     }
+}
+// ================================================================
+// DIAGNOSTICS PING GRAPHS
+// Creates and updates ping latency graphs for the diagnostics page.
+// Called when packet ID 50 arrives from network_pings.py
+// ================================================================
+
+const diagGraphs = {}; // stores graph objects per device
+
+// Which devices control each summary status box
+const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
+const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
+
+// Creates a graph panel for a device if it doesn't exist yet
+function diagEnsureGraph(deviceName) {
+    if (diagGraphs[deviceName]) return;
+
+    const container = document.getElementById("diag-graphs-container");
+    if (!container) return;
+
+    // Make a CSS-safe ID from the device name
+    const svgId = "diag-graph-" + deviceName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+    if (document.getElementById(svgId)) return;
+
+    // Build the graph panel and add it to the container
+    const panel = document.createElement("div");
+    panel.className = "flex flex-col border border-hive-dark rounded overflow-hidden";
+    panel.style.backgroundColor = "rgba(0,0,0,0.2)";
+    panel.innerHTML = `
+        <div class="px-2 pt-1 shrink-0 text-xs font-semibold" style="color:var(--color-horizon-yellow,#f59e0b);">
+            ${deviceName} PING
+        </div>
+        <div class="grow relative min-h-0">
+            <svg id="${svgId}" class="w-full h-full absolute inset-0" width="0" height="0"></svg>
+        </div>
+    `;
+    container.appendChild(panel);
+
+    // Initialise the D3 line graph
+    const graph = {
+        selector: `#${svgId}`,
+        ylabel: "Ping (ms)",
+        numLines: 1,
+        limits: { yBottomMax: 0 },
+        data: [],
+        margin: { top: 6, right: 10, bottom: 24, left: 80 },
+    };
+    graphCreateLine(graph);
+    diagGraphs[deviceName] = graph;
+}
+
+// Called every packet cycle to update graphs and status boxes
+function graphUpdateDiagnostics(apiData) {
+    const timestamp = Date.now() / 1000;
+
+    let gseUp = true, gseHasData = false;
+    let lanUp = true, lanHasData = false;
+
+    Object.entries(apiData).forEach(([deviceName, deviceData]) => {
+        if (deviceName === "id") return;
+        if (deviceName === "state") return;
+        if (deviceName === "meta") return;
+        if (typeof deviceData !== "object" || deviceData === null) return;
+        if (!("ping" in deviceData)) return;
+
+        const ping = deviceData?.ping ?? -1;
+        const alive = ping >= 0;
+
+        // Create graph for this device if needed
+        diagEnsureGraph(deviceName);
+
+        // Add data point to graph (skip failed pings so line breaks)
+        const graph = diagGraphs[deviceName];
+        if (graph && alive) {
+            graphAddValue(graph, 0, timestamp, ping);
+        }
+
+        // Track summary status
+        if (DIAG_GSE_DEVICES.includes(deviceName)) {
+            gseHasData = true;
+            if (!alive) gseUp = false;
+        }
+        if (DIAG_LAN_DEVICES.includes(deviceName)) {
+            lanHasData = true;
+            if (!alive) lanUp = false;
+        }
+    });
+
+    // Update the summary boxes
+    if (gseHasData) diagSetStatusBox("diag-summary-gse", gseUp);
+    if (lanHasData) diagSetStatusBox("diag-summary-lan", lanUp);
+
+    // AVIONICS: check if AV radio indicator is green
+    const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
+    if (avIndicator) {
+        diagSetStatusBox("diag-summary-av", avIndicator.classList.contains("green"));
+    }
+}
+
+// Flips a status box between green UP and red DOWN
+function diagSetStatusBox(id, isUp) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.textContent = isUp ? "UP" : "DOWN";
+
+    if (isUp) {
+        el.style.backgroundColor = "var(--color-green-400, #4ade80)";
+        el.style.borderColor     = "var(--color-green-700, #15803d)";
+        el.style.color           = "black";
+    } else {
+        el.style.backgroundColor = "var(--color-red-500, #ef4444)";
+        el.style.borderColor     = "var(--color-red-800, #991b1b)";
+        el.style.color           = "white";
+    }
+}
+
+// Renders all diagnostics graphs every animation frame
+function graphRenderDiagnostics() {
+    Object.values(diagGraphs).forEach(graph => graphRender(graph));
 }
