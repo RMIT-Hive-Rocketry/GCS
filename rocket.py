@@ -413,8 +413,8 @@ def start_services(
         start_replay_system(
             logger,
             aux_service_plan.device_path,
-            MISSION=aux_service_plan.mission,
-            SIMULATION=aux_service_plan.simulation,
+            mission=aux_service_plan.mission,
+            simulation=aux_service_plan.simulation,
         )
 
     # 4. Start the event viewer
