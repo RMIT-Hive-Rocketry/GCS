@@ -166,7 +166,7 @@ function graphCreateLine(chart) {
         .attr("fill", "white")
         .attr("transform", "rotate(-90)")
         .attr("x", -Math.round(chart.graphHeight / 2))
-        .attr("y", 10)
+        .attr("y", 15)
         .text(chart.ylabel || "Y LABEL");
 
     // Lines array to hold multiple line data sets
