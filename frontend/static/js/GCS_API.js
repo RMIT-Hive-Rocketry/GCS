@@ -829,12 +829,13 @@ function processDataForDisplay(apiData, apiId) {
         let packetsTable = document.getElementById("packets");
         
         /* Always ignore the <th> and double-AV rows at the start
+         * (meaning the 1st 3 indices shhould always be ignored)
          * 1st row is the state indicator and name, 2nd is
          * the packet losss, ping and packet count
         */
         
         // Delete devices no longer found
-        for (let i = 4; i < packetsTable.rows.length - 1; i += 2) {
+        for (let i = 3; i < packetsTable.rows.length - 1; i += 2) {
             // Get the data-key attribute
             const td = document.querySelector('tr td').dataset.key;
             
