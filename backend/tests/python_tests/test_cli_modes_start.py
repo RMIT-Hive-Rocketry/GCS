@@ -1,7 +1,6 @@
 import subprocess
 import sys
 import os
-from typing import List, Optional, Tuple
 import time
 import threading
 import queue
@@ -18,8 +17,8 @@ class ProcessOutputScanner:
         self.captured_lines = []
 
     def scan_for_patterns(
-        self, fail_any: List[str], success_all: List[str], timeout: float = 10.0
-    ) -> Tuple[bool, List[str]]:
+        self, fail_any: list[str], success_all: list[str], timeout: float = 10.0
+    ) -> tuple[bool, list[str]]:
         """
         Scans output for failure/success patterns using regex.
 
@@ -84,12 +83,12 @@ class ProcessResourceMonitor:
         self.pid = pid
         self.sample_interval_s = sample_interval_s
         self._stop_event = threading.Event()
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self.peak_rss_kb = 0
         self.peak_cpu_pct = 0.0
         self.samples_taken = 0
 
-    def start(self):
+    def start(self) -> None:
         if self._thread is not None:
             return
         self._thread = threading.Thread(
@@ -99,12 +98,12 @@ class ProcessResourceMonitor:
         )
         self._thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         self._stop_event.set()
         if self._thread is not None:
             self._thread.join(timeout=1)
 
-    def snapshot(self):
+    def snapshot(self) -> dict[str, int | float]:
         return {
             "peak_rss_kb": self.peak_rss_kb,
             "peak_rss_mb": self.peak_rss_kb / 1024,
@@ -112,7 +111,7 @@ class ProcessResourceMonitor:
             "samples_taken": self.samples_taken,
         }
 
-    def _monitor(self):
+    def _monitor(self) -> None:
         # We use `ps` to avoid adding a test dependency like psutil.
         while not self._stop_event.is_set():
             sample = self._sample_ps()
@@ -123,7 +122,7 @@ class ProcessResourceMonitor:
                 self.peak_cpu_pct = max(self.peak_cpu_pct, cpu_pct)
             self._stop_event.wait(self.sample_interval_s)
 
-    def _sample_ps(self) -> Optional[Tuple[int, float]]:
+    def _sample_ps(self) -> tuple[int, float] | None:
         result = subprocess.run(
             ["ps", "-o", "rss=", "-o", "%cpu=", "-p", str(self.pid)],
             capture_output=True,
@@ -263,9 +262,8 @@ class CliStartup(ABC):
         )
 
     @abstractmethod
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         """Return the rocket.py arguments for this test class."""
-        pass
 
 
 @pytest.mark.skipif(
@@ -273,7 +271,7 @@ class CliStartup(ABC):
     reason="CI_BUILD_ENV undefined or not Debug",
 )
 class TestDevStartups(CliStartup):
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         return [
             "dev",
             "--interface",
@@ -285,7 +283,7 @@ class TestDevStartups(CliStartup):
 
     def test_runs_successfully(
         self,
-        process_and_scanner: Tuple[
+        process_and_scanner: tuple[
             subprocess.Popen, ProcessOutputScanner, ProcessResourceMonitor
         ],
     ):
@@ -299,7 +297,7 @@ class TestDevStartups(CliStartup):
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
-        assert success, f"System failed to match patterns"
+        assert success, "System failed to match patterns"
         self.assert_resource_limits(resource_monitor)
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
@@ -309,12 +307,12 @@ class TestDevStartups(CliStartup):
     reason="CI_BUILD_ENV undefined or not Run",
 )
 class TestRunStartups(CliStartup):
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         return ["run"]
 
     def test_runs_successfully(
         self,
-        process_and_scanner: Tuple[
+        process_and_scanner: tuple[
             subprocess.Popen, ProcessOutputScanner, ProcessResourceMonitor
         ],
     ):
@@ -330,7 +328,7 @@ class TestRunStartups(CliStartup):
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
-        assert success, f"System failed to match patterns"
+        assert success, "System failed to match patterns"
         self.assert_resource_limits(resource_monitor)
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
@@ -340,7 +338,7 @@ class TestRunStartups(CliStartup):
     reason="CI_BUILD_ENV undefined or not Debug",
 )
 class TestInterfaceUART_E5(CliStartup):
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         return [
             "dev",
             "--interface",
@@ -352,7 +350,7 @@ class TestInterfaceUART_E5(CliStartup):
 
     def test_runs_successfully(
         self,
-        process_and_scanner: Tuple[
+        process_and_scanner: tuple[
             subprocess.Popen, ProcessOutputScanner, ProcessResourceMonitor
         ],
     ):
@@ -366,7 +364,7 @@ class TestInterfaceUART_E5(CliStartup):
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
-        assert success, f"System failed to match patterns"
+        assert success, "System failed to match patterns"
         self.assert_resource_limits(resource_monitor)
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
@@ -375,7 +373,7 @@ class TestInterfaceUART_E5(CliStartup):
 # See logs from https://github.com/RMIT-Hive-Rocketry/GCS-2026/commit/dcd83d77b575807498cad0bbb10d35e56eecb06c
 @pytest.mark.skip(reason="Skipped until rocketpy supports new API format")
 class TestReplaySimulationStartups(CliStartup):
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         return [
             "replay",
             "--mode",
@@ -387,7 +385,7 @@ class TestReplaySimulationStartups(CliStartup):
 
     def test_runs_successfully(
         self,
-        process_and_scanner: Tuple[
+        process_and_scanner: tuple[
             subprocess.Popen, ProcessOutputScanner, ProcessResourceMonitor
         ],
     ):
@@ -399,7 +397,7 @@ class TestReplaySimulationStartups(CliStartup):
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
-        assert success, f"System failed to match patterns"
+        assert success, "System failed to match patterns"
         self.assert_resource_limits(resource_monitor)
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
@@ -410,7 +408,7 @@ class TestReplaySimulationStartups(CliStartup):
 )
 @pytest.mark.skip(reason="Skipped until rocketpy supports new API format")
 class TestReplayMissionStartups(CliStartup):
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         return [
             "replay",
             "--mode",
@@ -422,7 +420,7 @@ class TestReplayMissionStartups(CliStartup):
 
     def test_runs_successfully(
         self,
-        process_and_scanner: Tuple[
+        process_and_scanner: tuple[
             subprocess.Popen, ProcessOutputScanner, ProcessResourceMonitor
         ],
     ):
@@ -434,7 +432,7 @@ class TestReplayMissionStartups(CliStartup):
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
-        assert success, f"System failed to match patterns"
+        assert success, "System failed to match patterns"
         self.assert_resource_limits(resource_monitor)
         print(f"System ran successfully. Captured {len(output_lines)} lines")
 
@@ -445,7 +443,7 @@ class TestReplayMissionStartups(CliStartup):
 )
 @pytest.mark.skip(reason="Skipped until rocketpy supports")
 class TestDemoMissionStartups(CliStartup):
-    def get_rocket_args(self) -> List[str]:
+    def get_rocket_args(self) -> list[str]:
         return [
             "replay",
             "--mode",
@@ -457,7 +455,7 @@ class TestDemoMissionStartups(CliStartup):
 
     def test_runs_successfully(
         self,
-        process_and_scanner: Tuple[
+        process_and_scanner: tuple[
             subprocess.Popen, ProcessOutputScanner, ProcessResourceMonitor
         ],
     ):
@@ -469,6 +467,6 @@ class TestDemoMissionStartups(CliStartup):
         success, output_lines = scanner.scan_for_patterns(
             fail_any=fail_patterns, success_all=success_patterns, timeout=30.0
         )
-        assert success, f"System failed to match patterns"
+        assert success, "System failed to match patterns"
         self.assert_resource_limits(resource_monitor)
         print(f"System ran successfully. Captured {len(output_lines)} lines")
