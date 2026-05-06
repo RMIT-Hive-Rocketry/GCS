@@ -1,9 +1,9 @@
 import logging
 import cli.proccess as process
 from config.config import get_config
+import os
 
 # TODO: Implement logging
-
 
 class IgnoreWebMessagesFilter(logging.Filter):
     """Filter to exclude unneeded web messages"""
@@ -12,7 +12,12 @@ class IgnoreWebMessagesFilter(logging.Filter):
         return "GET" not in record.getMessage()
 
 
-def start_frontend_webserver(logger: logging.Logger):
+def start_frontend_webserver(logger: logging.Logger, backend_ip):
+
+    env = os.environ.copy()
+    env["BACKEND_IP"] = backend_ip
+
+
     SERVICE_NAME = "frontend_webserver"
     try:
         FRONTEND_COMMAND = [
@@ -27,7 +32,7 @@ def start_frontend_webserver(logger: logging.Logger):
         logger.debug(f"Starting {SERVICE_NAME} module with: {FRONTEND_COMMAND}")
 
         frontend_process = process.LoggedSubProcess(
-            FRONTEND_COMMAND, name=SERVICE_NAME, parse_output=False
+            FRONTEND_COMMAND, name=SERVICE_NAME, env= env, parse_output=False
         )
         frontend_process._parent_logger.addFilter(IgnoreWebMessagesFilter())
         frontend_process.start()

@@ -53,6 +53,7 @@ class DecoratorSelector(enum.Enum):
     ALL_DEV = enum.auto()  # Give me all the dev options
     SIM = enum.auto()  # Give me the options for simulation
     GSE_ONLY = enum.auto()  # Give me just the GSE only option
+    FRONTEND_ONLY = enum.auto()  # Give me just the GSE only option
     REPLAY = enum.auto()
 
 
@@ -87,6 +88,13 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option(
             "--gse-only", is_flag=True, help="Run the system in GSE only mode"
         )
+    ]
+
+    OPTIONS_FRONTEND_ONLY = [
+        click.option(
+            "--ip", 
+            help="Only Run GSC front end server requires backend IP"
+        ),
     ]
 
     OPTIONS_SIM = [
@@ -188,6 +196,8 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         OPTIONS = OPTIONS_SIM
     elif SELECTOR == DecoratorSelector.GSE_ONLY:
         OPTIONS = OPTIONS_GSE_ONLY
+    elif SELECTOR == DecoratorSelector.FRONTEND_ONLY:
+        OPTIONS = OPTIONS_FRONTEND_ONLY
     elif SELECTOR == DecoratorSelector.REPLAY:
         OPTIONS = OPTIONS_REPLAY
 
@@ -276,6 +286,7 @@ def start_services(
     nopendant: bool = False,
     gse_only: bool = False,
     frontend: bool = False,
+    frontend_only: Optional[str] = None,
     replay_mode: Optional[str] = None,
     MISSION_ARG: Optional[str] = None,
     SIMULATION_ARG: Optional[str] = None,
@@ -294,6 +305,7 @@ def start_services(
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
         gse_only (bool, optional): Only communicate with GSE?. Defaults to False.
         frontend (bool, optional): Start the frontend server?. Defaults to False.
+        frontend_only (Optional[str], optional): Only start the frontend server?. Defaults to None.
         replay_mode (Optional[str], optional): _description_. Defaults to None.
         MISSION_ARG (Optional[str], optional): _description_. Defaults to None.
         SIMULATION_ARG (Optional[str], optional): _description_. Defaults to None.
@@ -326,6 +338,16 @@ def start_services(
             "Internal Docker implimentation is out of date. Do not use"
         )
         start_docker_container(logger)
+
+
+    # 2. Check to see if using frontend_only if so interrupt loading
+    print(frontend_only)
+
+    if frontend_only != None and frontend_only != False:
+        # 7. Start the frontend web server
+        start_frontend_webserver(logger, frontend_only) # pass ip of the backend through
+        return
+    
 
     # 1 Build C++ middleware
     if not nobuild:
@@ -400,9 +422,11 @@ def start_services(
         else:
             start_pendant_emulator(logger)
 
+    # 6. Start the websocket / frontend API
+    start_frontend_api(logger, "gcs_rocket")
+
     if frontend:
-        # 6. Start the websocket / frontend API
-        start_frontend_api(logger, "gcs_rocket")
+        
         # 7. Start the frontend web server
         start_frontend_webserver(logger)
 
@@ -442,6 +466,19 @@ def run(gse_only):
         frontend=True,  # Run frontend web server in production mode
     )
 
+@click.command()
+@cli_decorator_factory(DecoratorSelector.FRONTEND_ONLY)
+def frontend_only(ip):
+    start_services(
+        Command.DEV,
+        DOCKER=False,
+        nobuild=True,  # Do NOT auto build in production mode.
+        logpkt=True,  # Log packets by default in production mode
+        nopendant=True,  # Pendant emulator is required in production mode
+        gse_only=False,
+        frontend=False,  # Run frontend web server in production mode
+        frontend_only=ip # set the frontend to be true
+    )
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.ALL_DEV)
@@ -473,6 +510,7 @@ def dev(
         nopendant=nopendant,
         gse_only=gse_only,
         frontend=frontend,
+        frontend_only=False,
         experimental=experimental,
         corruption=corruption,
     )
@@ -492,6 +530,7 @@ def simulation(docker, nobuild, logpkt):
         nopendant=True,
         gse_only=False,
         frontend=True,
+        frontend_only=False
     )
 
 
@@ -532,6 +571,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
         nopendant=True,
         gse_only=False,
         frontend=True,
+        frontend_only=False,
         replay_mode=mode,
         MISSION_ARG=mission,
         SIMULATION_ARG=simulation,
@@ -593,6 +633,7 @@ def main():
     cli.add_command(dev)
     cli.add_command(simulation)
     cli.add_command(replay)
+    cli.add_command(frontend_only)
 
     # Register custom signal handlers
     signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C

@@ -29,6 +29,13 @@
         {% endif %} {% endfor %}
     </main>
 
+    <script>
+        // Embed backend ip into js from server
+        window.APP_CONFIG = {
+            backendIp: {{ backend_ip | tojson }}
+        };
+    </script>
+
     <script src="/js/GCS_API.js"></script>
     <script src="/js/GCS_Testing.js"></script>
 

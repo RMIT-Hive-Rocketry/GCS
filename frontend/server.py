@@ -2,6 +2,7 @@
 from frontend.rocket_loader import load_rockets
 from flask import Flask, send_from_directory, abort, render_template, request
 from os import path as os_path
+from os import getenv
 import backend.includes_python.process_logging as slogger
 
 """
@@ -67,6 +68,8 @@ def create_app():
     # Render modular layout
     @app.route("/")
     def index():
+        backend_ip = getenv("BACKEND_IP", "127.0.0.1")
+
         # Get active rocket config default
         active = app.config.get("default")
         name = ""
@@ -85,6 +88,7 @@ def create_app():
             config=app.config,
             active=active,
             name=name,
+            backend_ip=backend_ip,
         )
 
     """
