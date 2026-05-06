@@ -6,7 +6,7 @@ Defines default modules, pages, and layout
 
 
 # DEFAULT ROCKET CONFIGURATION
-class Config(object):
+class Config:
     def __init__(self):
         self.ROCKET_NAME = "ROCKET SELECTOR"
         self.LOGO = ""
