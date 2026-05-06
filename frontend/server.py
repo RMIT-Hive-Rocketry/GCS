@@ -153,7 +153,6 @@ def create_app():
         # 404 page not found
         slogger.warning(f"404 not found: {filename}")
         abort(404)
-        return None
 
     # Debugging
     @app.route("/debug/api")
