@@ -556,9 +556,9 @@ class AV_TO_GCS_DATA_1(AVPacket):
                         slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
 
                 # Update history of changed complete condition
-                AVPacket._last_test_details[KEY_TEST_COMPLETE] = (
-                    DATA_TEST_COMPLETE
-                )
+                AVPacket._last_test_details[  # fmt issue here
+                    KEY_TEST_COMPLETE
+                ] = DATA_TEST_COMPLETE
 
             # Have the results changed when the test complete flag has not?
             if (
