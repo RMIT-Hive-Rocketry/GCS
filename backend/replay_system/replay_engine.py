@@ -44,14 +44,14 @@ class Packet:
 
 def process_csv_packets(
     min_timestamp_ms: int, mission_path: str
-) -> List[Packet]:
+) -> list[Packet]:
     """Read and sort all the csv files"""
     packets = []
     for packet_type in PacketType:
 
         filename = os.path.join(mission_path, f"{packet_type.name}.csv")
         try:
-            with open(filename, "r", encoding="utf-8-sig") as f:
+            with open(filename, encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     timestamp_ms = float(row["timestamp_ms"])
@@ -68,7 +68,7 @@ def process_csv_packets(
     return sorted(packets, key=lambda x: x.timestamp_ms)
 
 
-def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
+def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
     if not packets:
         return
 
