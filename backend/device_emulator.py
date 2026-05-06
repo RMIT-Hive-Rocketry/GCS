@@ -1,7 +1,5 @@
-from __future__ import absolute_import
-from abc import ABC, abstractmethod
+from abc import ABC
 import config.config as config
-from typing import Optional, List
 import sys
 import random
 import struct
@@ -24,10 +22,10 @@ import threading
 
 class MockPacket(ABC):
     # Name of the fake device socat has made
-    _FAKE_DEVICE_NAME: Optional[str] = None
-    _INITIALISED: bool = (
-        False  # Flag to check if the settings have been initialized
-    )
+    _FAKE_DEVICE_NAME: str | None = None
+    # Flag to check if the settings have been initialized
+    _INITIALISED: bool = False
+
     _write_lock = threading.Lock()
 
     class _SourceDevice(enum.Enum):
@@ -41,7 +39,7 @@ class MockPacket(ABC):
         EMULATION_CONFIG: dict,
         FAKE_DEVICE_NAME: str = None,
         INTERFACE_TYPE: InterfaceType = InterfaceType.TEST,
-    ):
+    ) -> None:
         """Initialise settings for the MockPacket object
 
         Args:
@@ -70,10 +68,10 @@ class MockPacket(ABC):
             raise RuntimeError(
                 "Cannot create instances of MockPacket or its subclasses before initializing class settings."
             )
-        self.ID: Optional[int] = None  # Packet ID
+        self.ID: int | None = None  # Packet ID
         # High level payload builder
-        self.payload_after_id_and_meta: Optional[List[bytes]] = None
-        self.ORIGIN_DEVICE: Optional[MockPacket._SourceDevice] = None
+        self.payload_after_id_and_meta: list[bytes] | None = None
+        self.ORIGIN_DEVICE: MockPacket._SourceDevice | None = None
 
     def write_payload(self):
         """Writes payload of bytes to device"""
@@ -157,7 +155,7 @@ class GCStoGSEStateCMD(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id_and_meta = [
-            metric.Metric.StateSetFlags2p1(
+            metric.Metric.state_set_flag_s2p1(
                 MANUAL_PURGE,
                 O2_FILL_ACTIVATE,
                 SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -167,7 +165,7 @@ class GCStoGSEStateCMD(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATE,
             ),
-            metric.Metric.StateSetFlagINVERTEDs2p2(
+            metric.Metric.state_set_flag_inverted_s2p2(
                 MANUAL_PURGE,
                 O2_FILL_ACTIVATE,
                 SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -177,7 +175,7 @@ class GCStoGSEStateCMD(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATE,
             ),
-            metric.Metric.dummyByte(),
+            metric.Metric.dummy_byte(),
         ]
 
 
@@ -198,19 +196,19 @@ class GCStoAVStateCMD(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id_and_meta = [
-            metric.Metric.continuityCheckCMDFlags(
+            metric.Metric.continuity_check_cmd_flags(
                 MAIN_SECONDARY_TEST,
                 MAIN_PRIMARY_TEST,
                 APOGEE_SECONDARY_TEST,
                 APROGEE_PRIMARY_TEST,
             ),
-            metric.Metric.continuityCheckCMDFlagsINVERTED(
+            metric.Metric.continuity_check_cmd_flags_inverted(
                 MAIN_SECONDARY_TEST,
                 MAIN_PRIMARY_TEST,
                 APOGEE_SECONDARY_TEST,
                 APROGEE_PRIMARY_TEST,
             ),
-            metric.Metric.BroadcastBeginCMDFlags(BEGIN_BROADCAST),
+            metric.Metric.broadcast_begin_cmd_flags(BEGIN_BROADCAST),
         ]
 
 
@@ -260,7 +258,7 @@ class AVtoGCSData1(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
-            metric.Metric.StateFlags3p0(
+            metric.Metric.state_flag_s3p0(
                 FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
@@ -268,32 +266,32 @@ class AVtoGCSData1(MockPacket):
                 PAYLOAD_CONNECTION_FLAG,
                 CAMERA_CONTROLLER_CONNECTION,
             ),
-            metric.Metric.ACCEL_LOW_X(ACCEL_LOW_X),
-            metric.Metric.ACCEL_LOW_Y(ACCEL_LOW_Y),
-            metric.Metric.ACCEL_LOW_Z(ACCEL_LOW_Z),
-            metric.Metric.ACCEL_HIGH_X(ACCEL_HIGH_X),
-            metric.Metric.ACCEL_HIGH_Y(ACCEL_HIGH_Y),
-            metric.Metric.ACCEL_HIGH_Z(ACCEL_HIGH_Z),
-            metric.Metric.GYRO_X(GYRO_X),
-            metric.Metric.GYRO_Y(GYRO_Y),
-            metric.Metric.GYRO_Z(GYRO_Z),
-            metric.Metric.ALTITUDE(ALTITUDE),
-            metric.Metric.VELOCITY(VELOCITY),
-            metric.Metric.continuityCheckResultsApogee(
+            metric.Metric.accel_low_x(ACCEL_LOW_X),
+            metric.Metric.accel_low_y(ACCEL_LOW_Y),
+            metric.Metric.accel_low_z(ACCEL_LOW_Z),
+            metric.Metric.accel_high_x(ACCEL_HIGH_X),
+            metric.Metric.accel_high_y(ACCEL_HIGH_Y),
+            metric.Metric.accel_high_z(ACCEL_HIGH_Z),
+            metric.Metric.gyro_x(GYRO_X),
+            metric.Metric.gyro_y(GYRO_Y),
+            metric.Metric.gyro_z(GYRO_Z),
+            metric.Metric.altitude(ALTITUDE),
+            metric.Metric.velocity(VELOCITY),
+            metric.Metric.continuity_check_results_apogee(
                 APOGEE_PRIMARY_TEST_COMPETE,
                 APOGEE_SECONDARY_TEST_COMPETE,
                 APOGEE_PRIMARY_TEST_RESULTS,
                 APOGEE_SECONDARY_TEST_RESULTS,
             ),
-            metric.Metric.continuityCheckResultsMain(
+            metric.Metric.continuity_check_results_main(
                 MAIN_PRIMARY_TEST_COMPETE,
                 MAIN_SECONDARY_TEST_COMPETE,
                 MAIN_PRIMARY_TEST_RESULTS,
                 MAIN_SECONDARY_TEST_RESULTS,
             ),
-            metric.Metric.MovingToBroadCastFlag(MOVE_TO_BROADCAST),
+            metric.Metric.moving_to_broad_cast_flag(MOVE_TO_BROADCAST),
             # Note the dummy byte here for TBC purposes
-            metric.Metric.dummyByte(),
+            metric.Metric.dummy_byte(),
         ]
 
 
@@ -322,7 +320,7 @@ class AVtoGCSData2(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
-            metric.Metric.StateFlags3p0(
+            metric.Metric.state_flag_s3p0(
                 FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
@@ -330,12 +328,12 @@ class AVtoGCSData2(MockPacket):
                 PAYLOAD_CONNECTION_FLAG,
                 CAMERA_CONTROLLER_CONNECTION,
             ),
-            metric.Metric.GPS(LATITUDE, LONGITUDE),
-            metric.Metric.NAVIGATION_STATUS(NAV_STATUS),
-            metric.Metric.QUATERNION(QW),
-            metric.Metric.QUATERNION(QX),
-            metric.Metric.QUATERNION(QY),
-            metric.Metric.QUATERNION(QZ),
+            metric.Metric.gps(LATITUDE, LONGITUDE),
+            metric.Metric.navigation_status(NAV_STATUS),
+            metric.Metric.quaternion(QW),
+            metric.Metric.quaternion(QX),
+            metric.Metric.quaternion(QY),
+            metric.Metric.quaternion(QZ),
         ]
 
 
@@ -357,7 +355,7 @@ class AVtoGCSData3(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
-            metric.Metric.StateFlags3p0(
+            metric.Metric.state_flag_s3p0(
                 FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
@@ -366,7 +364,7 @@ class AVtoGCSData3(MockPacket):
                 CAMERA_CONTROLLER_CONNECTION,
             ),
             # TBC for rest of the bytes?
-        ] + [metric.Metric.dummyByte()] * 30
+        ] + [metric.Metric.dummy_byte()] * 30
 
 
 class GSEtoGCSData1(MockPacket):
@@ -412,7 +410,7 @@ class GSEtoGCSData1(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
         self.payload_after_id_and_meta = [
-            metric.Metric.StateSetFlags2p1(
+            metric.Metric.state_set_flag_s2p1(
                 MANUAL_PURGED,
                 O2_FILL_ACTIVATED,
                 SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -422,14 +420,14 @@ class GSEtoGCSData1(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATED,
             ),
-            metric.Metric.TRANSDUCER(TRANSDUCER1),
-            metric.Metric.TRANSDUCER(TRANSDUCER2),
-            metric.Metric.TRANSDUCER(TRANSDUCER3),
-            metric.Metric.THERMOCOUPLE(THERMOCOUPLE1),
-            metric.Metric.THERMOCOUPLE(THERMOCOUPLE2),
-            metric.Metric.THERMOCOUPLE(THERMOCOUPLE3),
-            metric.Metric.THERMOCOUPLE(THERMOCOUPLE4),
-            metric.Metric.ERROR_CODE_GSE(
+            metric.Metric.transducer(TRANSDUCER1),
+            metric.Metric.transducer(TRANSDUCER2),
+            metric.Metric.transducer(TRANSDUCER3),
+            metric.Metric.thermocouple(THERMOCOUPLE1),
+            metric.Metric.thermocouple(THERMOCOUPLE2),
+            metric.Metric.thermocouple(THERMOCOUPLE3),
+            metric.Metric.thermocouple(THERMOCOUPLE4),
+            metric.Metric.error_code_gse(
                 IGNITION_ERROR,
                 RELAY3_ERROR,
                 RELAY2_ERROR,
@@ -494,7 +492,7 @@ class GSEtoGCSData2(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
         self.payload_after_id_and_meta = [
-            metric.Metric.StateSetFlags2p1(
+            metric.Metric.state_set_flag_s2p1(
                 MANUAL_PURGED,
                 O2_FILL_ACTIVATED,
                 SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -504,15 +502,15 @@ class GSEtoGCSData2(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATED,
             ),
-            metric.Metric.INTERNAL_TEMP_GSE(INTERNAL_TEMPERATURE),
-            metric.Metric.WIND_SPEED_GSE(WIND_SPEED),
-            metric.Metric.GAS_BOTTLE_WEIGHT(GAS_BOTTLE_WEIGHT_1),
-            metric.Metric.GAS_BOTTLE_WEIGHT(GAS_BOTTLE_WEIGHT_2),
-            metric.Metric.ADDITIONAL_VA_INPUT(ADDITIONAL_VA_1),
-            metric.Metric.ADDITIONAL_VA_INPUT(ADDITIONAL_VA_2),
-            metric.Metric.ADDITIONAL_CURRENT_INPUT(ADDITIONAL_CURRENT_1),
-            metric.Metric.ADDITIONAL_CURRENT_INPUT(ADDITIONAL_CURRENT_2),
-            metric.Metric.ERROR_CODE_GSE(
+            metric.Metric.internal_temp_gse(INTERNAL_TEMPERATURE),
+            metric.Metric.wind_speed_gse(WIND_SPEED),
+            metric.Metric.gas_bottle_weight(GAS_BOTTLE_WEIGHT_1),
+            metric.Metric.gas_bottle_weight(GAS_BOTTLE_WEIGHT_2),
+            metric.Metric.additional_va_input(ADDITIONAL_VA_1),
+            metric.Metric.additional_va_input(ADDITIONAL_VA_2),
+            metric.Metric.additional_current_input(ADDITIONAL_CURRENT_1),
+            metric.Metric.additional_current_input(ADDITIONAL_CURRENT_2),
+            metric.Metric.error_code_gse(
                 IGNITION_ERROR,
                 RELAY3_ERROR,
                 RELAY2_ERROR,
@@ -633,7 +631,8 @@ def corrupt_packet(
                     for i in range(0, len(binary_corrupt), 8)
                 )
                 byte_data = bytes(
-                    a ^ b for a, b in zip(bytes_str, bytes_corrupt)
+                    a ^ b
+                    for a, b in zip(bytes_str, bytes_corrupt, strict=False)
                 )
 
                 # Pack bits back into a value
@@ -653,7 +652,7 @@ def corrupt_packet(
 
 def get_sinusoid_packets(
     START_TIME: float, EXPERIMENTAL: bool, CORRUPTION: bool
-) -> List[MockPacket]:
+) -> list[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions unless specified otherwise
 
