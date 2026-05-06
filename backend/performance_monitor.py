@@ -450,6 +450,11 @@ def main():
         config["performance_monitor"]["performance_sampling_interval"].strip()
     )
 
+    # Keep Track of loops to show logs to cli
+    loopCount = 0
+    cliLogTheshold = int(config["performance_monitor"]["performance_cli_log_interval"].strip())
+
+
     log_filename = f"performance_{time.strftime('%Y%m%d_%H%M%S')}.csv"
     log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
 
@@ -472,12 +477,11 @@ def main():
         writer = csv.writer(file)
         writer.writerow(headers)
 
-    slogger.critical(processesDataList)  # TODO MAKE SURE TO DELETE
-
     # Sleep To Give Initial Data time to change
-    time.sleep(samplingInterval)
+    time.sleep(samplingInterval)    
 
-    while not service_helper.time_to_stop():
+    while (service_helper.time_to_stop() != True):
+        loopCount += 1
 
         # Call function to get global system data
         systemData = get_global_status()
@@ -509,9 +513,6 @@ def main():
         for idx, ActiveProcess in enumerate(processesDataList):
             # Get Memory Data For Process
             ps = get_process_status(ActiveProcess[0])
-
-            if ActiveProcess[1] == "frontend_webserver":
-                slogger.info(ps)
 
             if ps is None or (
                 ps.vmRss == 0
@@ -592,6 +593,12 @@ def main():
         with open(log_file_path, "a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(row)
+
+        # This is in seconds as one loop executes every second
+        if (loopCount >= cliLogTheshold):
+            slogger.debug(f"System CPU Util: {round(systemData.cpuUsagePercent,2)}% Ram Util: {round(totalRamUsePercent,2)}%")
+            slogger.debug(f"Program CPU Util: {round(ourCpuUsePercent,2)}% Ram Util: {round(ourRamUsePercent,2)}%")
+            loopCount = 0
 
         # Update Old Values with current ones
         previousSysData = systemData
