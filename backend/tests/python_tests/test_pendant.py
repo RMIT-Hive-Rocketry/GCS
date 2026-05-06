@@ -6,10 +6,11 @@ from backend.includes_python.devices.pendant_state import (
     PendantState,
     PendantInput,
 )
+from typing import Never
 
 
 class ExampleControlDevice(ControlDevice):
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         pass
 
     def _update_state_table(self) -> None:
@@ -20,13 +21,13 @@ class ExampleControlDevice(ControlDevice):
         return super().cleanup()
 
 
-def test_control_device():
+def test_control_device() -> None:
     device = ExampleControlDevice()
 
-    # if _update_state_table retuns nothing then we should get get_fallback_table
+    # if _update_state_table returns nothing then we should get get_fallback_table
     assert device.get_state_table() == PendantState.get_fallback_table()
 
-    def raise_exception(self):
+    def raise_exception(self) -> Never:
         raise RuntimeError("test")
 
     device._update_state_table = raise_exception
@@ -34,7 +35,7 @@ def test_control_device():
     # if it throws an error we should get_fallback_table
     assert device.get_state_table() == PendantState.get_fallback_table()
 
-    def estop_true(self: ExampleControlDevice):
+    def estop_true(self: ExampleControlDevice) -> None:
         estop_true_state = {
             PendantInput.SYSTEM_ACTIVE: True,
             PendantInput.E_STOP: True,
@@ -56,5 +57,5 @@ def test_control_device():
     )
 
 
-def test_control_device_manager():
+def test_control_device_manager() -> None:
     pass
