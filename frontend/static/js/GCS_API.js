@@ -11,9 +11,12 @@ const initialReconnectInterval = 200; // Initial reconnection wait time
 const maxReconnectInterval = 5000; // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20; // FPS for rendering graphs
 
-// API connection
-// const api_url = window.location.host.split(":")[0];
-api_url = window.APP_CONFIG.backendIp;
+// API connection if no specified ip use default one
+if(window.APP_CONFIG.backendIp == "False")
+    api_url = window.location.host.split(":")[0];
+else
+    api_url = window.APP_CONFIG.backendIp;
+
 const ws_url = `ws://${api_url}:1887`;
 const apiSocket = new WebSocket(ws_url);
 var reconnectInterval = initialReconnectInterval;

@@ -339,8 +339,6 @@ def start_services(
 
 
     # 2. Check to see if using frontend_only if so interrupt loading
-    print(frontend_only)
-
     if frontend_only != None and frontend_only != False:
         # 7. Start the frontend web server
         start_frontend_webserver(logger, frontend_only) # pass ip of the backend through
