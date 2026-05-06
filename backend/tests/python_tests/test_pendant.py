@@ -10,6 +10,9 @@ class ExampleControlDevice(ControlDevice):
         # simulate not getting packets
         pass
 
+    def cleanup(self) -> None:
+        return super().cleanup()
+
 
 def test_control_device():
     device = ExampleControlDevice()
