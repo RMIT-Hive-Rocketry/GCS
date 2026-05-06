@@ -1,5 +1,4 @@
 from backend.includes_python.timers import RepeatingTimer
-import pytest
 import time
 
 EPSILON = 1e-3

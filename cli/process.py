@@ -1,9 +1,9 @@
 import logging
 import re
 import subprocess
-from typing import List, Optional, Callable
 import threading
 from queue import Queue
+from collections.abc import Callable
 import backend.includes_python.process_logging as slogger
 import cli.rocket_logging as rocket_logging
 
@@ -60,17 +60,17 @@ class LoggedSubProcess:
 
     def __init__(
         self,
-        command: List[str],
-        name: Optional[str] = None,
-        env: Optional[dict] = None,
+        command: list[str],
+        name: str | None = None,
+        env: dict | None = None,
         parse_output: bool = False,
     ):
         """
         Args:
-            command (List[str]): List of terminal arguments to run the subprocess
-            name (Optional[str], optional): Name for the subprocess Defaults to None.
-            env (Optional[dict], optional): Environment variables. Defaults to None.
-            parse_output (bool): Parse output for logging levels? Defaults to False. Set this to true if you are using the slogger subprocess logging system.
+            command: List of terminal arguments to run the subprocess
+            name: Name for the subprocess Defaults to None.
+            env: Environment variables. Defaults to None.
+            parse_output: Parse output for logging levels? Defaults to False. Set this to true if you are using the slogger subprocess logging system.
         """
         self._parent_logger = logging.getLogger("rocket")
         if any("python" in arg for arg in command) and not any(
@@ -100,7 +100,7 @@ class LoggedSubProcess:
         self._parsed_data = Queue()  # Thread-safe queue apparently
         self.__class__._instances.append(self)
 
-    def register_callback(self, callback: Callable[[str, str], None]):
+    def register_callback(self, callback: Callable[[str, str], None]) -> None:
         """Register a callback to be called when a specific line is detected"""
         if self._process is not None:
             self._logger_adapter.warning(
@@ -110,7 +110,7 @@ class LoggedSubProcess:
         self._callbacks.append(callback)
         self._logger_adapter.debug(f"Registered  callback: {callback.__name__}")
 
-    def start(self):
+    def start(self) -> None:
         """Start the subprocess and monitor its output asynchronously"""
         self._process = subprocess.Popen(
             self._command,
@@ -139,7 +139,7 @@ class LoggedSubProcess:
         self._stdout_thread.start()
         self._stderr_thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the subprocess"""
         if self._process and self._process.returncode is None:
             self._process.terminate()
@@ -147,8 +147,10 @@ class LoggedSubProcess:
             self._logger_adapter.info(
                 f"Stopped subprocess: {self._name} (PID: {self._process.pid})"
             )
-            self._stdout_thread.join()
-            self._stderr_thread.join()
+            if self._stdout_thread is not None:
+                self._stdout_thread.join()
+            if self._stderr_thread is not None:
+                self._stderr_thread.join()
         try:
             self.__class__._instances.remove(self)
             # EXCEPTION TO A RULE OF THUMB HERE:
@@ -156,17 +158,18 @@ class LoggedSubProcess:
             # another error when cleaning up if a process object has been
             # instantiated but never started. It should not be needed if
             # everything starts fine
-            INSTANCE_DEBUG_PID = [
+            instance_debug_pid = [
                 f"({x._name}: {x._process.pid})"
                 for x in self.__class__._instances
                 if x._process is not None
             ]
             self._logger_adapter.debug(
-                f"Remaining instances: {INSTANCE_DEBUG_PID}"
+                f"Remaining instances: {instance_debug_pid}"
             )
         except ValueError:
+            pid = self._process.pid if self._process else None
             self._logger_adapter.error(
-                f"Failed to close my subprocess: {self._name} (PID:{self._process.pid})"
+                f"Failed to close my subprocess: {self._name} (PID:{pid})"
             )
 
     def _update_callback_condition(self) -> bool:
@@ -194,7 +197,7 @@ class LoggedSubProcess:
                 self._callback_data_available.set()
 
     def _log_monitored_stream(
-        self, stripped_line: str, stream_name: str, level: Optional[str]
+        self, stripped_line: str, stream_name: str, level: str | None
     ) -> None:
         """When given a line and it's origin stream, log it with the appropriate level
 
@@ -204,7 +207,7 @@ class LoggedSubProcess:
             level (str): The log level to use
         """
 
-        def _format(stream, line):
+        def _format(stream, line) -> str:
             if rocket_logging.DETAILED_LOGGING_PREFIX:
                 return f"[{stream}] {line}"
             return line
@@ -264,13 +267,13 @@ class LoggedSubProcess:
                     _format(stream_name, f"LEVEL_WRONG:{stripped_line}")
                 )
 
-    def _monitor_stream(self, stream, stream_name):
+    def _monitor_stream(self, stream, stream_name) -> None:
         for line in iter(stream.readline, ""):
             line = line.strip()
             if line:  # Non-empty lines by 'truthy' check of blank string
                 if self._PARSE_OUTPUT:
                     match = re.match(slogger.REGEX_MATCH, line)
-                    level: Optional[str] = match.group(1) if match else None
+                    level: str | None = match.group(1) if match else None
                 else:
                     level = None
                 # remove level prefix
@@ -280,7 +283,7 @@ class LoggedSubProcess:
                     self._run_callbacks(line, stream_name)
                     self._stop_callbacks = self._update_callback_condition()
 
-    def get_parsed_data(self):
+    def get_parsed_data(self) -> list:
         """Retrieve parsed data from the queue. This will empty the queue of course"""
         if self._process is None:
             raise RuntimeError(
@@ -294,7 +297,7 @@ class LoggedSubProcess:
         return data
 
     @classmethod
-    def cleanup(cls):
+    def cleanup(cls) -> None:
         """Stop all instances unless debugger is active or auto_cleanup is False"""
         # Note to self that this applies to subclasses that don't override this method
 
@@ -303,8 +306,8 @@ class LoggedSubProcess:
         # Cleanup here must be done in the reverse order of creation.
         # Which it is for now
         # But race conditions can fuck this up. Like closing socat before the device emulator
-        SHUTDOWN_ORDER = list(reversed(cls._instances))
-        for instance in SHUTDOWN_ORDER:
+        shutdown_order = list(reversed(cls._instances))
+        for instance in shutdown_order:
             instance.stop()
             instance._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
 

@@ -1,7 +1,4 @@
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.control_device_manager import (
-    ControlDeviceManager,
-)
 from backend.includes_python.devices.state_table import StateTable
 
 
@@ -12,6 +9,9 @@ class ExampleControlDevice(ControlDevice):
     def _update_state_table(self) -> None:
         # simulate not getting packets
         pass
+
+    def cleanup(self) -> None:
+        return super().cleanup()
 
 
 def test_control_device():

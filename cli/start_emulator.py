@@ -6,42 +6,42 @@ import cli.start_middleware as start_middleware
 def start_fake_serial_device_emulator(
     logger: logging.Logger,
     performance_logging: process.RunningProcess,
-    DEVICE: str,
-    INTERFACE_TYPE: start_middleware.InterfaceType,
+    device: str,
+    interface_type: start_middleware.InterfaceType,
     experimental: bool,
     corruption: bool,
 ) -> None:
-    SERVICE_NAME = "device emulator"
+    service_name = "device emulator"
     try:
 
-        EMULATOR_COMMAND = [
+        emulator_command = [
             "python3",
             "-u",
             "-Xfrozen_modules=off",
             "-m",
             "backend.device_emulator",
             "--device-rocket",
-            DEVICE,
+            device,
             "--interface-type",
-            INTERFACE_TYPE.value,
+            interface_type.value,
         ]
 
         if experimental:
-            EMULATOR_COMMAND.append("--experimental")
+            emulator_command.append("--experimental")
 
         if corruption:
-            EMULATOR_COMMAND.append("--corruption")
+            emulator_command.append("--corruption")
 
         logger.debug(
-            f"Starting {SERVICE_NAME} module with: {EMULATOR_COMMAND} with interface type: {INTERFACE_TYPE}"
+            f"Starting {service_name} module with: {emulator_command} with interface type: {interface_type}"
         )
 
         emulator_process = process.LoggedSubProcess(
-            EMULATOR_COMMAND, name=SERVICE_NAME, parse_output=True
+            emulator_command, name=service_name, parse_output=True
         )
         emulator_process.start()
         performance_logging.AddNewProcess(emulator_process)
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {service_name}: {e}")
         raise

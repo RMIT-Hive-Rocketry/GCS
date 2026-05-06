@@ -4,7 +4,6 @@ import argparse
 import datetime
 import socket
 import sys
-from typing import Tuple
 
 
 def parse_args() -> argparse.Namespace:
@@ -48,7 +47,7 @@ def create_server(host: str, port: int) -> socket.socket:
 
 def accept_client(
     server: socket.socket,
-) -> Tuple[socket.socket, Tuple[str, int]]:
+) -> tuple[socket.socket, tuple[str, int]]:
     print("Waiting for TCP connection...")
     client_sock, addr = server.accept()
     print(f"Accepted connection from {addr[0]}:{addr[1]}")

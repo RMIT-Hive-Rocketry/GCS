@@ -1,7 +1,7 @@
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
 import config.config as config
-from typing import Dict, Callable, Type
+from collections.abc import Callable
 
 
 class ControlDeviceManager:
@@ -12,14 +12,14 @@ class ControlDeviceManager:
     """
 
     instance: ControlDevice | None
-    managed_devices: Dict[str, Callable[[], Type[ControlDevice]]]
+    managed_devices: dict[str, Callable[[], type[ControlDevice]]]
 
     def __init__(self):
         self.instance = None
         self.managed_devices = {}
 
     def add_managed_device(
-        self, name: str, import_func: Callable[[], Type[ControlDevice]]
+        self, name: str, import_func: Callable[[], type[ControlDevice]]
     ):
         self.managed_devices[name] = import_func
 
@@ -31,15 +31,14 @@ class ControlDeviceManager:
         control_type = config_dict["hardware"]["controller"]
 
         if control_type in self.managed_devices:
-            device_reference: Type[ControlDevice] = self.managed_devices[
+            device_reference: type[ControlDevice] = self.managed_devices[
                 control_type
             ]()
             self.instance = device_reference()
             return self.instance
-        else:
-            error_msg = f"Control device `{control_type}` not found"
-            slogger.critical(error_msg)
-            raise RuntimeError(error_msg)
+        error_msg = f"Control device `{control_type}` not found"
+        slogger.critical(error_msg)
+        raise RuntimeError(error_msg)
 
 
 if __name__ == "__main__":

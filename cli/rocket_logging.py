@@ -1,15 +1,14 @@
 import logging
 from config.config import get_config
 import time
-from typing import Optional
 import os
 import re
 import zmq
 from datetime import datetime
 import backend.includes_python.service_helper as service_helper
 
-# Capture application start time (initialized in rocket.py)
-APP_START_TIME: Optional[float] = None
+# Capture application start time (initialized in `initialise()`)
+APP_START_TIME: float | None = None
 
 # When False, use short prefixes on console (set in initialise() from config)
 DETAILED_LOGGING_PREFIX: bool = True
@@ -68,7 +67,7 @@ class CustomFormatter(logging.Formatter):
         super().__init__()
         self.detailed_prefix = detailed_prefix
 
-    def format(self, record):
+    def format(self, record) -> str:
         if not hasattr(record, "subprocess_name"):
             record.subprocess_name = ""  # Default empty value
         if APP_START_TIME is None:
@@ -96,7 +95,7 @@ class PlainFormatter(CustomFormatter):
     def __init__(self, detailed_prefix: bool = True):
         super().__init__(detailed_prefix=detailed_prefix)
 
-    def format(self, record):
+    def format(self, record) -> str:
         # First format with the parent formatter that adds colors
         formatted_message = super().format(record)
         # Strip ANSI escape sequences using regex
@@ -113,21 +112,21 @@ class Logs_Loopback(logging.Handler):
 
         context = zmq.Context()
 
-        # Wait LINGER_TIME_MS before giving up on push request
-        LINGER_TIME_MS = 300
+        # Wait linger_time_ms before giving up on push request
+        _linger_time_ms = 300
 
         # path to the socket read by frontend api
-        FRONTEND_SOCKET_PATH = os.path.abspath(
+        frontend_socket_path = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
         )
 
         self.frontend_push_socket = context.socket(zmq.PUB)
-        self.frontend_push_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
+        self.frontend_push_socket.bind(f"ipc://{frontend_socket_path}")
 
         # Regex pattern to match ANSI escape sequences
         self.ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
-    def emit(self, record):
+    def emit(self, record) -> None:
         if service_helper.time_to_stop():
             # if stop signal given close socket and clean up handler
             self.frontend_push_socket.close()
@@ -150,7 +149,6 @@ class Logs_Loopback(logging.Handler):
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # catch errors within the packet gen in case of malformed data and drop the packet quietly to avoid issues with cascade
-            pass
 
         try:
             # push new logs to socket to frontend.api and clear message buffer
@@ -160,16 +158,15 @@ class Logs_Loopback(logging.Handler):
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # Safety catch for unexpected exceptions however logging this will cause issues maybe a cascade cause log will cause more errors
-            pass
 
 
 def create_handler(
-    LEVEL: int = logging.DEBUG,
+    level: int = logging.DEBUG,
     detailed_prefix: bool = True,
 ) -> logging.StreamHandler:
     """Create console handler with specified level and prefix style."""
     ch = logging.StreamHandler()
-    ch.setLevel(LEVEL)
+    ch.setLevel(level)
     ch.setFormatter(CustomFormatter(detailed_prefix=detailed_prefix))
     return ch
 
@@ -184,15 +181,15 @@ def create_file_handler(log_file_path: str) -> logging.FileHandler:
 
 
 def create_interscript_comms_handler(
-    LEVEL: int = logging.INFO,
+    level: int = logging.INFO,
 ) -> logging.StreamHandler:
     """Create Log Handler to pass logs to the frontend"""
     fh = Logs_Loopback()
-    fh.setLevel(LEVEL)
+    fh.setLevel(level)
     return fh
 
 
-def initialise(startTime):
+def initialise(startTime) -> logging.Logger:
     """One time logging setup run as soon as the program starts"""
 
     global APP_START_TIME, DETAILED_LOGGING_PREFIX
@@ -208,39 +205,39 @@ def initialise(startTime):
         logger.handlers.clear()
 
     config = get_config()
-    LOG_LEVEL = config["logging"]["level"].strip()
-    LOG_LEVEL_FRONT = config["logging"]["level_front"].strip()
+    log_level = config["logging"]["level"].strip()
+    log_level_front = config["logging"]["level_front"].strip()
     detailed_prefix_str = (
         config["logging"].get("detailed_logging_prefix", "true").strip().lower()
     )
     DETAILED_LOGGING_PREFIX = detailed_prefix_str == "true"
 
     # Get log file path from config or use default
-    LOG_DIR_PATH = config["logging"]["cli_log_dir"].strip()
+    log_dir_path = config["logging"]["cli_log_dir"].strip()
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
-    log_file_path = os.path.join(LOG_DIR_PATH, log_filename)
+    log_file_path = os.path.join(log_dir_path, log_filename)
 
-    LOG_LEVEL_OBJECT = LOG_MAPPING.get(LOG_LEVEL, logging.INFO)
+    log_level_object = LOG_MAPPING.get(log_level, logging.INFO)
     logger.setLevel(logging.DEBUG)
 
     logger.addHandler(
         create_handler(
-            LOG_LEVEL_OBJECT, detailed_prefix=DETAILED_LOGGING_PREFIX
+            log_level_object, detailed_prefix=DETAILED_LOGGING_PREFIX
         )
     )
     # Always debug
     logger.addHandler(create_file_handler(log_file_path))
-    logger.addHandler(create_interscript_comms_handler(LOG_LEVEL_FRONT))
+    logger.addHandler(create_interscript_comms_handler(log_level_front))
 
     return logger
 
 
-def success(self, message, *args, **kwargs):
+def success(self, message, *args, **kwargs) -> None:
     if self.isEnabledFor(SUCCESS_LEVEL_NUM):
         self._log(SUCCESS_LEVEL_NUM, message, args, **kwargs)
 
 
-def secret(self, message, *args, **kwargs):
+def secret(self, message, *args, **kwargs) -> None:
     if self.isEnabledFor(SECRET_LEVEL_NUM):
         self._log(SECRET_LEVEL_NUM, message, args, **kwargs)
 
@@ -249,11 +246,11 @@ logging.Logger.success = success
 logging.Logger.secret = secret
 
 
-def adapter_success(self, message, *args, **kwargs):
+def adapter_success(self, message, *args, **kwargs) -> None:
     self.log(SUCCESS_LEVEL_NUM, message, *args, **kwargs)
 
 
-def adapter_secret(self, message, *args, **kwargs):
+def adapter_secret(self, message, *args, **kwargs) -> None:
     self.log(SECRET_LEVEL_NUM, message, *args, **kwargs)
 
 
@@ -261,7 +258,7 @@ logging.LoggerAdapter.success = adapter_success
 logging.LoggerAdapter.secret = adapter_secret
 
 
-def set_console_log_level(level_name: str):
+def set_console_log_level(level_name: str) -> None:
     """
     Set the log level of the console handler at runtime.
 
@@ -290,7 +287,7 @@ def set_console_log_level(level_name: str):
     logger.warning("No console handler found")
 
 
-def set_console_low_detail(low_detail: bool):
+def set_console_low_detail(low_detail: bool) -> None:
     """
     Set console prefix detail at runtime to low
     """

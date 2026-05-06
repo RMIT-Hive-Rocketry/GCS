@@ -2,7 +2,7 @@ import serial
 import time
 
 
-def send_at_commands():
+def send_at_commands() -> None:
     try:
         ser = serial.Serial("/dev/ttyAMA0", baudrate=230400, timeout=1)
         if ser.is_open:
@@ -25,22 +25,26 @@ def send_at_commands():
             print(f"Sent: {command}")
             time.sleep(0.5)
 
-            response = ser.read_all().decode("utf-8", errors="ignore")
-            for line in response.splitlines():
-                print(f"> {line}")
+            data = ser.read_all()
+            if data:
+                response = data.decode("utf-8", errors="ignore")
+                for line in response.splitlines():
+                    print(f"> {line}")
 
-        PAYLOAD = "01" * 32
-        TX_COMMAND = f'AT+TEST=TXLRPKT, "{PAYLOAD}"'
-        print(f"TX_COMMAND: {TX_COMMAND}")
+        payload = "01" * 32
+        tx_command = f'AT+TEST=TXLRPKT, "{payload}"'
+        print(f"TX_COMMAND: {tx_command}")
         print("Continuous write starting")
         packet_num = 0
-        execution_wait_time_ms = time.monotonic()
+        _execution_wait_time_ms = time.monotonic()
         prev_time = time.monotonic()
         while True:
-            ser.write((TX_COMMAND + "\r\n").encode())
+            ser.write((tx_command + "\r\n").encode())
             response = ""
             while "+TEST: TX DONE" not in response:
-                response += ser.read_all().decode("utf-8", errors="ignore")
+                data = ser.read_all()
+                if data:
+                    response += data.decode("utf-8", errors="ignore")
 
             packet_num += 1
             now = time.monotonic()

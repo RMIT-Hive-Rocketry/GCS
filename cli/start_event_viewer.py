@@ -1,6 +1,5 @@
 import logging
 import cli.process as process
-from typing import Tuple
 import os
 
 
@@ -16,34 +15,35 @@ class EventViewerSubprocess(process.LoggedSubProcess):
         return False
 
 
-def successful_event_viewer_start_callback(line: str, stream_name: str):
+def successful_event_viewer_start_callback(
+    line: str, _stream_name: str
+) -> bool:
     """Check if the event viewer has started successfully"""
 
-    if "Listening for messages..." in line:
-        return True
+    return "Listening for messages..." in line
 
 
 def start_event_viewer(
     logger: logging.Logger,
     performance_logging: process.RunningProcess,
-    SOCKET_PATH: str,
+    socket_path: str,
     file_logging_enabled: bool,
-):
-    SERVICE_NAME = "event viewer"
+) -> tuple[None, None] | None:
+    service_name = "event viewer"
     try:
 
-        EVENT_VIEWER_COMMAND = [
+        event_viewer_command = [
             "python3",
             os.path.join("backend", "event_viewer.py"),
             "-u",
             "--socket-path",
-            SOCKET_PATH,
+            socket_path,
         ]
 
         if file_logging_enabled:
-            EVENT_VIEWER_COMMAND.append("--no-log")
+            event_viewer_command.append("--no-log")
 
-        logger.debug(f"Starting {SERVICE_NAME} with: {EVENT_VIEWER_COMMAND}")
+        logger.debug(f"Starting {service_name} with: {event_viewer_command}")
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
         env = os.environ.copy()
@@ -52,7 +52,7 @@ def start_event_viewer(
         )
 
         event_viewer_process = EventViewerSubprocess(
-            EVENT_VIEWER_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
+            event_viewer_command, name=service_name, env=env, parse_output=True
         )
 
         event_viewer_process.register_callback(
@@ -66,8 +66,8 @@ def start_event_viewer(
         while not finished:
             finished = event_viewer_process.get_parsed_data()
 
-        logger.info(f"{SERVICE_NAME} started successfully")
+        logger.info(f"{service_name} started successfully")
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {service_name}: {e}")
         return None, None
