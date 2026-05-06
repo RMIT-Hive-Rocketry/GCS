@@ -816,7 +816,9 @@ function checkErrorConditions(apiData) {
     });
 }
 
+// May not be required
 const networkPackets = [];
+
 function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData }; // Shallow copy
@@ -832,34 +834,11 @@ function processDataForDisplay(apiData, apiId) {
     if (apiId === 50) {
         // Get the table
         let packetsTable = document.getElementById("packets");
-        
-        /* Always ignore the <th> and double-AV rows at the start
-         * (meaning the 1st 3 indices shhould always be ignored)
-         * 1st row is the state indicator and name, 2nd is
-         * the packet losss, ping and packet count
-        */
-        
-        // Delete devices no longer found
-        for (let i = 3; i < packetsTable.rows.length - 1; i += 2) {
-            // Get the data-key attribute
-            const td = document.querySelector('tr td').dataset.key;
-            
-            // Delete the device (assuming it exists)
-            if ((!(td in apiData)) && (td != null)) {
-                packetsTable.deleteRow(i);
-                packetsTable.deleteRow(i + 1);
 
-                const index = networkPackets.findIndex(device => device.name === td);
-                if (index > 0) {
-                    networkPackets.splice(index, 1);
-                }
-            }
-        }
-
-        // Populate devices (whether or not they exist in the table)
+        // Update data if present, otherwise add it
         Object.keys(apiData).forEach(device => {
-            // Update data if present, otherwise add it
-            let currRow = packetsTable.querySelector(`div[data-key='${device}']`);
+            let currRow = packetsTable.querySelector(`tr td div[data-key='${device}']`);
+            console.log("FOUND CURR ROW", currRow);
             if (currRow === null) {
                 // Append 2 rows
                 let topRow = packetsTable.insertRow(-1);
@@ -871,12 +850,17 @@ function processDataForDisplay(apiData, apiId) {
                         <div
                             data-key="${device}"
                             data-type="state"
-                            class="indicator-state mx-0 timeout"
+                            class="indicator-state mx-0 green"
                         ></div>
                         <span class="font-bold text-hive">${device}</span>
                     </td>
                 </tr>
                 `;
+
+                // Set state to red if no pings coming through
+                if ((device.ping == null) || (device.ping < 0)) {
+                    topRow.innerHTML.replaceAll("green", "red");
+                }
 
                 bottomRow.innerHTML = `
                 <tr>
@@ -901,14 +885,17 @@ function processDataForDisplay(apiData, apiId) {
                                 readonly
                                 autocomplete="off"
                                 size="4"
-                                value='${device.ping != null ? device.ping : 0}'
+                                value='${device.ping != null ? device.ping : -1}'
                             />
                         </label>
                     </td>
-                    <td style="border-bottom: 30px solid transparent;">
+                </tr>
+                `
+                // Not required at this stage
+                /* <td style="border-bottom: 30px solid transparent;">
                         <label>
                             Packets:<input
-                                data-key="${device}.packet_count"
+                                data-key=${device}.packet_count
                                 data-precision="0"
                                 readonly
                                 autocomplete="off"
@@ -918,37 +905,52 @@ function processDataForDisplay(apiData, apiId) {
                             />
                         </label>
                     </td>
-                </tr>
-                `
-            }
-
-            // Regardless, track packet count
-            let index = networkPackets.findIndex(item => item.name === device);
-            if (index >= 0) {
-                // If the device in question exists, update count and offset
-                networkPackets[index].count++;
-
-                // Keep offset if no value was passed in (such as at the start)
-                if (typeof device.packet_loss !== 'undefined') {
-                    networkPackets[index].offset = packet_loss;
-                }
+                */
             }
             else {
-                // Create a new record and update index
-                networkPackets.push({name: device, count: 1, offset: 0});
+                // Get the top row
+                const index = currRow.closest("tr").rowIndex;
                 
-                // index was -1, now need the last element
-                index += networkPackets.length;
+                // Update the state
+                let topRow = packetsTable.rows[index].querySelector('td div');
+                topRow.classList.value = `indicator-state mx-0 ${
+                    ((device.ping != null) && (device.ping >= 0)) ? 'green' : 'red'
+                }`;
+
+                // Update the packet loss then ping
+                let bottomRow = packetsTable.rows[index + 1].querySelectorAll('td label input');
+                bottomRow[0].setAttribute('value', (device.packet_loss != null) ? device.packet_loss : 0);
+                bottomRow[1].setAttribute('value', (device.ping != null) ? device.ping : -1);
             }
 
-            // Calculate packet count as the total number of packets minus the % loss
-            const actualPacketCount = Math.floor(networkPackets[index].count * ((100 - networkPackets[index].offset) / 100));
-            let inputValue = packetsTable.querySelector(`input[data-key='${device}.packet_count']`);
+            // The below may not be required
+            // // Regardless, track packet count
+            // let index = networkPackets.findIndex(item => item.name === device);
+            // if (index >= 0) {
+            //     // If the device in question exists, update count and offset
+            //     networkPackets[index].count++;
+
+            //     // Keep offset if no value was passed in (such as at the start)
+            //     if (typeof device.packet_loss !== 'undefined') {
+            //         networkPackets[index].offset = packet_loss;
+            //     }
+            // }
+            // else {
+            //     // Create a new record and update index
+            //     networkPackets.push({name: device, count: 1, offset: 0});
+                
+            //     // index was -1, now need the last element
+            //     index += networkPackets.length;
+            // }
+
+            // // Calculate packet count as the total number of packets minus the % loss
+            // const actualPacketCount = Math.floor(networkPackets[index].count * ((100 - networkPackets[index].offset) / 100));
+            // let inputValue = packetsTable.querySelector(`input[data-key='${device}.packet_count']`);
             
-            // Make sure the element exists
-            if (inputValue != null) {
-                inputValue.value = actualPacketCount;
-            }
+            // // Make sure the element exists
+            // if (inputValue != null) {
+            //     inputValue.value = actualPacketCount;
+            // }
         });
     }
 
