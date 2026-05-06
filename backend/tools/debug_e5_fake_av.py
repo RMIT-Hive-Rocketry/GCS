@@ -11,10 +11,15 @@ from cli.start_middleware import InterfaceType
 # GENERATED WITH AI FOR DEBUG USE ONLY
 
 
-def _read_and_print_response(ser: serial.Serial) -> str:
-    response = ser.read_all().decode("utf-8", errors="ignore")
+def _read_and_print_response(ser: serial.Serial) -> str | None:
+    data = ser.read_all()
+    if data is None:
+        return None
+
+    response = data.decode("utf-8", errors="ignore")
     for line in response.splitlines():
         print(f"> {line}")
+
     return response
 
 
@@ -30,7 +35,10 @@ def _send_at_command(
     response = ""
     started = time.monotonic()
     while True:
-        response += ser.read_all().decode("utf-8", errors="ignore")
+        data = ser.read_all()
+        if data is not None:
+            response += data.decode("utf-8", errors="ignore")
+
         if expected_substring is None or expected_substring in response:
             break
         if time.monotonic() - started > timeout_s:
@@ -153,7 +161,12 @@ def send_fake_av_packets(
         response_count = 0
         prev_time = time.monotonic()
         while not stop_requested:
-            rx_chunk = ser.read_all().decode("utf-8", errors="ignore")
+            data = ser.read_all()
+            if not data:
+                time.sleep(0.01)
+                continue
+
+            rx_chunk = data.decode("utf-8", errors="ignore")
             if not rx_chunk:
                 time.sleep(0.01)
                 continue

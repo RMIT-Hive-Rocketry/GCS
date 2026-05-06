@@ -1,4 +1,3 @@
-import pytest
 import backend.includes_python.metric as metric
 import re
 
@@ -8,7 +7,7 @@ _allowed_pattern = re.compile(
 )
 
 
-def test_to_visible_repr_output():
+def test_to_visible_repr_output() -> None:
     for i in range(0x110000):
         c = chr(i)
         output = metric.Metric.to_visible_repr(c)
@@ -18,7 +17,7 @@ def test_to_visible_repr_output():
         ), f"Output contains illegal chars for decimal {i}: {output}"
 
 
-def test_to_visible_repr_output_multiple():
+def test_to_visible_repr_output_multiple() -> None:
     for i in range(0, 0x110000 - 10, 10):
         c = "".join(chr(x) for x in range(i, i + 10))
         output = metric.Metric.to_visible_repr(c)

@@ -11,7 +11,6 @@ from backend.includes_python.devices.pendant_state import (
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
 
-from typing import List, Dict, Tuple
 import time
 
 try:
@@ -52,7 +51,7 @@ class HID_Button:
         self.bitmask = 1 << bit
         self.time_of_last_state_change = time.time()
 
-    def _try_update_state(self, new_state: bool):
+    def _try_update_state(self, new_state: bool) -> None:
         if new_state:
             self.safety_count = min(
                 self.safety_count + 1, HID_Button.MAX_SAFETY_COUNT
@@ -82,7 +81,7 @@ class HID_Button:
             self.button_is_pressed = False
             self.time_of_last_state_change = time.time()
 
-    def update_state(self, hid_bytes: List[int]) -> None:
+    def update_state(self, hid_bytes: list[int]) -> None:
         if len(hid_bytes) < 7:
             slogger.error(
                 f"hid_bytes is too small, expected 7, got {len(hid_bytes)}"
@@ -118,7 +117,7 @@ class HID_Device(ControlDevice):
 
     # THESE ARE PROB WRONG, wiring has changed since i got these
     # name: (byte, bit)
-    BITMAP: Dict[PendantInput, Tuple[int, int]] = {
+    BITMAP: dict[PendantInput, tuple[int, int]] = {
         PendantInput.SYSTEM_ACTIVE: (1, 5),
         PendantInput.E_STOP: (1, 6),
         PendantInput.FILL_MODE: (0, 2),
@@ -129,24 +128,24 @@ class HID_Device(ControlDevice):
         PendantInput.IGNITION: (1, 3),
     }
 
-    buttons: Dict[PendantInput, HID_Button]
+    buttons: dict[PendantInput, HID_Button]
 
     device: hid.Device
     device_is_connected: bool = False
 
-    def _try_connect_device(self):
+    def _try_connect_device(self) -> None:
         try:
             self.device = hid.Device()
             self.device.open(
                 HID_Device.HID_VENDOR_ID, HID_Device.HID_PRODUCT_ID
             )
             self.device_is_connected = True
-        except IOError as e:
+        except OSError as e:
             # TODO: stop spamming the slogger
             slogger.warning(f"Control Pendant is not connected, error: `{e}`")
             self.device_is_connected = False
 
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         self._try_connect_device()
 
     def __init__(self):
@@ -163,29 +162,29 @@ class HID_Device(ControlDevice):
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-    def _update_state_table(self):
+    def _update_state_table(self) -> None:
         """Updates instance attributes"""
         try:
             if not self.device_is_connected:
                 self._try_connect_device()
             if not self.device_is_connected:
-                return None
+                return
 
-            bytes = self.device.read(9999)
+            data = self.device.read(9999)
 
-            for _, btn in self.buttons.items():
-                btn.update_state(bytes)
+            for btn in self.buttons.values():
+                btn.update_state(data)
 
-            states: Dict[PendantInput, bool] = {
+            states: dict[PendantInput, bool] = {
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
 
             self.state_table = PendantState(states)
 
-        except IOError:
+        except OSError:
             self.device_is_connected = False
             self.state_table = PendantState.get_fallback_table()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         self.device.close()

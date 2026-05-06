@@ -50,7 +50,7 @@ class RPI_GPIO_Device(ControlDevice):
         5: "PURGE_ACTIVE",
     }
 
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         self.buttons = {
             pin: Button(pin, pull_up=False, bounce_time=0.05)
             for pin in RPI_GPIO_Device.PIN_MAP
@@ -59,7 +59,7 @@ class RPI_GPIO_Device(ControlDevice):
     def __init__(self):
         super().__init__()
 
-    def _update_state_table(self):
+    def _update_state_table(self) -> None:
         """Updates instance attributes and returns a dictionary of the current states."""
         for pin, attr in RPI_GPIO_Device.PIN_MAP.items():
             setattr(self, attr, self.buttons[pin].is_pressed)
@@ -68,3 +68,6 @@ class RPI_GPIO_Device(ControlDevice):
             for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
         self.state_table = PendantState(states)
+
+    def cleanup(self) -> None:
+        return super().cleanup()

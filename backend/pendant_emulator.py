@@ -3,7 +3,6 @@ This file sends packets to Frontend api
 Its safe to have any type of device, automatic or not here
 """
 
-
 import backend.includes_python.process_logging as slogger
 import zmq
 import os
@@ -17,7 +16,6 @@ from backend.includes_python.devices.control_device_manager import (
 from backend.includes_python.devices.control_device import ControlDevice
 
 import config.config as config
-from typing import Type
 
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
@@ -28,42 +26,42 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
 )
 
 
-def get_control_device():
+def get_control_device() -> ControlDevice:
     # fmt: off
     manager = ControlDeviceManager()
 
-    def hybrid_import() -> Type[ControlDevice]:
+    def hybrid_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import HybridPygamePendant
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
 
-    def rpi_import() -> Type[ControlDevice]:
+    def rpi_import() -> type[ControlDevice]:
         from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
 
     manager.add_managed_device("rpi_gpio_device",rpi_import)
 
-    def f710_import() -> Type[ControlDevice]:
+    def f710_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
 
     manager.add_managed_device("f710", f710_import)
 
-    def emulated_import() -> Type[ControlDevice]:
+    def emulated_import() -> type[ControlDevice]:
         from backend.includes_python.devices.emulated_device import Emulated_Device
         return Emulated_Device
 
     manager.add_managed_device("emulated_device", emulated_import)
 
-    def hid_import() -> Type[ControlDevice]:
+    def hid_import() -> type[ControlDevice]:
         from backend.includes_python.devices.hid_device import HID_Device
         return HID_Device
 
     manager.add_managed_device("hid_device", hid_import)
 
     # only really used by me (Xavier)
-    def thrustmaster_import() -> Type[ControlDevice]:
+    def thrustmaster_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick
         return ThrustmasterAirbusFlightStick
 
@@ -73,7 +71,7 @@ def get_control_device():
     # fmt: on
 
 
-def send_packet():
+def send_packet() -> None:
     context = zmq.Context()
 
     frontend_packet_send_timer = RepeatingTimer(0.5)
@@ -130,7 +128,7 @@ def send_packet():
         slogger.debug("Cleaned up controller")
 
 
-def main():
+def main() -> None:
     device_emulator.MockPacket.initialize_settings(
         config.get_config()["emulation"]
     )

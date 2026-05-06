@@ -7,34 +7,34 @@
 REGEX_MATCH = r"<(\w{4,8})>:"
 
 
-def _log(MESSAGE: str, LEVEL: str):
-    print(f"<{LEVEL}>:{MESSAGE}", flush=True)
+def _log(message: str, level: str) -> None:
+    print(f"<{level}>:{message}", flush=True)
 
 
-def debug(MESSAGE: str):
-    _log(MESSAGE, "DEBUG")
+def debug(message: str) -> None:
+    _log(message, "DEBUG")
 
 
-def info(MESSAGE: str):
-    _log(MESSAGE, "INFO")
+def info(message: str) -> None:
+    _log(message, "INFO")
 
 
-def success(MESSAGE: str):
-    _log(MESSAGE, "SUCCESS")
+def success(message: str) -> None:
+    _log(message, "SUCCESS")
 
 
-def warning(MESSAGE: str):
-    _log(MESSAGE, "WARNING")
+def warning(message: str) -> None:
+    _log(message, "WARNING")
 
 
-def error(MESSAGE: str):
-    _log(MESSAGE, "ERROR")
+def error(message: str) -> None:
+    _log(message, "ERROR")
 
 
-def critical(MESSAGE: str):
-    _log(MESSAGE, "CRITICAL")
+def critical(message: str) -> None:
+    _log(message, "CRITICAL")
 
 
 # Excluded From Public Frontend
-def secret(MESSAGE: str):
-    _log(MESSAGE, "SECRET")
+def secret(message: str) -> None:
+    _log(message, "SECRET")

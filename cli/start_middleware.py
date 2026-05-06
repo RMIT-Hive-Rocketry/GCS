@@ -4,7 +4,6 @@ import os
 import enum
 import config.config as config
 from dataclasses import dataclass
-from typing import List, Optional
 
 
 class InterfaceType(enum.Enum):
@@ -15,7 +14,7 @@ class InterfaceType(enum.Enum):
     TCP = "TCP"
 
 
-def get_interface_type(interface: Optional[str]) -> InterfaceType:
+def get_interface_type(interface: str | None) -> InterfaceType:
     """Get the interface type from the command line argument or config"""
     if interface is None:  # Unspecified by user
         interface = config.get_config()["hardware"]["interface"].strip().upper()
@@ -52,9 +51,9 @@ class MiddlewareConfig:
     # I am confused as to why this is called pendant_socket_path?
     # - from idiot who wrote this code
     pendant_socket_path: str = "gcs_rocket"
-    web_control_socket_path: Optional[str] = None
-    opt_arg: Optional[str] = None
-    lora_config: Optional[dict] = None
+    web_control_socket_path: str | None = None
+    opt_arg: str | None = None
+    lora_config: dict | None = None
 
 
 class MiddlewareSubprocess(process.LoggedSubProcess):
@@ -76,9 +75,7 @@ def middleware_started_callback(line: str, stream_name: str):
         return True
 
 
-def get_middleware_path(
-    BINARY_NAME_PREFIX: str, RELEASE: bool
-) -> Optional[str]:
+def get_middleware_path(BINARY_NAME_PREFIX: str, RELEASE: bool) -> str | None:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
     """
@@ -113,12 +110,12 @@ def get_middleware_path(
         raise RuntimeError(
             f"Multiple middleware binaries found. Please remove or archive the extra ones: {file_matches}"
         )
-    elif len(file_matches) == 0:
+    if len(file_matches) == 0:
         return None
 
     BINARY_PATH = file_matches[0]
 
-    with open("VERSION", "r") as f:
+    with open("VERSION") as f:
         VERSION_STRING = f.read().strip()
 
     # Actual file may have build metadata in it. Substring match is fine
@@ -132,7 +129,7 @@ def get_middleware_path(
 
 def build_middleware_argv(
     config: MiddlewareConfig, binary_path: str
-) -> List[str]:
+) -> list[str]:
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,

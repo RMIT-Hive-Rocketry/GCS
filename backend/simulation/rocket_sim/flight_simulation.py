@@ -93,7 +93,7 @@ def get_simulated_flight_data() -> pd.DataFrame:
 
     flight_df = pd.read_csv(csv_export_name)
 
-    with open(extra_data_path, "r") as f:
+    with open(extra_data_path) as f:
         extra_data = json.load(f)
         apogee_time = extra_data["apogee_time"]
         max_speed_time = extra_data["max_speed_time"]

@@ -4,7 +4,6 @@ from backend.includes_python.devices.pendant_state import (
 )
 from backend.includes_python.devices.pygame_device import Pygame_Device
 import backend.includes_python.process_logging as slogger
-from typing import List
 import pygame
 import time
 
@@ -15,7 +14,7 @@ class Emulated_Device(Pygame_Device):
     Based on the Pygame_Device class, even though it doesn't actually use Pygame
     """
 
-    BUTTON_NAME_ID_MAP = {
+    BUTTON_NAME_ID_MAP: dict[PendantInput, int] = {
         PendantInput.SYSTEM_ACTIVE: 0,
         PendantInput.E_STOP: 5,
         PendantInput.FILL_MODE: 6,
@@ -28,7 +27,7 @@ class Emulated_Device(Pygame_Device):
 
     CONTROLLER_NAME = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
 
-    BUTTON_SEQUENCE: List[List[PendantInput]] = [
+    BUTTON_SEQUENCE: list[list[PendantInput]] = [
         [],
         [PendantInput.SYSTEM_ACTIVE],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
@@ -64,18 +63,18 @@ class Emulated_Device(Pygame_Device):
     def __init__(self):
         super().__init__()
 
-    def _try_connect_device(self):
+    def _try_connect_device(self) -> None:
         # This device never has connection issues
         Emulated_Device.is_connected = True
         slogger.info(
             f"Controller initialized: {Emulated_Device.CONTROLLER_NAME}"
         )
 
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         pygame.init()
         self._try_connect_device()
 
-    def _update_state_table(self):
+    def _update_state_table(self) -> None:
         """Updates instance attributes"""
         pygame.event.pump()
 
@@ -87,7 +86,7 @@ class Emulated_Device(Pygame_Device):
                 seconds % len(Emulated_Device.BUTTON_SEQUENCE)
             ]
 
-            for btn_name, _ in Emulated_Device.BUTTON_NAME_ID_MAP.items():
+            for btn_name in Emulated_Device.BUTTON_NAME_ID_MAP:
                 pressed = btn_name in current_buttons
                 self.buttons[btn_name].update_state(pressed)
 
@@ -101,7 +100,7 @@ class Emulated_Device(Pygame_Device):
         else:
             self.state_table = PendantState.get_fallback_table()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Internal cleanup code"""
         slogger.info("Quitting pygame...")
         pygame.quit()
