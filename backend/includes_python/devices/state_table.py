@@ -81,7 +81,7 @@ class StateTable:
         self.IGNITION_MOMENT_ACTIVE = IGNITION_MOMENT_ACTIVE
         self.ESTOP = ESTOP
 
-    def get_states_dict(self) -> Dict[str, bool]:
+    def get_states_dict(self) -> dict[str, bool]:
         """returns argument dictionary for use in GCS to GSE packet"""
         # You should also check these states electronically where applicable
         # fmt: off
