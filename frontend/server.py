@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, abort, render_template
-import os
-import frontend.config
-
-# import logging
+from frontend.rocket_loader import load_rockets
+from flask import Flask, send_from_directory, abort, render_template, request
+from os import path as os_path
+from os import getenv
 import backend.includes_python.process_logging as slogger
 
 """
@@ -58,13 +57,27 @@ def create_app():
     # Render modular layout
     @app.route("/")
     def index():
-        # Parse app.config and pre-process modular layout information for CSS
-        # Generate CSS selectors for pages
-        app.config["CSS"] = (
-            ", ".join(
-                ["#{0} .{0}".format(page["id"]) for page in app.config["PAGES"]]
-            )
-            + " {display: flex;}"
+        backend_ip = getenv("BACKEND_IP", "127.0.0.1")
+
+        # Get active rocket config default
+        active = app.config.get("default")
+        name = ""
+
+        # Check for config override via URL parameter
+        rocket = request.args.get("rocket", "default")
+        if rocket != None:
+            for r in app.config.get("rockets"):
+                if r.name == rocket:
+                    active = r.configs[0]
+                    name = r.name
+                    break
+
+        return render_template(
+            "/templates/layout.html",
+            config=app.config,
+            active=active,
+            name=name,
+            backend_ip=backend_ip,
         )
 
         # Generate positional classes for modules
