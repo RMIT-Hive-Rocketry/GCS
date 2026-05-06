@@ -11,13 +11,8 @@ const initialReconnectInterval = 200; // Initial reconnection wait time
 const maxReconnectInterval = 5000; // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20; // FPS for rendering graphs
 
-// API connection if no specified ip use default one
-if(window.APP_CONFIG.backendIp == "False")
-    api_url = window.location.host.split(":")[0];
-else
-    api_url = window.APP_CONFIG.backendIp;
-
-const ws_url = `ws://${api_url}:1887`;
+// WebSocket API connection
+const ws_url = _ws != undefined ? `ws://${_ws["host"]}:${_ws["port"]}` : `ws://${window.location.host.split(":")[0]}:1887`
 const apiSocket = new WebSocket(ws_url);
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
@@ -119,8 +114,7 @@ function logMessage(message, type = "", timestamp = "") {
     }
 
     // Calculate timestamp
-    if(timestamp == "")
-    {
+    if (timestamp == "") {
         let timestamp = "?";
         if (timestampLocal != undefined && timestampApiConnect != undefined) {
             timestamp = (timestampLocal + timestampApiConnect - timeDrift).toFixed(1) + "s";
@@ -173,7 +167,7 @@ function logMessage(message, type = "", timestamp = "") {
     logArea.appendChild(line);
 
     // Limit lines
-    const maxlines = 16;
+    const maxlines = 256;
     while (logArea.children.length > maxlines) {
         logArea.removeChild(logArea.firstChild);
     }
@@ -1132,8 +1126,7 @@ function displayUpdateFlightState(data) {
 
 
 
-function displaySloggerLogs(apiData)
-{
+function displaySloggerLogs(apiData) {
     apiData.forEach(log => {
         logMessage(log.message, log.level.toLowerCase(), log.timestamp);
     });

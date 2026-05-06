@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 from frontend.rocket_loader import load_rockets
-from flask import Flask, send_from_directory, abort, render_template, request
+from flask import (
+    Flask,
+    send_from_directory,
+    abort,
+    render_template,
+    request,
+)
 from os import path as os_path
 from os import getenv
 import backend.includes_python.process_logging as slogger
+import config.config as config
+
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -38,6 +46,13 @@ def create_app():
     app.config["rockets"] = load_rockets(app)
     app.config["default"] = app.config["rockets"][0].configs[0]
 
+    # Load additional configuration from config.ini
+    frontend_config = config.get_config()["frontend"]
+    websocket = {
+        "host": frontend_config.get("ws_host"),
+        "port": frontend_config.get("ws_port"),
+    }
+
     """
     Logging
     """
@@ -57,8 +72,6 @@ def create_app():
     # Render modular layout
     @app.route("/")
     def index():
-        backend_ip = getenv("BACKEND_IP", "127.0.0.1")
-
         # Get active rocket config default
         active = app.config.get("default")
         name = ""
@@ -77,7 +90,7 @@ def create_app():
             config=app.config,
             active=active,
             name=name,
-            backend_ip=backend_ip,
+            websocket=websocket,
         )
 
         # Generate positional classes for modules
@@ -134,28 +147,44 @@ def create_app():
             return send_from_directory(static_dir, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
-        elif os.path.isfile(filepath + ".html"):
-            slogger.debug(f"Serving static file: {filename}.html")
-            return send_from_directory(static_dir, filename + ".html")
+        if os_path.isfile(filepath + ".html"):
+            slogger.debug(f"Serving static webpage: {filename}.html")
+            return send_from_directory(file_directory, filename + ".html")
 
         # 404 page not found
-        else:
-            slogger.warning(f"404 not found: {filename}")
-            abort(404)
+        slogger.warning(f"404 not found: {filename}")
+        abort(404)
+        return None
 
     # Debugging
     @app.route("/debug/api")
     def debug_api():
         return render_template("debug_api.html")
 
+    # Debug rocket loading
+    @app.route("/debug/rockets")
+    def debug_rockets():
+        return render_template(
+            "templates/debug_rockets.html",
+            websocket=websocket,
+        )
+
+    # Debug modules
+    # Shows all modules from loaded rockets
     @app.route("/debug/modules")
     def debug_modules():
-        return render_template("templates/debug_modules.html")
+        return render_template(
+            "templates/debug_modules.html",
+            websocket=websocket,
+        )
 
     # Debug control pendant
     # Shows all modules from loaded rockets
     @app.route("/debug/pendant")
     def debug_pendant():
-        return render_template("templates/debug_pendant.html")
+        return render_template(
+            "templates/debug_pendant.html",
+            websocket=websocket,
+        )
 
     return app
