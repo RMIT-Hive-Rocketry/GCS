@@ -8,7 +8,6 @@ from flask import (
     request,
 )
 from os import path as os_path
-from os import getenv
 import backend.includes_python.process_logging as slogger
 import config.config as config
 
