@@ -594,7 +594,6 @@ function diagEnsureGraph(deviceName) {
         numLines: 1,
         limits: { yBottomMax: 0 },
         data: [],
-        margin: { top: 6, right: 10, bottom: 24, left: 80 },
     };
     graphCreateLine(graph);
     diagGraphs[deviceName] = graph;
