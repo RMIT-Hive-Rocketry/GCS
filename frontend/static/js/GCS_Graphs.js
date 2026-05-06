@@ -123,21 +123,29 @@ function graphCreateLine(chart) {
 
     // Create and style the x and y axis
     // x axis
-    chart.g
+    const xAxis = chart.g
         .append("g")
         .attr("transform", `translate(0,${chart.graphHeight})`)
         .call(
             d3
                 .axisBottom(chart.x)
                 .tickFormat((d) => (Number.isInteger(d) ? d : "")),
-        )
-        .selectAll(".domain")
+        );
+
+    xAxis.selectAll(".domain")
         .attr("stroke", "#f79322")
         .attr("stroke-width", 1);
-    chart.g.selectAll(".tick line").attr("stroke", "#f79322");
+
+    xAxis.selectAll(".tick line")
+        .attr("stroke", "#f79322");
+
+    xAxis.selectAll(".tick text")
+        .attr("fill", "white")
+        .attr("font-size", "9px");
 
     // Y-axis
     chart.yAxis = chart.g.append("g").attr("class", "y-axis");
+    chart.yAxis.selectAll(".tick text").attr("fill", "white").attr("font-size", "9px");
     chart.yAxis
         .call(
             d3
