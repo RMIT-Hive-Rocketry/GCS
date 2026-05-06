@@ -1,4 +1,5 @@
 import asyncio
+from typing import Never
 import websockets
 import json
 
@@ -7,7 +8,7 @@ PACKETS_TO_DEBUG = [10]
 DEBUG_ALL_PACKETS = False
 
 
-async def pretty_print_json(uri):
+async def pretty_print_json(uri) -> Never:
     while True:
         try:
             async with websockets.connect(uri) as websocket:
