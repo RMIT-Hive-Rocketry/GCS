@@ -112,14 +112,13 @@ def create_app():
             return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
-        elif os_path.isfile(filepath + ".html"):
+        if os_path.isfile(filepath + ".html"):
             slogger.debug(f"Serving static webpage: {filename}.html")
             return send_from_directory(file_directory, filename + ".html")
 
         # 404 page not found
-        else:
-            slogger.warning(f"404 not found: {filename}")
-            abort(404)
+        slogger.warning(f"404 not found: {filename}")
+        abort(404)
 
     """
     Debugging
