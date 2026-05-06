@@ -832,7 +832,6 @@ function processDataForDisplay(apiData, apiId) {
         // Update data if present, otherwise add it
         Object.entries(apiData).forEach(([device, deviceData]) => {
             let currRow = packetsTable.querySelector(`tr td div[data-key='${device}']`);
-            console.log("FOUND CURR ROW", currRow);
             if (currRow === null) {
                 // Append 2 rows
                 let topRow = packetsTable.insertRow(-1);
