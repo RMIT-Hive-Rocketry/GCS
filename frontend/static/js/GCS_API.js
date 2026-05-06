@@ -874,8 +874,8 @@ function processDataForDisplay(apiData, apiId) {
                 `;
 
                 bottomRow.innerHTML = `
-                <tr style="border-bottom: 30px solid transparent;">
-                    <td>
+                <tr>
+                    <td style="border-bottom: 30px solid transparent;">
                         <label>
                             Packet Loss:<input
                                 data-key="${device}.packet_loss"
@@ -888,7 +888,7 @@ function processDataForDisplay(apiData, apiId) {
                             />
                         </label>
                     </td>
-                    <td>
+                    <td style="border-bottom: 30px solid transparent;">
                         <label>
                             Ping:<input
                                 data-key="${device}.ping"
@@ -900,7 +900,7 @@ function processDataForDisplay(apiData, apiId) {
                             />
                         </label>
                     </td>
-                    <td>
+                    <td style="border-bottom: 30px solid transparent;">
                         <label>
                             Packets:<input
                                 data-key="${device}.packet_count"
