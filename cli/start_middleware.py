@@ -13,6 +13,8 @@ class InterfaceType(enum.Enum):
     TEST_UART_E5 = "TEST_UART_E5"
     TCP = "TCP"
 
+    # for --gse-only
+    NONE = "NONE"
 
 def get_interface_type(interface: str | None) -> InterfaceType:
     """Get the interface type from the command line argument or config"""
@@ -133,7 +135,7 @@ def build_middleware_argv(
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
-    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE_ONLY].
+    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE-ONLY].
     """
     if not isinstance(
         config.interface_gse_type, InterfaceType
@@ -154,21 +156,23 @@ def build_middleware_argv(
         config.interface_gse_type == InterfaceType.UART_E5
         or config.interface_av_type == InterfaceType.UART_E5
     ):
-        if config.lora_config is None:
-            raise ValueError("UART_E5 interface requires lora_config")
-        argv.extend(
-            [
-                config.lora_config["frequency"],
-                config.lora_config["spread_factor"],
-                config.lora_config["bandwidth"],
-                config.lora_config["tx_preamble"],
-                config.lora_config["rx_preamble"],
-                config.lora_config["power"],
-                config.lora_config["crc"],
-                config.lora_config["iq"],
-                config.lora_config["net"],
-            ]
-        )
+        if not config.opt_arg or "--gse_only" not in config.opt_arg.lower().strip():
+            print(f"optionaoniogeain: {config.opt_arg}")
+            if config.lora_config is None:
+                raise ValueError("UART_E5 interface requires lora_config")
+            argv.extend(
+                [
+                    config.lora_config["frequency"],
+                    config.lora_config["spread_factor"],
+                    config.lora_config["bandwidth"],
+                    config.lora_config["tx_preamble"],
+                    config.lora_config["rx_preamble"],
+                    config.lora_config["power"],
+                    config.lora_config["crc"],
+                    config.lora_config["iq"],
+                    config.lora_config["net"],
+                ]
+            )
     if config.opt_arg is not None:
         argv.append(config.opt_arg)
     return argv
