@@ -115,9 +115,21 @@ def test_all_state() -> None:
             if PendantInput.E_STOP in test_pendant_states:
                 assert gse_state == dict.fromkeys(GSEState, False)
 
+            # its fine if sys is on, its only problematic if other inputs like ignition are on
+            SYS_ON_STATE = {
+                GSEState.SYSTEM_ACTIVE: True,
+                GSEState.FILL_MODE: False,
+                GSEState.NEUTRAL: False,
+                GSEState.N2O: False,
+                GSEState.PURGE: False,
+                GSEState.ARMED: False,
+                GSEState.O2: False,
+                GSEState.IGNITION: False,
+            }
+
             assert (
-                gse_state == PendantState.get_fallback_table().get_gse_states()
-                or gse_state == dict.fromkeys(GSEState, False)
+                gse_state == PendantState.FALLBACK_GSE_STATES_DICT
+                or gse_state == SYS_ON_STATE
             )
 
     # make sure we go over every permutation
