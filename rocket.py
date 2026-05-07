@@ -400,8 +400,9 @@ def start_services(
     start_event_viewer(
         logger=logger,
         performance_logging=RunningProcesses,
-        SOCKET_PATH="gcs_rocket",
+        socket_path="gcs_rocket",
         file_logging_enabled=logpkt,
+        
     )
 
     # 5. Start the pendent emulator

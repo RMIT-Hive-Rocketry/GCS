@@ -27,7 +27,7 @@ class ProcessData:
 
 class RunningProcess:
     def __init__(self):
-        self.runningProcesses: ProcessData = []
+        self.runningProcesses: list[ProcessData] = []
 
     def GetProcessInfo(self, id):
         for process in self.runningProcesses:
@@ -36,7 +36,7 @@ class RunningProcess:
         slogger.error("Couldn't find PID for Process")
         return
 
-    def GetAllProcessInfo(self):
+    def GetAllProcessInfo(self) -> list[ProcessData]:
         return self.runningProcesses
 
     def AddNewProcessManual(self, PID, Name):

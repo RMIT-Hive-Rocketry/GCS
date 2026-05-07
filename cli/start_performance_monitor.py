@@ -19,7 +19,7 @@ def start_performance_monitor(
             "python3",
             "-u",
             os.path.join("backend", "performance_monitor.py"),
-            "--startTime",
+            "--START_TIME",
             str(startTime),
             "--running_services",
             str(assembledProcessList),

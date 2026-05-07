@@ -8,13 +8,13 @@ from config.config import get_config
 import ast
 import csv
 import backend.includes_python.service_helper as service_helper
-
+import ctypes
+import subprocess
 
 START_TIME = None  # init in start
 
 # Windows Integration
 if platform.system() == "Windows":
-    import ctypes
     from ctypes import wintypes
 
     class FileTime(ctypes.Structure):
@@ -51,9 +51,6 @@ if platform.system() == "Windows":
         ]
 
 elif platform.system() == "Darwin":
-    import subprocess
-
-    import ctypes
     from ctypes import c_uint
 
     libc = ctypes.CDLL("libc.dylib")
@@ -161,10 +158,10 @@ def get_process_status_linux(pid) -> ProcessSystemData:
 
     except FileNotFoundError:
         slogger.error(f"couldn't Access {pid}")
-        return None
+        return process_data
     except Exception as e:
         slogger.error(f"Process Logging Failed to execute {e}")
-        return None
+        return process_data
 
 
 # Extract from the proc Directory the details needed meminfo
@@ -224,7 +221,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
     psapi = ctypes.WinDLL("psapi.dll")
     kernel32 = ctypes.WinDLL("kernel32.dll")
 
-    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0)
+    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0,0,0)
 
     process_query_limited_information = 0x1000
     # PROCESS_VM_READ = 0x0010 Might Need In future
@@ -234,7 +231,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
 
     if not handle:
         slogger.error("Invalid Hook")
-        return None
+        return process_data
 
     creation = FileTime()
     exit_time = FileTime()
@@ -259,7 +256,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
 
     if not handle:
         slogger.error("Could not open process")
-        return None
+        return process_data
 
     counters = ProcessMemoryCounters()
     counters.cb = ctypes.sizeof(ProcessMemoryCounters)
@@ -273,7 +270,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
 
 
 def get_global_status_windows() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0,0,0,0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FileTime()
     kernel = FileTime()
@@ -312,7 +309,7 @@ def get_process_status_mac(pid) -> ProcessSystemData:
 
     if size <= 0:
         slogger.error(f"Unable to access Process Info: {pid}")
-        return None
+        return process_data
 
     # CPU times are in nanoseconds
     user_time = info.pti_total_user
@@ -322,7 +319,7 @@ def get_process_status_mac(pid) -> ProcessSystemData:
 
     process_data.user_time = int(user_time)
     process_data.kernel_time = int(system_time)
-    process_data.vm_rss = int(rss) / 1000  # Bytes to KB
+    process_data.vm_rss = int(rss / 1000)  # Bytes to KB
     process_data.cpu_usage_time = int(process_data.user_time) + int(
         process_data.kernel_time
     )
@@ -407,7 +404,7 @@ def get_process_status(pid) -> ProcessSystemData:
         return get_process_status_linux(pid)
     if platform.system() == "Darwin":
         return get_process_status_mac(pid)
-    return None
+    return ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 
 def get_global_status() -> GlobalSystemInfo:
@@ -417,7 +414,7 @@ def get_global_status() -> GlobalSystemInfo:
         return get_global_status_linux()
     if platform.system() == "Darwin":
         return get_global_status_mac()
-    return None
+    return GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 
 def main() -> None:
@@ -449,7 +446,7 @@ def main() -> None:
         return
 
     previous_sys_data = get_global_status()
-    our_previous_sys_data = [
+    our_previous_process_data = [
         get_process_status(active_process[0])
         for active_process in processes_data_list
     ]
@@ -462,7 +459,6 @@ def main() -> None:
     )
 
     # Keep Track of loops to show logs to cli
-    loop_count = 0
     cli_log_threshold = int(
         config["performance_monitor"]["performance_cli_log_interval"].strip()
     )
@@ -492,11 +488,22 @@ def main() -> None:
     # Sleep To Give Initial Data time to change
     time.sleep(sampling_interval)
 
-    while service_helper.time_to_stop() != True:
-        loop_count += 1
+    # Set Initial time for the loops
+    loop_start_time = time.time()
 
+    while service_helper.time_to_stop() != True:
         # Call function to get global system data
         system_data = get_global_status()
+
+        if(system_data == None):
+            slogger.error("Performance Monitor has failed to get global system data SHUTING DOWN.")
+            break
+        if(previous_sys_data == None):
+            slogger.error("Performance Monitor has failed to get old global system data SHUTING DOWN.")
+            break
+
+
+        
 
         # Calculate Values from the global data
         total_time = (
@@ -520,7 +527,7 @@ def main() -> None:
         # Global Values our services resource use
         our_ram_use = 0
         our_cpu_use = 0
-        our_sys_data: ProcessSystemData = []
+        our_sys_data: list[ProcessSystemData] = []
 
         for idx, active_process in enumerate(processes_data_list):
             # Get Memory Data For Process
@@ -529,7 +536,7 @@ def main() -> None:
             if ps is None or (
                 ps.vm_rss == 0
                 and ps.cpu_usage_time
-                == our_previous_sys_data[idx].cpu_usage_time
+                == our_previous_process_data[idx].cpu_usage_time
             ):
                 slogger.warning(
                     f"Service {active_process[1]} Cannot Be Accessed No Longer Logging"
@@ -544,14 +551,14 @@ def main() -> None:
 
             # Assign Individual deltas to the processes
             ps.delta_kernel_time = (
-                ps.kernel_time - our_previous_sys_data[idx].kernel_time
+                ps.kernel_time - our_previous_process_data[idx].kernel_time
             )
             ps.delta_user_time = (
-                ps.user_time - our_previous_sys_data[idx].user_time
+                ps.user_time - our_previous_process_data[idx].user_time
             )
 
             ps.delta_cpu_usage_time = (
-                ps.cpu_usage_time - our_previous_sys_data[idx].cpu_usage_time
+                ps.cpu_usage_time - our_previous_process_data[idx].cpu_usage_time
             )
 
             # Total Current CpuUse cycles added across all monitored processes
@@ -612,20 +619,21 @@ def main() -> None:
             writer.writerow(row)
 
         # This is in seconds as one loop executes every second
-        if loop_count >= cli_log_threshold:
+        if time.time() >= loop_start_time + cli_log_threshold:
             slogger.debug(
                 f"System CPU Util: {round(system_data.cpu_usage_percent,2)}% Ram Util: {round(total_ram_use_percent,2)}%"
             )
             slogger.debug(
                 f"Program CPU Util: {round(our_cpu_use_percent,2)}% Ram Util: {round(our_ram_use_percent,2)}%"
             )
-            loop_count = 0
+            loop_start_time = time.time()
 
         # Update Old Values with current ones
         previous_sys_data = system_data
 
-        our_previous_sys_data.clear()
-        our_previous_sys_data = [
+        
+        our_previous_process_data.clear()
+        our_previous_process_data = [
             get_process_status(active_process[0])
             for active_process in processes_data_list
         ]
