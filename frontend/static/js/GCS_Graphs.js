@@ -667,7 +667,7 @@ function graphUpdateDiagnostics(apiData) {
 
         // Add data point to graph (skip failed pings so line breaks)
         const graph = diagGraphs[deviceName];
-        if (graph && alive) {
+        if (graph && ping >= 0) {
             graphAddValue(graph, 0, timestamp, ping);
         }
 
