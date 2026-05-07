@@ -138,7 +138,7 @@ def build_middleware_argv(
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
-    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE_ONLY].
+    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE-ONLY].
     """
     if not isinstance(
         config.interface_gse_type, InterfaceType
