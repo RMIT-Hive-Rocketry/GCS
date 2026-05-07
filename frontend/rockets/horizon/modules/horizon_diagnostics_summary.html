@@ -6,38 +6,28 @@
   <div class="flex flex-col items-center gap-1 w-full">
     <h2>Summary</h2>
     <div class="flex-1 flex flex-col justify-around items-center py-2 px-1 gap-2"></div>
-      <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
-          GSE
-      </p>
-      <div
-          id="diag-summary-gse"
-          class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
-          style="background-color: var(--color-green-400, #4ade80); border-color: var(--color-green-700, #15803d); color: black;"
-      >UP</div>
-  </div>
 
-  <!-- AVIONICS: red if AV radio times out -->
-  <div class="flex flex-col items-center gap-1 w-full">
-      <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
-          AVIONICS
-      </p>
-      <div
-        id="diag-summary-av"
-        class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
-        style="background-color: var(--color-red-500, #ef4444); border-color: var(--color-red-800, #991b1b); color: white;"
+    <!-- GSE: Green if corresponding state, Vulcan ESP32, WifI Bridge @ GSE all green, red otherwise and by default-->
+    <div class="flex flex-col items-center gap-1 w-full">
+        <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
+            GSE
+        </p>
+        <div
+            id="diag-summary-gse"
+            class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
+            style="background-color: var(--color-red-500, #ef4444); border-color: var(--color-red-800, #991b1b); color: white;"
         >DOWN</div>
-  </div>
+    </div>
 
-  <!-- LAN: red if any core network device unreachable -->
-  <div class="flex flex-col items-center gap-1 w-full">
-      <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
-          LAN
-      </p>
-      <div
-          id="diag-summary-lan"
-          class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
-          style="background-color: var(--color-green-400, #4ade80); border-color: var(--color-green-700, #15803d); color: black;"
-      >UP</div>
-  </div>
-
+    <!-- AVIONICS: Green if the corresponding state is green and by default, red otherwise -->
+    <div class="flex flex-col items-center gap-1 w-full">
+        <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
+            AVIONICS
+        </p>
+        <div
+            id="diag-summary-av"
+            class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
+            style="background-color: var(--color-green-400, #4ade80); border-color: var(--color-green-700, #15803d); color: black;"
+            >UP</div>
+    </div>
 </div>

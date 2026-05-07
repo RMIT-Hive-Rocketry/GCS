@@ -612,10 +612,6 @@ function graphUpdateAuxData(data) {
 
 const diagGraphs = {}; // stores graph objects per device
 
-// Which devices control each summary status box
-const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
-const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
-
 // Creates a graph panel for a device if it doesn't exist yet
 function diagEnsureGraph(deviceName) {
     if (diagGraphs[deviceName]) return;
@@ -656,9 +652,7 @@ function diagEnsureGraph(deviceName) {
 // Called every packet cycle to update graphs and status boxes
 function graphUpdateDiagnostics(apiData) {
     const timestamp = Date.now() / 1000;
-
-    let gseUp = true, gseHasData = false;
-    let lanUp = true, lanHasData = false;
+    const alive = true;
 
     Object.entries(apiData).forEach(([deviceName, deviceData]) => {
         if (deviceName === "id") return;
@@ -667,11 +661,9 @@ function graphUpdateDiagnostics(apiData) {
         if (typeof deviceData !== "object" || deviceData === null) return;
         if (!("ping" in deviceData)) return;
 
-        const ping = deviceData?.ping ?? -1;
-        const alive = ping >= 0;
-
         // Create graph for this device if needed
         diagEnsureGraph(deviceName);
+        const ping = deviceData?.ping ?? -1;
 
         // Add data point to graph (skip failed pings so line breaks)
         const graph = diagGraphs[deviceName];
@@ -679,20 +671,16 @@ function graphUpdateDiagnostics(apiData) {
             graphAddValue(graph, 0, timestamp, ping);
         }
 
-        // Track summary status
-        if (DIAG_GSE_DEVICES.includes(deviceName)) {
-            gseHasData = true;
-            if (!alive) gseUp = false;
-        }
-        if (DIAG_LAN_DEVICES.includes(deviceName)) {
-            lanHasData = true;
-            if (!alive) lanUp = false;
+        // Track summary status, unless alive has already been set false
+        if ((["Vulcan ESP32", "WiFi Bridge @ GSE"].includes(deviceName)) && alive) {
+            // GSE: Check if the GSE radio indicator and the above pings are > 0
+            const gseIndicator = document.querySelector('[data-key="state.gse.radio"][data-type="state"]');
+            if (gseIndicator) {
+                alive = gseIndicator.classList.contains("green") && (ping >= 0);
+                diagSetStatusBox("diag-summary-gse", alive);
+            }
         }
     });
-
-    // Update the summary boxes
-    if (gseHasData) diagSetStatusBox("diag-summary-gse", gseUp);
-    if (lanHasData) diagSetStatusBox("diag-summary-lan", lanUp);
 
     // AVIONICS: check if AV radio indicator is green
     const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
