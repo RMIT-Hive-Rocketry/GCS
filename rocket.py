@@ -11,7 +11,6 @@ import time
 import os
 import signal
 import enum
-from typing import Optional
 from collections.abc import Callable
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
@@ -241,9 +240,9 @@ def start_docker_container(logger):
 
 
 def _validate_interface_options(
-    interface: Optional[str],
-    interface_av: Optional[str],
-    interface_gse: Optional[str],
+    interface: str | None,
+    interface_av: str | None,
+    interface_gse: str | None,
 ) -> None:
     """Validate mutual exclusivity of --interface vs --interface-av/--interface-gse.
     Raises click.UsageError for invalid combinations.
@@ -267,19 +266,22 @@ def _validate_interface_options(
     if interface_gse is not None:
         interface_gse = interface_gse.strip().lower()
 
-    if interface_gse is not None and interface_av is not None:
-        if (
+    if (
+        interface_gse is not None
+        and interface_av is not None
+        and (
             "test" in interface_av
             or "test" in interface_gse
             and interface_av != interface_gse
-        ):
-            raise NotImplementedError(
-                "Device emulator does not support split emulation interfaces yet"
-            )
+        )
+    ):
+        raise NotImplementedError(
+            "Device emulator does not support split emulation interfaces yet"
+        )
 
 
 def _validate_mutually_exclusive_options(
-    gse_only: Optional[bool], frontend_only: Optional[bool]
+    gse_only: bool, frontend_only: bool
 ) -> None:
     """
     Validate mutual exclusivity of --gse-only and --frontend-only.
@@ -294,17 +296,17 @@ def _validate_mutually_exclusive_options(
 def start_services(
     COMMAND: Command,
     DOCKER: bool = False,
-    interface_av_arg: Optional[str] = None,
-    interface_gse_arg: Optional[str] = None,
+    interface_av_arg: str | None = None,
+    interface_gse_arg: str | None = None,
     nobuild: bool = False,
     logpkt: bool = False,
     nopendant: bool = False,
     gse_only: bool = False,
     frontend: bool = False,
     frontend_only: bool = False,
-    replay_mode: Optional[str] = None,
-    MISSION_ARG: Optional[str] = None,
-    SIMULATION_ARG: Optional[str] = None,
+    replay_mode: str | None = None,
+    MISSION_ARG: str | None = None,
+    SIMULATION_ARG: str | None = None,
     experimental: bool = False,
     corruption: bool = False,
 ):
@@ -415,8 +417,8 @@ def start_services(
         start_replay_system(
             logger,
             aux_service_plan.device_path,
-            MISSION=aux_service_plan.mission,
-            SIMULATION=aux_service_plan.simulation,
+            mission=aux_service_plan.mission,
+            simulation=aux_service_plan.simulation,
         )
 
     # 4. Start the event viewer
@@ -549,7 +551,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
             raise click.UsageError(
                 "--mission is required to run a specified mission"
             )
-        elif mission == "TEST":
+        if mission == "TEST":
             raise NotImplementedError(f"{mission} has not been implemented yet")
 
         logger.info(f"Using mission data:{mission}")
@@ -559,7 +561,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
             raise click.UsageError(
                 "--simulation is required to run a specified scenario"
             )
-        elif simulation != "TEST" and simulation != "DEMO":
+        if simulation != "TEST" and simulation != "DEMO":
             raise NotImplementedError(
                 f"{simulation} has not been implemented yet"
             )
@@ -583,13 +585,13 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
 
 def print_splash():
     """Prints a logo and splash screen for decoration"""
-    with open(os.path.join("cli", "ascii_art_logo.txt"), "r") as r:
+    with open(os.path.join("cli", "ascii_art_logo.txt")) as r:
         print(r.read())
 
     print("\n\n")
     print("RMIT High Velocty Rocket GCS CLI")
     print("Version: ", end="")
-    with open("VERSION", "r") as r:
+    with open("VERSION") as r:
         print(r.read())
 
     print(

@@ -2,7 +2,7 @@ import serial
 import time
 
 
-def send_at_commands():
+def send_at_commands() -> None:
     try:
         ser = serial.Serial("/dev/ttyAMA0", baudrate=230400, timeout=1)
         if ser.is_open:
@@ -26,14 +26,18 @@ def send_at_commands():
             print(f"Sent: {command}")
             time.sleep(0.5)
 
-            response = ser.read_all().decode("utf-8", errors="ignore")
-            print(f">: {response}")
+            data = ser.read_all()
+            if data:
+                response = data.decode("utf-8", errors="ignore")
+                print(f">: {response}")
 
         print("Continuous read started")
         while True:
-            response = ser.read_all().decode("utf-8", errors="ignore")
-            if response:
-                print(f">: {response}")
+            data = ser.read_all()
+            if data:
+                response = data.decode("utf-8", errors="ignore")
+                if response:
+                    print(f">: {response}")
 
     except Exception as e:
         print(f"Error during communication: {e}")

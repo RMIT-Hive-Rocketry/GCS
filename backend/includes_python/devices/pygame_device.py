@@ -1,7 +1,6 @@
 from backend.includes_python.devices.state_table import StateTable
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
-from typing import List, Dict
 
 import os
 import pygame
@@ -56,7 +55,7 @@ class Pygame_Device(ControlDevice):
     # https://stackoverflow.com/questions/5960337/how-to-create-abstract-properties-in-python-abstract-classes
     @property
     @abstractmethod
-    def BUTTON_NAME_ID_MAP(self) -> Dict[str, int]:
+    def BUTTON_NAME_ID_MAP(self) -> dict[str, int]:
         pass
 
     @property
@@ -66,10 +65,10 @@ class Pygame_Device(ControlDevice):
 
     # dont recompute every time
     @cached_property
-    def BUTTON_ID_NAME_MAP(self) -> Dict[int, str]:
+    def BUTTON_ID_NAME_MAP(self) -> dict[int, str]:
         return {v: k for k, v in self.BUTTON_NAME_ID_MAP.items()}
 
-    buttons: Dict[str, Pygame_Button]
+    buttons: dict[str, Pygame_Button]
 
     joystick: pygame.joystick.JoystickType | None
     joystick_id: int | None
@@ -146,7 +145,7 @@ class Pygame_Device(ControlDevice):
             self._try_connect_device()
 
         # check for disconnection
-        events: List[pygame.event.Event] = pygame.event.get()
+        events: list[pygame.event.Event] = pygame.event.get()
         for event in events:
             if (
                 event.type == pygame.JOYDEVICEREMOVED

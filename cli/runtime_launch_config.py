@@ -2,9 +2,6 @@ import enum
 import logging
 import os
 from dataclasses import dataclass
-from typing import Dict, Optional
-from functools import cache
-
 import config.config as config
 from cli.start_middleware import (
     InterfaceType,
@@ -16,11 +13,11 @@ from cli.start_socat import start_fake_serial_device
 
 @dataclass(frozen=True)
 class AuxServicePlan:
-    service: Optional[str]
-    device_path: Optional[str]
-    interface_type: Optional[InterfaceType]
-    mission: Optional[str]
-    simulation: Optional[str]
+    service: str | None
+    device_path: str | None
+    interface_type: InterfaceType | None
+    mission: str | None
+    simulation: str | None
 
 
 class RuntimeLaunchConfig:
@@ -29,8 +26,8 @@ class RuntimeLaunchConfig:
     def __init__(
         self,
         command: enum.Enum,
-        interface_av_arg: Optional[str],
-        interface_gse_arg: Optional[str],
+        interface_av_arg: str | None,
+        interface_gse_arg: str | None,
         gse_only: bool,
         frontend_only: bool,
         logger: logging.Logger,
@@ -44,10 +41,10 @@ class RuntimeLaunchConfig:
 
         self._validate_split_emulation_support()
 
-        self.lora_config: Optional[Dict[str, str]] = None
+        self.lora_config: dict[str, str] | None = None
         self.device_path_gse: str = ""
         self.device_path_av: str = ""
-        self._aux_device_path: Optional[str] = None
+        self._aux_device_path: str | None = None
 
         self._resolve_paths_and_radio()
 
@@ -170,9 +167,9 @@ class RuntimeLaunchConfig:
 
     def build_aux_service_plan(
         self,
-        replay_mode: Optional[str],
-        mission_arg: Optional[str],
-        simulation_arg: Optional[str],
+        replay_mode: str | None,
+        mission_arg: str | None,
+        simulation_arg: str | None,
     ) -> AuxServicePlan:
         command_name = getattr(self.command, "name", "").upper()
         test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}

@@ -1,10 +1,11 @@
-from numbers import Number
 import datetime
 import time
+from typing import Never
 from tqdm import tqdm
-import readline  # for up arrow history support in input
 import csv
 import os
+
+# import readline  # for up arrow history support in input
 
 EXPECTED_START_TOTAL_WEIGHT_KG = 24
 # around 28-32
@@ -14,10 +15,10 @@ EXPECTED_FULL_N2O_WEIGHT_KG = (
 )
 
 
-def process_reading(START_TIME_S: float, mv: Number, csv_path: str):
+def process_reading(start_time_s: float, mv: float, csv_path: str) -> None:
     # Show the user the value they entered, the time they entered it and a progress bar.
     # Every logged value from then on is stored in a CSV with raw value and time
-    current_fill_time = time.monotonic() - START_TIME_S
+    current_fill_time = time.monotonic() - start_time_s
     weight_kg = millivolts_to_kg(mv)
 
     fill_percentage = (
@@ -65,12 +66,12 @@ def process_reading(START_TIME_S: float, mv: Number, csv_path: str):
         )
 
 
-def millivolts_to_kg(mv: Number):
+def millivolts_to_kg(mv: float) -> float:
     # kg = 1.8799 * mv - 0.8836
     return (1.8799 * mv) - 0.8836
 
 
-def create_csv_file():
+def create_csv_file() -> str:
     current_time = datetime.datetime.now()
     timestamp = current_time.strftime("%F_%T_%z")
     csv_path = os.path.join(os.getcwd(), "TEMP_LOG_" + timestamp + ".csv")
@@ -87,13 +88,13 @@ def create_csv_file():
     return csv_path
 
 
-def update_csv(csv_path, row: list):
+def update_csv(csv_path, row: list) -> None:
     with open(csv_path, "a") as f:
         writer = csv.writer(f)
         writer.writerow(row)
 
 
-def main():
+def main() -> Never:
     # As soon as the user hits enter, a timer starts
     os.system("clear")
     csv_path = create_csv_file()
