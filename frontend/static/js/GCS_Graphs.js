@@ -652,7 +652,7 @@ function diagEnsureGraph(deviceName) {
 // Called every packet cycle to update graphs and status boxes
 function graphUpdateDiagnostics(apiData) {
     const timestamp = Date.now() / 1000;
-    const alive = true;
+    let alive = true;
 
     Object.entries(apiData).forEach(([deviceName, deviceData]) => {
         if (deviceName === "id") return;
