@@ -123,12 +123,36 @@ function checkStateIndicator(elem = null) {
         let sound = "",
             indicator = e1.attributes[0].textContent;
 
-        // See horizon_preflight.html for sources
+        /* See horizon_preflight.html for sound sources. Also set the corresponding
+         * summary light for the 1st 2 states if the function exists.
+        */
         if (indicator.includes("av.radio")) {
             sound = "AV_Loss";
+            if (typeof diagSetStatusBox === 'function') {
+                diagSetStatusBox("diag-summary-av", e1.classList.value.includes("green"));
+            }
         }
         else if (indicator.includes("gse.radio")) {
             sound = "GSE_Loss";
+            if (typeof diagSetStatusBox === 'function') {
+                const alive = ["Vulcan ESP32", "WiFi Bridge @ GSE"].every((device) => {
+                    let ping = document.querySelector(`[data-key="${device}.ping"]`);
+                    return ping && ping.getAttribute('value') >= 0;
+                });
+
+                diagSetStatusBox("diag-summary-gse", alive && e1.classList.value.includes("green"));
+            }
+
+            // // Track summary status, unless alive has already been set false
+            // let alive = true;
+            // if ((["Vulcan ESP32", "WiFi Bridge @ GSE"].includes(deviceName)) && alive) {
+            //     // GSE: Check if the GSE radio indicator and the above pings are > 0
+            //     const gseIndicator = document.querySelector('[data-key="state.gse.radio"][data-type="state"]');
+            //     if (gseIndicator) {
+            //         alive = gseIndicator.classList.contains("green") && (ping >= 0);
+            //         diagSetStatusBox("diag-summary-gse", alive);
+            //     }
+            // }
         }
         else if (indicator.includes("gpsFix")) {
             sound = "GPS_Fix_Loss";
@@ -854,7 +878,7 @@ function processDataForDisplay(apiData, apiId) {
                 if ((deviceData.ping == null) || (deviceData.ping < 0)) {
                     topRow.querySelector(".indicator-state")?.classList.replace("green", "red");
                 }
-
+                
                 bottomRow.innerHTML = `
                 <tr>
                     <td style="border-bottom: 30px solid transparent;">
@@ -866,8 +890,8 @@ function processDataForDisplay(apiData, apiId) {
                                 autocomplete="off"
                                 class="text-right"
                                 size="4"
-                                value='${deviceData.packet_loss != null ? deviceData.packet_loss : 0}'
-                            />
+                                value='${deviceData.packet_loss != null ? deviceData.packet_loss*100 : 0}'
+                            />%
                         </label>
                     </td>
                     <td style="border-bottom: 30px solid transparent;">
@@ -912,7 +936,7 @@ function processDataForDisplay(apiData, apiId) {
 
                 // Update the packet loss then ping
                 let bottomRow = packetsTable.rows[index + 1].querySelectorAll('td label input');
-                bottomRow[0].setAttribute('value', (deviceData.packet_loss != null) ? deviceData.packet_loss : 0);
+                bottomRow[0].setAttribute('value', (deviceData.packet_loss != null) ? deviceData.packet_loss*100 : 0);
                 bottomRow[1].setAttribute('value', (deviceData.ping != null) ? deviceData.ping : -1);
             }
 

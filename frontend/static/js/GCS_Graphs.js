@@ -651,8 +651,6 @@ function diagEnsureGraph(deviceName) {
 // Called every packet cycle to update graphs and status boxes
 function graphUpdateDiagnostics(apiData) {
     const timestamp = Date.now() / 1000;
-    let alive = true;
-
     Object.entries(apiData).forEach(([deviceName, deviceData]) => {
         if (deviceName === "id") return;
         if (deviceName === "state") return;
@@ -668,16 +666,6 @@ function graphUpdateDiagnostics(apiData) {
         const graph = diagGraphs[deviceName];
         if (graph && ping >= 0) {
             graphAddValue(graph, 0, timestamp, ping);
-        }
-
-        // Track summary status, unless alive has already been set false
-        if ((["Vulcan ESP32", "WiFi Bridge @ GSE"].includes(deviceName)) && alive) {
-            // GSE: Check if the GSE radio indicator and the above pings are > 0
-            const gseIndicator = document.querySelector('[data-key="state.gse.radio"][data-type="state"]');
-            if (gseIndicator) {
-                alive = gseIndicator.classList.contains("green") && (ping >= 0);
-                diagSetStatusBox("diag-summary-gse", alive);
-            }
         }
     });
 
