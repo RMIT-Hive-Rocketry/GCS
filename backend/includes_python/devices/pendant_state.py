@@ -55,34 +55,9 @@ class PendantState:
     Also has two fallback dicts for the GSE and Pendant
     """
 
-    FALLBACK_PENDANT_STATES_DICT: Dict[PendantInput, bool] = {
-        # important stuff
-        PendantInput.SYSTEM_ACTIVE: True,
-        PendantInput.E_STOP: False,
-        # first toggle
-        PendantInput.FILL_MODE: False,
-        PendantInput.ARMED: False,
-        # second toggle
-        PendantInput.N2O: False,
-        PendantInput.PURGE: False,
-        # buttons
-        PendantInput.O2: False,
-        PendantInput.IGNITION: False,
-    }
+    FALLBACK_PENDANT_STATES_DICT = dict.fromkeys(PendantInput, False)
 
-    FALLBACK_GSE_STATES_DICT: Dict[GSEState, bool] = {
-        GSEState.SYSTEM_ACTIVE: True,
-        # first toggle
-        GSEState.FILL_MODE: False,
-        GSEState.ARMED: False,
-        # second toggle
-        GSEState.N2O: False,
-        GSEState.NEUTRAL: False,
-        GSEState.PURGE: False,
-        # buttons
-        GSEState.O2: False,
-        GSEState.IGNITION: False,
-    }
+    FALLBACK_GSE_STATES_DICT = dict.fromkeys(GSEState, False)
 
     states: Dict[PendantInput, bool]
 
