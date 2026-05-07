@@ -77,10 +77,11 @@ class RuntimeLaunchConfig:
         return getattr(command, "name", "").upper() == "RUN"
 
     def _validate_split_emulation_support(self) -> None:
-        any_interface_is_test = self.interface_av_type in self._test_interfaces or self.interface_gse_type in self._test_interfaces
+        any_interface_is_test = (
+            self.interface_av_type in self._test_interfaces
+            or self.interface_gse_type in self._test_interfaces
+        )
         interfaces_differ = self.interface_gse_type != self.interface_av_type
-
-
 
         if (any_interface_is_test) and interfaces_differ:
             raise NotImplementedError(
@@ -150,7 +151,7 @@ class RuntimeLaunchConfig:
             if not (1 <= tcp_port <= 65535):
                 raise RuntimeError("tcp-port must be between 1 and 65535")
             return f"{tcp_ip}:{tcp_port}"
-        
+
         if interface_type == InterfaceType.NONE:
             return "_"
 

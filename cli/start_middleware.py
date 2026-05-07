@@ -16,6 +16,7 @@ class InterfaceType(enum.Enum):
     # for --gse-only
     NONE = "NONE"
 
+
 def get_interface_type(interface: str | None) -> InterfaceType:
     """Get the interface type from the command line argument or config"""
     if interface is None:  # Unspecified by user
@@ -155,7 +156,10 @@ def build_middleware_argv(
         config.interface_gse_type == InterfaceType.UART_E5
         or config.interface_av_type == InterfaceType.UART_E5
     ):
-        if not config.opt_arg or "--gse_only" not in config.opt_arg.lower().strip():
+        if (
+            not config.opt_arg
+            or "--gse_only" not in config.opt_arg.lower().strip()
+        ):
             print(f"optionaoniogeain: {config.opt_arg}")
             if config.lora_config is None:
                 raise ValueError("UART_E5 interface requires lora_config")
