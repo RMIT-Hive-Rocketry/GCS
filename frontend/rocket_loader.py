@@ -230,6 +230,9 @@ class Rocket:
                     grid_span,
                 )
 
+            # Wrap CSS
+            config.CSS = f"<style>{config.CSS}</style>"
+
 
 def load_rockets(flask_app):
     # Load the frontend directory

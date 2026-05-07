@@ -300,8 +300,6 @@
             "type": "shell",
             "command": "flask",
             "args": [
-                "-e",
-                "./frontend/.flaskenv",
                 "-A",
                 "frontend.server",
                 "run"

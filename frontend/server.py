@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 from frontend.rocket_loader import load_rockets
-from flask import Flask, send_from_directory, abort, render_template, request
+from flask import (
+    Flask,
+    send_from_directory,
+    abort,
+    render_template,
+    request,
+)
 from os import path as os_path
 import backend.includes_python.process_logging as slogger
+import config.config as config
+
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -43,6 +51,13 @@ def create_app():
     # Load rocket assets and configurations from /rockets dir
     app.config["rockets"] = load_rockets(app)
     app.config["default"] = app.config["rockets"][0].configs[0]
+
+    # Load additional configuration from config.ini
+    frontend_config = config.get_config()["frontend"]
+    websocket = {
+        "host": frontend_config.get("ws_host"),
+        "port": frontend_config.get("ws_port"),
+    }
 
     """
     Logging
@@ -85,6 +100,7 @@ def create_app():
             config=app.config,
             active=active,
             name=name,
+            websocket=websocket,
         )
 
     """
@@ -119,6 +135,7 @@ def create_app():
         # 404 page not found
         slogger.warning(f"404 not found: {filename}")
         abort(404)
+        return None
 
     """
     Debugging
@@ -127,18 +144,27 @@ def create_app():
     # Debug rocket loading
     @app.route("/debug/rockets")
     def debug_rockets():
-        return render_template("templates/debug_rockets.html")
+        return render_template(
+            "templates/debug_rockets.html",
+            websocket=websocket,
+        )
 
     # Debug modules
     # Shows all modules from loaded rockets
     @app.route("/debug/modules")
     def debug_modules():
-        return render_template("templates/debug_modules.html")
+        return render_template(
+            "templates/debug_modules.html",
+            websocket=websocket,
+        )
 
     # Debug control pendant
     # Shows all modules from loaded rockets
     @app.route("/debug/pendant")
     def debug_pendant():
-        return render_template("templates/debug_pendant.html")
+        return render_template(
+            "templates/debug_pendant.html",
+            websocket=websocket,
+        )
 
     return app
