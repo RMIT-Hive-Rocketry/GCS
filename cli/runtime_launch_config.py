@@ -29,7 +29,6 @@ class RuntimeLaunchConfig:
         interface_av_arg: str | None,
         interface_gse_arg: str | None,
         gse_only: bool,
-        frontend_only: bool,
         logger: logging.Logger,
     ) -> None:
         self.command = command
