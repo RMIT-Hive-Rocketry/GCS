@@ -1,7 +1,7 @@
 # Custom protobuf setup guide
 
 This is for if you have a different version of protobuf installed
-globally than whats required and dont want to override it.
+globally than what's required and dont want to override it.
 
 # Build protobuf and protoc
 
@@ -28,7 +28,7 @@ Make the following changes to `CMakeLists.txt` in the root directory.
 > [!NOTE]
 > The code might not match exactly if it has been modified since this was written.
 
-Remove the protobuf dependancy lines:
+Remove the protobuf dependency lines:
 ```cmake
 # line ~56
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")

@@ -72,3 +72,6 @@ class RPI_GPIO_Device(ControlDevice):
             self.SYS_ON and not self.N2O_ACTIVE and not self.PURGE_ACTIVE
         )
         self.state_table = StateTable(**states)
+
+    def cleanup(self) -> None:
+        return super().cleanup()

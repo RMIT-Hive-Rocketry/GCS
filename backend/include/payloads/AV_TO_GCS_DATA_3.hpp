@@ -23,7 +23,7 @@ class AV_TO_GCS_DATA_3 {
     ByteParser parser(DATA, INTERNAL_SIZE);
 
     // DON'T EXTRACT BITS FOR ID!!!!
-    // ID is handled seperatly in main loop for packet type identification
+    // ID is handled separately in main loop for packet type identification
     rssi_ = std::bit_cast<float>(parser.extract_signed_bits(32));
     snr_ = std::bit_cast<float>(parser.extract_signed_bits(32));
     flight_state_ = calc_flight_state(parser.extract_unsigned_bits(3));

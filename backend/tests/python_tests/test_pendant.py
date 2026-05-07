@@ -1,7 +1,4 @@
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.control_device_manager import (
-    ControlDeviceManager,
-)
 from backend.includes_python.devices.state_table import StateTable
 
 
@@ -13,11 +10,14 @@ class ExampleControlDevice(ControlDevice):
         # simulate not getting packets
         pass
 
+    def cleanup(self) -> None:
+        return super().cleanup()
+
 
 def test_control_device():
     device = ExampleControlDevice()
 
-    # if _update_state_table retuns nothing then we should get get_fallback_table
+    # if _update_state_table returns nothing then we should get get_fallback_table
     assert device.get_state_table() == StateTable.get_fallback_table()
 
     def raise_exception(self):

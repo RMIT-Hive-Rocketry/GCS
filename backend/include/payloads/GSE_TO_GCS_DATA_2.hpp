@@ -22,7 +22,7 @@ class GSE_TO_GCS_DATA_2 {
     ByteParser parser(DATA, INTERNAL_SIZE);
 
     // DON'T EXTRACT BITS FOR ID!!!!
-    // ID is handled seperatly in main loop for packet type identification
+    // ID is handled separately in main loop for packet type identification
     rssi_ = std::bit_cast<float>(parser.extract_signed_bits(32));
     snr_ = std::bit_cast<float>(parser.extract_signed_bits(32));
     manual_purge_activated_ =

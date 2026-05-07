@@ -2,7 +2,7 @@
 
 import click
 import cli.rocket_logging as rocket_logging
-import cli.proccess as process
+import cli.process as process
 import config.config as config
 import logging
 import subprocess
@@ -11,7 +11,7 @@ import time
 import os
 import signal
 import enum
-from typing import Optional, Callable
+from collections.abc import Callable
 from cli.start_emulator import start_fake_serial_device_emulator
 from cli.start_middleware_build import start_middleware_build, CMakeBuildModes
 from cli.start_middleware import start_middleware, InterfaceType
@@ -95,7 +95,7 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
             "--log-level",
             is_flag=False,
             type=_LOG_LEVEL_CHOICES,
-            help="Overide the config log level",
+            help="Override the config log level",
             callback=_set_level,
             expose_value=False,
         ),
@@ -114,7 +114,7 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
             "--log-level",
             is_flag=False,
             type=_LOG_LEVEL_CHOICES,
-            help="Overide the config log level",
+            help="Override the config log level",
             callback=_set_level,
             expose_value=False,
         ),
@@ -229,9 +229,9 @@ def start_docker_container(logger):
 
 
 def _validate_interface_options(
-    interface: Optional[str],
-    interface_av: Optional[str],
-    interface_gse: Optional[str],
+    interface: str | None,
+    interface_av: str | None,
+    interface_gse: str | None,
 ) -> None:
     """Validate mutual exclusivity of --interface vs --interface-av/--interface-gse.
     Raises click.UsageError for invalid combinations.
@@ -269,16 +269,16 @@ def _validate_interface_options(
 def start_services(
     COMMAND: Command,
     DOCKER: bool = False,
-    interface_av_arg: Optional[str] = None,
-    interface_gse_arg: Optional[str] = None,
+    interface_av_arg: str | None = None,
+    interface_gse_arg: str | None = None,
     nobuild: bool = False,
     logpkt: bool = False,
     nopendant: bool = False,
     gse_only: bool = False,
     frontend: bool = False,
-    replay_mode: Optional[str] = None,
-    MISSION_ARG: Optional[str] = None,
-    SIMULATION_ARG: Optional[str] = None,
+    replay_mode: str | None = None,
+    MISSION_ARG: str | None = None,
+    SIMULATION_ARG: str | None = None,
     experimental: bool = False,
     corruption: bool = False,
 ):
@@ -290,7 +290,7 @@ def start_services(
         interface_av_arg (Optional[str], optional): AV link type for dual-link mode. With interface_gse_arg. Defaults to None.
         interface_gse_arg (Optional[str], optional): GSE link type for dual-link mode. With interface_av_arg. Defaults to None.
         nobuild (bool, optional): Skip cmake build?. Defaults to False.
-        logpkt (bool, optional): Log recieved packets?. Defaults to False.
+        logpkt (bool, optional): Log received packets?. Defaults to False.
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
         gse_only (bool, optional): Only communicate with GSE?. Defaults to False.
         frontend (bool, optional): Start the frontend server?. Defaults to False.
@@ -323,7 +323,7 @@ def start_services(
     else:
         logger.info("Starting Soteria container in Docker")
         raise NotImplementedError(
-            "Internal Docker implimentation is out of date. Do not use"
+            "Internal Docker implementation is out of date. Do not use"
         )
         start_docker_container(logger)
 
@@ -382,8 +382,8 @@ def start_services(
         start_replay_system(
             logger,
             aux_service_plan.device_path,
-            MISSION=aux_service_plan.mission,
-            SIMULATION=aux_service_plan.simulation,
+            mission=aux_service_plan.mission,
+            simulation=aux_service_plan.simulation,
         )
 
     # 4. Start the event viewer
@@ -507,7 +507,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
             raise click.UsageError(
                 "--mission is required to run a specified mission"
             )
-        elif mission == "TEST":
+        if mission == "TEST":
             raise NotImplementedError(f"{mission} has not been implemented yet")
 
         logger.info(f"Using mission data:{mission}")
@@ -517,7 +517,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
             raise click.UsageError(
                 "--simulation is required to run a specified scenario"
             )
-        elif simulation != "TEST" and simulation != "DEMO":
+        if simulation != "TEST" and simulation != "DEMO":
             raise NotImplementedError(
                 f"{simulation} has not been implemented yet"
             )
@@ -540,13 +540,13 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
 
 def print_splash():
     """Prints a logo and splash screen for decoration"""
-    with open(os.path.join("cli", "ascii_art_logo.txt"), "r") as r:
+    with open(os.path.join("cli", "ascii_art_logo.txt")) as r:
         print(r.read())
 
     print("\n\n")
     print("RMIT High Velocty Rocket GCS CLI")
     print("Version: ", end="")
-    with open("VERSION", "r") as r:
+    with open("VERSION") as r:
         print(r.read())
 
     print(
@@ -569,7 +569,7 @@ def signal_handler(signum, frame):
     if signum in signal_map:
         cleanup_reason = signal_map[signum]
     else:
-        cleanup_reason = f"Recieved unhandled signal: {signum}"
+        cleanup_reason = f"Received unhandled signal: {signum}"
     cleanup()
     # This can be a graceful exit for now.
     # Might need to change for CI tests in future
@@ -588,7 +588,7 @@ def cleanup():
 def main():
     global logger, cleanup_reason
 
-    # Use groups for nested positional arugments `rocket run dev/prod`
+    # Use groups for nested positional arguments `rocket run dev/prod`
     cli.add_command(run)
     cli.add_command(dev)
     cli.add_command(simulation)

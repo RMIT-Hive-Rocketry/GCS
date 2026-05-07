@@ -3,22 +3,18 @@ import time
 import zmq
 import os
 import csv
-import traceback
 from abc import ABC, abstractmethod
 import sys
-import subprocess
 from google.protobuf.message import Message as PbMessage
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
 import backend.proto.generated.FlightState_pb2 as FlightState_pb
 import backend.proto.generated.AVStateFlags_pb2 as AVStateFlags_pb
 import backend.proto.generated.GSEErrors_pb2 as GSEErrors_pb
 import backend.proto.generated.GSEStateFlags_pb2 as GSEStateFlags_pb
-import backend.proto.generated.PacketMeta_pb2 as PacketMeta_pb
 import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
-from typing import List, Dict, Optional, Union
 import backend.includes_python.process_logging as slogger  # slog deez nuts
 import backend.includes_python.ansci as ansci
 from backend.includes_python.mach import Mach
@@ -33,7 +29,7 @@ class Packet(ABC):
 
     # Defined in _setup_logging
     _session_log_folder: str = None
-    _CSV_FILES_WITH_HEADERS: Dict[str, str] = None
+    _CSV_FILES_WITH_HEADERS: dict[str, str] = None
 
     @classmethod
     def _setup_logging(cls):
@@ -253,7 +249,7 @@ class Packet(ABC):
         if not self.__class__._setup == True:
             raise Exception("Error: Logging not set up")
 
-    def _log_to_csv(self, PROTO_DATA: List[str]):
+    def _log_to_csv(self, PROTO_DATA: list[str]):
         """Log data to the respective CSV file
 
         Args:
@@ -265,7 +261,7 @@ class Packet(ABC):
 
         def extract_proto_values(
             proto: PbMessage,
-        ) -> List[Union[str, int, float, bool]]:
+        ) -> list[str | int | float | bool]:
             values = []
             for field, value in proto.ListFields():
                 if field.label == field.LABEL_REPEATED:
@@ -309,7 +305,7 @@ class Packet(ABC):
             writer.writerow([timestamp.total_seconds() * 1000] + data)
 
     @abstractmethod
-    # As mentioned, call super on this anyway, but impliment own mods
+    # As mentioned, call super on this anyway, but implement own mods
     def process(self, PROTO_DATA: PbMessage) -> None:
         """How to handle each new packet from an event viewer perspective
         this includes logging to file and printing important information to console
@@ -355,11 +351,11 @@ class AVPacket(Packet):
 
     def _process_flight_state(
         self,
-        PROTO_DATA: Union[
-            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
-            AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
-            AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3,
-        ],
+        PROTO_DATA: (
+            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1
+            | AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2
+            | AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3
+        ),
     ) -> None:
         if AVPacket._last_flight_state != PROTO_DATA.flightState:
             # Flight state has changed. Please update it and notify
@@ -415,7 +411,7 @@ class AVPacket(Packet):
                         f"{state_flag_name} changed to {state_flag_value}"
                     )
                 if state_flag_name == "GPS_fix_flag" and state_flag_value:
-                    slogger.success("GPS Fix aquired")
+                    slogger.success("GPS Fix acquired")
                 elif state_flag_name == "GPS_fix_flag" and not state_flag_value:
                     slogger.warning("GPS Fix lost")
             # Update historical value
@@ -423,11 +419,11 @@ class AVPacket(Packet):
 
     def process(
         self,
-        PROTO_DATA: Union[
-            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1,
-            AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2,
-            AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3,
-        ],
+        PROTO_DATA: (
+            AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1
+            | AV_TO_GCS_DATA_2_pb.AV_TO_GCS_DATA_2
+            | AV_TO_GCS_DATA_3_pb.AV_TO_GCS_DATA_3
+        ),
     ) -> None:
         super().process(PROTO_DATA)
         # Useful docs: https://googleapis.dev/python/protobuf/latest/google/protobuf/descriptor.html
@@ -522,8 +518,8 @@ class AV_TO_GCS_DATA_1(AVPacket):
             caller_awaiting_results = True
             # Run assumption that you've setup and named keys correctly with descriptors
             if (
-                DATA_TEST_COMPLETE
-                != AVPacket._last_test_details[KEY_TEST_COMPLETE]
+                AVPacket._last_test_details[KEY_TEST_COMPLETE]
+                != DATA_TEST_COMPLETE
             ):
                 # This value has changed ^
                 data_test_complete_changed = True
@@ -560,14 +556,14 @@ class AV_TO_GCS_DATA_1(AVPacket):
                         slogger.error(f"{KEY_TEST_RESULTS}: No Continuity")
 
                 # Update history of changed complete condition
-                AVPacket._last_test_details[
+                AVPacket._last_test_details[  # fmt issue here
                     KEY_TEST_COMPLETE
                 ] = DATA_TEST_COMPLETE
 
             # Have the results changed when the test complete flag has not?
             if (
-                DATA_TEST_RESULTS
-                != AVPacket._last_test_details[KEY_TEST_RESULTS]
+                AVPacket._last_test_details[KEY_TEST_RESULTS]
+                != DATA_TEST_RESULTS
             ) and not data_test_complete_changed:
                 slogger.error(
                     f"{KEY_TEST_RESULTS} changed without test completion"
@@ -611,7 +607,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
     def _mt_to_ft(METERS):
         return METERS * 3.28084
 
-    def _proccess_alt_velocty(
+    def _process_alt_velocty(
         self, PROTO_DATA: AV_TO_GCS_DATA_1_pb.AV_TO_GCS_DATA_1
     ) -> None:
         # Print basic information
@@ -660,7 +656,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
         # slogger.debug("AV_TO_GCS_DATA_1 packet received")
 
         # Supersonic alert
-        # NOTE Legacy (IREC) is not extimated to go supersonic
+        # NOTE Legacy (IREC) is not estimated to go supersonic
         MACH_NUMBER = Mach.mach_from_alt_estimate(
             PROTO_DATA.velocity, PROTO_DATA.altitude
         )
@@ -677,12 +673,12 @@ class AV_TO_GCS_DATA_1(AVPacket):
             self._max_velocity = PROTO_DATA.velocity
             self._max_velocity_updated = True
 
-        # Regular infomation updates
+        # Regular information updates
         if (
             time.monotonic() - self._last_information_display_time
             > AVPacket._information_timeout_s
         ):
-            self._proccess_alt_velocty(PROTO_DATA)
+            self._process_alt_velocty(PROTO_DATA)
 
         self._process_AV_tests(PROTO_DATA)
 
@@ -708,7 +704,7 @@ class AV_TO_GCS_DATA_1(AVPacket):
             AVPacket._information_timeout_s = 0.7
 
 
-# TODO add proccessing for this task post White Cliffs
+# TODO add processing for this task post White Cliffs
 class AV_TO_GCS_DATA_2(Packet):
     def __init__(self):
         super().__init__(0x04, None)
@@ -733,7 +729,7 @@ class AV_TO_GCS_DATA_2(Packet):
         #     try:
         #         valid = True
         #         try:
-        #             # GPS Unimplimented
+        #             # GPS Unimplemented
         #             if float(GPS_latitude) == 0.0 or float(GPS_longitude) == 0.0:
         #                 valid = False
         #         except ValueError:
@@ -758,7 +754,7 @@ class AV_TO_GCS_DATA_2(Packet):
         # slogger.debug("AV_TO_GCS_DATA_2 packet received")
 
 
-# Unimplimented
+# Unimplemented
 
 
 class AV_TO_GCS_DATA_3(Packet):
@@ -868,7 +864,7 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
     def __init__(self):
         super().__init__(0x06, None)
 
-    def _proccess_trans_therm(
+    def _process_trans_therm(
         self, PROTO_DATA: GSE_TO_GCS_DATA_1_pb.GSE_TO_GCS_DATA_1
     ):
         TRANSDUCER_VALUE_ERROR = [
@@ -930,12 +926,12 @@ class GSE_TO_GCS_DATA_1(GSEPacket):
     ) -> None:
         super().process(PROTO_DATA)
 
-        # Regular infomation updates
+        # Regular information updates
         if (
             time.monotonic() - self._last_information_display_time
             > GSEPacket._INFORMATION_TIMEOUT_S
         ):
-            self._proccess_trans_therm(PROTO_DATA)
+            self._process_trans_therm(PROTO_DATA)
 
         # slogger.debug("GSE_TO_GCS_DATA_1 packet received")
 
@@ -991,7 +987,7 @@ class GSE_TO_GCS_DATA_2(GSEPacket):
         LOG_TEMP(
             f"GSE internal temp: {round(PROTO_DATA.internal_temp, 3)} deg C"
         )
-        # TODO Uncomment when implimented
+        # TODO Uncomment when implemented
         # LOG_WIND(
         #     f"GSE wind speed: {round(PROTO_DATA.wind_speed, 2)} m/s")
         LOG_BOTTLE_1(

@@ -1,9 +1,9 @@
-import pytest  # type: ignore
+import pytest
 from click.testing import CliRunner
 
 
 @pytest.fixture
-def runner():
+def runner() -> CliRunner:
     """
     Provides a Click CliRunner for invoking commands in tests.
     """

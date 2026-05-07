@@ -1,9 +1,6 @@
 from backend.simulation.rocket_sim import flight_simulation
 from backend.device_emulator import AVtoGCSData1, AVtoGCSData2, MockPacket
-from itertools import count
-from enum import Enum
 import numpy as np
-import os
 import math
 import sys
 import pandas as pd
@@ -259,11 +256,11 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
 
 def simulation_to_replay_data(flight_data: pd.DataFrame):
     """Convert to the Packet data struct"""
-    # Need to seperate data into seperate packets
+    # Need to separate data into separate packets
     packets = []
 
     for packet in flight_data:
-        # Need to normalise quaternions for AV2, this shouldnt be too much of an issue because we have to call it for every function anyways
+        # Need to normalise quaternions for AV2, this shouldn't be too much of an issue because we have to call it for every function anyways
         qw = packet[" e0"]
         qx = packet[" e1"]
         qy = packet[" e2"]

@@ -1,7 +1,6 @@
 from backend.includes_python.devices.state_table import StateTable
 from backend.includes_python.devices.pygame_device import Pygame_Device
 import backend.includes_python.process_logging as slogger
-from typing import Dict
 import pygame
 import time
 
@@ -12,7 +11,7 @@ class Emulated_Device(Pygame_Device):
     Based on the Pygame_Device class, even though it doesn't actually use Pygame
     """
 
-    BUTTON_NAME_ID_MAP: Dict[str, int] = {
+    BUTTON_NAME_ID_MAP: dict[str, int] = {
         "SYS_ON": 0,
         "ESTOP": 5,
         "FILL_SELECTED": 6,
@@ -23,7 +22,7 @@ class Emulated_Device(Pygame_Device):
         "IGNITION_MOMENT_ACTIVE": 2,
     }
 
-    BUTTON_ID_NAME_MAP: Dict[int, str] = {
+    BUTTON_ID_NAME_MAP: dict[int, str] = {
         v: k for k, v in BUTTON_NAME_ID_MAP.items()
     }
 
@@ -93,7 +92,7 @@ class Emulated_Device(Pygame_Device):
             self.state_table = StateTable.get_fallback_table()
 
     def cleanup(self):
-        """Internal cleaup code"""
+        """Internal cleanup code"""
         slogger.info("Quitting pygame...")
         pygame.quit()
         slogger.info("Pygame killed. Done...")
