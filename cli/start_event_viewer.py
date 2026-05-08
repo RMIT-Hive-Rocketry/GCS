@@ -1,6 +1,7 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
 class EventViewerSubprocess(process.LoggedSubProcess):
@@ -30,7 +31,7 @@ def start_event_viewer(
     try:
 
         event_viewer_command = [
-            "python3",
+            sys.executable,
             os.path.join("backend", "event_viewer.py"),
             "-u",
             "--socket-path",

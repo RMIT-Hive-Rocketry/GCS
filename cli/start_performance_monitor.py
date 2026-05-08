@@ -1,6 +1,7 @@
 import logging
 import cli.proccess as process
 import os
+import sys
 
 
 def start_performance_monitor(logger: logging.Logger, performance_logging: process.RunningProcess, startTime):
@@ -12,7 +13,7 @@ def start_performance_monitor(logger: logging.Logger, performance_logging: proce
             assembledProcessList.append(processdata.GetCombined())
 
         START_COMMAND = [
-            "python3",
+            sys.executable,
             "-u",
             os.path.join("backend", "performance_monitor.py"),
             "--START_TIME",

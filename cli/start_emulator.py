@@ -1,6 +1,7 @@
 import logging
 import cli.process as process
 import cli.start_middleware as start_middleware
+import sys
 
 
 def start_fake_serial_device_emulator(
@@ -15,7 +16,7 @@ def start_fake_serial_device_emulator(
     try:
 
         emulator_command = [
-            "python3",
+            sys.executable,
             "-u",
             "-Xfrozen_modules=off",
             "-m",

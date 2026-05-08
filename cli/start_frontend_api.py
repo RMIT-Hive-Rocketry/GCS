@@ -1,14 +1,15 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
 def start_frontend_api(logger: logging.Logger, performance_logging:process.RunningProcess, SUB_SOCKET_PATH: str):
     SERVICE_NAME = "frontend_api"
     try:
 
-        API_SERVICE_COMMAND = [
-            "python3",
+        api_service_command = [
+            sys.executable,
             "-u",
             os.path.join("backend", "frontend_api.py"),
             "--socket-path",

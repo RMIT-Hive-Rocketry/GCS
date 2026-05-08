@@ -1,13 +1,14 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
 def start_pendant_emulator(logger: logging.Logger, performance_logging:process.RunningProcess):
     SERVICE_NAME = "pendant_emulator"
     try:
         emulator_command = [
-            "python3",
+            sys.executable,
             "-u",
             os.path.join("backend", "pendant_emulator.py"),
         ]
