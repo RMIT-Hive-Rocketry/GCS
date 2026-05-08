@@ -28,7 +28,7 @@ def get_default_config_path() -> str:
 # Cache/Singleton this. The config file does not chang during runtime.
 # You should only read the config once at startup anyway
 @cache
-def get_config(file_path: str | None = None) -> ConfigParser:
+def get_config(file_path=get_default_config_path()) -> ConfigParser:
     """Loads configuration settings from an INI file.
 
     Args:

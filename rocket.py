@@ -349,6 +349,8 @@ def start_services(
         logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
         logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
         logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
+    elif COMMAND == Command.DEV:
+        os.environ["GCS_DEV_MODE"] = "1"
 
     # 0.1 Start docker container if requested in dev environment
     if not docker:
@@ -582,8 +584,9 @@ def replay(docker, nobuild, logpkt, mode, mission, blue_raven, simulation) -> No
             raise click.UsageError(
                 "--mission or --blue-raven is required to run a specified mission"
             )
-        if mission == "TEST":
-            raise NotImplementedError(f"{mission} has not been implemented yet")
+        elif mission == "TEST":
+            raise NotImplementedError(
+                f"{mission} has not been implemented yet")
 
         logger.info(f"Using mission data:{mission}")
 
