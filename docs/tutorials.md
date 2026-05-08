@@ -62,6 +62,7 @@ import logging
 import cli.process as process
 from typing import Tuple
 import os
+import sys
 
 def start_template_service(
     logger: logging.Logger
@@ -70,7 +71,7 @@ def start_template_service(
     try:
 
         TEMPLATE_SERVICE_COMMAND = [
-            "python3",
+            sys.executable,
             os.path.join("backend", "template_service.py"),
             "-u",
         ]

@@ -1,6 +1,7 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
 def start_frontend_api(
@@ -12,7 +13,7 @@ def start_frontend_api(
     try:
 
         api_service_command = [
-            "python3",
+            sys.executable,
             "-u",
             os.path.join("backend", "frontend_api.py"),
             "--socket-path",
