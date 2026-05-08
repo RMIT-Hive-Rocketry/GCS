@@ -221,7 +221,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
     psapi = ctypes.WinDLL("psapi.dll")
     kernel32 = ctypes.WinDLL("kernel32.dll")
 
-    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0,0,0)
+    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     process_query_limited_information = 0x1000
     # PROCESS_VM_READ = 0x0010 Might Need In future
@@ -270,7 +270,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
 
 
 def get_global_status_windows() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0,0,0,0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FileTime()
     kernel = FileTime()
@@ -495,15 +495,16 @@ def main() -> None:
         # Call function to get global system data
         system_data = get_global_status()
 
-        if(system_data == None):
-            slogger.error("Performance Monitor has failed to get global system data SHUTING DOWN.")
+        if system_data == None:
+            slogger.error(
+                "Performance Monitor failed to get global system data. SHUTTING DOWN..."
+            )
             break
-        if(previous_sys_data == None):
-            slogger.error("Performance Monitor has failed to get old global system data SHUTING DOWN.")
+        if previous_sys_data == None:
+            slogger.error(
+                "Performance Monitor failed to get old global system data. SHUTTING DOWN..."
+            )
             break
-
-
-        
 
         # Calculate Values from the global data
         total_time = (
@@ -558,7 +559,8 @@ def main() -> None:
             )
 
             ps.delta_cpu_usage_time = (
-                ps.cpu_usage_time - our_previous_process_data[idx].cpu_usage_time
+                ps.cpu_usage_time
+                - our_previous_process_data[idx].cpu_usage_time
             )
 
             # Total Current CpuUse cycles added across all monitored processes
@@ -631,7 +633,6 @@ def main() -> None:
         # Update Old Values with current ones
         previous_sys_data = system_data
 
-        
         our_previous_process_data.clear()
         our_previous_process_data = [
             get_process_status(active_process[0])
