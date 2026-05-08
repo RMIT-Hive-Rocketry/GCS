@@ -34,7 +34,7 @@ logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
 )
-running_services: bool = False  # To help close the cli automatically
+RUNNING_SERVICES: bool = False  # To help close the cli automatically
 
 IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
@@ -55,51 +55,57 @@ class Command(enum.Enum):
 class DecoratorSelector(enum.Enum):
     """Selection options to build a decorator"""
 
+    ALL_RUN = enum.auto()  # Give me just the GSE only and frontend only options
     ALL_DEV = enum.auto()  # Give me all the dev options
     SIM = enum.auto()  # Give me the options for simulation
-    GSE_ONLY = enum.auto()  # Give me just the GSE only option
     REPLAY = enum.auto()
 
 
-def cli_decorator_factory(SELECTOR: DecoratorSelector):
+def cli_decorator_factory(selector: DecoratorSelector) -> Callable:
     """Factory function to create decorators based on the selector"""
 
-    def _set_level(ctx, param, value):
+    def _set_level(ctx, param, value) -> str:
         if value:
-            CLEAN_VALUE = value.upper().strip()
-            rocket_logging.set_console_log_level(CLEAN_VALUE)
+            clean_value = value.upper().strip()
+            rocket_logging.set_console_log_level(clean_value)
         return value
 
-    _LOG_LEVEL_CHOICES = click.Choice(
+    _log_level_choices = click.Choice(
         list(rocket_logging.LOG_MAPPING.keys()), case_sensitive=False
     )
-    _INTERFACE_CHOICES = click.Choice(
+    _interface_choices = click.Choice(
         [e.value for e in InterfaceType], case_sensitive=False
     )
-    _MISSION_CHOICES = click.Choice(
+    _mission_choices = click.Choice(
         get_available_missions(), case_sensitive=False
     )
-
-    _REPLAY_MODES = click.Choice(
+    _replay_modes = click.Choice(
         ["mission", "simulation"], case_sensitive=False
     )
-
-    _SIMULATION_CHOICES = click.Choice(
+    _simulation_choices = click.Choice(
         [e.value for e in SimulationType], case_sensitive=False
     )
 
-    OPTIONS_GSE_ONLY = [
+    options_gse_only = [
         click.option(
             "--gse-only", is_flag=True, help="Run the system in GSE only mode"
         )
     ]
 
-    OPTIONS_SIM = [
+    options_frontend_only = [
+        click.option(
+            "--frontend-only",
+            is_flag=True,
+            help="Run the system in frontend only mode",
+        ),
+    ]
+
+    options_sim = [
         click.option(
             "-l",
             "--log-level",
             is_flag=False,
-            type=_LOG_LEVEL_CHOICES,
+            type=_log_level_choices,
             help="Override the config log level",
             callback=_set_level,
             expose_value=False,
@@ -113,12 +119,12 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         click.option("--logpkt", is_flag=True, help="Log packet data to csv"),
     ]
 
-    OPTIONS_REPLAY = [
+    options_replay = [
         click.option(
             "-l",
             "--log-level",
             is_flag=False,
-            type=_LOG_LEVEL_CHOICES,
+            type=_log_level_choices,
             help="Override the config log level",
             callback=_set_level,
             expose_value=False,
@@ -131,39 +137,42 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         ),
         click.option("--logpkt", is_flag=True, help="Log packet data to csv"),
         click.option(
-            "--mode", type=_REPLAY_MODES, help="Select the replay mode"
+            "--mode", type=_replay_modes, help="Select the replay mode"
         ),
         click.option(
             "--mission",
-            type=_MISSION_CHOICES,
+            type=_mission_choices,
             help="Select what mission to replay (required for mission mode)",
         ),
         click.option(
             "-s",
             "--simulation",
-            type=_SIMULATION_CHOICES,
+            type=_simulation_choices,
             help="Select simulation type (required for simulation mode)",
         ),
     ]
 
-    OPTIONS_ALL_DEV = (
-        OPTIONS_SIM
-        + OPTIONS_GSE_ONLY
+    options_all_run = options_gse_only + options_frontend_only
+
+    options_all_dev = (
+        options_sim
+        + options_gse_only
+        + options_frontend_only
         + [
             click.option(
                 "-i",
                 "--interface",
-                type=_INTERFACE_CHOICES,
+                type=_interface_choices,
                 help="Hardware interface type (single link). Overrides config. Mutually exclusive with --interface-av/--interface-gse.",
             ),
             click.option(
                 "--interface-av",
-                type=_INTERFACE_CHOICES,
+                type=_interface_choices,
                 help="AV link interface type (dual-link mode). Must be used together with --interface-gse.",
             ),
             click.option(
                 "--interface-gse",
-                type=_INTERFACE_CHOICES,
+                type=_interface_choices,
                 help="GSE link interface type (dual-link mode). Must be used together with --interface-av.",
             ),
             click.option(
@@ -172,7 +181,7 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
                 help="Do not run the pendant emulator",
             ),
             click.option(
-                "--frontend", is_flag=True, help="Run GSC front end server"
+                "-f", "--frontend", is_flag=True, help="Run frontend web server"
             ),
             click.option(
                 "--experimental",
@@ -187,25 +196,25 @@ def cli_decorator_factory(SELECTOR: DecoratorSelector):
         ]
     )
 
-    if SELECTOR == DecoratorSelector.ALL_DEV:
-        OPTIONS = OPTIONS_ALL_DEV
-    elif SELECTOR == DecoratorSelector.SIM:
-        OPTIONS = OPTIONS_SIM
-    elif SELECTOR == DecoratorSelector.GSE_ONLY:
-        OPTIONS = OPTIONS_GSE_ONLY
-    elif SELECTOR == DecoratorSelector.REPLAY:
-        OPTIONS = OPTIONS_REPLAY
+    if selector == DecoratorSelector.ALL_RUN:
+        options = options_all_run
+    elif selector == DecoratorSelector.ALL_DEV:
+        options = options_all_dev
+    elif selector == DecoratorSelector.SIM:
+        options = options_sim
+    elif selector == DecoratorSelector.REPLAY:
+        options = options_replay
 
     def decorator(func: Callable) -> Callable:
         # Apply in reverse so the first in the list appears first in --help
-        for option in reversed(OPTIONS):
+        for option in reversed(options):
             func = option(func)
         return func
 
     return decorator
 
 
-def start_docker_container(logger):
+def start_docker_container(logger) -> None:
     try:
         logger.info("Building dev container")
         subprocess.run(
@@ -225,11 +234,11 @@ def start_docker_container(logger):
             ["docker", "run", "--rm", "-it", "rocket-dev"], check=True
         )
     except subprocess.CalledProcessError as e:
+        docker_warning_text = "PLEASE ENSURE docker ENGINE IS RUNNING"
         logger.error(f"Failed to start Docker container: {e}")
-        DOCKER_WARNING_TEXT = "PLEASE ENSURE DOCKER ENGINE IS RUNNING"
-        logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
-        logger.error(DOCKER_WARNING_TEXT)
-        logger.error(f"{'-'*len(DOCKER_WARNING_TEXT)}")
+        logger.error(f"{'-'*len(docker_warning_text)}")
+        logger.error(docker_warning_text)
+        logger.error(f"{'-'*len(docker_warning_text)}")
         raise
 
 
@@ -260,20 +269,36 @@ def _validate_interface_options(
     if interface_gse is not None:
         interface_gse = interface_gse.strip().lower()
 
-    if interface_gse is not None and interface_av is not None:
-        if (
+    if (
+        interface_gse is not None
+        and interface_av is not None
+        and (
             "test" in interface_av
             or "test" in interface_gse
             and interface_av != interface_gse
-        ):
-            raise NotImplementedError(
-                "Device emulator does not support split emulation interfaces yet"
-            )
+        )
+    ):
+        raise NotImplementedError(
+            "Device emulator does not support split emulation interfaces yet"
+        )
+
+
+def _validate_mutually_exclusive_options(
+    gse_only: bool, frontend_only: bool
+) -> None:
+    """
+    Validate mutual exclusivity of --gse-only and --frontend-only.
+    Raises click.UsageError for invalid combinations.
+    """
+    if gse_only and frontend_only:
+        raise click.UsageError(
+            "Do not specify both --gse-only and --frontend-only"
+        )
 
 
 def start_services(
-    COMMAND: Command,
-    DOCKER: bool = False,
+    command: Command,
+    docker: bool = False,
     interface_av_arg: str | None = None,
     interface_gse_arg: str | None = None,
     nobuild: bool = False,
@@ -281,27 +306,29 @@ def start_services(
     nopendant: bool = False,
     gse_only: bool = False,
     frontend: bool = False,
+    frontend_only: bool = False,
     replay_mode: str | None = None,
-    MISSION_ARG: str | None = None,
-    SIMULATION_ARG: str | None = None,
+    mission_arg: str | None = None,
+    simulation_arg: str | None = None,
     experimental: bool = False,
     corruption: bool = False,
-):
+) -> None:
     """Starts all services required for the given command.
 
     Args:
-        COMMAND (Command): Summoning command for context.
-        DOCKER (bool, optional): Start in docker?. Defaults to False.
-        interface_av_arg (Optional[str], optional): AV link type for dual-link mode. With interface_gse_arg. Defaults to None.
-        interface_gse_arg (Optional[str], optional): GSE link type for dual-link mode. With interface_av_arg. Defaults to None.
+        command (Command): Summoning command for context.
+        docker (bool, optional): Start in docker?. Defaults to False.
+        interface_av_arg (str, optional): AV link type for dual-link mode. With interface_gse_arg. Defaults to None.
+        interface_gse_arg (str, optional): GSE link type for dual-link mode. With interface_av_arg. Defaults to None.
         nobuild (bool, optional): Skip cmake build?. Defaults to False.
         logpkt (bool, optional): Log received packets?. Defaults to False.
         nopendant (bool, optional): Don't start GSE control pendant?. Defaults to False.
         gse_only (bool, optional): Only communicate with GSE?. Defaults to False.
         frontend (bool, optional): Start the frontend server?. Defaults to False.
-        replay_mode (Optional[str], optional): _description_. Defaults to None.
-        MISSION_ARG (Optional[str], optional): _description_. Defaults to None.
-        SIMULATION_ARG (Optional[str], optional): _description_. Defaults to None.
+        frontend_only (bool, optional): Only start the frontend server. Defaults to None.
+        replay_mode (str, optional): _description_. Defaults to None.
+        mission_arg (str, optional): _description_. Defaults to None.
+        simulation_arg (str, optional): _description_. Defaults to None.
         experimental (bool, optional): Simulate all possible values over the entire domain. Defaults to False.
         corruption (bool, optional): Corrupt data packets to simulate heavy bit corruption. Defaults to False.
 
@@ -309,19 +336,19 @@ def start_services(
         NotImplementedError: _description_
         ValueError: _description_
     """
-    global running_services
-    running_services = True
+    global RUNNING_SERVICES, APP_START_TIME
+    RUNNING_SERVICES = True
 
     print_splash()
 
     # 0 Notify user if they are in release mode
-    if COMMAND == Command.RUN:
+    if command == Command.RUN:
         logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
         logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
         logger.info("------- STARTING SOTERIA IN PRODUCTION MODE -------")
 
     # 0.1 Start docker container if requested in dev environment
-    if not DOCKER:
+    if not docker:
         # This is called in Docker anyway.
         # Just to avoid recursive containerisation
         logger.info("Starting Soteria")
@@ -331,6 +358,11 @@ def start_services(
             "Internal Docker implementation is out of date. Do not use"
         )
         start_docker_container(logger)
+
+    # 0.2 Interrupt further process loading if --frontend-only is being used
+    if frontend_only is not None and frontend_only == True:
+        start_frontend_webserver(logger)
+        return
 
     # 1 Build C++ middleware
     if not nobuild:
@@ -349,7 +381,7 @@ def start_services(
         raise NotImplementedError("Release python testing is not implemented")
 
     launch_config = RuntimeLaunchConfig(
-        command=COMMAND,
+        command=command,
         interface_av_arg=interface_av_arg,
         interface_gse_arg=interface_gse_arg,
         gse_only=gse_only,
@@ -374,8 +406,8 @@ def start_services(
     # Would only be for convienece though. It isn't really required or critical
     aux_service_plan = launch_config.build_aux_service_plan(
         replay_mode=replay_mode,
-        mission_arg=MISSION_ARG,
-        simulation_arg=SIMULATION_ARG,
+        mission_arg=mission_arg,
+        simulation_arg=simulation_arg,
     )
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
@@ -415,16 +447,15 @@ def start_services(
         else:
             start_pendant_emulator(logger, RunningProcesses)
 
+    # 6. Start the websocket / frontend API
+    # This should be able to run even without the frontend enabled, so it can be run on other devices
+    start_frontend_api(logger, RunningProcesses, sub_socket_path="gcs_rocket")
+
+    # 7. Start the frontend web server
     if frontend:
-        # 6. Start the websocket / frontend API
-        start_frontend_api(
-            logger, RunningProcesses, SUB_SOCKET_PATH="gcs_rocket"
-        )
-        # 7. Start the frontend web server
         start_frontend_webserver(logger, RunningProcesses)
 
-    # 8. Start Performance Monitoring After ALl Other Services Have Started
-    global APP_START_TIME
+    # 8. Start performance monitor after ALL other services have started
     start_performance_monitor(
         logger=logger,
         performance_logging=RunningProcesses,
@@ -433,7 +464,7 @@ def start_services(
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """CLI interface to manage GCS software initialisation"""
     # Check you're in a valid directory.
     # Implicit check is to make sure the logo file exists in expected spot
@@ -444,20 +475,23 @@ def cli():
 
 
 @click.command()
-@cli_decorator_factory(DecoratorSelector.GSE_ONLY)
-def run(gse_only):
+@cli_decorator_factory(DecoratorSelector.ALL_RUN)
+def run(gse_only, frontend_only) -> None:
     """Start software for launch day usage"""
     rocket_logging.set_console_log_level("INFO")
     rocket_logging.set_console_low_detail(True)
+    _validate_mutually_exclusive_options(gse_only, frontend_only)
+
     interface_gse_arg = config.get_config()["hardware"].get(
         "interface_release_gse"
     )
     interface_av_arg = config.get_config()["hardware"].get(
         "interface_release_av"
     )
+
     start_services(
         Command.RUN,
-        DOCKER=False,
+        docker=False,
         interface_av_arg=interface_av_arg,  # Use config only
         interface_gse_arg=interface_gse_arg,  # Use config only
         nobuild=True,  # Do NOT auto build in production mode.
@@ -465,6 +499,7 @@ def run(gse_only):
         nopendant=False,  # Pendant emulator is required in production mode
         gse_only=gse_only,
         frontend=True,  # Run frontend web server in production mode
+        frontend_only=frontend_only,
     )
 
 
@@ -480,17 +515,19 @@ def dev(
     nopendant,
     gse_only,
     frontend,
+    frontend_only,
     experimental,
     corruption,
-):
+) -> None:
     """Start software in development mode"""
     _validate_interface_options(interface, interface_av, interface_gse)
+    _validate_mutually_exclusive_options(gse_only, frontend_only)
     if interface is not None:
         interface_av = interface
         interface_gse = interface
     start_services(
         Command.DEV,
-        DOCKER=docker,
+        docker=docker,
         interface_av_arg=interface_av,
         interface_gse_arg=interface_gse,
         nobuild=nobuild,
@@ -498,6 +535,7 @@ def dev(
         nopendant=nopendant,
         gse_only=gse_only,
         frontend=frontend,
+        frontend_only=frontend_only,
         experimental=experimental,
         corruption=corruption,
     )
@@ -505,11 +543,11 @@ def dev(
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.SIM)
-def simulation(docker, nobuild, logpkt):
+def simulation(docker, nobuild, logpkt) -> None:
     """Start software in simulation mode"""
     start_services(
         Command.SIMULATION,
-        DOCKER=docker,
+        docker=docker,
         interface_av_arg="TEST",
         interface_gse_arg="TEST",
         nobuild=nobuild,
@@ -517,12 +555,13 @@ def simulation(docker, nobuild, logpkt):
         nopendant=True,
         gse_only=False,
         frontend=True,
+        frontend_only=False,
     )
 
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, logpkt, mode, mission, simulation):
+def replay(docker, nobuild, logpkt, mode, mission, simulation) -> None:
     """Start software in simulation mode"""
     if not mode:
         raise click.UsageError("--mode is required for the replay engine")
@@ -549,7 +588,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
         logger.info(f"Running simulation: {simulation}")
     start_services(
         Command.REPLAY,
-        DOCKER=docker,
+        docker=docker,
         interface_av_arg="TEST",
         interface_gse_arg="TEST",
         nobuild=nobuild,
@@ -557,13 +596,14 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation):
         nopendant=True,
         gse_only=False,
         frontend=True,
+        frontend_only=False,
         replay_mode=mode,
-        MISSION_ARG=mission,
-        SIMULATION_ARG=simulation,
+        mission_arg=mission,
+        simulation_arg=simulation,
     )
 
 
-def print_splash():
+def print_splash() -> None:
     """Prints a logo and splash screen for decoration"""
     with open(os.path.join("cli", "ascii_art_logo.txt")) as r:
         print(r.read())
@@ -582,7 +622,7 @@ def print_splash():
     print("\n")
 
 
-def signal_handler(signum, frame):
+def signal_handler(signum, frame) -> None:
     """Handle system signals and set an appropriate cleanup reason"""
     global cleanup_reason
     signal_map = {
@@ -601,7 +641,7 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 
-def cleanup():
+def cleanup() -> None:
     """Run cleanup tasks before the program exits"""
     if "Keyboard Interrupt" in cleanup_reason:
         print()  # Print a newline after the ^C
@@ -610,7 +650,7 @@ def cleanup():
     logger.info("All cleanup tasks completed")
 
 
-def main():
+def main() -> None:
     global logger, cleanup_reason
 
     # Use groups for nested positional arguments `rocket run dev/prod`
@@ -627,11 +667,11 @@ def main():
     signal.signal(signal.SIGQUIT, signal_handler)
 
     # Remove stale tmp files
-    GCS_CONFIG_HELPER_PATH = os.path.join(
+    gcs_config_helper_path = os.path.join(
         os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt"
     )
-    if os.path.exists(GCS_CONFIG_HELPER_PATH):
-        os.remove(GCS_CONFIG_HELPER_PATH)
+    if os.path.exists(gcs_config_helper_path):
+        os.remove(gcs_config_helper_path)
 
     global APP_START_TIME
     APP_START_TIME = time.perf_counter()
@@ -646,7 +686,7 @@ def main():
         cli.main(args=sys.argv[1:], standalone_mode=False)
 
         # After CLI setup is done, start waiting (not busy waiting please)
-        if running_services:
+        if RUNNING_SERVICES:
             while True:
                 # Keep program alive, but it doesn't need to do anything
                 time.sleep(1)

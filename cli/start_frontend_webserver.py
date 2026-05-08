@@ -1,7 +1,6 @@
 import logging
 import cli.process as process
-
-# TODO: Implement logging
+import config.config as config
 
 
 class IgnoreWebMessagesFilter(logging.Filter):
@@ -13,27 +12,36 @@ class IgnoreWebMessagesFilter(logging.Filter):
 
 def start_frontend_webserver(
     logger: logging.Logger, performance_logging: process.RunningProcess
-):
-    SERVICE_NAME = "frontend_webserver"
+) -> None:
+    service_name = "frontend_webserver"
     try:
-        FRONTEND_COMMAND = [
+        frontend_config = config.get_config()["frontend"]
+        http_host = frontend_config.get("http_host")
+        http_port = frontend_config.get("http_port")
+        ws_host = frontend_config.get("ws_host")
+        ws_port = frontend_config.get("ws_port")
+
+        frontend_command = [
             "flask",
             "-A",
             "frontend.server",
             "run",
-            "--host=0.0.0.0",
-            "--port=8008",
+            f"--host={http_host}",
+            f"--port={http_port}",
         ]
 
-        logger.debug(f"Starting {SERVICE_NAME} module with: {FRONTEND_COMMAND}")
+        logger.debug(f"Starting {service_name} module with: {frontend_command}")
+        logger.debug(
+            f"{service_name} listening on ws://{ws_host}:{ws_port} for packets"
+        )
 
         frontend_process = process.LoggedSubProcess(
-            FRONTEND_COMMAND, name=SERVICE_NAME, parse_output=False
+            frontend_command, name=service_name, parse_output=False
         )
         frontend_process._parent_logger.addFilter(IgnoreWebMessagesFilter())
         frontend_process.start()
         performance_logging.AddNewProcess(frontend_process)
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {service_name}: {e}")
         return None, None
