@@ -432,7 +432,7 @@ def start_services(
     start_event_viewer(
         logger=logger,
         performance_logging=RunningProcesses,
-        SOCKET_PATH="gcs_rocket",
+        socket_path="gcs_rocket",
         file_logging_enabled=logpkt,
     )
 
@@ -449,13 +449,13 @@ def start_services(
 
     # 6. Start the websocket / frontend API
     # This should be able to run even without the frontend enabled, so it can be run on other devices
-    start_frontend_api(logger, RunningProcesses, sub_socket_path="gcs_rocket")
+    start_frontend_api(logger, RunningProcesses, "gcs_rocket")
 
     # 7. Start the frontend web server
     if frontend:
         start_frontend_webserver(logger, RunningProcesses)
 
-    # 8. Start performance monitor after ALL other services have started
+    # 8. Start performance monitor after all other services have started
     start_performance_monitor(
         logger=logger,
         performance_logging=RunningProcesses,

@@ -189,12 +189,15 @@ def create_interscript_comms_handler(
     return fh
 
 
-def initialise(startTime) -> logging.Logger:
+def initialise(startTime = None) -> logging.Logger:
     """One time logging setup run as soon as the program starts"""
 
     global APP_START_TIME, DETAILED_LOGGING_PREFIX
-    # APP_START_TIME = time.perf_counter()
-    APP_START_TIME = startTime
+
+    if(startTime == None):
+        APP_START_TIME = time.perf_counter()
+    else:
+        APP_START_TIME = startTime
 
     logger = logging.getLogger("rocket")
     if logger.hasHandlers():
