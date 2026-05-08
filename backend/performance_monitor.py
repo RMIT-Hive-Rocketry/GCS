@@ -420,20 +420,20 @@ def get_global_status() -> GlobalSystemInfo:
 def main() -> None:
 
     # Get Arguments and Parse
-    service_list = sys.argv[sys.argv.index("--running_services") + 1]
+    service_list = sys.argv[sys.argv.index("--running-services") + 1]
 
     global START_TIME
-    START_TIME = sys.argv[sys.argv.index("--START_TIME") + 1]
+    START_TIME = sys.argv[sys.argv.index("--start-time") + 1]
 
     if service_list is None:
         slogger.error(
-            "Please Enter a valid argument e.g. --running_services [(pid1,name1), (pid2,name2)]"
+            "Please Enter a valid argument e.g. --running-services [(pid1,name1), (pid2,name2)]"
         )
         return
 
     if START_TIME is None:
         slogger.error(
-            "Please Enter a valid argument e.g. --START_TIME from time.perf_counter()"
+            "Please Enter a valid argument e.g. --start-time from time.perf_counter()"
         )
         return
 
@@ -441,7 +441,7 @@ def main() -> None:
         processes_data_list = ast.literal_eval(service_list)
     except Exception:
         slogger.error(
-            "running_services argument invalid e.g. --running_services [(pid1,name1), (pid2,name2)]"
+            "running_services argument invalid e.g. --running-services [(pid1,name1), (pid2,name2)]"
         )
         return
 

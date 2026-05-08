@@ -1,6 +1,7 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
 def start_pendant_daemon(
@@ -10,7 +11,7 @@ def start_pendant_daemon(
     try:
 
         daemon_command = [
-            "python3",
+            sys.executable,
             "-u",
             os.path.join("backend", "pendant_daemon.py"),
         ]
