@@ -459,7 +459,7 @@ def start_services(
     start_performance_monitor(
         logger=logger,
         performance_logging=RunningProcesses,
-        startTime=APP_START_TIME,
+        start_time=APP_START_TIME,
     )
 
 
