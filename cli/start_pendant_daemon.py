@@ -3,7 +3,9 @@ import cli.process as process
 import os
 
 
-def start_pendant_daemon(logger: logging.Logger) -> tuple[None, None] | None:
+def start_pendant_daemon(
+    logger: logging.Logger, performance_logging: process.RunningProcess
+) -> tuple[None, None] | None:
     service_name = "pendant_daemon"
     try:
 
@@ -26,6 +28,7 @@ def start_pendant_daemon(logger: logging.Logger) -> tuple[None, None] | None:
             daemon_command, name=service_name, env=env, parse_output=True
         )
         api_process.start()
+        performance_logging.AddNewProcess(api_process)
 
     except Exception as e:
         logger.error(

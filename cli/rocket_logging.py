@@ -147,8 +147,7 @@ class Logs_Loopback(logging.Handler):
             self.buffer.append(log_entry)
 
         except Exception as ex:
-            logging.error("[Logging] Error Within Log Passthrough:")
-            print(ex)
+            logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # catch errors within the packet gen in case of malformed data and drop the packet quietly to avoid issues with cascade
 
         try:
@@ -157,8 +156,7 @@ class Logs_Loopback(logging.Handler):
             self.buffer.clear()
 
         except Exception as ex:
-            logging.error("[Logging] Error Within Log Passthrough:")
-            print(ex)
+            logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # Safety catch for unexpected exceptions however logging this will cause issues maybe a cascade cause log will cause more errors
 
 
@@ -191,11 +189,15 @@ def create_interscript_comms_handler(
     return fh
 
 
-def initialise() -> logging.Logger:
+def initialise(startTime=None) -> logging.Logger:
     """One time logging setup run as soon as the program starts"""
 
     global APP_START_TIME, DETAILED_LOGGING_PREFIX
-    APP_START_TIME = time.perf_counter()
+
+    if startTime == None:
+        APP_START_TIME = time.perf_counter()
+    else:
+        APP_START_TIME = startTime
 
     logger = logging.getLogger("rocket")
     if logger.hasHandlers():

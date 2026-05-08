@@ -174,7 +174,11 @@ def build_middleware_argv(
     return argv
 
 
-def start_middleware(logger: logging.Logger, config: MiddlewareConfig) -> None:
+def start_middleware(
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    config: MiddlewareConfig,
+) -> None:
 
     SERVICE_NAME = "server"  # Formally the middleware_server
     if config.web_control_socket_path is None:
@@ -205,6 +209,8 @@ def start_middleware(logger: logging.Logger, config: MiddlewareConfig) -> None:
         )
         middleware_process.register_callback(middleware_started_callback)
         middleware_process.start()
+        performance_logging.AddNewProcess(middleware_process)
+
         finished = False
         while not finished:
             finished = middleware_process.get_parsed_data()

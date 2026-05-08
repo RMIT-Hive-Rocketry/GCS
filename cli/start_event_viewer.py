@@ -24,7 +24,10 @@ def successful_event_viewer_start_callback(
 
 
 def start_event_viewer(
-    logger: logging.Logger, socket_path: str, file_logging_enabled: bool
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    socket_path: str,
+    file_logging_enabled: bool,
 ) -> tuple[None, None] | None:
     service_name = "event viewer"
     try:
@@ -57,6 +60,7 @@ def start_event_viewer(
         )
 
         event_viewer_process.start()
+        performance_logging.AddNewProcess(event_viewer_process)
 
         finished = False
         while not finished:
