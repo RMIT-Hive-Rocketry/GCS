@@ -101,7 +101,8 @@ class PlainFormatter(CustomFormatter):
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         return ansi_escape.sub("", formatted_message)
 
-class Logs_Loopback(logging.Handler):
+
+class LogsLoopback(logging.Handler):
     """A Logging handler that pushes all logs to the frountend api using ZMQ"""
 
     def __init__(self):
@@ -189,20 +190,17 @@ def create_interscript_comms_handler(
     level: int = logging.INFO,
 ) -> logging.StreamHandler:
     """Create Log Handler to pass logs to the frontend"""
-    fh = Logs_Loopback()
+    fh = LogsLoopback()
     fh.setLevel(level)
     return fh
 
 
-def initialise(startTime=None) -> logging.Logger:
+def initialise(start_time=None) -> logging.Logger:
     """One time logging setup run as soon as the program starts"""
 
     global APP_START_TIME, DETAILED_LOGGING_PREFIX
 
-    if startTime == None:
-        APP_START_TIME = time.perf_counter()
-    else:
-        APP_START_TIME = startTime
+    APP_START_TIME = time.perf_counter() if start_time == None else start_time
 
     logger = logging.getLogger("rocket")
     if logger.hasHandlers():

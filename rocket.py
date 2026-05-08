@@ -452,12 +452,15 @@ def start_services(
 
     # 7. Start the frontend web server
     if frontend:
-        start_frontend_webserver(logger)
-        
-    #dummy service activation
-    start_dummy_service(logger)
-    
-    
+        start_frontend_webserver(logger, RunningProcesses)
+
+    # 8. Start performance monitor after all other services have started
+    start_performance_monitor(
+        logger=logger,
+        performance_logging=RunningProcesses,
+        start_time=APP_START_TIME,
+    )
+
 
 @click.group()
 def cli() -> None:
