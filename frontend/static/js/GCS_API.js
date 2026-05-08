@@ -856,8 +856,11 @@ function processDataForDisplay(apiData, apiId) {
     }
     
     if (apiId === 50) {
-        // Get the table
+        // Get the table (return early if not loaded)
         let packetsTable = document.getElementById("packets");
+        if (packetsTable === null) {
+            return processedData;
+        }
 
         // Update data if present, otherwise add it
         Object.entries(apiData).forEach(([device, deviceData]) => {
