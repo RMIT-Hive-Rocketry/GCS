@@ -4,28 +4,29 @@ import os
 import sys
 
 
-def start_performance_monitor(logger: logging.Logger, performance_logging: process.RunningProcess, startTime):
-    SERVICE_NAME = "performance_monitor"
+def start_performance_monitor(
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    start_time,
+) -> None:
+    service_name = "performance_monitor"
     try:
-        assembledProcessList = []
+        assembled_process_list = [
+            process_data.GetCombined()
+            for process_data in performance_logging.GetAllProcessInfo()
+        ]
 
-        for processdata in performance_logging.GetAllProcessInfo():
-            assembledProcessList.append(processdata.GetCombined())
-
-        START_COMMAND = [
+        start_command = [
             sys.executable,
             "-u",
             os.path.join("backend", "performance_monitor.py"),
-            "--START_TIME",
-            str(startTime),
-            "--running_services",
-            str(assembledProcessList),
-
+            "--start-time",
+            str(start_time),
+            "--running-services",
+            str(assembled_process_list),
         ]
 
-        logger.debug(
-            f"Starting {SERVICE_NAME} module with: {START_COMMAND}"
-        )
+        logger.debug(f"Starting {service_name} module with: {start_command}")
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
         env = os.environ.copy()
@@ -34,13 +35,13 @@ def start_performance_monitor(logger: logging.Logger, performance_logging: proce
         )
 
         performance_monitor_process = process.LoggedSubProcess(
-            START_COMMAND,
-            name=SERVICE_NAME,
+            start_command,
+            name=service_name,
             parse_output=True,
             env=env,
         )
         performance_monitor_process.start()
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
-        return None
+        logger.error(f"An error occurred while starting {service_name}: {e}")
+        return

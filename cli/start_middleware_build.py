@@ -22,39 +22,41 @@ class MiddlewareBuildSubprocess(process.LoggedSubProcess):
         return False
 
 
-def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
-    if not isinstance(BUILD_FLAG, CMakeBuildModes):
+def start_middleware_build(
+    logger: logging.Logger, build_flag: CMakeBuildModes
+) -> None:
+    if not isinstance(build_flag, CMakeBuildModes):
         raise ValueError(
-            f"BUILD_FLAG must be a CMakeBuildModes value, got: {BUILD_FLAG} as type {type(BUILD_FLAG)}"
+            f"build_flag must be a CMakeBuildModes value, got: {build_flag} as type {type(build_flag)}"
         )
-    SERVICE_NAME = "middleware"
+    service_name = "middleware"
     try:
-        if BUILD_FLAG == CMakeBuildModes.DEBUG:
-            BUILD_DIR = "build-debug"
-        elif BUILD_FLAG == CMakeBuildModes.RELEASE:
-            BUILD_DIR = "build-release"
+        if build_flag == CMakeBuildModes.DEBUG:
+            build_dir = "build-debug"
+        elif build_flag == CMakeBuildModes.RELEASE:
+            build_dir = "build-release"
 
-        os.makedirs(BUILD_DIR, exist_ok=True)
-        cmake_cache_path = Path(BUILD_DIR) / "CMakeCache.txt"
+        os.makedirs(build_dir, exist_ok=True)
+        cmake_cache_path = Path(build_dir) / "CMakeCache.txt"
         cmake_cache_exists = cmake_cache_path.exists()
         should_configure = not cmake_cache_exists
 
-        os.chdir(BUILD_DIR)
+        os.chdir(build_dir)
 
         if should_configure:
-            MIDDLEWARE_BUILD_COMMAND_CMAKE = [
+            middleware_build_command_cmake = [
                 "cmake",
-                f"-DCMAKE_BUILD_TYPE={BUILD_FLAG.value}",
+                f"-DCMAKE_BUILD_TYPE={build_flag.value}",
                 "-DBUILD_TESTS=OFF",
                 "..",
             ]
 
             logger.debug(
-                f"Starting {SERVICE_NAME} build [cmake] with: {MIDDLEWARE_BUILD_COMMAND_CMAKE}"
+                f"Starting {service_name} build [cmake] with: {middleware_build_command_cmake}"
             )
 
             middleware_build_process_cmake = MiddlewareBuildSubprocess(
-                MIDDLEWARE_BUILD_COMMAND_CMAKE,
+                middleware_build_command_cmake,
                 name="cmake",
             )
             middleware_build_process_cmake.start()
@@ -67,7 +69,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
 
         # ---- Start make ----
 
-        MIDDLEWARE_BUILD_COMMAND_MAKE = [
+        middleware_build_command_make = [
             "cmake",
             "--build",
             ".",
@@ -76,11 +78,11 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         ]
 
         logger.debug(
-            f"Starting {SERVICE_NAME} build [cmake --build] with: {MIDDLEWARE_BUILD_COMMAND_MAKE}"
+            f"Starting {service_name} build [cmake --build] with: {middleware_build_command_make}"
         )
 
         middleware_build_process_make = MiddlewareBuildSubprocess(
-            MIDDLEWARE_BUILD_COMMAND_MAKE,
+            middleware_build_command_make,
             name="cmake-build",
         )
         middleware_build_process_make.start()
@@ -91,7 +93,7 @@ def start_middleware_build(logger: logging.Logger, BUILD_FLAG: CMakeBuildModes):
         logger.info("Make build finished")
 
     except Exception as e:
-        logger.error(f"An error occurred while building {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while building {service_name}: {e}")
         # Propagate to a blocking handler in cli
         raise
         # return None, None
