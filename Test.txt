@@ -1,0 +1,12 @@
+cd /mnt/c/Users/miuro/Documents/GCS-2026-FRONTEND-PP1
+source .venv/bin/activate
+rocket dev --interface test --nopendant --frontend
+
+git branch -m <new-name>
+git push origin -u <new-name>
+git push origin --delete <old-name>
+
+git switch master
+git pull origin master
+git merge feature/20-diagnostics-page
+git push origin master
