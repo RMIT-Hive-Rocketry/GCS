@@ -1,9 +1,17 @@
 # How to create a new process / service
 
-### File Structure
+This tutorial will help you write your first service for the GCS System!
 
-To create a new service requires the creation of 2 new files one inside the cli folder that contains the start script to run and act as a obstruction layer to the actual script inside of the backend folder.
+# General Idea
 
+Services in the GCS are background processes that run alongside and are started by the main `rocket.py` file. Currently some of the existing services include the C++ middleware, The frontend API/WS Server, Pendant Emulator and the Event Viewer. All services are started as a cli process which is started through another python script.
+
+There are 3 key parts of writing a service for the GCS:
+1. Write your service in /backend
+2. Write a start script in /cli with a function to start your service as a cli process
+3. In `rocket.py`'s start_services() call the function you wrote in your service start script.
+
+This setup has a few key benefits, the cli layer allows for true multithreading without being blocked by the python GIL which helps with performance. It also ensures that every service is independent, ensuring if say the frontend crashes it doesn't take down every other service and crash the program with it.
 
 ## Tutorial Steps
 
@@ -24,7 +32,6 @@ To create a new service requires the creation of 2 new files one inside the cli 
 
     >modify template_service_process variable to follow structure of [service_name]_process
 
-
 5.  Customize the service python script to your needs the example script simply uses logging to print out a alert when the script is started however much more is possible then this.
 
 6. to make the service be started and called locate the "start_services()" function inside of [rocket.py](../rocket.py)
@@ -36,21 +43,16 @@ To create a new service requires the creation of 2 new files one inside the cli 
     > from cli.start_template_service import start_template_service
 
 
+##  Key Libraries
+The `includes_python` folder contains a couple of useful files that are imported in the template code below. This includes:
+
+- [process_logging.py](../backend/includes_python/process_logging.py) -  which enforces consistent logging format across all processes for correct CLI parsing.
+- [service_helper.py](../backend/includes_python/service_helper.py) - which adds signal handlers that allow for correct shut down of the system. For example: when CTRL+C or ESC is detected.
 
 <br><br>
-
-
-
-
-
-
-
-
 ___
 ___
 <br>
-
-
 
 # Template Code For New Services.
 
@@ -60,9 +62,6 @@ import logging
 import cli.proccess as process
 from typing import Tuple
 import os
-
-
-
 
 def start_template_service(
     logger: logging.Logger
@@ -109,7 +108,7 @@ def main():
     slogger.info("Template Service info Test Message")
     slogger.success("Template Service success Test Message")
     slogger.warning("Template Service warning Test Message")
-    slogger.error("Template Service  error Test Message")
+    slogger.error("Template Service error Test Message")
     slogger.critical("Template Service critical Test Message")
 
     # the while loop continues until the signal from the process handler tells to stop
@@ -117,11 +116,6 @@ def main():
         # Do Nothing But Wait
         time.sleep(1)
 
-
-
-
 if __name__ == "__main__":
     main()
-
-
 ```

@@ -1,0 +1,26 @@
+<!-- Indicators for Atlas -->
+<div class="module-atlas">
+    <h2>System Status</h2>
+
+    <!-- Avionics indicators -->
+    <div
+        class="col-span-2 leading-tight grow rounded-sm border-2 border-atlas-medium bg-atlas-dark/50 p-2 grid grid-cols-6 items-center text-center gap-2"
+    >
+        <div>
+            <div
+                data-key="state.gpsFix"
+                data-type="state"
+                class="mb-2 indicator-state timeout"
+            ></div>
+            <p>GPS Fix</p>
+        </div>
+        <div>
+            <div
+                data-key="state.dualBoard"
+                data-type="state"
+                class="mb-2 indicator-state timeout"
+            ></div>
+            <p>Dual Board</p>
+        </div>
+    </div>
+</div>

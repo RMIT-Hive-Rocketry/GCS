@@ -102,7 +102,6 @@
             "icon": {
                 "id": "debug-console"
             },
-            "problemMatcher": []
         },
         {
             "label": "start emulator manually",
@@ -111,7 +110,6 @@
             "icon": {
                 "id": "debug-console"
             },
-            "problemMatcher": []
         },
         {
             "label": "start ZeroMQ debug subscriber",
@@ -129,7 +127,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start RPI pendant controller debug",
@@ -146,7 +143,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start Pygame pendant controller debug",
@@ -163,7 +159,22 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
+        },
+        {
+            "label": "start Pygame input decoder",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_pygame_controller.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
         },
         {
             "label": "start websocket debug subscriber",
@@ -180,7 +191,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start frontend API manually",
@@ -199,7 +209,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start frontend API manually",
@@ -218,7 +227,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "start hardware pendant emulator manually",
@@ -235,7 +243,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Compile Manual Protobuf Payload",
@@ -273,11 +280,10 @@
         {
             "label": "Frontend Tailwind",
             "type": "shell",
-            "command": "./frontend/scripts/tailwind.sh",
+            "command": "./frontend/tailwind.sh",
             "icon": {
                 "id": "paintcan"
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Setup",
@@ -309,7 +315,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Dev",
@@ -335,7 +340,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Dev [EXPERIMENTAL]",
@@ -363,7 +367,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Rocket.py",
@@ -389,7 +392,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Replay 20250504",
@@ -415,7 +417,6 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
         },
         {
             "label": "Frontend Replay IREC2025",
@@ -441,7 +442,31 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
+        },
+        {
+            "label": "Frontend Replay 20260428 @ White Cliffs",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "20260428"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
         },
         {
             "label": "Run Simulation",
@@ -459,7 +484,6 @@
                 }
             },
             "group": "build",
-            "problemMatcher": [],
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
@@ -483,7 +507,6 @@
                 }
             },
             "group": "build",
-            "problemMatcher": [],
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
@@ -524,7 +547,24 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
-            "problemMatcher": []
+        },
+        {
+            "label": "start E5 fake AV spam debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python3",
+            "args": [
+                "backend/tools/debug_e5_fake_av.py",
+                "--serial-path",
+                "${input:e5SerialPath}"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            },
         }
     ],
     "inputs": [
@@ -539,6 +579,12 @@
             "type": "promptString",
             "description": "Enter the psuedoterminal /dev path",
             "default": "/dev/ttys..."
+        },
+        {
+            "id": "e5SerialPath",
+            "type": "promptString",
+            "description": "Enter E5 serial device path",
+            "default": "/dev/ttyAMA0"
         }
     ]
 }

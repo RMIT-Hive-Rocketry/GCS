@@ -5,6 +5,8 @@
  */
 
 #include <atomic>
+#include <condition_variable>
+#include <cstdint>
 #include <mutex>
 #include <vector>
 #include <zmq.hpp>
@@ -73,8 +75,11 @@ class SharedGcsState {
   void set_gse_only_mode(bool mode) { gse_only_mode_ = mode; }
   bool gse_only_mode() const { return gse_only_mode_; }
 
-  void set_manual_control_mode(bool mode) { manual_control_solenoids_ = mode; }
-  bool manual_control_mode() const { return manual_control_solenoids_; }
+  void set_manual_control_mode(bool mode);
+  bool manual_control_mode() const;
+  bool wait_for_gse_payload_change(uint64_t last_seen_version, Millis timeout);
+  void get_gse_payload_snapshot(std::vector<uint8_t>& payload_out,
+                                uint64_t& version_out) const;
 
   long get_packet_count_av() const { return packet_count_av_; }
   long get_packet_count_gse() const { return packet_count_gse_; }
@@ -85,12 +90,18 @@ class SharedGcsState {
   AvSequence av_sequence;
 
  private:
-  std::mutex mtx_;
+  std::vector<uint8_t> current_gse_payload_locked_() const;
+  void notify_if_gse_payload_changed_locked_(
+      const std::vector<uint8_t>& previous_payload);
+
+  mutable std::mutex mtx_;
+  std::condition_variable state_cv_;
   PendantData pendant_;
   WebsocketData websocket_;
 
   bool gse_only_mode_ = false;  // GSE only mode. This is an option from CLI
   bool manual_control_solenoids_ = false;  // Changes based on web data
+  uint64_t gse_payload_version_ = 0;
 
   long packet_count_av_ = 0;
   long packet_count_gse_ = 0;

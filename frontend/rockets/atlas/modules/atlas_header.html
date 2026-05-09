@@ -1,0 +1,128 @@
+<!-- Header visible on all pages -->
+<header class="w-full flex flex-row gap-2 h-24 min-h-24 max-h-24 bg-black/50">
+    <div class="w-2/10">
+        <!-- Logos and project/launch information module -->
+        <div
+            class="module-atlas flex-row p-2 pb-0 justify-evenly items-center gap-4"
+        >
+            <img
+                src="/img/logo-rmit.svg"
+                width="163"
+                height="58"
+                class="max-h-16 w-auto h-auto py-2 px-1"
+            />
+            <a 
+                href="/"
+                title="Back to rocket selection"
+                style="border-radius: 8px; padding: 4px; transition: background 150ms ease; cursor: pointer;"
+                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+                onmouseout="this.style.background='transparent'"
+            >
+                <img
+                    src="/img/logo-hive.256.png"
+                    width="256"
+                    height="256"
+                    class="max-h-20 w-auto h-auto"
+                />
+            </a>
+            <img
+                src="/atlas/static/img/logo-atlas.png"
+                width="839"
+                height="1365"
+                class="w-auto h-full"
+            />
+        </div>
+    </div>
+    <div class="w-1/10"></div>
+    <div class="w-4/10 h-full flex items-center">
+        <img
+            src="/atlas/static/img/atlas-name.png"
+            width="814"
+            height="274"
+            class="h-full max-h-12 w-auto mx-auto"
+        />
+    </div>
+    <div class="w-3/10">
+        <!-- Radio module -->
+        <div class="module-default p-2 gap-2 justify-center">
+            <div class="w-full flex gap-4 justify-start items-center">
+                <p class="font-bold text-hive">&nbsp;AV</p>
+                <div
+                    data-key="state.av.radio"
+                    data-type="state"
+                    class="indicator-state mx-0 timeout"
+                ></div>
+                <div class="flex flex-row gap-2 grow justify-between">
+                    <label>
+                        RSSI:<input
+                            data-key="meta.av.rssi"
+                            data-precision="0"
+                            readonly
+                            autocomplete="off"
+                            class="text-right"
+                            size="4"
+                        />dBm
+                    </label>
+                    <label>
+                        SNR:<input
+                            data-key="meta.av.snr"
+                            data-precision="0"
+                            readonly
+                            autocomplete="off"
+                            size="4"
+                        />
+                    </label>
+                    <label>
+                        Packets:<input
+                            data-key="meta.av.packets"
+                            data-precision="0"
+                            readonly
+                            autocomplete="off"
+                            class="text-right"
+                            size="11"
+                        />
+                    </label>
+                </div>
+            </div>
+            <div class="w-full flex gap-4 justify-between items-center">
+                <p class="font-bold text-hive">GSE</p>
+                <div
+                    data-key="state.gse.radio"
+                    data-type="state"
+                    class="indicator-state mx-0 timeout"
+                ></div>
+                <div class="flex flex-row gap-2 grow justify-between">
+                    <label>
+                        RSSI:<input
+                            data-key="meta.gse.rssi"
+                            data-precision="0"
+                            readonly
+                            autocomplete="off"
+                            class="text-right"
+                            size="4"
+                        />dBm
+                    </label>
+                    <label>
+                        SNR:<input
+                            data-key="meta.gse.snr"
+                            data-precision="0"
+                            readonly
+                            autocomplete="off"
+                            size="4"
+                        />
+                    </label>
+                    <label>
+                        Packets:<input
+                            data-key="meta.gse.packets"
+                            data-precision="0"
+                            readonly
+                            autocomplete="off"
+                            class="text-right"
+                            size="11"
+                        />
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

@@ -21,80 +21,79 @@ const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
 const GRAPH_AV_ACCEL = {
     selector: "#graph-av-accel",
-    data: [],
     ylabel: "Acceleration (g)",
-    colours: LINE_COLOURS_DEFAULT.slice(0, 3),
+    numLines: 3,
+    data: [],
 };
 const GRAPH_AV_GYRO = {
     selector: "#graph-av-gyro",
-    data: [],
     ylabel: "Rotation Rate (°/s)",
-    colours: LINE_COLOURS_DEFAULT.slice(0, 3),
+    numLines: 3,
+    data: [],
 };
 const GRAPH_AV_VELOCITY = {
     selector: "#graph-av-velocity",
-    data: [],
     ylabel: "Vertical Speed (m/s)",
+    numLines: 1,
     limits: {
         yBottomMax: 0,
     },
-    colours: LINE_COLOURS_DEFAULT.slice(0, 1),
+    data: [],
 };
 const GRAPH_POS_ALT = {
     selector: "#graph-pos-alt",
-    data: [],
     ylabel: "Altitude (ft)",
+    numLines: 1,
     limits: {
         yBottomMax: 0,
     },
-    colours: LINE_COLOURS_DEFAULT.slice(0, 1),
+    data: [],
 };
 const GRAPH_AUX_TRANSDUCERS = {
     selector: "#graph-aux-transducers",
-    data: [],
     ylabel: "Pressure (bar)",
+    numLines: 3,
     limits: {
         yBottomMax: 0,
     },
-    colours: LINE_COLOURS_DEFAULT.slice(0, 3),
+    data: [],
 };
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
-    data: [],
     ylabel: "Temperature (°C)",
+    numLines: 4,
     limits: {
         yBottomMax: 0,
     },
-    colours: [...LINE_COLOURS_DEFAULT],
+    data: [],
 };
 const GRAPH_AUX_INTERNALTEMP = {
     selector: "#graph-aux-internaltemp",
-    data: [],
     ylabel: "Temperature (°C)",
+    numLines: 1,
     limits: {
         yBottomMax: 0,
     },
-    colours: LINE_COLOURS_DEFAULT.slice(0, 1),
+    data: [],
 };
 const GRAPH_AUX_GASBOTTLES = {
     selector: "#graph-aux-gasbottles",
-    data: [],
     ylabel: "Mass (kg)",
-    colours: LINE_COLOURS_DEFAULT.slice(0, 2),
+    numLines: 2,
+    data: [],
 };
 
-const symbolCircle = d3.symbol()
-    .type(d3.symbolCircle)
-    .size(10);
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
 
 // Create and initialise line graphs
-function graphCreateLine(chart, numLines) {
+function graphCreateLine(chart) {
     // Select SVG
     chart.svg = d3.select(chart.selector);
 
     // Make sure chart exists
     if (chart.svg.node() == null) {
-        return
+        return;
     }
 
     // Dynamic graph size initialisation
@@ -119,7 +118,7 @@ function graphCreateLine(chart, numLines) {
         .append("g")
         .attr(
             "transform",
-            `translate(${chart.margin.left},${chart.margin.top})`
+            `translate(${chart.margin.left},${chart.margin.top})`,
         );
 
     // Create and style the x and y axis
@@ -130,11 +129,11 @@ function graphCreateLine(chart, numLines) {
         .call(
             d3
                 .axisBottom(chart.x)
-                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
-        .attr("stroke-width", 2);
+        .attr("stroke-width", 1);
     chart.g.selectAll(".tick line").attr("stroke", "#f79322");
 
     // Y-axis
@@ -144,11 +143,11 @@ function graphCreateLine(chart, numLines) {
             d3
                 .axisLeft(chart.y)
                 .ticks(GRAPH_TICKS_Y)
-                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         )
         .selectAll(".domain")
         .attr("stroke", "#f79322")
-        .attr("stroke-width", 2);
+        .attr("stroke-width", 1);
     chart.yAxis.selectAll(".tick line").attr("stroke", "#f79322");
 
     // Y-axis Label
@@ -164,8 +163,8 @@ function graphCreateLine(chart, numLines) {
 
     // Lines array to hold multiple line data sets
     chart.lines = [];
-    for (let i = 0; i < numLines; i++) {
-        chart.lines.push({ data: [], color: chart.colours[i] });
+    for (let i = 0; i < chart.numLines; i++) {
+        chart.lines.push({ data: [], color: LINE_COLOURS[i] });
     }
 
     // ResizeObserver (for dynamic graph resizing)
@@ -224,16 +223,19 @@ function graphResize(chart) {
         .call(
             d3
                 .axisBottom(chart.x)
-                .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         );
 
     chart.y.range([chart.graphHeight, 0]);
     chart.yAxis.call(
-        d3.axisLeft(chart.y).ticks(GRAPH_TICKS_Y).tickFormat((d) => (Number.isInteger(d) ? d : ""))
+        d3
+            .axisLeft(chart.y)
+            .ticks(GRAPH_TICKS_Y)
+            .tickFormat((d) => (Number.isInteger(d) ? d : "")),
     );
     chart.yAxisLabel.attr(
         "x",
-        -Math.round(chart.graphHeight / 2) - chart.margin.top
+        -Math.round(chart.graphHeight / 2) - chart.margin.top,
     );
 
     // Re-render
@@ -242,38 +244,55 @@ function graphResize(chart) {
 
 // Render graph
 function graphRender(chart) {
-    if (chart && chart?.x && chart?.lines && typeof timestampLocal !== 'undefined') {
+    if (!window.graphsInitialised) {
+        return;
+    }
+
+    if (
+        chart &&
+        chart?.g &&
+        chart?.x &&
+        chart?.lines &&
+        typeof timestampLocal !== "undefined"
+    ) {
         // Get timestamp of data
         const now = Math.max(
-            d3.max(chart.lines.flatMap(line => line.data), d => d.x),
-            timestampLocal + timestampApiConnect - timeDrift);
+            d3.max(
+                chart.lines.flatMap((line) => line.data),
+                (d) => d.x,
+            ),
+            timestampLocal + timestampApiConnect - timeDrift,
+        );
 
         const windowStart = now - MAX_TIME;
 
         if (chart.lastRender != now) {
-            chart.lastRender = now;
-
             // Limit data to graph window
-            chart.lines.forEach(line => {
-                line.data = line.data.filter(d => d.x >= (windowStart - GRAPH_GAP_SIZE));
+            chart.lines.forEach((line) => {
+                line.data = line.data.filter(
+                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+                );
             });
-            const allPoints = chart.lines.flatMap(line => line.data);
+            const allPoints = chart.lines.flatMap((line) => line.data);
 
             // Update x and y domains
             chart.x.domain([windowStart, now]);
             chart.y.domain([
-                Math.min(d3.min(allPoints, d => d.y) - 1, chart?.limits?.yBottomMax != undefined ? chart?.limits?.yBottomMax : Infinity),
-                d3.max(allPoints, d => d.y) + 1
-            ]);//.nice();
+                Math.min(
+                    d3.min(allPoints, (d) => d.y) - 1,
+                    chart?.limits?.yBottomMax != undefined
+                        ? chart?.limits?.yBottomMax
+                        : Infinity,
+                ),
+                d3.max(allPoints, (d) => d.y) + 1,
+            ]); //.nice();
 
             // Update rendering of X and Y domain
             chart.g
                 .select("g")
                 .transition()
                 .duration(0)
-                .call(
-                    d3.axisBottom(chart.x).tickFormat(d => `${d}`)
-                );
+                .call(d3.axisBottom(chart.x).tickFormat((d) => `${d}`));
             chart.yAxis
                 .transition()
                 .duration(0)
@@ -281,7 +300,7 @@ function graphRender(chart) {
                     d3
                         .axisLeft(chart.y)
                         .ticks(GRAPH_TICKS_Y)
-                        .tickFormat((d) => (Number.isInteger(d) ? d : ""))
+                        .tickFormat((d) => (Number.isInteger(d) ? d : "")),
                 );
 
             // De-emphasize hidden non-integer axis values
@@ -306,26 +325,39 @@ function graphRender(chart) {
                 // Line rendering logic is a bit messy oops
                 // If two points are close together, we draw a line between them.
                 lineData.data.forEach((d, i, data) => {
-                    d.prev = Math.abs(d.x - data[i-1]?.x) <= GRAPH_GAP_SIZE;
-                    d.next = Math.abs(d.x - data[i+1]?.x) <= GRAPH_GAP_SIZE;
+                    d.prev = Math.abs(d.x - data[i - 1]?.x) <= GRAPH_GAP_SIZE;
+                    d.next = Math.abs(d.x - data[i + 1]?.x) <= GRAPH_GAP_SIZE;
 
                     // If they're not close, we draw a point
                     if (d.x >= windowStart && d.x <= now) {
                         if (!d.prev && !d.next) {
-                            chart.g.append("path")
+                            chart.g
+                                .append("path")
                                 .attr("class", "line-dot")
                                 .attr("d", symbolCircle)
-                                .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
-                                .attr("fill", lineData.color || chart.colours[index]);
+                                .attr(
+                                    "transform",
+                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`,
+                                )
+                                .attr(
+                                    "fill",
+                                    lineData.color || LINE_COLOURS[index],
+                                );
                         } else if (!d.next || !d.prev) {
-                            chart.g.append("path")
+                            chart.g
+                                .append("path")
                                 .attr("class", "line-dot")
                                 .attr("d", symbolCircle) // Make cross?
-                                .attr("transform", `translate(${chart.x(d.x)},${chart.y(d.y)})`)
-                                .attr("fill", lineData.color || chart.colours[index]);
+                                .attr(
+                                    "transform",
+                                    `translate(${chart.x(d.x)},${chart.y(d.y)})`,
+                                )
+                                .attr(
+                                    "fill",
+                                    lineData.color || LINE_COLOURS[index],
+                                );
                         }
                     }
-
                 });
 
                 // Add path for each line
@@ -339,7 +371,11 @@ function graphRender(chart) {
 
                 chart.g
                     .append("path")
-                    .datum(lineData.data.filter(d => d.x >= windowStart && d.x <= now))
+                    .datum(
+                        lineData.data.filter(
+                            (d) => d.x >= windowStart && d.x <= now,
+                        ),
+                    )
                     .attr("class", "line-path")
                     .attr("fill", "none")
                     .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
@@ -347,7 +383,12 @@ function graphRender(chart) {
                     .attr("stroke-linecap", "round")
                     .attr("d", line);
             });
+
+            // Update last render time
+            chart.lastRender = now;
         }
+    } else {
+        //console.log("graphRender: chart not ready", chart);
     }
 }
 
@@ -380,7 +421,7 @@ function graphAddValue(graph, line, timestamp, value) {
 
     // Add data to graph (sorted in chronological order)
     const data = graph.lines[line].data;
-    const point = {x: timestamp, y:value};
+    const point = { x: timestamp, y: value };
 
     // Loop backwards from the end to find where to insert the data
     let index = data.length;
@@ -392,19 +433,26 @@ function graphAddValue(graph, line, timestamp, value) {
     //graph.lines[line].data.push({ x: timestamp, y: value});
 }
 
-window.addEventListener("DOMContentLoaded", function () {
-    // Build D3 chart
-    graphCreateLine(GRAPH_AV_ACCEL, 3);
-    graphCreateLine(GRAPH_AV_GYRO, 3);
-    graphCreateLine(GRAPH_AV_VELOCITY, 1);
+function graphInit() {
+    // Build D3 charts
+    graphCreateLine(GRAPH_AV_ACCEL);
+    graphCreateLine(GRAPH_AV_GYRO);
+    graphCreateLine(GRAPH_AV_VELOCITY);
+    graphCreateLine(GRAPH_POS_ALT);
+    graphCreateLine(GRAPH_AUX_TRANSDUCERS);
+    graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
+    graphCreateLine(GRAPH_AUX_INTERNALTEMP);
+    graphCreateLine(GRAPH_AUX_GASBOTTLES);
 
-    graphCreateLine(GRAPH_POS_ALT, 1);
+    window.graphsInitialised = true;
+    console.log("Graphs initialised");
+}
 
-    graphCreateLine(GRAPH_AUX_TRANSDUCERS, 3);
-    graphCreateLine(GRAPH_AUX_THERMOCOUPLES, 4);
-    graphCreateLine(GRAPH_AUX_INTERNALTEMP, 1);
-    graphCreateLine(GRAPH_AUX_GASBOTTLES, 2);
-});
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", graphInit);
+} else {
+    graphInit();
+}
 
 // Update modules
 function graphUpdateAvionics(data) {
@@ -448,16 +496,46 @@ function graphUpdateAuxData(data) {
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.transducer3);
 
         // Thermocouples
-        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 0, timestamp, data.thermocouple1);
-        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 1, timestamp, data.thermocouple2);
-        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 2, timestamp, data.thermocouple3);
-        graphAddValue(GRAPH_AUX_THERMOCOUPLES, 3, timestamp, data.thermocouple4);
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            0,
+            timestamp,
+            data.thermocouple1,
+        );
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            1,
+            timestamp,
+            data.thermocouple2,
+        );
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            2,
+            timestamp,
+            data.thermocouple3,
+        );
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            3,
+            timestamp,
+            data.thermocouple4,
+        );
 
         // Internal temperature
         graphAddValue(GRAPH_AUX_INTERNALTEMP, 0, timestamp, data.internalTemp);
 
         // Gas bottle weights
-        graphAddValue(GRAPH_AUX_GASBOTTLES, 0, timestamp, data.gasBottleWeight1);
-        graphAddValue(GRAPH_AUX_GASBOTTLES, 1, timestamp, data.gasBottleWeight2);
+        graphAddValue(
+            GRAPH_AUX_GASBOTTLES,
+            0,
+            timestamp,
+            data.gasBottleWeight1,
+        );
+        graphAddValue(
+            GRAPH_AUX_GASBOTTLES,
+            1,
+            timestamp,
+            data.gasBottleWeight2,
+        );
     }
 }

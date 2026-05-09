@@ -56,17 +56,6 @@ class DecoratorSelector(enum.Enum):
     REPLAY = enum.auto()
 
 
-class ControllerTypes(enum.Enum):
-    """Nomenclature: this is also called a pendant"""
-
-    F710 = enum.auto()
-    RPI_GPIO_DEVICE = enum.auto()
-    HID_DEVICE = enum.auto()
-    PYGAME_DEVICE = enum.auto()
-    EMULATED_DEVICE = enum.auto()
-    NOT_IMPLIMENTED = enum.auto()
-
-
 def cli_decorator_factory(SELECTOR: DecoratorSelector):
     """Factory function to create decorators based on the selector"""
 
@@ -239,28 +228,6 @@ def start_docker_container(logger):
         raise
 
 
-def get_controller_enum() -> ControllerTypes:
-    pedant_config = config.get_config()["hardware"].get("controller")
-    if pedant_config is None or len(pedant_config) == 0:
-        # Nothing specified
-        raise RuntimeError("Pendant controller option not found in config.ini")
-    match pedant_config.lower().strip():
-        case "f710":
-            return ControllerTypes.F710
-        case "rpi_gpio_device":
-            return ControllerTypes.RPI_GPIO_DEVICE
-        case "hid_device":
-            return ControllerTypes.HID_DEVICE
-        case "pygame_device":
-            return ControllerTypes.PYGAME_DEVICE
-        case "emulated_device":
-            return ControllerTypes.EMULATED_DEVICE
-        case _:
-            raise RuntimeError(
-                "Pendant controller option not found in config.ini"
-            )
-
-
 def _validate_interface_options(
     interface: Optional[str],
     interface_av: Optional[str],
@@ -424,14 +391,14 @@ def start_services(
 
     # 5. Start the pendent emulator
     if not nopendant:
-        controller_enum = get_controller_enum()
-
-        if controller_enum == ControllerTypes.F710:
-            start_pendant_emulator(logger)
-        elif controller_enum == ControllerTypes.NOT_IMPLIMENTED:
-            raise NotImplementedError("Controller service not supported")
-        else:
+        launch_pendant_daemon = (
+            config.get_config()["hardware"]["send_pendant_packets_to_gse"]
+            == "true"
+        )
+        if launch_pendant_daemon:
             start_pendant_daemon(logger)
+        else:
+            start_pendant_emulator(logger)
 
     if frontend:
         # 6. Start the websocket / frontend API
