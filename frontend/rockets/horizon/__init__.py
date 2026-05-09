@@ -32,6 +32,7 @@ class ConfigHorizon(Config):
 
             # Other pages
             "horizon/modules/horizon_pendant.html",
+            "horizon/modules/horizon_gse_hmi.html",
             "horizon/modules/horizon_preflight.html",
         ]
 
@@ -78,5 +79,7 @@ class ConfigHorizon(Config):
 
             # Pendant page: pendant fills the full content area (24 cols x 11 rows)
             "horizon_preflight": [("page-preflight", 0, 1, 24, 11)],
-            "horizon_pendant": [("page-control", 0, 1, 24, 11)]
+            # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)
+            "horizon_gse_hmi": [("page-control", 0, 1, 14, 11)],
+            "horizon_pendant": [("page-control", 14, 1, 10, 11)]
         }

@@ -1,11 +1,11 @@
 <!-- ============================================================
-    GSE State HMI Module
+    GSE HMI Module (Horizon)
     Displays ground support equipment state via SVG diagram.
     Handles valves, pressure sensors, thermocouples, and gauges.
     ============================================================ -->
-    <div class="module-legacy justify-center items-center">
+    <div class="module-horizon justify-start items-center">
 
-        <h2>GSE State HMI</h2>
+        <h2>GSE HMI</h2>
     
         <!-- Rocket Fill Timer: now displayed in the SVG status bar below.
             Hidden input retains the data-key binding for external updates. -->
@@ -24,9 +24,8 @@
             viewBox: 0 50 1650 900
             ========================================================= -->
         <svg
-            width="1700"
-            height="1100"
-            viewBox="0 50 1650 900"
+            viewBox="-50 0 1550 1000"
+            style="width: 100%; height: auto;"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             class="max-h-full"
@@ -143,6 +142,7 @@
                         fill="#403E3E"
                         stroke="#F79322"
                         stroke-width="3"
+                        transform="translate(-2,0)"
                     />
     
                     <!-- N2O Bottle #1 temperature readout -->
@@ -281,8 +281,9 @@
                     <text
                         x="45"
                         y="410"
-                        font-family="Arial, sans-serif"
-                        font-size="13"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="16"
                         fill="#FFFFFF"
                         text-anchor="middle"
                     >
@@ -313,15 +314,16 @@
     
                     <!-- Tank labels -->
                     <g
-                        font-family="Arial, sans-serif"
-                        font-size="13"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="16"
                         fill="#FFFFFF"
                         text-anchor="middle"
                     >
                         <text x="1320" y="470">N₂O</text>
                         <text x="1320" y="490">Flight</text>
                         <text x="1320" y="510">Tank</text>
-                        <text x="1320" y="535">00.0 kg</text>
+                        <text x="1320" y="535">0.00 kg</text>
                     </g>
     
                 </g>
@@ -831,7 +833,7 @@
                             font-size="16"
                             dominant-baseline="middle"
                         >
-                            N₂O In Pressure(bar):
+                            N₂O In Pressure (bar):
                         </text>
                         <text
                             id="hmi-pressure-1"
@@ -844,7 +846,7 @@
                             font-size="16"
                             letter-spacing="0em"
                         >
-                            <tspan x="714" y="235">0.00</tspan>
+                            <tspan x="714" y="238">0.00</tspan>
                         </text>
                     </g>
     
@@ -870,7 +872,7 @@
                             font-size="16"
                             dominant-baseline="middle"
                         >
-                            N₂O Out Pressure(bar):
+                            N₂O Out Pressure (bar):
                         </text>
                         <!-- Value display box -->
                         <rect
@@ -892,108 +894,42 @@
                                 Courier New, monospace"
                             font-size="16"
                             letter-spacing="0em"
-                            dominant-baseline="middle"
-                            text-anchor="middle"
                         >
-                            <tspan x="1157" y="235">0.00</tspan>
+                            <tspan x="1014" y="238">0.00</tspan>
                         </text>
                     </g>
     
     
                     <!-- N2O Internal Temperature indicator -->
                     <g id="N2O Temp Indicator" transform="translate(15, 0)">
-                        <rect
-                            id="Rectangle 5"
-                            x="1011.5"
-                            y="207.5"
-                            width="271"
-                            height="49"
-                            fill="black"
-                            stroke="#00FF4D"
-                            stroke-width="3"
-                        />
-                        <text
-                            x="1020"
-                            y="235"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace"
-                            font-size="16"
-                            dominant-baseline="middle"
-                        >
-                            N₂O Temperature(°C):
+                        <rect id="Rectangle 5" x="1011.5" y="207.5" width="271" height="49" fill="black" stroke="#00FF4D" stroke-width="3"></rect>
+                        <text x="1020" y="232" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                                Monaco, Consolas, monospace" font-size="16" dominant-baseline="middle">
+                            N₂O Temperature (°C):
                         </text>
                         <!-- Value display box -->
-                        <rect
-                            id="Rectangle_13"
-                            x="1225.5"
-                            y="221.5"
-                            width="40"
-                            height="25"
-                            fill="black"
-                            stroke="white"
-                        />
-                        <text
-                            id="HMI_N2O-INTTEMP"
-                            fill="white"
-                            xml:space="preserve"
-                            style="white-space: pre"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
+                        <rect id="Rectangle_13" x="1225.5" y="219.5" width="45" height="25" fill="black" stroke="white"></rect>
+                        <text id="HMI_N2O-INTTEMP" fill="white" xml:space="preserve" style="white-space: pre" font-family="ui-monospace, SFMono-Regular, Menlo,
                                 Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace"
-                            font-size="16"
-                            letter-spacing="0em"
-                        >
-                            <tspan x="1230" y="238">0.0</tspan>
+                                Courier New, monospace" font-size="16" letter-spacing="0em">
+                            <tspan x="1229" y="238">0.00</tspan>
                         </text>
                     </g>
     
     
                     <!-- O2 Pressure indicator -->
                     <g id="O2 Press Indicator">
-                        <rect
-                            id="Rectangle 10"
-                            x="560.5"
-                            y="618.5"
-                            width="240"
-                            height="38"
-                            fill="black"
-                            stroke="#00FF4D"
-                            stroke-width="3"
-                        />
-                        <text
-                            x="570"
-                            y="637"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace"
-                            font-size="16"
-                            dominant-baseline="middle"
-                        >
-                            O₂ pressure(bar):
+                        <rect id="Rectangle 10" x="560.5" y="613.5" width="250" height="49" fill="black" stroke="#00FF4D" stroke-width="3"></rect>
+                        <text x="570" y="638" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                                Monaco, Consolas, monospace" font-size="16" dominant-baseline="middle">
+                            O₂ Pressure (bar):
                         </text>
                         <!-- Value display box -->
-                        <rect
-                            id="Rectangle_15"
-                            x="750.5"
-                            y="627.5"
-                            width="44"
-                            height="21"
-                            fill="black"
-                            stroke="white"
-                        />
-                        <text
-                            id="hmi-pressure-3"
-                            fill="white"
-                            xml:space="preserve"
-                            style="white-space: pre"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
+                        <rect id="Rectangle_15" x="750.5" y="625.5" width="45" height="25" fill="black" stroke="white"></rect>
+                        <text id="hmi-pressure-3" fill="white" xml:space="preserve" style="white-space: pre" font-family="ui-monospace, SFMono-Regular, Menlo,
                                 Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace"
-                            font-size="16"
-                            letter-spacing="0em"
-                        >
-                            <tspan x="753" y="642">0.00</tspan>
+                                Courier New, monospace" font-size="16" letter-spacing="0em">
+                            <tspan x="754" y="644">0.00</tspan>
                         </text>
                     </g>
     
@@ -1089,7 +1025,7 @@
                         text-anchor="middle"
                         transform="rotate(-90, 130, 130)"
                     >
-                        N₂O liquid temperature(°C)
+                        N₂O Liquid Temperature (°C)
                     </text>
     
                     <!-- N2O liquid temp label — right bottle axis -->
@@ -1103,7 +1039,7 @@
                         text-anchor="middle"
                         transform="rotate(-90, 270, 130)"
                     >
-                        N₂O liquid temperature(°C)
+                        N₂O Liquid Temperature (°C)
                     </text>
     
                     <!-- O2 gas temp label — O2 bottle axis -->
@@ -1117,7 +1053,7 @@
                         dominant-baseline="middle"
                         transform="rotate(-90, 210, 590)"
                     >
-                        O₂ Gas Temperature(°C)
+                        O₂ Gas Temperature (°C)
                     </text>
     
                 </g>
@@ -1144,12 +1080,12 @@
                         id="Vector 36"
                         d="M667 715V736"
                         stroke="white"
-                        stroke-width="2"
+                        stroke-width="1"
                     />
                 </g>
     
                 <!-- Pressure Recorder 2 (N2O upper line) -->
-                <g id="HMI_pressure_recorder2">
+                <g id="HMI_pressure_recorder2" transform="translate(-1, 0)">
                     <circle id="Ellipse 2_2" cx="881" cy="301" r="19.5"
                         stroke="white" />
                     <path
@@ -1159,11 +1095,7 @@
                         stroke="white"
                         stroke-width="2"
                     />
-                    <path
-                        id="Vector 38"
-                        d="M881.5 321V344.5"
-                        stroke="white"
-                    />
+                    <path id="Vector 38" d="M881.5 321V350" stroke="white"></path>
                 </g>
     
                 <!-- Pressure Recorder 1 (N2O in line) -->
@@ -1177,11 +1109,7 @@
                         stroke="white"
                         stroke-width="2"
                     />
-                    <path
-                        id="Vector 37"
-                        d="M564 321V346.5"
-                        stroke="white"
-                    />
+                    <path id="Vector 37" d="M564 321V350" stroke="white"></path>
                 </g>
     
                 <!-- Temperature Recorder (TR symbol, N2O line) -->
@@ -1239,26 +1167,12 @@
     
                     <!-- Vent branch 1 (lower vent) -->
                     <g id="Vents1">
-                        <path
-                            id="Vector 13_3"
-                            d="M352 822.168C352 799.615 375 798.942
-                               375 822.168"
-                            stroke="#F79322"
-                        />
-                        <path
-                            id="Vector 21"
-                            d="M352 822.167V856.5"
-                            stroke="#F79322"
-                        />
+                        <path id="Vector 13_3" d="M352 822.168C352 788.668 382.5 787.668 382.5 822.168" stroke="#F79322"></path>
+                        <path id="Vector 21" d="M352 822.167V885.336" stroke="#F79322" stroke-width="2"></path>
                     </g>
     
                     <!-- N2O bottle manifold connection -->
-                    <path
-                        id="Vector 3"
-                        d="M69 312.244V352.607H211V310.607"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <path id="Vector 3" d="M69 305V352.607H211V304" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- N2O manifold to V4 -->
                     <path
@@ -1271,8 +1185,7 @@
                     <!-- Upper right routing: backflow to tank -->
                     <path
                         id="Vector 27"
-                        d="M1055.5 737H1229V577.5M881 350H968.5H1002
-                           M1059 350H1233V438"
+                        d="M1055.5 737H1229V577.5M881 350H968.5H1002M1059 350H1229V438"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1280,7 +1193,7 @@
                     <!-- N2O bottle #1 to manifold (vertical) -->
                     <path
                         id="Vector 1"
-                        d="M69.1874 179.098V248.282"
+                        d="M69.5 176V248"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1288,18 +1201,13 @@
                     <!-- N2O bottle #2 to manifold (vertical) -->
                     <path
                         id="Vector 2"
-                        d="M210.925 178V247.733"
+                        d="M211 176V247"
                         stroke="#F79322"
                         stroke-width="2"
                     />
     
                     <!-- O2 bottle outlet pipe -->
-                    <path
-                        id="Vector 7"
-                        d="M150.424 543.879L149.721 582.243L149.018 620.608"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <path id="Vector 7" d="M149 543.879V619.608" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- N2O main horizontal run (lower) -->
                     <path
@@ -1326,12 +1234,7 @@
                     />
     
                     <!-- O2 outlet to main line -->
-                    <path
-                        id="Vector 12"
-                        d="M149 677.607V738.607"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <path id="Vector 12" d="M149 676V738" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- Relief branch and N2O return -->
                     <path
@@ -1378,12 +1281,7 @@
                     />
     
                     <!-- Vent exhaust to atmosphere loop -->
-                    <path
-                        id="Vector 19"
-                        d="M474.576 848.836V885.336H352.076V855.836"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <path id="Vector 19" d="M474.576 848.836V885.336H352" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- V11 to lower vent branch -->
                     <line
@@ -1457,14 +1355,7 @@
                 <g id="HMI_Fillerstem">
     
                     <!-- Vertical line: tank top to fill connector -->
-                    <line
-                        x1="1229.5"
-                        y1="636"
-                        x2="1229.5"
-                        y2="437"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <line x1="1229" y1="577.5" x2="1229" y2="438" stroke="#F79322" stroke-width="2"></line>
     
                 </g>
                 <!-- end #HMI_Fillerstem -->
@@ -1569,7 +1460,8 @@
                         onclick="changecolor('ballV10')" />
     
                     <rect id="Rectangle-HMIV9"
-                        x="177.5" y="242.5" width="67" height="73"
+                        x="177.5" y="242.5" width="67" 
+                        height="73" transform="translate(0,-3)"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV9')" />
@@ -1619,7 +1511,7 @@
                         x="16" y="867"
                         fill="#888888"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13"
+                        font-size="16"
                         dominant-baseline="middle"
                     >Rocket Fill Timer:</text>
                     <text
@@ -1627,7 +1519,7 @@
                         x="195" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13"
+                        font-size="16"
                         dominant-baseline="middle"
                     >--</text>
     
@@ -1640,7 +1532,7 @@
                         x="341" y="867"
                         fill="#888888"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13"
+                        font-size="16"
                         dominant-baseline="middle"
                     >N₂O In:</text>
                     <text
@@ -1648,7 +1540,7 @@
                         x="412" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13"
+                        font-size="16"
                         dominant-baseline="middle"
                     >0.00 bar</text>
     
@@ -1661,7 +1553,7 @@
                         x="536" y="867"
                         fill="#888888"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13"
+                        font-size="16"
                         dominant-baseline="middle"
                     >O₂:</text>
                     <text
@@ -1669,7 +1561,7 @@
                         x="570" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13"
+                        font-size="16"
                         dominant-baseline="middle"
                     >0.00 bar</text>
     
@@ -1680,12 +1572,12 @@
                     <!-- SECTION 4: LAST UPDATE-->
                     <text x="796" y="867" fill="#888888"
                     font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                    font-size="13" dominant-baseline="middle"
+                    font-size="16" dominant-baseline="middle"
                     >Last Update:</text>
                     <text id="sb-last-update" x="907" y="867" 
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13" dominant-baseline="middle"
+                        font-size="16" dominant-baseline="middle"
                     >:--</text>
 
                     <!-- Separator 4 -->
@@ -1695,12 +1587,12 @@
                     <!-- SECTION 5: DATE -->
                     <text x="1056" y="867" fill="#888888"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13" dominant-baseline="middle"
+                        font-size="16" dominant-baseline="middle"
                     >Date:</text>
                     <text id="sb-date" x="1100" y="867" 
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="13" dominant-baseline="middle"
+                        font-size="16" dominant-baseline="middle"
                     >----</text>
 
                 </g>
