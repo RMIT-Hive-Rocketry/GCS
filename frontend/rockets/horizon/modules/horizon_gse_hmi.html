@@ -142,6 +142,7 @@
                         fill="#403E3E"
                         stroke="#F79322"
                         stroke-width="3"
+                        transform="translate(-2,0)"
                     />
     
                     <!-- N2O Bottle #1 temperature readout -->
@@ -1148,7 +1149,7 @@
                 </g>
     
                 <!-- Pressure Recorder 2 (N2O upper line) -->
-                <g id="HMI_pressure_recorder2">
+                <g id="HMI_pressure_recorder2" transform="translate(-1, 0)">
                     <circle id="Ellipse 2_2" cx="881" cy="301" r="19.5"
                         stroke="white" />
                     <path
@@ -1238,17 +1239,8 @@
     
                     <!-- Vent branch 1 (lower vent) -->
                     <g id="Vents1">
-                        <path
-                            id="Vector 13_3"
-                            d="M352 822.168C352 799.615 375 798.942
-                               375 822.168"
-                            stroke="#F79322"
-                        />
-                        <path
-                            id="Vector 21"
-                            d="M352 822.167V856.5"
-                            stroke="#F79322"
-                        />
+                        <path id="Vector 13_3" d="M352 822.168C352 788.668 382.5 787.668 382.5 822.168" stroke="#F79322"></path>
+                        <path id="Vector 21" d="M352 822.167V885.336" stroke="#F79322" stroke-width="2"></path>
                     </g>
     
                     <!-- N2O bottle manifold connection -->
@@ -1270,8 +1262,7 @@
                     <!-- Upper right routing: backflow to tank -->
                     <path
                         id="Vector 27"
-                        d="M1055.5 737H1229V577.5M881 350H968.5H1002
-                           M1059 350H1233V438"
+                        d="M1055.5 737H1229V577.5M881 350H968.5H1002M1059 350H1229V438"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1279,7 +1270,7 @@
                     <!-- N2O bottle #1 to manifold (vertical) -->
                     <path
                         id="Vector 1"
-                        d="M69.1874 179.098V248.282"
+                        d="M69.5 176V248"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1287,7 +1278,7 @@
                     <!-- N2O bottle #2 to manifold (vertical) -->
                     <path
                         id="Vector 2"
-                        d="M210.925 178V247.733"
+                        d="M211 176V247"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1377,12 +1368,7 @@
                     />
     
                     <!-- Vent exhaust to atmosphere loop -->
-                    <path
-                        id="Vector 19"
-                        d="M474.576 848.836V885.336H352.076V855.836"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <path id="Vector 19" d="M474.576 848.836V885.336H352" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- V11 to lower vent branch -->
                     <line
@@ -1456,14 +1442,7 @@
                 <g id="HMI_Fillerstem">
     
                     <!-- Vertical line: tank top to fill connector -->
-                    <line
-                        x1="1229.5"
-                        y1="636"
-                        x2="1229.5"
-                        y2="437"
-                        stroke="#F79322"
-                        stroke-width="2"
-                    />
+                    <line x1="1229" y1="577.5" x2="1229" y2="438" stroke="#F79322" stroke-width="2"></line>
     
                 </g>
                 <!-- end #HMI_Fillerstem -->
