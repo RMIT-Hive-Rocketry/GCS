@@ -1297,34 +1297,22 @@ window.addEventListener("load", (event) => {
 });
 
 // Hotkeys for the navbar
-window.addEventListener('keyup', (event) => {
-  /* Just in case the IP address is different (or the tab)
-   * hasn't yet been changed (meaning that the URL doesn't
-   * have a hash at that point).
-  */
-  const baseURL = window.location.href.substring(0, 22);
-  
-  // Corresponds to the navbar UI
-  switch (event.key){
-    case '1':
-        window.location.href = baseURL + "?rocket=horizon#page-main";
-        location.reload() // Use to actually change the view (might be jittery)
-        break;
-    case '2':
-        window.location.href = baseURL + "?rocket=horizon#page-preflight";
-        location.reload()
-        break;
-    case '3':
-        window.location.href = baseURL + "?rocket=horizon#page-control";
-        location.reload()
-        break;
-    case '4':
-        window.location.href = baseURL + "?rocket=horizon#page-diagnostics";
-        location.reload()
-        break;
-    default:
-        break;
-  } 
+window.addEventListener('keydown', (event) => {
+    const styles = "h-full w-full flex flex-row items-center justify-center gap-2 whitespace-nowrap border-2 border-orange-900 px-2";
+    
+    switch (parseInt(event.key, 10)) {
+        case Nan: // Non-number
+            break;
+        default: // Number
+            // Get element by index from found elements list
+            const index = parseInt(event.key, 10) - 1;
+            const element = document.querySelectorAll('a.' + styles.replaceAll(" ", "."))[index];
+
+            // Click the element (ignoring default browser behaviour)
+            element.click();
+            event.preventDefault();
+            break;
+    }
 });
 
 const skippedKeys = [];
