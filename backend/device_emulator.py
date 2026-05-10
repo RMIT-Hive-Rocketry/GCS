@@ -133,6 +133,8 @@ class MockPacket(ABC):
                 return _format_test_payload()
             case InterfaceType.TEST_UART_E5:
                 return _format_test_uart_payload()
+            case InterfaceType.NONE:
+                return b""
 
 
 class GCStoGSEStateCMD(MockPacket):
