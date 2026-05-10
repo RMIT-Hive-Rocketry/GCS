@@ -2,6 +2,7 @@ import logging
 import cli.process as process
 import enum
 import os
+import sys
 
 
 class SimulationType(enum.Enum):
@@ -62,7 +63,7 @@ def start_replay_system(
         if not mission and not simulation:
             raise ValueError("Must have either mission or simulation type")
         replay_command = [
-            "python3",
+            sys.executable,
             "-u",
             os.path.join("backend", "replay_system", "replay_engine.py"),
             "--device-rocket",

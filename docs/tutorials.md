@@ -26,9 +26,9 @@ This setup has a few key benefits, the cli layer allows for true multithreading 
 
     >modify the function name to match the format start_[service_name]
 
-    >modify SERVICE_NAME variable to suit the new service name.
+    >modify service_name variable to suit the new service name.
 
-    >modify TEMPLATE_SERVICE_COMMAND variable to follow structure of [SERVICE_NAME]_COMMAND
+    >modify TEMPLATE_SERVICE_COMMAND variable to follow structure of [service_name]_COMMAND
 
     >modify template_service_process variable to follow structure of [service_name]_process
 
@@ -62,20 +62,21 @@ import logging
 import cli.process as process
 from typing import Tuple
 import os
+import sys
 
 def start_template_service(
     logger: logging.Logger
 ):
-    SERVICE_NAME = "template service"
+    service_name = "template service"
     try:
 
         TEMPLATE_SERVICE_COMMAND = [
-            "python3",
+            sys.executable,
             os.path.join("backend", "template_service.py"),
             "-u",
         ]
 
-        logger.debug(f"Starting {SERVICE_NAME}")
+        logger.debug(f"Starting {service_name}")
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
         env = os.environ.copy()
@@ -84,13 +85,13 @@ def start_template_service(
         )
 
         template_service_process = process.LoggedSubProcess(
-            DUMMY_ALERT_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
+            DUMMY_ALERT_COMMAND, name=service_name, env=env, parse_output=True
         )
 
         template_service_process.start()
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {service_name}: {e}")
         return None, None
 
 ```

@@ -1,22 +1,27 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
-def start_frontend_api(logger: logging.Logger, SUB_SOCKET_PATH: str):
-    SERVICE_NAME = "frontend_api"
+def start_frontend_api(
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    sub_socket_path: str,
+) -> None:
+    service_name = "frontend_api"
     try:
 
-        API_SERVICE_COMMAND = [
-            "python3",
+        api_service_command = [
+            sys.executable,
             "-u",
             os.path.join("backend", "frontend_api.py"),
             "--socket-path",
-            SUB_SOCKET_PATH,
+            sub_socket_path,
         ]
 
         logger.debug(
-            f"Starting {SERVICE_NAME} module with: {API_SERVICE_COMMAND}"
+            f"Starting {service_name} module with: {api_service_command}"
         )
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
@@ -26,12 +31,13 @@ def start_frontend_api(logger: logging.Logger, SUB_SOCKET_PATH: str):
         )
 
         api_process = process.LoggedSubProcess(
-            API_SERVICE_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
+            api_service_command, name=service_name, env=env, parse_output=True
         )
         api_process.start()
+        performance_logging.AddNewProcess(api_process)
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting the rocket {SERVICE_NAME} {e}"
+            f"An error occurred while starting the rocket {service_name} {e}"
         )
         return None, None
