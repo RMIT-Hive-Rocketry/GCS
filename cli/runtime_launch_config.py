@@ -23,8 +23,7 @@ class AuxServicePlan:
 class RuntimeLaunchConfig:
     """Resolve launch-time interfaces, device paths, and middleware config."""
     
-    # NONE isnt really a test interface, but should be treated like one becase TODO
-    _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5, InterfaceType.NONE}
+    _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
 
     def __init__(
         self,
@@ -86,7 +85,7 @@ class RuntimeLaunchConfig:
 
     def _validate_split_emulation_support(self) -> None:
         if self.interface_gse_type == InterfaceType.NONE or self.interface_av_type == InterfaceType.NONE:
-            # we arent split emulating anyway so just return early
+            # NONE should allow split emulation
             return
 
         any_interface_is_test = (
@@ -101,17 +100,17 @@ class RuntimeLaunchConfig:
             )
 
     def _resolve_paths_and_radio(self) -> None:
-        gse_is_test = self.interface_gse_type in self._test_interfaces
-        av_is_test = self.interface_av_type in self._test_interfaces
+        either_is_test = self.interface_gse_type in self._test_interfaces or self.interface_av_type in self._test_interfaces
+        either_is_none = self.interface_gse_type == InterfaceType.NONE or self.interface_av_type == InterfaceType.NONE
 
-        if gse_is_test and av_is_test:
+        if either_is_none and either_is_test:
             middleware_device, aux_device = self._run_pseudoterm_setup()
             self.device_path_gse = middleware_device
             self.device_path_av = middleware_device
             self._aux_device_path = aux_device
             return
 
-        if gse_is_test or av_is_test:
+        if either_is_test:
             raise NotImplementedError(
                 "Mixed test/non-test interfaces are not supported yet"
                 + self.interface_av_type.value
@@ -165,6 +164,10 @@ class RuntimeLaunchConfig:
             if not (1 <= tcp_port <= 65535):
                 raise RuntimeError("tcp-port must be between 1 and 65535")
             return f"{tcp_ip}:{tcp_port}"
+
+        if interface_type == InterfaceType.NONE:
+            self.logger.info(f"Starting NONE interface ({link_name})")
+            return "NONE"
 
         raise ValueError("Invalid interface type")
 
