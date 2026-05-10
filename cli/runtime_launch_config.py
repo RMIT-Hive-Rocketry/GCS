@@ -37,6 +37,13 @@ class RuntimeLaunchConfig:
         self.logger = logger
         self.is_release = self._is_release_mode(command)
 
+        # get from config if not specified in CLI args
+        if not interface_gse_arg:
+            interface_gse_arg = config.get_config()["hardware"]["interface_dev_gse"].strip().upper()
+
+        if not interface_av_arg:
+            interface_av_arg = config.get_config()["hardware"]["interface_dev_av"].strip().upper()
+
         self.interface_gse_type = get_interface_type(interface_gse_arg)
         self.interface_av_type = get_interface_type(interface_av_arg)
 

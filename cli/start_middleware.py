@@ -18,11 +18,8 @@ class InterfaceType(enum.Enum):
 
 
 def get_interface_type(interface: str | None) -> InterfaceType:
-    """Get the interface type from the command line argument or config"""
-    if interface is None:  # Unspecified by user
-        interface = config.get_config()["hardware"]["interface"].strip().upper()
-    else:
-        interface = interface.strip().upper()
+    """Get the interface type from the command line argument"""
+    interface = interface.strip().upper()
 
     # Convert string to InterfaceType enum
     try:
