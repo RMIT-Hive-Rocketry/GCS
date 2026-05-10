@@ -28,14 +28,14 @@ def get_default_config_path() -> str:
 # Cache/Singleton this. The config file does not chang during runtime.
 # You should only read the config once at startup anyway
 @cache
-def get_config(file_path=None) -> dict[str, str]:
+def get_config(file_path=None) -> dict[str, dict[str, str]]:
     """Loads configuration settings from an INI file.
 
     Args:
         file_path (str): Path to the .ini configuration file.
 
     Returns:
-        dict[str, str]: A dictionary containing configuration settings.
+        dict[str, dict[str, str]]: A dictionary containing configuration settings.
     """
     if file_path is None:
         file_path = get_default_config_path()
