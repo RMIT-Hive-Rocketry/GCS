@@ -14,6 +14,10 @@ const std::vector<std::pair<std::string, std::string>>
         {"TCP", "UART_E5"},
         {"TEST_UART_E5", "TEST_UART_E5"},
         {"TEST", "TEST"},
+        {"TCP", "NONE"},
+        {"UART_E5", "NONE"},
+        {"TEST_UART_E5", "NONE"},
+        {"TEST", "NONE"}
 };
 
 bool has_interface_support(const ParsedArgs& args) {

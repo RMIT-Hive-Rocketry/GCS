@@ -14,6 +14,7 @@ class InterfaceType(StrEnum):
     TCP = "TCP"
 
     # for --gse-only
+    # acts like a release interface, but can be used in split emulation
     NONE = "NONE"
 
 
