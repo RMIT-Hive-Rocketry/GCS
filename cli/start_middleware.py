@@ -1,12 +1,12 @@
 import logging
 import cli.process as process
 import os
-import enum
+from enum import StrEnum
 import config.config as config
 from dataclasses import dataclass
 
 
-class InterfaceType(enum.Enum):
+class InterfaceType(StrEnum):
     # Reference the main middleware cpp file
     UART_E5 = "UART_E5"
     TEST = "TEST"
@@ -23,16 +23,18 @@ def get_interface_type(interface: str | None) -> InterfaceType:
 
     # Convert string to InterfaceType enum
     try:
-        for enum_member in InterfaceType:
-            if enum_member.name == interface:
-                return enum_member
-        # If we get here, no matching enum value was found
-        valid_types = [e.name for e in InterfaceType]
-        raise ValueError(
-            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
-        )
+        try:
+            return InterfaceType(interface)
+        except ValueError as e:
+            # If we get here, no matching enum value was found
+            valid_types = [e.name for e in InterfaceType]
+
+            # propogate error
+            raise ValueError(
+                f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
+            ) from e
     except Exception as e:
-        raise ValueError(f"Invalid interface type: {interface}")
+        raise ValueError(f"Invalid interface type: {interface}") from e
 
 
 @dataclass

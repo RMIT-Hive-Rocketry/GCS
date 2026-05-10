@@ -22,8 +22,9 @@ class AuxServicePlan:
 
 class RuntimeLaunchConfig:
     """Resolve launch-time interfaces, device paths, and middleware config."""
-
-    _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
+    
+    # NONE isnt really a test interface, but should be treated like one becase TODO
+    _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5, InterfaceType.NONE}
 
     def __init__(
         self,
@@ -84,6 +85,10 @@ class RuntimeLaunchConfig:
         return getattr(command, "name", "").upper() == "RUN"
 
     def _validate_split_emulation_support(self) -> None:
+        if self.interface_gse_type == InterfaceType.NONE or self.interface_av_type == InterfaceType.NONE:
+            # we arent split emulating anyway so just return early
+            return
+
         any_interface_is_test = (
             self.interface_av_type in self._test_interfaces
             or self.interface_gse_type in self._test_interfaces
@@ -109,6 +114,8 @@ class RuntimeLaunchConfig:
         if gse_is_test or av_is_test:
             raise NotImplementedError(
                 "Mixed test/non-test interfaces are not supported yet"
+                + self.interface_av_type.value
+                + self.interface_gse_type.value
             )
 
         self.device_path_gse = self._resolve_non_test_device_path(
@@ -159,12 +166,10 @@ class RuntimeLaunchConfig:
                 raise RuntimeError("tcp-port must be between 1 and 65535")
             return f"{tcp_ip}:{tcp_port}"
 
-        if interface_type == InterfaceType.NONE:
-            return "_"
-
         raise ValueError("Invalid interface type")
 
     def _run_pseudoterm_setup(self) -> tuple[str, str]:
+        """Starts a subprocess of socat to create linked pseudo-terminals and returns their paths."""
         if self.is_release:
             self.logger.warning("Test interface selected in production mode")
         self.logger.info("Starting pseudo-terminals for emulation")
