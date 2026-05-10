@@ -22,7 +22,7 @@ class AuxServicePlan:
 
 class RuntimeLaunchConfig:
     """Resolve launch-time interfaces, device paths, and middleware config."""
-    
+
     _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
 
     def __init__(
@@ -39,10 +39,18 @@ class RuntimeLaunchConfig:
 
         # get from config if not specified in CLI args
         if not interface_gse_arg:
-            interface_gse_arg = config.get_config()["hardware"]["interface_dev_gse"].strip().upper()
+            interface_gse_arg = (
+                config.get_config()["hardware"]["interface_dev_gse"]
+                .strip()
+                .upper()
+            )
 
         if not interface_av_arg:
-            interface_av_arg = config.get_config()["hardware"]["interface_dev_av"].strip().upper()
+            interface_av_arg = (
+                config.get_config()["hardware"]["interface_dev_av"]
+                .strip()
+                .upper()
+            )
 
         self.interface_gse_type = get_interface_type(interface_gse_arg)
         self.interface_av_type = get_interface_type(interface_av_arg)
@@ -84,7 +92,10 @@ class RuntimeLaunchConfig:
         return getattr(command, "name", "").upper() == "RUN"
 
     def _validate_split_emulation_support(self) -> None:
-        if self.interface_gse_type == InterfaceType.NONE or self.interface_av_type == InterfaceType.NONE:
+        if (
+            self.interface_gse_type == InterfaceType.NONE
+            or self.interface_av_type == InterfaceType.NONE
+        ):
             # NONE should allow split emulation
             return
 
@@ -100,8 +111,14 @@ class RuntimeLaunchConfig:
             )
 
     def _resolve_paths_and_radio(self) -> None:
-        either_is_test = self.interface_gse_type in self._test_interfaces or self.interface_av_type in self._test_interfaces
-        either_is_none = self.interface_gse_type == InterfaceType.NONE or self.interface_av_type == InterfaceType.NONE
+        either_is_test = (
+            self.interface_gse_type in self._test_interfaces
+            or self.interface_av_type in self._test_interfaces
+        )
+        either_is_none = (
+            self.interface_gse_type == InterfaceType.NONE
+            or self.interface_av_type == InterfaceType.NONE
+        )
 
         if either_is_none and either_is_test:
             middleware_device, aux_device = self._run_pseudoterm_setup()
