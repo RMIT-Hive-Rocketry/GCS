@@ -1100,6 +1100,25 @@ window.addEventListener("load", (event) => {
     console.log(displayRegistry);
 });
 
+// Hotkeys for the navbar
+window.addEventListener('keydown', (event) => {
+    const styles = "h-full w-full flex flex-row items-center justify-center gap-2 whitespace-nowrap border-2 border-orange-900 px-2";
+    
+    switch (parseInt(event.key, 10)) {
+        case Nan: // Non-number
+            break;
+        default: // Number
+            // Get element by index from found elements list
+            const index = parseInt(event.key, 10) - 1;
+            const element = document.querySelectorAll('a.' + styles.replaceAll(" ", "."))[index];
+
+            // Click the element (ignoring default browser behaviour)
+            element.click();
+            event.preventDefault();
+            break;
+    }
+});
+
 const skippedKeys = [];
 function sendDataToRegistry(apiData) {
     // Don't receive data until page has loaded
