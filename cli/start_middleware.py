@@ -30,7 +30,7 @@ def get_interface_type(interface: str) -> InterfaceType:
             # If we get here, no matching enum value was found
             valid_types = [e.name for e in InterfaceType]
 
-            # propogate error
+            # propagate error
             raise ValueError(
                 f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
             ) from e
@@ -157,7 +157,7 @@ def build_middleware_argv(
         config.interface_gse_type == InterfaceType.UART_E5
         or config.interface_av_type == InterfaceType.UART_E5
     )
-    
+
     if an_interface_is_uart_e5:
         if config.lora_config is None:
             raise ValueError("UART_E5 interface requires lora_config")
