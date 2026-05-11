@@ -1,5 +1,7 @@
 from abc import ABC
 import config.config as config
+from typing import Optional, List, Tuple
+from dataclasses import asdict
 import sys
 import socket
 import random
@@ -375,11 +377,39 @@ class AVtoGCSData3(MockPacket):
 
 # A bit like the GCS class. Just used for context
 class GSEDAQData:
-    # wake accept/recv periodically to check time_to_stop()
+    # Wake client threads periodically while waiting (shutdown, spurious wakeups).
     GSE_POLL_S = 1.0
-    latest_labview_data: Optional[str] = None
-    # Just a version counter
-    labview_data_version = 0
+    _labview_ready = threading.Condition()
+    latest_labview_data: Optional[bytes] = None
+    labview_data_version: int = 0
+
+    @classmethod
+    def publish_labview_update(cls, payload: bytes) -> None:
+        with cls._labview_ready:
+            cls.latest_labview_data = payload
+            cls.labview_data_version += 1
+            cls._labview_ready.notify_all()
+
+    @classmethod
+    def wait_new_labview_payload(
+        cls, after_version: int
+    ) -> Optional[Tuple[bytes, int]]:
+        """Block until ``labview_data_version > after_version`` or shutdown."""
+        with cls._labview_ready:
+            while True:
+                if service_helper.time_to_stop():
+                    return None
+                if (
+                    cls.latest_labview_data is not None
+                    and cls.labview_data_version > after_version
+                ):
+                    return cls.latest_labview_data, cls.labview_data_version
+                cls._labview_ready.wait(timeout=cls.GSE_POLL_S)
+
+    @classmethod
+    def shutdown_wake_clients(cls) -> None:
+        with cls._labview_ready:
+            cls._labview_ready.notify_all()
 
 
 def sinusoid(
@@ -697,59 +727,63 @@ def get_sinusoid_packets_gsedaq(
 
 
 def gse_client_manager(conn, addr):
-    conn.settimeout(GSEDAQData.GSE_POLL_S)
     slogger.debug(f"Connected to new GSE/GDAQ TCP client {addr}.")
+    last_version = -1
     try:
         while not service_helper.time_to_stop():
+            got = GSEDAQData.wait_new_labview_payload(last_version)
+            if got is None:
+                break
+            payload, version = got
             try:
-                # data = conn.recv(1024)
-                # if not data:
-                #     break
-                # message = data.decode("utf-8")
-                # slogger.debug(f"GSE/DAQ TCP client sent: [{addr}] {message}")
-
-                payload = b"testing loltesting loltesting lol\n"
                 conn.sendall(payload)
-                time.sleep(MockPacket.TIME_INBETWEEN_PACKETS * 100)
-
-            except socket.timeout:
-                continue
             except (ConnectionResetError, BrokenPipeError, OSError):
                 break
+            last_version = version
     finally:
         conn.close()
     slogger.debug(f"Closed GSE/DAQ TCP client {addr}.")
 
 
-def gse_server_manager(port):
+def gse_server_manager(
+    port: int, start_time: float, experimental: bool, corruption: bool
+):
     host = "127.0.0.1"
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.settimeout(GSEDAQData.GSE_POLL_S)
     server.bind((host, port))
     server.listen()
     slogger.info(f"Emulation labview server is LISTENING on {host}:{port}")
     all_threads: List[threading.Thread] = []
     try:
         while not service_helper.time_to_stop():
-            try:
-                conn, addr = server.accept()
-            except socket.timeout:
-                continue
-            except OSError:
-                break
-
-            thread = threading.Thread(
-                target=gse_client_manager, args=(conn, addr)
+            metrics = get_sinusoid_packets_gsedaq(
+                start_time, experimental, corruption
             )
-            all_threads.append(thread)
-            thread.start()
-            slogger.debug(f"Started new TCP thread for {addr}")
+            row_xml = GseDaqMetrics.build_xml_row(asdict(metrics))
+            GSEDAQData.publish_labview_update(
+                row_xml.encode("utf-8") + b"\n"
+            )
 
-            # And update the master data
-            # GSEDAQData.labview_data_version = get_sinusoid_packets_gsedaq()
-            # GSEDAQData.labview_data_version += 1
+            time.sleep(MockPacket.TIME_INBETWEEN_PACKETS)
+
+            server.settimeout(0.0)
+            while not service_helper.time_to_stop():
+                try:
+                    conn, addr = server.accept()
+                except socket.timeout:
+                    break
+                except OSError:
+                    break
+
+                thread = threading.Thread(
+                    target=gse_client_manager, args=(conn, addr)
+                )
+                all_threads.append(thread)
+                thread.start()
+                slogger.debug(f"Started new TCP thread for {addr}")
 
     finally:
+        GSEDAQData.shutdown_wake_clients()
         try:
             server.close()
         except OSError:
@@ -808,7 +842,8 @@ def main():
     # Start a thread to send the GSE information with a standalone TCP server
     gse_server_port = int(config.get_config()["emulation"]["tcp_server_port"])
     gse_server_manager_thread = threading.Thread(
-        target=gse_server_manager, args=(gse_server_port,)
+        target=gse_server_manager,
+        args=(gse_server_port, START_TIME, EXPERIMENTAL, CORRUPTION),
     )
     gse_server_manager_thread.start()
 
