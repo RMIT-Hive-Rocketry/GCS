@@ -335,7 +335,7 @@ def get_global_status_mac() -> GlobalSystemInfo:
     count = ctypes.c_uint(ctypes.sizeof(cpu_info) // ctypes.sizeof(c_uint))
 
     clock_tick = os.sysconf(
-        "SC_clock_tick"
+        "SC_CLK_TCK"
     )  # Get Current Tick rate to convert to ns
 
     ret = libc.host_statistics64(
