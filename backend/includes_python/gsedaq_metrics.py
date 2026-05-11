@@ -35,7 +35,8 @@ class GseDaqMetrics:
     # Assuming the data from labview will look like this
     # <Val>[[name,value],[name2,value2],[...],[...]]</Val>
 
-    def build_xml_row(data: dict):
+    @staticmethod
+    def build_xml_row(data: dict) -> str:
         """
         Returns a complete row XML update which appears in each lavbiew update
         Note that this emulation is clean, and does not come in chunks like a typical TCP buffer will do.
@@ -45,5 +46,5 @@ class GseDaqMetrics:
         data_list: List[List[Any]] = []
         for metric, value in data.items():
             data_list.append([metric, value])
-            formatted_data = str(data_list)
-            return f"<Val>{formatted_data}</Val>"
+        formatted_data = str(data_list)
+        return f"<Val>{formatted_data}</Val>"
