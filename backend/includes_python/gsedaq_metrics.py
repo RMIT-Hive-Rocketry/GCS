@@ -1,8 +1,13 @@
+import ast
+import re
+
 import backend.includes_python.process_logging as slogger
 import config.config as config
 from typing import List, Any, Dict
 from dataclasses import dataclass
 from functools import cache
+
+_LABVIEW_VAL_RE = re.compile(r"<Val>\s*(.*?)\s*</Val>", re.DOTALL)
 
 # Provides the packet structures for emulating GSE/DAQ in device_emulator.py
 # The data coming from this system is meant to emaulate what you would get from the labview TCP server
@@ -35,6 +40,7 @@ class GseDaqMetrics:
     pressure_o2_tank: float
     weight_rocket: float
 
+    # TODO update with actual labview pattern when ready
     # Assuming the data from labview will look like this
     # <Val>[[name,value],[name2,value2],[...],[...]]</Val>
 
@@ -46,6 +52,7 @@ class GseDaqMetrics:
 
         args: data: {"metric_name": value, "metric_name2": value2} — values may be floats or ``"offline"``.
         """
+        # TODO update with actual labview pattern when ready
         data_list: List[List[Any]] = []
         for metric, value in data.items():
             data_list.append([metric, value])
@@ -65,6 +72,20 @@ class GseDaqMetrics:
             else:
                 out[name] = GSE_SENSOR_OFFLINE_VALUE
         return out
+
+    @staticmethod
+    def labview_row_bytes_to_data_dict(row: bytes) -> Dict[str, Any]:
+        """Parse a `<Val>[[name, value], ...]</Val>` line (TCP/LabVIEW) into a metric dict."""
+        text = row.decode("utf-8").strip()
+        m = _LABVIEW_VAL_RE.search(text)
+        # Note that an incomplete buffer will fail on this
+        # Make sure you are sending a full XML tag each time
+        # Should be fine for emulation and should be fine if labview is atomic with it's messaging
+        if not m:
+            # TODO update with actual labview pattern when ready
+            raise ValueError("expected <Val>...</Val>")
+        pairs = ast.literal_eval(m.group(1))
+        return {name: val for name, val in pairs}
 
     @staticmethod
     @cache
