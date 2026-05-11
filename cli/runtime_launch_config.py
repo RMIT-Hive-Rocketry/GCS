@@ -119,8 +119,12 @@ class RuntimeLaunchConfig:
             self.interface_gse_type == InterfaceType.NONE
             or self.interface_av_type == InterfaceType.NONE
         )
+        both_are_test = (
+            self.interface_gse_type in self._test_interfaces
+            and self.interface_av_type in self._test_interfaces
+        )
 
-        if either_is_none and either_is_test:
+        if either_is_none and either_is_test or both_are_test:
             middleware_device, aux_device = self._run_pseudoterm_setup()
             self.device_path_gse = middleware_device
             self.device_path_av = middleware_device
