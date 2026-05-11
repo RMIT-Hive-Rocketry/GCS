@@ -684,7 +684,7 @@ def get_sinusoid_packets_av(
 
 def get_sinusoid_packets_gsedaq(
     START_TIME: float, EXPERIMENTAL: bool, CORRUPTION: bool
-) -> str:
+) -> GseDaqMetrics:
     """Generates sinusoidal packets of GSE data"""
 
     TIME_NOW = time.monotonic()
@@ -759,7 +759,11 @@ def gse_server_manager(
             metrics = get_sinusoid_packets_gsedaq(
                 start_time, experimental, corruption
             )
-            row_xml = GseDaqMetrics.build_xml_row(asdict(metrics))
+            enabled_map = GseDaqMetrics.get_gse_sensor_enabled_map()
+            row_dict = GseDaqMetrics.build_labview_row_dict(
+                asdict(metrics), enabled_map
+            )
+            row_xml = GseDaqMetrics.build_xml_row(row_dict)
             GSEDAQData.publish_labview_update(
                 row_xml.encode("utf-8") + b"\n"
             )
