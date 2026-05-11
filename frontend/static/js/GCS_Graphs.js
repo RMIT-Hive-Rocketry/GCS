@@ -11,11 +11,11 @@ const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
 const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
-const LINE_COLOURS_DEFAULT = [
-    "#FF0000",
-    "#00FF00",
-    "#0000FF",
-    "#FFFFFF",
+const LINE_COLOURS = [
+    "var(--color-red-500)",
+    "var(--color-green-500)",
+    "var(--color-blue-500)",
+    "white",
 ];
 const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
@@ -82,6 +82,11 @@ const GRAPH_AUX_GASBOTTLES = {
     numLines: 2,
     data: [],
 };
+
+const GRAPH_TEST_COLOURS = {
+    selector: "#graph-test-colours",
+    numLines: 4
+}
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
@@ -404,6 +409,8 @@ function graphRequestRender() {
     graphRender(GRAPH_AUX_THERMOCOUPLES);
     graphRender(GRAPH_AUX_INTERNALTEMP);
     graphRender(GRAPH_AUX_GASBOTTLES);
+
+    graphRender(GRAPH_TEST_COLOURS);
 }
 
 function graphAddValue(graph, line, timestamp, value) {
@@ -443,6 +450,13 @@ function graphInit() {
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
     graphCreateLine(GRAPH_AUX_INTERNALTEMP);
     graphCreateLine(GRAPH_AUX_GASBOTTLES);
+    graphCreateLine(GRAPH_TEST_COLOURS);
+
+    // Update the test colours graph
+    for (i = 0; i < 4; ++i) {
+        graphAddValue(GRAPH_TEST_COLOURS, i, 2*i, 2);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 2*i + 1, 2);
+    }
 
     window.graphsInitialised = true;
     console.log("Graphs initialised");
