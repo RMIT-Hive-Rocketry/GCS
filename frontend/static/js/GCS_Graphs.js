@@ -67,7 +67,7 @@ const GRAPH_AUX_THERMOCOUPLES = {
     },
     data: [],
 };
-const GRAPH_AUX_INTERNALTEMP = {
+const GRAPH_AUX_VENTTEMP = {
     selector: "#graph-aux-venttemp",
     ylabel: "Temperature (°C)",
     numLines: 1,
@@ -402,7 +402,7 @@ function graphRequestRender() {
 
     graphRender(GRAPH_AUX_TRANSDUCERS);
     graphRender(GRAPH_AUX_THERMOCOUPLES);
-    graphRender(GRAPH_AUX_INTERNALTEMP);
+    graphRender(GRAPH_AUX_VENTTEMP);
     graphRender(GRAPH_AUX_GASBOTTLES);
 }
 
@@ -441,7 +441,7 @@ function graphInit() {
     graphCreateLine(GRAPH_POS_ALT);
     graphCreateLine(GRAPH_AUX_TRANSDUCERS);
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
-    graphCreateLine(GRAPH_AUX_INTERNALTEMP);
+    graphCreateLine(GRAPH_AUX_VENTTEMP);
     graphCreateLine(GRAPH_AUX_GASBOTTLES);
 
     window.graphsInitialised = true;
@@ -506,25 +506,28 @@ function graphUpdateAuxData(data) {
             timestamp,
             data.temp_pipe_n2o_gse,
         );
-        // TODO Change to 3 series RTD temp graph instead!!
-        // graphAddValue(
-        //     GRAPH_AUX_THERMOCOUPLES,
-        //     1,
-        //     timestamp,
-        //     data.thermocouple2,
-        // );
-        // graphAddValue(
-        //     GRAPH_AUX_THERMOCOUPLES,
-        //     2,
-        //     timestamp,
-        //     data.thermocouple3,
-        // );
-        // graphAddValue(
-        //     GRAPH_AUX_THERMOCOUPLES,
-        //     3,
-        //     timestamp,
-        //     data.thermocouple4,
-        // );
+
+        // Vent temperature
+        graphAddValue(GRAPH_AUX_VENTTEMP, 0, timestamp, data.temp_vent);
+
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            1,
+            timestamp,
+            data.temp_tank_top,
+        );
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            2,
+            timestamp,
+            data.temp_tank_middle,
+        );
+        graphAddValue(
+            GRAPH_AUX_THERMOCOUPLES,
+            3,
+            timestamp,
+            data.temp_tank_bottom,
+        );
 
         // TODO Change to gas bottle pressures
         // Gas bottle weights
