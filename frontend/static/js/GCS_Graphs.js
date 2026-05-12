@@ -68,7 +68,7 @@ const GRAPH_AUX_THERMOCOUPLES = {
     data: [],
 };
 const GRAPH_AUX_INTERNALTEMP = {
-    selector: "#graph-aux-internaltemp",
+    selector: "#graph-aux-venttemp",
     ylabel: "Temperature (°C)",
     numLines: 1,
     limits: {
@@ -487,55 +487,58 @@ function graphUpdatePosition(data) {
 
 function graphUpdateAuxData(data) {
     // AUXILIARY DATA MODULE GRAPHS
-    if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
+
+    // TODO Based on launch configuration, some values will be "offline"
+    // Clearly label those graphs as offline instead of leaving them blank
+
+    if (data?.id) {
         const timestamp = data.meta.timestampS;
 
         // Transducers
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.transducer1);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.transducer2);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.transducer3);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.pressure_n2o_bottle);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.pressure_n2o_tank);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.pressure_o2_tank);
 
         // Thermocouples
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             0,
             timestamp,
-            data.thermocouple1,
+            data.temp_pipe_n2o_gse,
         );
-        graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
-            1,
-            timestamp,
-            data.thermocouple2,
-        );
-        graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
-            2,
-            timestamp,
-            data.thermocouple3,
-        );
-        graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
-            3,
-            timestamp,
-            data.thermocouple4,
-        );
+        // TODO Change to 3 series RTD temp graph instead!!
+        // graphAddValue(
+        //     GRAPH_AUX_THERMOCOUPLES,
+        //     1,
+        //     timestamp,
+        //     data.thermocouple2,
+        // );
+        // graphAddValue(
+        //     GRAPH_AUX_THERMOCOUPLES,
+        //     2,
+        //     timestamp,
+        //     data.thermocouple3,
+        // );
+        // graphAddValue(
+        //     GRAPH_AUX_THERMOCOUPLES,
+        //     3,
+        //     timestamp,
+        //     data.thermocouple4,
+        // );
 
-        // Internal temperature
-        graphAddValue(GRAPH_AUX_INTERNALTEMP, 0, timestamp, data.internalTemp);
-
+        // TODO Change to gas bottle pressures
         // Gas bottle weights
-        graphAddValue(
-            GRAPH_AUX_GASBOTTLES,
-            0,
-            timestamp,
-            data.gasBottleWeight1,
-        );
-        graphAddValue(
-            GRAPH_AUX_GASBOTTLES,
-            1,
-            timestamp,
-            data.gasBottleWeight2,
-        );
+        // graphAddValue(
+        //     GRAPH_AUX_GASBOTTLES,
+        //     0,
+        //     timestamp,
+        //     data.gasBottleWeight1,
+        // );
+        // graphAddValue(
+        //     GRAPH_AUX_GASBOTTLES,
+        //     1,
+        //     timestamp,
+        //     data.gasBottleWeight2,
+        // );
     }
 }
