@@ -510,7 +510,7 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
         });
 
         // Not tied to any graphs, but might as well also change these bottom borders
-        ["pitch", "yaw", "roll"].forEach((a1,) => {
+        ["pitch", "yaw", "roll"].forEach((a1, index) => {
             let inputElement = document.querySelector('input[class*="rocket-' + a1 + '"]');
             if (inputElement != null) {
                 inputElement.style.borderBottomColor = LINE_COLOURS[index];
