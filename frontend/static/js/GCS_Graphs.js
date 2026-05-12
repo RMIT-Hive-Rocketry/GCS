@@ -82,7 +82,9 @@ const GRAPH_AUX_GASBOTTLES = {
 
 const GRAPH_TEST_COLOURS = {
     selector: "#graph-test-colours",
-    numLines: 4
+    ylabel: "",
+    numLines: 4,
+    data: [],
 }
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
@@ -276,43 +278,31 @@ function graphRender(chart) {
         }
     
         const windowStart = now - MAX_TIME;
-    
-        // Limit data to graph window
-        chart.lines.forEach((line) => {
-            line.data = line.data.filter(
-                (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
-            );
-        });
-    
-        const allPoints = chart.lines.flatMap((line) => line.data);
-    
-        if (allPoints.length === 0) {
-            return;
-        }
-    
-        const yMinRaw = d3.min(allPoints, (d) => d.y);
-        const yMaxRaw = d3.max(allPoints, (d) => d.y);
-    
-        if (!Number.isFinite(yMinRaw) || !Number.isFinite(yMaxRaw)) {
-            return;
-        }
-    
-        let yMin = yMinRaw - 1;
-        let yMax = yMaxRaw + 1;
-    
-        if (chart?.limits?.yBottomMax !== undefined) {
-            yMin = Math.min(yMin, chart.limits.yBottomMax);
-        }
-    
-        if (yMin === yMax) {
-            yMin -= 1;
-            yMax += 1;
-        }
-    
-        if (chart.lastRender != now || chart.lastPointCount !== allPoints.length) {
-            // Update x and y domains
-            chart.x.domain([windowStart, now]);
-            chart.y.domain([yMin, yMax]); //.nice();
+
+        if (chart.lastRender != now) {
+            // Limit data to graph window
+            chart.lines.forEach((line) => {
+                line.data = line.data.filter(
+                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+                );
+            });
+            const allPoints = chart.lines.flatMap((line) => line.data);
+
+            // Update x and y domains unless it's the test colour graph
+            if (chart !== GRAPH_TEST_COLOURS) {
+                chart.x.domain([windowStart, now]);
+            }
+            
+            chart.y.domain([
+                Math.min(
+                    d3.min(allPoints, (d) => d.y) - 1,
+                    chart?.limits?.yBottomMax != undefined
+                        ? chart?.limits?.yBottomMax
+                        : Infinity,
+                ),
+                d3.max(allPoints, (d) => d.y) + 1,
+            ]); //.nice();
+
             // Update rendering of X and Y domain
             
             
@@ -472,8 +462,8 @@ function graphInit() {
 
     // Update the test colours graph
     for (i = 0; i < 4; ++i) {
-        graphAddValue(GRAPH_TEST_COLOURS, i, 2*i, 2);
-        graphAddValue(GRAPH_TEST_COLOURS, i, 2*i + 1, 2);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
     }
 
     window.graphsInitialised = true;
@@ -485,6 +475,19 @@ if (document.readyState === "loading") {
 } else {
     graphInit();
 }
+
+// Update colours in real-time
+const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
+    document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
+        LINE_COLOURS[index] = event.target.value;
+        
+        // Same code as above
+        for (i = 0; i < 4; ++i) {
+            graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+            graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+        }
+    })
+})
 
 // Update modules
 function graphUpdateAvionics(data) {
