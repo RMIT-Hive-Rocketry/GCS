@@ -85,7 +85,9 @@ const GRAPH_AUX_GASBOTTLES = {
 
 const GRAPH_TEST_COLOURS = {
     selector: "#graph-test-colours",
-    numLines: 4
+    ylabel: "",
+    numLines: 4,
+    data: [],
 }
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
@@ -280,8 +282,11 @@ function graphRender(chart) {
             });
             const allPoints = chart.lines.flatMap((line) => line.data);
 
-            // Update x and y domains
-            chart.x.domain([windowStart, now]);
+            // Update x and y domains unless it's the test colour graph
+            if (chart !== GRAPH_TEST_COLOURS) {
+                chart.x.domain([windowStart, now]);
+            }
+            
             chart.y.domain([
                 Math.min(
                     d3.min(allPoints, (d) => d.y) - 1,
@@ -454,8 +459,8 @@ function graphInit() {
 
     // Update the test colours graph
     for (i = 0; i < 4; ++i) {
-        graphAddValue(GRAPH_TEST_COLOURS, i, 2*i, 2);
-        graphAddValue(GRAPH_TEST_COLOURS, i, 2*i + 1, 2);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
     }
 
     window.graphsInitialised = true;
@@ -467,6 +472,19 @@ if (document.readyState === "loading") {
 } else {
     graphInit();
 }
+
+// Update colours in real-time
+const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
+    document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
+        LINE_COLOURS[index] = event.target.value;
+        
+        // Same code as above
+        for (i = 0; i < 4; ++i) {
+            graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+            graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+        }
+    })
+})
 
 // Update modules
 function graphUpdateAvionics(data) {
