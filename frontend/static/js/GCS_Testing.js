@@ -192,7 +192,7 @@ const TESTING_API = [
                 gasFillSelected: false,
                 systemActivated: false,
             },
-            internalTemp: 16.623802,
+            ventTemp: 16.623802,
             windSpeed: 15.180423,
             gasBottleWeight1: 12,
             gasBottleWeight2: 16,

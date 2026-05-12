@@ -692,31 +692,31 @@ def get_sinusoid_packets_gsedaq(
 
     values = {
         "temp_tank_top": sinusoid(
-            T, min=-20, max=40, period=3, phase=1 * 2 * math.pi / 4
+            T, min=-10, max=50, period=10, phase=1 * 2 * math.pi / 4
         ),
         "temp_tank_middle": sinusoid(
-            T, min=-20, max=40, period=3, phase=1 * 2 * math.pi / 4
+            T, min=-20, max=40, period=10, phase=1 * 2 * math.pi / 4
         ),
         "temp_tank_bottom": sinusoid(
-            T, min=-20, max=40, period=3, phase=1 * 2 * math.pi / 4
+            T, min=-30, max=30, period=10, phase=1 * 2 * math.pi / 4
         ),
         "temp_vent": sinusoid(
-            T, min=-90, max=25, period=3, phase=1 * 2 * math.pi / 4
+            T, min=-90, max=25, period=10, phase=1 * 2 * math.pi / 4
         ),
         "temp_pipe_n2o_gse": sinusoid(
-            T, min=-20, max=20, period=3, phase=1 * 2 * math.pi / 4
+            T, min=-20, max=20, period=10, phase=1 * 2 * math.pi / 4
         ),
         "pressure_n2o_bottle": sinusoid(
-            T, min=1, max=60, period=3, phase=1 * 2 * math.pi / 4
+            T, min=1, max=60, period=10, phase=1 * 2 * math.pi / 4
         ),
         "pressure_n2o_tank": sinusoid(
-            T, min=1, max=60, period=3, phase=-1 * 2 * math.pi / 4
+            T, min=1, max=60, period=10, phase=-1 * 2 * math.pi / 4
         ),
         "pressure_o2_tank": sinusoid(
-            T, min=40, max=60, period=3, phase=1 * 2 * math.pi / 4
+            T, min=40, max=60, period=10, phase=1 * 2 * math.pi / 4
         ),
         "weight_rocket": sinusoid(
-            T, min=0, max=10, period=3, phase=1 * 2 * math.pi / 4
+            T, min=0, max=10, period=10, phase=1 * 2 * math.pi / 4
         ),
     }
 
