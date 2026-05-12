@@ -445,6 +445,9 @@ function graphAddValue(graph, line, timestamp, value) {
     }
     data.splice(index, 0, point);
 
+    // Update the colour in case it changed
+    graph.lines[line].color = LINE_COLOURS[i];
+
     //graph.lines[line].data.push({ x: timestamp, y: value});
 }
 
