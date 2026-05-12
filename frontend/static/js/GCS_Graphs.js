@@ -442,9 +442,6 @@ function graphAddValue(graph, line, timestamp, value) {
     }
     data.splice(index, 0, point);
 
-    // Update the colour in case it changed
-    graph.lines[line].color = LINE_COLOURS[i];
-
     //graph.lines[line].data.push({ x: timestamp, y: value});
 }
 
@@ -486,6 +483,31 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
             graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
             graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
         }
+
+        // Update the colours (even if no data is coming through)
+        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY,
+                            GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES,
+                            GRAPH_AUX_INTERNALTEMP, GRAPH_AUX_GASBOTTLES, GRAPH_TEST_COLOURS];
+        graphsList.forEach((g1) => {
+            g1.lines.forEach((l1, index) => {
+                l1.color = LINE_COLOURS[index];
+            });
+        });
+
+        // Update the bottom borders
+        const lineOne = ["transducer1", "thermocouple1", "internalTemp", "gasBottleWeight1", "altitudeFeet", "accelX", "gyroX", "velocity"];
+        const lineTwo = ["transducer2", "thermocouple2", "gasBottleWeight2", "accelY", "gyroY"];
+        const lineThree = ["transducer3", "thermocouple3", "accelZ", "gyroZ"];
+        const lineFour = ["thermocouple4"];
+
+        [lineOne, lineTwo, lineThree, lineFour].forEach((line, index) => {
+            line.forEach((c1) => {
+                let inputElement = document.querySelector('input[data-key="' + c1 + '"]');
+                if (inputElement != null) {
+                    inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                }
+            });
+        });
     })
 })
 
