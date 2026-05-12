@@ -65,6 +65,9 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     PING_GAP_TIME_S = 2
     next_ping_time = asyncio.get_running_loop().time()
     tcp_gse_task = None
+    tcp_gse_packet_count = 0
+    # Used to copy across packets that need to be synced with the sevrer
+    server_timestamp = 0
 
     try:
         context = zmq.asyncio.Context()
@@ -175,6 +178,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         proto_object.ParseFromString(message)
                         data = MessageToDict(proto_object)
                         data = append_data(data, packet_id)
+                        server_timestamp = data["meta"]["timestampS"]
                         output = {"id": packet_id, "data": data}
                         try:
                             await websocket.send(json.dumps(output))
@@ -208,9 +212,13 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         gse_data = GseDaqMetrics.labview_row_bytes_to_data_dict(
                             gse_line
                         )
+                        tcp_gse_packet_count += 1
                         output = {
                             "id": GSE_LABVIEW_TCP_PACKET_ID,
-                            "data": gse_data,
+                            "data": {"meta": {
+                                "totalPacketCountGse": tcp_gse_packet_count,
+                                "timestampS": server_timestamp}
+                            } | gse_data,
                         }
                         await websocket.send(json.dumps(output))
                     except (ValueError, SyntaxError, TypeError) as e:

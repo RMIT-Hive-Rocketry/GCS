@@ -185,7 +185,7 @@ function checkStateIndicator(elem = null) {
                     const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
                     const greenState = () => !c1.classList.value.includes("green");
                     const currSound = t1.name.toUpperCase() + "_Loss";
-                    
+
                     if (timeoutState()) {
                         // At a minimum, the regular sound should be playing regardless
                         updateSound(currSound, true, false);
@@ -211,7 +211,7 @@ function checkStateIndicator(elem = null) {
             })
         }
     }
-    
+
     // Activate a single alarm
     if (elem !== null) {
         stateToSound(elem);
@@ -221,7 +221,7 @@ function checkStateIndicator(elem = null) {
         const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard"]
         validStates.map(key => {
             let currElems = document.querySelectorAll(`[data-key="state.${key}"]`);
-        
+
             // Activate any required alarms
             currElems.forEach((c1) => {
                 stateToSound(c1);
@@ -236,7 +236,7 @@ function isHorizonMain() {
      * true, afterwards, it will be the latter
     */
     return window.location.href.endsWith("rocket=horizon") ||
-           window.location.href.endsWith("rocket=horizon#page-main");
+        window.location.href.endsWith("rocket=horizon#page-main");
 }
 
 // Block calls to enforce silence
@@ -292,7 +292,7 @@ function updateSound(sound, newValue, quicker) {
     const soundNumber = soundsList.findIndex(
         file => file.source.src.includes(sound)
     );
-    
+
     // If newValue is true, the sound should play when called
     if (soundNumber >= 0) {
         soundsList[soundNumber].active = newValue;
@@ -598,7 +598,7 @@ function API_OnMessage(event) {
                     rocketUpdate(apiData);
                 }
             }
-        } else if (apiData.id == 6 || apiData.id == 7) {
+        } else if (apiData.id == 55) {
             ///// ----- GSE PACKETS ----- /////
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
@@ -628,7 +628,7 @@ function API_OnMessage(event) {
 function checkErrorConditions(apiData) {
     const errorConditions = [
         {
-            IDs: ["analogVoltageInput1"], // Rocket weight
+            IDs: ["weight_rocket"], // Rocket weight
             discard: {
                 min: -1,
                 max: 128,
@@ -670,10 +670,17 @@ function checkErrorConditions(apiData) {
             },
         },
         {
-            IDs: ["internalTemp"],
+            IDs: ["gyroX", "gyroY", "gyroZ"],
             discard: {
-                min: -1,
-                max: 128,
+                min: -295,
+                max: 295,
+            },
+        },
+        {
+            IDs: ["temp_vent"],
+            discard: {
+                min: -200,
+                max: 80,
             },
         },
         {
@@ -720,22 +727,50 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "thermocouple1",
-                "thermocouple2",
-                "thermocouple3",
-                "thermocouple4",
+                "temp_tank_top",
+                "temp_tank_middle",
+                "temp_tank_bottom",
             ],
             error: {
-                max: 34.5,
+                max: 30,
             },
-            errorMessage: "flag raised",
+            errorMessage: " warming",
             discard: {
                 min: -128,
                 max: 128,
             },
         },
         {
-            IDs: ["transducer1", "transducer2", "transducer3"],
+            IDs: [
+                "temp_pipe_n2o_gse",
+            ],
+            error: {
+                max: 40,
+            },
+            errorMessage: " warming",
+            discard: {
+                min: -128,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "temp_vent",
+            ],
+            error: {
+                max: 34.5,
+            },
+            discard: {
+                min: -200,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "pressure_n2o_bottle",
+                "pressure_n2o_tank",
+                "pressure_o2_tank",
+            ],
             error: {
                 max: 64.5,
             },
@@ -1305,7 +1340,7 @@ window.addEventListener('keydown', (event) => {
     if (parseInt(event.key, 10) === parseInt(event.key, 10)) {
         // Get element by index from found elements list
         const index = parseInt(event.key, 10) - 1;
-        
+
         if ((0 <= index) && (index < buttons.length)) {
             // Click the element (ignoring default browser behaviour)
             buttons[index].click();
@@ -1373,31 +1408,31 @@ function sendDataToRegistry(apiData) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
-        if (logVerbose)
-            console.debug(
+    if (logVerbose)
+        console.debug(
                 `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
-                "color:orange",
-                "color:white",
-            );
+            "color:orange",
+            "color:white",
+        );
 
-        // Use classes instead of IDs since IDs must be unique
-        // and some items occur on multiple pages
-        let elements = [item];
-        if (typeof item == "string") {
-            elements = document.querySelectorAll(`.${item}`);
-        }
-        if (elements && elements.length > 0) {
-            elements.forEach((elem) => {
-                // Update value
+    // Use classes instead of IDs since IDs must be unique
+    // and some items occur on multiple pages
+    let elements = [item];
+    if (typeof item == "string") {
+        elements = document.querySelectorAll(`.${item}`);
+    }
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            // Update value
                 elem.value = parseFloat(value).toFixed(precision);
 
-                // Update error state
-                if (error) {
-                    elem.classList.add("error");
-                } else {
-                    elem.classList.remove("error");
-                }
-            });
+            // Update error state
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
+            }
+        });
         }
     }
 }
@@ -1440,7 +1475,7 @@ function displaySetState(item, value) {
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
-    
+
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
@@ -1559,7 +1594,7 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
-            
+
             // Play the apogee sound (should only be once in practice)
             apogeeSound();
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {

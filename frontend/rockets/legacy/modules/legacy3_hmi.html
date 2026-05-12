@@ -2020,8 +2020,8 @@
             // statusBarUpdate(data)
             // Refreshes the four status bar fields from live telemetry.
             //   - Rocket Fill Timer: read from hidden gasBottleTime input
-            //   - N₂O In pressure:   data.transducer1 (bar)
-            //   - O₂ pressure:       data.transducer3 (bar)
+            //   - N₂O In pressure:   data.pressure_n2o_bottle (bar)
+            //   - O₂ pressure:       data.pressure_n2o_tank (bar)
             //   - Last Update:       timestamp of most recent telemetry packet (local time)
             //   - Date:              browser Date (set once, refreshes at
             //                        midnight via setInterval)
@@ -2039,16 +2039,16 @@
     
                 // N₂O In pressure
                 const n2oEl = document.getElementById("sb-n2o-in");
-                if (n2oEl && data?.transducer1 != undefined) {
+                if (n2oEl && data?.pressure_n2o_bottle != undefined) {
                     n2oEl.textContent =
-                        Number(data.transducer1).toFixed(2) + " bar";
+                        Number(data.pressure_n2o_bottle).toFixed(2) + " bar";
                 }
     
                 // O₂ pressure
                 const o2El = document.getElementById("sb-o2");
-                if (o2El && data?.transducer3 != undefined) {
+                if (o2El && data?.pressure_n2o_tank != undefined) {
                     o2El.textContent =
-                        Number(data.transducer3).toFixed(2) + " bar";
+                        Number(data.pressure_n2o_tank).toFixed(2) + " bar";
                 }
             }
     
@@ -2080,23 +2080,23 @@
             function hmiUpdate(data) {
     
                 // Pressure transducers (bar)
-                if (data?.transducer1) {
+                if (data?.pressure_n2o_bottle) {
                     // N2O in pressure
-                    hmiUpdateValue("hmi-pressure-1", data.transducer1);
+                    hmiUpdateValue("hmi-pressure-1", data.pressure_n2o_bottle);
                 }
-                if (data?.transducer2) {
+                if (data?.pressure_n2o_tank) {
                     // N2O out pressure
-                    hmiUpdateValue("hmi-pressure-2", data.transducer2);
+                    hmiUpdateValue("hmi-pressure-2", data.pressure_n2o_tank);
                 }
-                if (data?.transducer3) {
+                if (data?.pressure_n2o_tank) {
                     // O2 pressure
-                    hmiUpdateValue("hmi-pressure-3", data.transducer3);
+                    hmiUpdateValue("hmi-pressure-3", data.pressure_n2o_tank);
                 }
     
                 // Thermocouples (°C)
-                if (data?.thermocouple1) {
+                if (data?.temp_pipe_n2o_gse) {
                     // N2O internal temperature
-                    hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
+                    hmiUpdateValue("HMI_N2O-INTTEMP", data.temp_pipe_n2o_gse);
                 }
                 if (data?.thermocouple2) {
                     // N2O bottle #1 temperature
