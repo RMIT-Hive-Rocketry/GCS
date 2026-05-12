@@ -12,10 +12,10 @@ const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
 const LINE_COLOURS = [
-    "var(--color-red-500)",
-    "var(--color-green-500)",
-    "var(--color-blue-500)",
-    "white",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFFFF",
 ];
 const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
@@ -82,7 +82,7 @@ const GRAPH_AUX_GASBOTTLES = {
 
 const GRAPH_TEST_COLOURS = {
     selector: "#graph-test-colours",
-    ylabel: "",
+    ylabel: "Sample metric",
     numLines: 4,
     data: [],
 }
@@ -292,6 +292,9 @@ function graphRender(chart) {
             if (chart !== GRAPH_TEST_COLOURS) {
                 chart.x.domain([windowStart, now]);
             }
+            else {
+                chart.x.domain = chart.x.domain;
+            }
             
             chart.y.domain([
                 Math.min(
@@ -498,10 +501,10 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
         });
 
         // Update the bottom borders
-        const lineOne = ["transducer1", "thermocouple1", "internalTemp", "gasBottleWeight1", "altitudeFeet", "accelX", "gyroX", "velocity"];
-        const lineTwo = ["transducer2", "thermocouple2", "gasBottleWeight2", "accelY", "gyroY"];
-        const lineThree = ["transducer3", "thermocouple3", "accelZ", "gyroZ"];
-        const lineFour = ["thermocouple4"];
+        const lineOne = ["transducer1", "thermocouple1", "internalTemp", "gasBottleWeight1", "altitudeFeet", "accelX", "gyroX", "velocity", "test1"];
+        const lineTwo = ["transducer2", "thermocouple2", "gasBottleWeight2", "accelY", "gyroY", "test2"];
+        const lineThree = ["transducer3", "thermocouple3", "accelZ", "gyroZ", "test3"];
+        const lineFour = ["thermocouple4", "test4"];
 
         [lineOne, lineTwo, lineThree, lineFour].forEach((line, index) => {
             line.forEach((c1) => {
