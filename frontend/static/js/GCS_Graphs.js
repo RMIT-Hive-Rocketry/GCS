@@ -286,9 +286,6 @@ function graphRender(chart) {
             if (chart !== GRAPH_TEST_COLOURS) {
                 chart.x.domain([windowStart, now]);
             }
-            else {
-                chart.x.domain = chart.x.domain;
-            }
             
             chart.y.domain([
                 Math.min(
