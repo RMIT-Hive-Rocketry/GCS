@@ -10,8 +10,10 @@ import config.config as config
 from google.protobuf.json_format import MessageToDict
 import signal
 import asyncio
+import contextlib
 import sys
 import backend.device_emulator as device_emulator
+from backend.includes_python.gsedaq_metrics import GseDaqMetrics
 import json
 import websockets
 import zmq
@@ -56,9 +58,14 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     PENDANT_PACKET_ID = 10
     SLOGGER_PACKET_ID = 40
     NETWORK_DIAGNOSTICS_PACKET_ID = 50
+    GSE_LABVIEW_TCP_PACKET_ID = 55
 
     PING_GAP_TIME_S = 2
     next_ping_time = asyncio.get_running_loop().time()
+    tcp_gse_task = None
+    tcp_gse_packet_count = 0
+    # Used to copy across packets that need to be synced with the sevrer
+    server_timestamp = 0
 
     try:
         context = zmq.asyncio.Context()
@@ -84,6 +91,45 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
         poller.register(server_sub_socket, zmq.POLLIN)
         poller.register(pendant_sub_socket, zmq.POLLIN)
         poller.register(logging_sub_socket, zmq.POLLIN)
+
+        gse_tcp_queue: asyncio.Queue = asyncio.Queue(maxsize=1)
+
+        async def _tcp_gse_labview_reader():
+            """Pull data from LabVIEW or from LabVIEW emulator"""
+            port = int(config.get_config()["emulation"]["tcp_server_port"])
+            writer = None
+            try:
+                reader, writer = await asyncio.open_connection(
+                    "127.0.0.1", port
+                )
+            except OSError as e:
+                slogger.error("GSE LabVIEW TCP connect failed: %s", e)
+                return
+            try:
+                while not shutdown_event.is_set():
+                    line = await reader.readline()
+                    if not line:
+                        break
+                    while True:
+                        try:
+                            gse_tcp_queue.put_nowait(line)
+                            break
+                        except asyncio.QueueFull:
+                            try:
+                                gse_tcp_queue.get_nowait()
+                            except asyncio.QueueEmpty:
+                                pass
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                slogger.error("GSE LabVIEW TCP read error: %s", e)
+            finally:
+                if writer is not None:
+                    writer.close()
+                    with contextlib.suppress(Exception):
+                        await writer.wait_closed()
+
+        tcp_gse_task = asyncio.create_task(_tcp_gse_labview_reader())
 
         # Reserved 40 for sending logs ignoring Protobuf
         # reserved 10 for pendant
@@ -130,6 +176,7 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         proto_object.ParseFromString(message)
                         data = MessageToDict(proto_object)
                         data = append_data(data, packet_id)
+                        server_timestamp = data["meta"]["timestampS"]
                         output = {"id": packet_id, "data": data}
                         try:
                             await websocket.send(json.dumps(output))
@@ -150,6 +197,32 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                     except websockets.ConnectionClosedOK:
                         break
                     next_ping_time = asyncio.get_running_loop().time() + PING_GAP_TIME_S
+
+                try:
+                    # as mentioned in [labview_row_bytes_to_data_dict] this line
+                    # is assumed to be a complete tag.
+                    # otherwise the xml match will fail and throw valueerror
+                    gse_line = gse_tcp_queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+                else:
+                    try:
+                        gse_data = GseDaqMetrics.labview_row_bytes_to_data_dict(
+                            gse_line
+                        )
+                        tcp_gse_packet_count += 1
+                        output = {
+                            "id": GSE_LABVIEW_TCP_PACKET_ID,
+                            "data": {"meta": {
+                                "totalPacketCountGse": tcp_gse_packet_count,
+                                "timestampS": server_timestamp}
+                            } | gse_data,
+                        }
+                        await websocket.send(json.dumps(output))
+                    except (ValueError, SyntaxError, TypeError) as e:
+                        slogger.warning("GSE LabVIEW row parse skip: %s", e)
+                    except websockets.ConnectionClosedOK:
+                        break
 
                 if logging_sub_socket in events:
                     message = await logging_sub_socket.recv_json()
@@ -207,6 +280,10 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     except Exception as e:
         slogger.critical(f"error with frontend api: {e}")
     finally:
+        if tcp_gse_task is not None:
+            tcp_gse_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await tcp_gse_task
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
         server_sub_socket.close(linger=LINGER_TIME_MS)
