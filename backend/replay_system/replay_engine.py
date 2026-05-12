@@ -78,6 +78,11 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
         time_to_wait = target_time - time.time()
+
+        #skip frame if replay system overloaded and fallen behind
+        if time_to_wait <= 0.0:
+            continue
+
         if time_to_wait >= 3.0:
             slogger.warning(
                 f"Time until next packet: {round(time_to_wait,3)} seconds"
