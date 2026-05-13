@@ -20,6 +20,7 @@ from cli.start_pendant_emulator import start_pendant_emulator
 from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
+from cli.start_performance_monitor import start_performance_monitor
 from cli.start_replay_system import (
     start_replay_system,
     get_available_missions,
@@ -33,9 +34,13 @@ logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
 )
-running_services: bool = False  # To help close the cli automatically
+RUNNING_SERVICES: bool = False  # To help close the cli automatically
 
 IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
+
+RunningProcesses = process.RunningProcess()
+
+APP_START_TIME = None  # Start Time Of application initialized within main before logging starts
 
 
 class Command(enum.Enum):
@@ -331,8 +336,8 @@ def start_services(
         NotImplementedError: _description_
         ValueError: _description_
     """
-    global running_services
-    running_services = True
+    global RUNNING_SERVICES, APP_START_TIME
+    RUNNING_SERVICES = True
 
     print_splash()
 
@@ -385,7 +390,11 @@ def start_services(
 
     # 3. Run C++ middleware (always gse + av argv; single = same type/path for both)
     try:
-        start_middleware(logger=logger, config=launch_config.middleware_config)
+        start_middleware(
+            logger=logger,
+            performance_logging=RunningProcesses,
+            config=launch_config.middleware_config,
+        )
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error"
@@ -403,6 +412,7 @@ def start_services(
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
             logger,
+            RunningProcesses,
             aux_service_plan.device_path,
             aux_service_plan.interface_type,
             experimental=experimental,
@@ -418,8 +428,13 @@ def start_services(
             simulation=aux_service_plan.simulation,
         )
 
-    # 4. Start the event viewer
-    start_event_viewer(logger, "gcs_rocket", file_logging_enabled=logpkt)
+    # 5. Start the event viewer
+    start_event_viewer(
+        logger=logger,
+        performance_logging=RunningProcesses,
+        socket_path="gcs_rocket",
+        file_logging_enabled=logpkt,
+    )
 
     # 5. Start the pendent emulator
     if not nopendant:
@@ -428,16 +443,24 @@ def start_services(
             == "true"
         )
         if launch_pendant_daemon:
-            start_pendant_daemon(logger)
+            start_pendant_daemon(logger, RunningProcesses)
         else:
-            start_pendant_emulator(logger)
+            start_pendant_emulator(logger, RunningProcesses)
 
     # 6. Start the websocket / frontend API
-    start_frontend_api(logger, "gcs_rocket")
+    # This should be able to run even without the frontend enabled, so it can be run on other devices
+    start_frontend_api(logger, RunningProcesses, "gcs_rocket")
 
     # 7. Start the frontend web server
     if frontend:
-        start_frontend_webserver(logger)
+        start_frontend_webserver(logger, RunningProcesses)
+
+    # 8. Start performance monitor after all other services have started
+    start_performance_monitor(
+        logger=logger,
+        performance_logging=RunningProcesses,
+        start_time=APP_START_TIME,
+    )
 
 
 @click.group()
@@ -650,7 +673,9 @@ def main() -> None:
     if os.path.exists(gcs_config_helper_path):
         os.remove(gcs_config_helper_path)
 
-    rocket_logging.initialise()
+    global APP_START_TIME
+    APP_START_TIME = time.perf_counter()
+    rocket_logging.initialise(APP_START_TIME)
     logger = logging.getLogger("rocket")
     if IN_TEST_ENVIRONMENT:
         rocket_logging.set_console_low_detail(False)
@@ -661,7 +686,7 @@ def main() -> None:
         cli.main(args=sys.argv[1:], standalone_mode=False)
 
         # After CLI setup is done, start waiting (not busy waiting please)
-        if running_services:
+        if RUNNING_SERVICES:
             while True:
                 # Keep program alive, but it doesn't need to do anything
                 time.sleep(1)

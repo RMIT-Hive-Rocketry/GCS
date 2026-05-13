@@ -23,9 +23,13 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
 © 2026 RMIT Competition Rocketry - Licensed under the MIT License
 
-## Contents
+## Documentation
 
-### Documentation
+### Contributing
+
+Before working with this repository, please read [Contributing](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests. You can find the [AI policy](CONTRIBUTING.md#ai-policy) here.
+
+### Table of Contents
 
 - [Setup](docs/setup.md)
 - [Usage](docs/usage.md)

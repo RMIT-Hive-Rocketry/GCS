@@ -10,6 +10,44 @@ import cli.rocket_logging as rocket_logging
 logger = logging.getLogger("rocket")
 
 
+class ProcessData:
+    def __init__(self, PID: int, Name: str):
+        self.PID: int = PID
+        self.Name: str = Name
+
+    def GetPID(self):
+        return self.PID
+
+    def GetName(self):
+        return self.Name
+
+    def GetCombined(self):
+        return (self.PID, self.Name)
+
+
+class RunningProcess:
+    def __init__(self):
+        self.runningProcesses: list[ProcessData] = []
+
+    def GetProcessInfo(self, id):
+        for process in self.runningProcesses:
+            if process.GetPID() == id:
+                return process
+        slogger.error("Couldn't find PID for Process")
+        return
+
+    def GetAllProcessInfo(self) -> list[ProcessData]:
+        return self.runningProcesses
+
+    def AddNewProcessManual(self, PID, Name):
+        self.runningProcesses.append(ProcessData(PID, Name))
+
+    def AddNewProcess(self, loggedSubProcess):
+        self.runningProcesses.append(
+            ProcessData(loggedSubProcess._process.pid, loggedSubProcess._name)
+        )
+
+
 class LoggedSubProcess:
     """Object to manage subprocess called by this CLI with centralised logging"""
 

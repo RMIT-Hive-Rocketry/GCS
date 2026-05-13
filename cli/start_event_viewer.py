@@ -1,6 +1,7 @@
 import logging
 import cli.process as process
 import os
+import sys
 
 
 class EventViewerSubprocess(process.LoggedSubProcess):
@@ -24,13 +25,16 @@ def successful_event_viewer_start_callback(
 
 
 def start_event_viewer(
-    logger: logging.Logger, socket_path: str, file_logging_enabled: bool
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    socket_path: str,
+    file_logging_enabled: bool,
 ) -> tuple[None, None] | None:
     service_name = "event viewer"
     try:
 
         event_viewer_command = [
-            "python3",
+            sys.executable,
             os.path.join("backend", "event_viewer.py"),
             "-u",
             "--socket-path",
@@ -57,6 +61,7 @@ def start_event_viewer(
         )
 
         event_viewer_process.start()
+        performance_logging.AddNewProcess(event_viewer_process)
 
         finished = False
         while not finished:
