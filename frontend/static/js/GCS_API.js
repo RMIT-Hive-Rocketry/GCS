@@ -105,7 +105,7 @@ function updateTime() {
 }
 
 // Logging code
-function logMessage(message, type = "", timestamp = "") {
+function logMessage(message, logType = "", timestamp = "") {
     // Make sure log area exists
     const logArea = document.getElementById("errorLogBox");
     if (!logArea) {
@@ -122,43 +122,48 @@ function logMessage(message, type = "", timestamp = "") {
         }
     }
 
-
-
     // Handle different message types
-    let logName = "Notice";
-    let textColor = "text-white";
+    const messageTypes = {
+        "error": {
+            logName: "Error",
+            textColor: "text-red-400",
+            function: console.error
+        },
+        "warning": {
+            logName: "Warning",
+            textColor: "text-yellow-300",
+            function: console.warn
+        },
+        "ws": {
+            logName: "WebSocket",
+            textColor: "text-emerald-300",
+            function: console.debug
+        },
+        "debug": {
+            logName: "Debug",
+            textColor: "text-white-900",
+            function: console.debug
+        },
+        "critical": {
+            logName: "CRITICAL",
+            textColor: "text-red-crit",
+            function: console.error
+        },
+        "success": {
+            logName: "Success",
+            textColor: "text-green-300",
+            function: console.debug
+        },
+    }
 
-    if (type == "error") {
-        logName = "Error";
-        textColor = "text-red-400";
-        console.error(timestamp, message);
-
-    } else if (type == "warning") {
-        logName = "Warning";
-        textColor = "text-yellow-300";
-        console.warn(timestamp, message);
-
-    } else if (type == "ws") {
-        logName = "WebSocket";
-        textColor = "text-emerald-300";
-        console.debug(timestamp, message);
-
-    } else if (type == "debug") {
-        logName = "Debug";
-        textColor = "text-white-900";
-        console.debug(timestamp, message);
-
-    } else if (type == "critical") {
-        logName = "CRITICAL";
-        textColor = "text-red-crit";
-        console.error(timestamp, message);
-
-    } else if (type == "success") {
-        logName = "success";
-        textColor = "text-green-300";
-        console.debug(timestamp, message);
-
+    let logName, textColor;
+    if (Object.keys(messageTypes).indexOf(logType) != -1) {
+        logName = messageTypes[logType].logName;
+        textColor = messageTypes[logType].textColor;
+        messageTypes[logType].function(timestamp, message);
     } else {
+        logName = "Notice";
+        textColr = "text-white";
         console.log(timestamp, message);
     }
 
@@ -352,13 +357,6 @@ function checkErrorConditions(apiData) {
             discard: {
                 min: -18000,
                 max: 18000,
-            },
-        },
-        {
-            IDs: ["gyroX", "gyroY", "gyroZ"],
-            discard: {
-                min: -295,
-                max: 295,
             },
         },
         {
