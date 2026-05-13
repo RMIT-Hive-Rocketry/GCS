@@ -73,7 +73,7 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
 
     if service_helper.time_to_stop():
         return
-    
+
     next_earliest_frame_time = start_time
     for packet in packets:
         if service_helper.time_to_stop():
@@ -85,7 +85,7 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
         if target_time < next_earliest_frame_time:
             continue
 
-        #current packet will be sent, therefore update the next earliest allowed frame_time
+        # current packet will be sent, therefore update the next earliest allowed frame_time
         next_earliest_frame_time += 1 / MAX_FRAME_RATE
 
         time_to_wait = target_time - time.time()
