@@ -75,7 +75,7 @@ Ground Control Software Team
         <td>2026</td>
     </tr>
     <tr>
-        <td>GCS frontend lead & software engineer</td>
+        <td>GCS frontend lead & software developer</td>
         <td>2025</td>
     </tr>
     <tr>
@@ -109,12 +109,7 @@ Ground Control Software Team
     </tr>
     <tr>
         <td>Kelly Wan Wing Kai (<code>kelly2504</code>)</td>
-        <td>GCS software</td>
-        <td>2026</td>
-    </tr>
-    <tr>
-        <td>Federico Florian Ferri</td>
-        <td>GCS data and simulations</td>
+        <td>GCS web designer</td>
         <td>2026</td>
     </tr>
     <tr>
