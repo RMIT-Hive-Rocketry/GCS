@@ -27,6 +27,7 @@ cfg.read("config/replay.ini")
 timeout_cfg = cfg["Timeout"]
 MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
+MAX_FRAME_RATE = float(timeout_cfg["max_frame_rate"])
 
 
 @dataclass
@@ -72,12 +73,23 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
 
     if service_helper.time_to_stop():
         return
+
+    next_earliest_frame_time = start_time
     for packet in packets:
         if service_helper.time_to_stop():
             break
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
+
+        # skip frame if too soon
+        if target_time < next_earliest_frame_time:
+            continue
+
+        # current packet will be sent, therefore update the next earliest allowed frame_time
+        next_earliest_frame_time += 1 / MAX_FRAME_RATE
+
         time_to_wait = target_time - time.time()
+
         if time_to_wait >= 3.0:
             slogger.warning(
                 f"Time until next packet: {round(time_to_wait,3)} seconds"
