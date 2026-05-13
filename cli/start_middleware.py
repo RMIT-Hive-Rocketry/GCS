@@ -1,38 +1,41 @@
 import logging
 import cli.process as process
 import os
-import enum
+from enum import StrEnum
 import config.config as config
 from dataclasses import dataclass
 
 
-class InterfaceType(enum.Enum):
+class InterfaceType(StrEnum):
     # Reference the main middleware cpp file
     UART_E5 = "UART_E5"
     TEST = "TEST"
     TEST_UART_E5 = "TEST_UART_E5"
     TCP = "TCP"
 
+    # for --gse-only
+    # acts like a release interface, but can be used in split emulation
+    NONE = "NONE"
 
-def get_interface_type(interface: str | None) -> InterfaceType:
-    """Get the interface type from the command line argument or config"""
-    if interface is None:  # Unspecified by user
-        interface = config.get_config()["hardware"]["interface"].strip().upper()
-    else:
-        interface = interface.strip().upper()
+
+def get_interface_type(interface: str) -> InterfaceType:
+    """Get the interface type from the command line argument"""
+    interface = interface.strip().upper()
 
     # Convert string to InterfaceType enum
     try:
-        for enum_member in InterfaceType:
-            if enum_member.name == interface:
-                return enum_member
-        # If we get here, no matching enum value was found
-        valid_types = [e.name for e in InterfaceType]
-        raise ValueError(
-            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
-        )
+        try:
+            return InterfaceType(interface)
+        except ValueError as e:
+            # If we get here, no matching enum value was found
+            valid_types = [e.name for e in InterfaceType]
+
+            # propagate error
+            raise ValueError(
+                f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
+            ) from e
     except Exception as e:
-        raise f"Invalid interface type: {interface}" from ValueError
+        raise ValueError(f"Invalid interface type: {interface}") from e
 
 
 @dataclass
@@ -132,7 +135,7 @@ def build_middleware_argv(
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
-    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE_ONLY].
+    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE-ONLY].
     """
     if not isinstance(
         config.interface_gse_type, InterfaceType
@@ -149,10 +152,13 @@ def build_middleware_argv(
         config.pendant_socket_path,
         config.web_control_socket_path,
     ]
-    if (
+
+    an_interface_is_uart_e5 = (
         config.interface_gse_type == InterfaceType.UART_E5
         or config.interface_av_type == InterfaceType.UART_E5
-    ):
+    )
+
+    if an_interface_is_uart_e5:
         if config.lora_config is None:
             raise ValueError("UART_E5 interface requires lora_config")
         argv.extend(
