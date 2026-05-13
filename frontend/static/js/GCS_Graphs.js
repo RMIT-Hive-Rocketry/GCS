@@ -271,7 +271,12 @@ function graphRender(chart) {
             timestampLocal + timestampApiConnect - timeDrift,
         );
 
-        const windowStart = now - MAX_TIME;
+        /* Normally, line data is filtered to be in sync with the time,
+         * but for the test colours graph we don't need any scrolling,
+         * hence the graph should just be a static display (barring the
+         * changes in colour made by the operator).
+        */
+        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - MAX_TIME) : 0;
 
         if (chart.lastRender != now) {
             // Limit data to graph window
@@ -282,7 +287,9 @@ function graphRender(chart) {
             });
             const allPoints = chart.lines.flatMap((line) => line.data);
 
-            // Update x and y domains unless it's the test colour graph
+            /* Update x and y domains (unless it's the test colour
+             * graph where no scrolling is required).
+            */
             if (chart !== GRAPH_TEST_COLOURS) {
                 chart.x.domain([windowStart, now]);
             }
