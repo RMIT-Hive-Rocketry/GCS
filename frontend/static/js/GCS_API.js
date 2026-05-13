@@ -371,13 +371,6 @@ function checkErrorConditions(apiData) {
             },
         },
         {
-            IDs: ["gyroX", "gyroY", "gyroZ"],
-            discard: {
-                min: -295,
-                max: 295,
-            },
-        },
-        {
             IDs: ["internalTemp"],
             discard: {
                 min: -1,
