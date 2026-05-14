@@ -605,97 +605,517 @@ function graphUpdateAuxData(data) {
     }
 }
 // ================================================================
-// DIAGNOSTICS PING GRAPHS
-// Creates and updates ping latency graphs for the diagnostics page.
-// Called when packet ID 50 arrives from network_pings.py
+// DIAGNOSTICS — Full redesign
+// Manages: device list cards, ping graphs, status boxes, bottom bar
+// Called by GCS_API.js when packet ID 50 arrives
 // ================================================================
 
-const diagGraphs = {}; // stores graph objects per device
+const diagGraphs     = {}; // deviceName → graph object (with pingValues[])
+const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
+const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
 
-// Creates a graph panel for a device if it doesn't exist yet
+// Returns a CSS-safe ID string from a device name
+function diagSafeId(deviceName) {
+    return deviceName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+}
+
+// ── Left panel: create/update a device card ──────────────────────
+function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
+    const alive = ping > 0;
+    const safeId   = diagSafeId(deviceName);
+    const listEl   = document.getElementById("diag-device-list");
+    if (!listEl) return;
+
+    let card = document.getElementById(`diag-card-${safeId}`);
+    if (!card) {
+        card = document.createElement("div");
+        card.id = `diag-card-${safeId}`;
+        card.className = "flex flex-col px-3 py-2 rounded-xl gap-1 shrink-0";
+        listEl.appendChild(card);
+    }
+
+    const lossText  = packetLoss != null ? (packetLoss * 100).toFixed(1) + "%" : "--";
+    const pingText  = alive ? `${ping.toFixed(0)} ms` : "-- ms";
+    const pktsText  = packetCount != null ? packetCount : "--";
+
+    card.style.background =
+    alive
+        ? "linear-gradient(180deg, rgba(12,12,16,0.9), rgba(4,4,8,0.9))"
+        : "linear-gradient(180deg, rgba(80,0,0,0.35), rgba(20,0,0,0.85))";
+
+    card.style.border =
+        `1px solid ${alive ? "rgba(255,45,105,0.65)" : "rgba(220,38,38,0.55)"}`;
+
+    card.style.boxShadow =
+        alive
+            ? "0 0 8px rgba(255,45,105,0.15)"
+            : "0 0 12px rgba(239,68,68,0.35)";
+
+    card.innerHTML = `
+        <div class="flex items-center gap-2 mb-1">
+            <div style="
+                width:10px; height:10px; border-radius:50%; flex-shrink:0;
+                background:${alive ? "#4ade80" : "#ef4444"};
+                box-shadow:0 0 6px ${alive ? "#4ade80" : "#ef4444"};
+            "></div>
+            <span class="font-bold" style="color:var(--color-horizon-yellow,#f59e0b); font-size:0.95rem;">${deviceName}</span>
+        </div>
+        <div style="
+            display:grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+        ">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Packet Loss</span>
+                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${lossText}</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Ping</span>
+                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pingText}</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Packets</span>
+                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pktsText}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ── Middle panel: create a graph card if it doesn't exist ────────
 function diagEnsureGraph(deviceName) {
     if (diagGraphs[deviceName]) return;
 
     const container = document.getElementById("diag-graphs-container");
     if (!container) return;
 
-    // Make a CSS-safe ID from the device name
-    const svgId = "diag-graph-" + deviceName.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+    const safeId = diagSafeId(deviceName);
+    const svgId  = `diag-graph-${safeId}`;
     if (document.getElementById(svgId)) return;
 
-    // Build the graph panel and add it to the container
     const panel = document.createElement("div");
-    panel.className = "flex flex-col border border-hive-dark rounded overflow-hidden";
-    panel.style.backgroundColor = "rgba(0,0,0,0.2)";
+    panel.id        = `diag-panel-${safeId}`;
+    panel.className = "flex flex-col rounded-xl overflow-hidden";
+    panel.style.cssText =
+        "background:linear-gradient(180deg, rgba(20,0,8,0.95), rgba(5,0,3,0.95)); border:1px solid rgba(255,45,105,0.75); box-shadow:0 0 12px rgba(255,45,105,0.22);";
+
     panel.innerHTML = `
-        <div class="px-2 pt-1 shrink-0 text-xs font-semibold" style="color:var(--color-horizon-yellow,#f59e0b);">
-            ${deviceName} PING
+        <div class="flex items-center justify-between px-2 pt-1 shrink-0">
+            <span class="text-xs font-semibold"
+                  style="color:var(--color-horizon-yellow,#f59e0b);">${deviceName}</span>
+            <span id="diag-badge-${safeId}"
+                  style="font-size:0.6rem; padding:1px 5px; border-radius:3px;
+                         background:#ef4444; color:white; font-weight:700;">
+                OFFLINE
+            </span>
         </div>
         <div class="grow relative min-h-0">
-            <svg id="${svgId}" class="w-full h-full absolute inset-0" width="0" height="0"></svg>
+            <svg id="${svgId}" class="w-full h-full absolute inset-0"
+                 width="0" height="0"></svg>
+        </div>
+        <div id="diag-stats-${safeId}"
+             class="px-2 pb-1 shrink-0 flex gap-1 justify-center"
+             style="font-size:0.6rem; color:rgba(255,255,255,0.45);">
+            <span>Avg: -- ms</span><span>|</span>
+            <span>Min: -- ms</span><span>|</span>
+            <span>Max: -- ms</span>
         </div>
     `;
     container.appendChild(panel);
 
-    // Initialise the D3 line graph
     const graph = {
-        selector: `#${svgId}`,
-        ylabel: "Ping (ms)",
+        selector:   `#${svgId}`,
+        ylabel:     "ms",
         numLines: 1,
-        limits: { yBottomMax: 0 },
-        data: [],
+        lineColor: "#000000",
+        limits:     { yBottomMax: 0, yTopMin: 500, },
+        data:       [],
+        margin:     { top: 4, right: 6, bottom: 20, left: 36 },
+        pingValues: [], // for avg/min/max tracking
     };
-    graphCreateLine(graph);
+
     diagGraphs[deviceName] = graph;
+
+    // Add threshold background layers after graph initialises
+    // Delay so the browser paints the panel before we measure its dimensions
+    setTimeout(() => {
+        
+        graphCreateLine(graph);
+
+        if (!graph.g) return;
+
+        // Remove existing layers if re-created
+        graph.g.selectAll(".diag-threshold-layer").remove();
+
+        // GREEN 0-100
+        graph.g.append("rect")
+            .attr("class", "diag-threshold-layer")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", graph.graphWidth)
+            .attr("height", graph.graphHeight)
+            .attr("fill", "rgba(34,197,94,0.12)");
+
+        // YELLOW 100-200
+        graph.g.append("rect")
+            .attr("class", "diag-threshold-layer")
+            .attr("x", 0)
+            .attr("width", graph.graphWidth)
+            .attr("fill", "rgba(250,204,21,0.12)");
+
+        // RED 200-500
+        graph.g.append("rect")
+            .attr("class", "diag-threshold-layer")
+            .attr("x", 0)
+            .attr("width", graph.graphWidth)
+            .attr("fill", "rgba(239,68,68,0.14)");
+
+    // Force diagnostics graph lines black
+    graph.lines.forEach(line => {
+        line.color = "#000000";
+    });
+    }, 200);
+    
 }
 
-// Called every packet cycle to update graphs and status boxes
-function graphUpdateDiagnostics(apiData) {
-    const timestamp = Date.now() / 1000;
-    Object.entries(apiData).forEach(([deviceName, deviceData]) => {
-        if (deviceName === "id") return;
-        if (deviceName === "state") return;
-        if (deviceName === "meta") return;
-        if (typeof deviceData !== "object" || deviceData === null) return;
-        if (!("ping" in deviceData)) return;
+// ── Middle panel: update badge, graph line, and stats ────────────
+function diagUpdateGraph(deviceName, ping, alive, timestamp) {
+    const safeId = diagSafeId(deviceName);
+    const graph  = diagGraphs[deviceName];
 
-        // Create graph for this device if needed
-        diagEnsureGraph(deviceName);
-        const ping = deviceData?.ping ?? -1;
+    // Badge
+    const badge = document.getElementById(`diag-badge-${safeId}`);
+    if (badge) {
+        badge.textContent       = alive ? "ONLINE" : "OFFLINE";
+        badge.style.background  = alive ? "#4ade80" : "#ef4444";
+        badge.style.color       = alive ? "black"   : "white";
+    }
 
-        // Add data point to graph (skip failed pings so line breaks)
-        const graph = diagGraphs[deviceName];
-        if (graph && ping >= 0) {
-            graphAddValue(graph, 0, timestamp, ping);
+    // Graph data + stats
+    if (graph) {
+        graphAddValue(graph, 0, timestamp, alive ? ping : 0);
+
+        // Update diagnostics threshold layer positions
+        if (graph?.g && graph?.graphHeight) {
+
+            const greenTop = graph.y(100);
+            const yellowTop = graph.y(200);
+            const bottom = graph.y(0);
+            const top = graph.y(500);
+
+            const layers = graph.g.selectAll(".diag-threshold-layer");
+
+            // GREEN: 0–100ms
+            d3.select(layers.nodes()[0])
+                .attr("y", greenTop)
+                .attr("height", bottom - greenTop);
+
+            // YELLOW: 101–200ms
+            d3.select(layers.nodes()[1])
+                .attr("y", yellowTop)
+                .attr("height", greenTop - yellowTop);
+
+            // RED: 200–500ms
+            d3.select(layers.nodes()[2])
+                .attr("y", top)
+                .attr("height", yellowTop - top);
         }
-    });
+        //This stops 0 or disconnected values from ruining the average/min/max stats.
+        if (alive) {
+            graph.pingValues.push(ping);
+            if (graph.pingValues.length > 300) graph.pingValues.shift();
+        }
 
-    // AVIONICS: check if AV radio indicator is green
-    const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
-    if (avIndicator) {
-        diagSetStatusBox("diag-summary-av", avIndicator.classList.contains("green"));
+        const avg = graph.pingValues.reduce((a, b) => a + b, 0) / graph.pingValues.length;
+        const min = Math.min(...graph.pingValues);
+        const max = Math.max(...graph.pingValues);
+
+        const statsEl = document.getElementById(`diag-stats-${safeId}`);
+        if (statsEl) {
+            statsEl.innerHTML = `
+                <span>Avg: ${avg.toFixed(1)} ms</span><span>|</span>
+                <span>Min: ${min.toFixed(0)} ms</span><span>|</span>
+                <span>Max: ${max.toFixed(0)} ms</span>
+            `;
+        }
+    } else {
+        const statsEl = document.getElementById(`diag-stats-${safeId}`);
+        if (statsEl) {
+            statsEl.innerHTML =
+                "<span>Avg: --</span><span>|</span><span>Min: --</span><span>|</span><span>Max: --</span>";
+        }
     }
 }
 
-// Flips a status box between green UP and red DOWN
-function diagSetStatusBox(id, isUp) {
+// ── Right panel: flip a status box green/red ─────────────────────
+function diagSetStatusBox(id, pingValue) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    el.textContent = isUp ? "UP" : "DOWN";
+    // No data / offline
+    if (pingValue == null || pingValue < 0) {
+        el.textContent = "DOWN";
+        el.style.backgroundColor = "var(--color-red-500,#ef4444)";
+        el.style.borderColor = "var(--color-red-800,#991b1b)";
+        el.style.color = "white";
+        return;
+    }
 
-    if (isUp) {
-        el.style.backgroundColor = "var(--color-green-400, #4ade80)";
-        el.style.borderColor     = "var(--color-green-700, #15803d)";
-        el.style.color           = "black";
-    } else {
-        el.style.backgroundColor = "var(--color-red-500, #ef4444)";
-        el.style.borderColor     = "var(--color-red-800, #991b1b)";
-        el.style.color           = "white";
+    // Green
+    if (pingValue <= 100) {
+        el.textContent = "GOOD";
+        el.style.backgroundColor = "var(--color-green-400,#4ade80)";
+        el.style.borderColor = "var(--color-green-700,#15803d)";
+        el.style.color = "black";
+        return;
+    }
+
+    // Yellow
+    if (pingValue <= 200) {
+        el.textContent = "WARN";
+        el.style.backgroundColor = "var(--color-yellow-400,#facc15)";
+        el.style.borderColor = "var(--color-yellow-700,#a16207)";
+        el.style.color = "black";
+        return;
+    }
+
+    // Red
+    el.textContent = "BAD";
+    el.style.backgroundColor = "var(--color-red-500,#ef4444)";
+    el.style.borderColor = "var(--color-red-800,#991b1b)";
+    el.style.color = "white";
+}
+
+// ── Bottom bar: update summary counts ────────────────────────────
+function diagUpdateBottomBar(totalDevices, onlineCount) {
+    const offlineCount = totalDevices - onlineCount;
+    const allOnline    = offlineCount === 0 && totalDevices > 0;
+
+    const elAll     = document.getElementById("diag-bottom-all-online");
+    const elOffline = document.getElementById("diag-bottom-offline");
+    const elOnline  = document.getElementById("diag-bottom-online");
+
+    if (elAll) {
+        elAll.textContent        = allOnline ? "Yes" : "No";
+        elAll.style.background   = allOnline ? "#16a34a" : "#dc2626";
+    }
+    if (elOffline) {
+        elOffline.textContent      = offlineCount;
+        elOffline.style.background = offlineCount > 0 ? "#dc2626" : "#16a34a";
+    }
+    if (elOnline) {
+        elOnline.textContent      = onlineCount;
+        elOnline.style.background = onlineCount > 0 ? "#16a34a" : "rgba(255,255,255,0.1)";
     }
 }
 
-// Renders all diagnostics graphs every animation frame
+// ── Main entry point: called by GCS_API.js when packet 50 arrives ─
+function graphUpdateDiagnostics(apiData) {
+    const timestamp =
+        typeof timestampLocal !== "undefined"
+            ? timestampLocal + timestampApiConnect - timeDrift
+            : performance.now() / 1000;
+
+    let gseWorstPing = null;
+    let lanWorstPing = null;
+    let onlineCount = 0, totalCount = 0;
+
+    Object.entries(apiData).forEach(([deviceName, deviceData]) => {
+        if (deviceName === "id" || deviceName === "state" || deviceName === "meta") return;
+        if (typeof deviceData !== "object" || deviceData === null) return;
+        if (!("ping" in deviceData)) return;
+
+        const ping        = deviceData.ping        ?? -1;
+        const packetLoss  = deviceData.packet_loss  ?? null;
+        const packetCount = deviceData.packet_count ?? null;
+        const alive       = ping > 0;
+
+        totalCount++;
+        if (alive) onlineCount++;
+
+        // Left panel
+        diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount);
+
+        // Middle panel
+        diagEnsureGraph(deviceName);
+        diagUpdateGraph(deviceName, ping, alive, timestamp);
+
+        // Summary tracking
+        if (DIAG_GSE_DEVICES.includes(deviceName) && alive) {
+            gseWorstPing =
+                gseWorstPing == null
+                    ? ping
+                    : Math.max(gseWorstPing, ping);
+        }
+
+        if (DIAG_LAN_DEVICES.includes(deviceName) && alive) {
+            lanWorstPing =
+                lanWorstPing == null
+                    ? ping
+                    : Math.max(lanWorstPing, ping);
+        }
+    });
+
+
+    // Right panel
+    diagSetStatusBox("diag-summary-gse", gseWorstPing);
+    diagSetStatusBox("diag-summary-lan", lanWorstPing);
+
+    const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
+
+    if (avIndicator) {
+        const avPing = avIndicator.classList.contains("green") ? 50 : 300;
+        diagSetStatusBox("diag-summary-av", avPing);
+    }
+
+    // Bottom bar
+    diagUpdateBottomBar(totalCount, onlineCount);
+
+    // Last updated
+    const lastUpdated = document.getElementById("diag-last-updated");
+    if (lastUpdated) {
+        const now = new Date();
+        lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString("en-AU")} AEST`;
+    }
+}
+
+// Renders all diagnostics ping graphs every animation frame
 function graphRenderDiagnostics() {
-    Object.values(diagGraphs).forEach(graph => graphRender(graph));
+
+    window.timestampLocal = performance.now() / 1000;
+
+    if (typeof window.timestampApiConnect === "undefined") {
+        window.timestampApiConnect = 0;
+    }
+
+    if (typeof window.timeDrift === "undefined") {
+        window.timeDrift = 0;
+    }
+
+    Object.values(diagGraphs).forEach((graph) => {
+        diagRenderGraph(graph);
+    });
+}
+
+function diagRenderGraph(graph) {
+    if (!graph || !graph.g || !graph.x || !graph.y || !graph.lines) return;
+
+    const allPoints = graph.lines.flatMap((line) => line.data);
+    if (allPoints.length === 0) return;
+
+    const now = Math.max(
+        d3.max(allPoints, (d) => d.x),
+        timestampLocal + timestampApiConnect - timeDrift,
+    );
+
+    const windowStart = now - MAX_TIME;
+
+    graph.lines.forEach((line) => {
+        line.data = line.data.filter(
+            (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+        );
+    });
+
+    graph.x.domain([windowStart, now]);
+    graph.y.domain([0, 500]);
+
+    graph.g
+        .select("g")
+        .transition()
+        .duration(0)
+        .call(d3.axisBottom(graph.x).tickFormat((d) => `${Math.round(d)}`));
+
+    graph.g.select("g").selectAll(".tick text")
+        .attr("fill", "white")
+        .attr("font-size", "9px");
+
+    graph.yAxis
+        .transition()
+        .duration(0)
+        .call(
+            d3.axisLeft(graph.y)
+                .tickValues([0, 100, 200, 300, 400, 500])
+                .tickFormat((d) => `${d}`)
+        );
+
+    graph.yAxis.selectAll(".tick text")
+        .attr("fill", "white")
+        .attr("font-size", "9px");
+
+    const greenTop = graph.y(100);
+    const yellowTop = graph.y(200);
+    const bottom = graph.y(0);
+    const top = graph.y(500);
+
+    const layers = graph.g.selectAll(".diag-threshold-layer");
+
+    d3.select(layers.nodes()[0])
+    .attr("x", 0)
+    .attr("width", graph.graphWidth)
+    .attr("y", greenTop)
+    .attr("height", bottom - greenTop);
+
+    d3.select(layers.nodes()[1])
+        .attr("x", 0)
+        .attr("width", graph.graphWidth)
+        .attr("y", yellowTop)
+        .attr("height", greenTop - yellowTop);
+
+    d3.select(layers.nodes()[2])
+        .attr("x", 0)
+        .attr("width", graph.graphWidth)
+        .attr("y", top)
+        .attr("height", yellowTop - top);
+
+        graph.g.selectAll(".diag-step-line").remove();
+        graph.g.selectAll(".diag-disconnect-bar").remove();
+        graph.g.selectAll(".line-path").remove();
+        graph.g.selectAll(".line-dot").remove();
+        //graph.g.selectAll(".diag-step-line").remove();
+        // graph.g.selectAll(".diag-disconnect-bar").remove();
+
+    graph.lines.forEach((lineData) => {
+        const visibleData = lineData.data.filter(
+            (d) => d.x >= windowStart && d.x <= now
+        );
+
+        const normalData = visibleData.map((d) => ({
+            x: d.x,
+            y: Math.max(d.y, 5),
+        }));
+
+        const stepLine = d3
+            .line()
+            .x((d) => graph.x(d.x))
+            .y((d) => graph.y(d.y))
+            .curve(d3.curveStepAfter);
+
+        graph.g
+            .append("path")
+            .datum(normalData)
+            .attr("class", "diag-step-line")
+            .attr("fill", "none")
+            .attr("stroke", "#00f5ff")
+            .attr("stroke-width", 3)
+            .attr("stroke-linecap", "round")
+            .attr("stroke-linejoin", "round")
+            .attr("d", stepLine);
+
+        const disconnectedData = visibleData.filter((d) => d.y <= 0);
+
+        graph.g.selectAll(".diag-disconnect-bar")
+            .data(disconnectedData)
+            .enter()
+            .append("line")
+            .attr("class", "diag-disconnect-bar")
+            .attr("x1", d => graph.x(d.x))
+            .attr("x2", d => graph.x(d.x))
+            .attr("y1", graph.y(0))
+            .attr("y2", graph.y(500))
+            .attr("stroke", "#ff0000")
+            .attr("stroke-width", 14)
+            .attr("stroke-linecap", "butt");
+    });
 }
