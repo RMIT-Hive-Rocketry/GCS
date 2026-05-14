@@ -1,12 +1,16 @@
-<!-- Middle section of the diagnostics page -->
-<!-- Ping graph panels are created here dynamically by GCS_Graphs.js -->
-<div class="module-horizon w-full h-full flex flex-col p-2 gap-1">
-  <h2>Ping Graphs</h2>
+<!-- MIDDLE: Ping graphs grid -->
+<!-- Graph cards are populated dynamically by diagEnsureGraph() in GCS_Graphs.js -->
+<div class="module-horizon w-full h-full flex flex-col p-2 gap-1 overflow-hidden">
+  <div class="flex items-baseline gap-3 shrink-0">
+      <h2>Ping Graphs</h2>
+  </div>
+
+  <!-- 3-column graph grid, scrollable when more than 2 rows -->
   <div
-    id="diag-graphs-container"
-    class="flex-1 grid grid-cols-3 gap-2 min-h-0 overflow-y-auto pr-1"
-    style="grid-auto-rows: minmax(250px, 1fr);"
+  id="diag-graphs-container"
+  class="flex-1 grid grid-cols-3 gap-2 overflow-y-auto min-h-0"
+  style="grid-auto-rows: calc(33vw - 8rem); align-content: start;"
   >
-      <!-- Graph panels injected here by graphUpdateDiagnostics() -->
+      <!-- Graph cards injected here by diagEnsureGraph() -->
   </div>
 </div>

@@ -1,33 +1,50 @@
-<!-- Right section of the diagnostics page -->
-<!-- Status boxes updated by diagSetStatusBox() in GCS_Graphs.js -->
-<div class="module-horizon w-full h-full flex flex-col p-2 gap-1">
-
-  <!-- GSE: red if GSE ESP32 or WiFi bridge unreachable -->
-  <div class="flex flex-col items-center gap-1 w-full">
+<div class="module-horizon w-full h-full flex flex-col px-2.5 py-2 gap-3">
     <h2>Summary</h2>
-    <div class="flex-1 flex flex-col justify-around items-center py-2 px-1 gap-2"></div>
-
-    <!-- GSE: Green if corresponding state, Vulcan ESP32, WifI Bridge @ GSE all green, red otherwise and by default-->
-    <div class="flex flex-col items-center gap-1 w-full">
-        <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
-            GSE
-        </p>
+  
+    <div class="flex-1 flex flex-col justify-center items-center gap-6 w-full py-1">
+      <div class="flex flex-col items-center gap-2 w-full">
+        <p class="font-bold text-center text-lg" style="color: var(--color-horizon-yellow, #f59e0b); letter-spacing: 0.08em;">GSE</p>
         <div
-            id="diag-summary-gse"
-            class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
-            style="background-color: var(--color-red-500, #ef4444); border-color: var(--color-red-800, #991b1b); color: white;"
-        >DOWN</div>
-    </div>
-
-    <!-- AVIONICS: Green if the corresponding state is green and by default, red otherwise -->
-    <div class="flex flex-col items-center gap-1 w-full">
-        <p class="font-bold text-center" style="color: var(--color-horizon-yellow, #f59e0b); font-size: 1.1rem;">
-            AVIONICS
-        </p>
+          id="diag-summary-gse"
+          class="w-full flex items-center justify-center rounded-xl font-bold text-lg py-3 border"
+          style="
+            background-color:#4ade80;
+            border-color:#15803d;
+            color:black;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 0 10px rgba(74,222,128,0.18);
+            letter-spacing: 0.04em;
+          "
+        >UP</div>
+      </div>
+  
+      <div class="flex flex-col items-center gap-2 w-full">
+        <p class="font-bold text-center text-lg" style="color: var(--color-horizon-yellow, #f59e0b); letter-spacing: 0.08em;">AVIONICS</p>
         <div
-            id="diag-summary-av"
-            class="w-full flex items-center justify-center rounded border-2 font-bold text-base py-3"
-            style="background-color: var(--color-green-400, #4ade80); border-color: var(--color-green-700, #15803d); color: black;"
-            >UP</div>
+          id="diag-summary-av"
+          class="w-full flex items-center justify-center rounded-xl font-bold text-lg py-3 border"
+          style="
+            background-color:#4ade80;
+            border-color:#15803d;
+            color:black;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 0 10px rgba(74,222,128,0.18);
+            letter-spacing: 0.04em;
+          "
+        >UP</div>
+      </div>
+  
+      <div class="flex flex-col items-center gap-2 w-full">
+        <p class="font-bold text-center text-lg" style="color: var(--color-horizon-yellow, #f59e0b); letter-spacing: 0.08em;">LAN</p>
+        <div
+          id="diag-summary-lan"
+          class="w-full flex items-center justify-center rounded-xl font-bold text-lg py-3 border"
+          style="
+            background-color:#4ade80;
+            border-color:#15803d;
+            color:black;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 0 10px rgba(74,222,128,0.18);
+            letter-spacing: 0.04em;
+          "
+        >UP</div>
+      </div>
     </div>
-</div>
+  </div>
