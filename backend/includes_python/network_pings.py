@@ -11,6 +11,31 @@ except ModuleNotFoundError:
     ping3 = None
 
 
+# Edit this to whatever you want to just test things
+TEST_NETWORK_DEVICE_MANIFEST = {
+    "Google": "google.com",
+    "My Phone (LAN)": "192.168.0.49",
+    "TP-Link": "192.168.0.1",
+    "Labjack": "192.168.0.100",
+    "QuantumX DAQ": "192.168.0.132",
+    "DAQ 4 Channel": "192.168.0.133",
+    "GSE ESP32": "192.168.0.150",
+    "GCS Raspberry Pi": "192.168.0.2"
+}
+
+HIVE_NETWORK_DEVICE_MANIFEST = {
+    "TP-Link Router": "192.168.0.1",
+    "GC-1": "192.168.0.3",
+    "GC-2": "192.168.0.2",
+    "Launchpad Camera": "192.168.0.60",
+    "LabJack": "192.168.0.100",
+    "QuantumX DAQ": "192.168.0.132",
+    "DAQ 4 Channel": "192.168.0.133",
+    "Vulcan ESP32": "192.168.0.150",
+    "WiFi Bridge @ GSE": "192.168.0.253",
+    "WiFi Bridge @ GCS": "192.168.0.254",
+}
+
 # Change it here based on test or prod mode.
 # This is suboptimal as it differs from existing methods
 # It needs to be unified as per GCS-2026#50.
