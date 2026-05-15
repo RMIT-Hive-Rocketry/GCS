@@ -1193,6 +1193,16 @@ function processDataForDisplay(apiData, apiId) {
             processedData.altitudeMax = altitudeMax;
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax);
         }
+
+        // Main parachute sound should play if we descend below a set altitude
+        const PARACHUTE_ALTITUDE = 9000; // Should be moved to a config file
+        
+        // The new altitude must be below the threshold, unlike the old one
+        const prevAltitude = metresToFeet(altitudeHistory.at(-2));
+        const currAltitude = metresToFeet(altitudeHistory.at(-1));
+        if ((currAltitude < PARACHUTE_ALTITUDE) && (prevAltitude >= PARACHUTE_ALTITUDE)) {
+            playOtherSound("Parachute");
+        }
     }
 
     // Feet
