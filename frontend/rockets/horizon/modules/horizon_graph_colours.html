@@ -1,0 +1,70 @@
+<!-- Graph colour selector -->
+<div class="module-horizon">
+  <h2>Graph colour selectors</h2>
+    <form>
+      <label for="colourOne">Select your desired graph colours (shown in the same order as the real thing):</label>
+      <input type="color" id="colourOne" name="colourOne" value="#ff0000">
+      <label for="colourTwo"></label>
+      <input type="color" id="colourTwo" name="colourTwo" value="#00ff00">
+      <label for="colourThree"></label>
+      <input type="color" id="colourThree" name="colourThree" value="#0000ff">
+      <label for="colourFour"></label>
+      <input type="color" id="colourFour" name="colourFour" value="#ffffff">
+    </form>
+
+    <h3>Sample graph</h3>
+    <div class="grow w-full h-full">
+      <svg
+          id="graph-test-colours"
+          class="w-full h-full"
+          width="0"
+          height="0"
+      ></svg>
+    </div>
+    <div class="flex flex-row gap-2 grow justify-evenly text-center py-1">
+      <label class="w-1/4">
+          Sample attribute 1:<br /><input
+              data-key="test1"
+              data-precision="1"
+              readonly
+              autocomplete="off"
+              style="border-bottom: 2px solid #FF0000"
+              size="4"
+              value="2.0"
+          />
+      </label>
+      <label class="w-1/4">
+          Sample attribute 2<br /><input
+              data-key="test2"
+              data-precision="0"
+              readonly
+              autocomplete="off"
+              style="border-bottom: 2px solid #00FF00"
+              size="4"
+              value="3.0"
+          />
+      </label>
+      <label class="w-1/4">
+          Sample attribute 3:<br /><input
+              data-key="test3"
+              data-precision="0"
+              readonly
+              autocomplete="off"
+              style="border-bottom: 2px solid #0000FF"
+              size="4"
+              value="4.0"
+          />
+      </label>
+      <label class="w-1/4">
+          Sample attribute 4:<br /><input
+              data-key="test4"
+              data-precision="0"
+              readonly
+              autocomplete="off"
+              style="border-bottom: 2px solid #FFFFFF"
+              size="4"
+              value="5.0"
+          />
+      </label>
+    </div>
+</div>

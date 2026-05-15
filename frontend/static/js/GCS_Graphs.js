@@ -12,10 +12,10 @@ const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
 const LINE_COLOURS = [
-    "var(--color-red-500)",
-    "var(--color-green-500)",
-    "var(--color-blue-500)",
-    "white",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFFFF",
 ];
 const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
@@ -82,6 +82,13 @@ const GRAPH_AUX_GASBOTTLES = {
     numLines: 2,
     data: [],
 };
+
+const GRAPH_TEST_COLOURS = {
+    selector: "#graph-test-colours",
+    ylabel: "Sample metric",
+    numLines: 4,
+    data: [],
+}
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
@@ -264,7 +271,12 @@ function graphRender(chart) {
             timestampLocal + timestampApiConnect - timeDrift,
         );
 
-        const windowStart = now - MAX_TIME;
+        /* Normally, line data is filtered to be in sync with the time,
+         * but for the test colours graph we don't need any scrolling,
+         * hence the graph should just be a static display (barring the
+         * changes in colour made by the operator).
+        */
+        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - MAX_TIME) : 0;
 
         if (chart.lastRender != now) {
             // Limit data to graph window
@@ -275,8 +287,13 @@ function graphRender(chart) {
             });
             const allPoints = chart.lines.flatMap((line) => line.data);
 
-            // Update x and y domains
-            chart.x.domain([windowStart, now]);
+            /* Update x and y domains (unless it's the test colour
+             * graph where no scrolling is required).
+            */
+            if (chart !== GRAPH_TEST_COLOURS) {
+                chart.x.domain([windowStart, now]);
+            }
+            
             chart.y.domain([
                 Math.min(
                     d3.min(allPoints, (d) => d.y) - 1,
@@ -404,6 +421,8 @@ function graphRequestRender() {
     graphRender(GRAPH_AUX_THERMOCOUPLES);
     graphRender(GRAPH_AUX_VENTTEMP);
     graphRender(GRAPH_AUX_GASBOTTLES);
+
+    graphRender(GRAPH_TEST_COLOURS);
 }
 
 function graphAddValue(graph, line, timestamp, value) {
@@ -443,6 +462,13 @@ function graphInit() {
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
     graphCreateLine(GRAPH_AUX_VENTTEMP);
     graphCreateLine(GRAPH_AUX_GASBOTTLES);
+    graphCreateLine(GRAPH_TEST_COLOURS);
+
+    // Update the test colours graph
+    for (i = 0; i < 4; ++i) {
+        graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+    }
 
     window.graphsInitialised = true;
     console.log("Graphs initialised");
@@ -453,6 +479,52 @@ if (document.readyState === "loading") {
 } else {
     graphInit();
 }
+
+// Update colours in real-time
+const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
+    document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
+        LINE_COLOURS[index] = event.target.value;
+        
+        // Same code as above
+        for (i = 0; i < 4; ++i) {
+            graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+            graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+        }
+
+        // Update the colours (even if no data is coming through)
+        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY,
+                            GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES,
+                            GRAPH_AUX_VENTTEMP, GRAPH_AUX_GASBOTTLES, GRAPH_TEST_COLOURS];
+        graphsList.forEach((g1) => {
+            g1.lines.forEach((l1, index) => {
+                l1.color = LINE_COLOURS[index];
+            });
+        });
+
+        // Update the bottom borders
+        const lineOne = ["test1", "accelX", "gyroX", "pressure_n2o_bottle", "temp_pipe_n2o_gse", "gasBottleWeight1", "temp_vent", "altitudeFeet", "velocity"];
+        const lineTwo = ["test2", "accelY", "gyroY", "pressure_n2o_tank", "temp_tank_top", "gasBottleWeight2"];
+        const lineThree = ["test3", "accelZ", "gyroZ", "pressure_o2_tank", "temp_tank_middle"];
+        const lineFour = ["test4", "temp_tank_bottom"];
+
+        [lineOne, lineTwo, lineThree, lineFour].forEach((line, index) => {
+            line.forEach((c1) => {
+                let inputElement = document.querySelector('input[data-key="' + c1 + '"]');
+                if (inputElement != null) {
+                    inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                }
+            });
+        });
+
+        // Not tied to any graphs, but might as well also change these bottom borders
+        ["pitch", "yaw", "roll"].forEach((a1, index) => {
+            let inputElement = document.querySelector('input[class*="rocket-' + a1 + '"]');
+            if (inputElement != null) {
+                inputElement.style.borderBottomColor = LINE_COLOURS[index];
+            }
+        });
+    })
+})
 
 // Update modules
 function graphUpdateAvionics(data) {

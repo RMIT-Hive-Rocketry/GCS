@@ -34,6 +34,7 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_pendant.html",
             "horizon/modules/horizon_gse_hmi.html",
             "horizon/modules/horizon_preflight.html",
+            "horizon/modules/horizon_graph_colours.html",
         ]
 
         # Define pages for Horizon
@@ -77,8 +78,10 @@ class ConfigHorizon(Config):
             "horizon_errorlog": [("page-main", 16, 1, 8, 3)],
             "horizon_auxiliary_gse": [("page-main", 16, 4, 8, 8)],
 
-            # Pendant page: pendant fills the full content area (24 cols x 11 rows)
-            "horizon_preflight": [("page-preflight", 0, 1, 24, 11)],
+            # Preflight page
+            "horizon_preflight": [("page-preflight", 0, 1, 24, 5)],
+            "horizon_graph_colours": [("page-preflight", 0, 6, 24, 6)],
+
             # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)
             "horizon_gse_hmi": [("page-control", 0, 1, 14, 11)],
             "horizon_pendant": [("page-control", 14, 1, 10, 11)]
