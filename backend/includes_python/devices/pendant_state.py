@@ -167,7 +167,7 @@ class PendantState:
                 for nonsense in nonsense_conditions:
                     if self.states[nonsense]:
                         slogger.critical(
-                            f"Impossible Condition detected for {state}: {nonsense}. Scrub is suggested as this indicates a hardware or operating system fault with the pendant."
+                            f"Impossible Condition detected for {state}: {nonsense}. This indicates a hardware issue with the pendant, please halt operations."
                         )
 
                         return self.FALLBACK_GSE_STATES_DICT_SYS_ON
