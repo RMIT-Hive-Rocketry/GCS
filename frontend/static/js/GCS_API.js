@@ -62,9 +62,9 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Generate the sounds (the 1st 2 can change into a quicker version if the alarm is long)
-const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
-const soundsList = filenames.map(src => {
+// Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
+const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+const soundsList_losses = filenames_losses.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
 
@@ -83,26 +83,29 @@ const soundsList = filenames.map(src => {
     return { source: audioObject, active: false };
 });
 
-// Only non-error sound, with a function to call it explicitly
-const apogee = new Audio("sounds/Apogee.mp3"); // MuseScore-generated
-apogee.muted = true; // Must also be muted by default
+// Other non-error sounds
+const filenames_other = ["Apogee", "Parachute"];
+const soundsList_other = filenames_other.map(src => {
+    // Create the audio object that will return upon ending
+    const audioObject = new Audio("sounds/" + src + ".mp3");
 
-// Return sound to the beginning (should not be required here)
-apogee.addEventListener('ended', () => {
-    apogee.pause();
-    apogee.currentTime = 0;
+    // Mute sound by default
+    audioObject.muted = true;
+
+    // Self-return after playing
+    audioObject.addEventListener('ended', () => {
+        audioObject.pause();
+        audioObject.currentTime = 0;
+    });
+
+    // This time there is no queue so no active
+    return audioObject;
 });
 
-function apogeeSound() {
-    // Make sure the main Horizon page is selected
-    if (isHorizonMain()) {
-        apogee.play();
-    }
-}
-
-// Check if all sounds are unmuted (including apogee)
+// Check if all sounds (errors and otherwise) are unmuted
 function allUnmuted() {
-    return soundsList.every(item => !item.source.muted) && !apogee.muted;
+    return soundsList_losses.every(item => !item.source.muted) &&
+           soundsList_other.every(item => !item.muted);
 }
 
 // Call at the start and whenever a state updates
@@ -212,19 +215,19 @@ function isHorizonMain() {
 // Block calls to enforce silence
 let silence = false;
 
-/* Plays sounds in a particular (relative) order, determined by the
+/* Plays error sounds in a particular (relative) order, determined by the
  * order in which their names (rather, something close to that) appear
  * in the filenames array closer to the top.
 */
-function playSounds() {
+function playErrorSounds() {
     // Return if 1 second not up, yet
     if (silence) { return; }
     silence = true;
 
-    for (let i = 0; i < soundsList.length; ++i) {
+    for (let i = 0; i < soundsList_losses.length; ++i) {
         // Play the active sounds in succession (only if not already playing)
-        if ((soundsList[i].active) && (soundsList[i].source.paused)) {
-            soundsList[i].source.play();
+        if ((soundsList_losses[i].active) && (soundsList_losses[i].source.paused)) {
+            soundsList_losses[i].source.play();
         }
     }
 
@@ -234,12 +237,36 @@ function playSounds() {
     }, 1000);
 }
 
+// Plays a non-error sound
+function playOtherSound(sound) {
+    // Look for the sound
+    const soundNumber = soundsList_other.findIndex(
+        file => file.src.includes(sound)
+    );
+
+    // Not found or already playing
+    if ((soundNumber === -1) || (!soundsList_other[soundNumber].paused)) {
+        return;
+    }
+    
+    // Play if on the Horizon main page
+    if (isHorizonMain()){
+        soundsList_other[soundNumber].play();
+    }
+}
+
 function toggleMute() {
     // Toggle mute first, then update UI
-    for (let i = 0; i < soundsList.length; ++i) {
-        soundsList[i].source.muted = !soundsList[i].source.muted;
+
+    // Error sounds
+    for (let i = 0; i < soundsList_losses.length; ++i) {
+        soundsList_losses[i].source.muted = !soundsList_losses[i].source.muted;
     }
-    apogee.muted = !apogee.muted; // Don't forget apogee
+
+    // Other sounds (no source as these aren't in a queue)
+    for (let i = 0; i < soundsList_other.length; ++i) {
+        soundsList_other[i].muted = !soundsList_other[i].muted;
+    }
 
     /* Icon represents current state.
      * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
@@ -259,13 +286,13 @@ function toggleMute() {
  * queue. If long = true, the alarm will change to its extended version.
 */
 function updateSound(sound, newValue, quicker) {
-    const soundNumber = soundsList.findIndex(
+    const soundNumber = soundsList_losses.findIndex(
         file => file.source.src.includes(sound)
     );
 
     // If newValue is true, the sound should play when called
     if (soundNumber >= 0) {
-        soundsList[soundNumber].active = newValue;
+        soundsList_losses[soundNumber].active = newValue;
     }
 
     /* Custom functions just for inside this one. Note that the suffix
@@ -273,13 +300,13 @@ function updateSound(sound, newValue, quicker) {
     */
     function addQuicker() {
         // Filepath must not already contain the differentiating suffix
-        if (!soundsList[soundNumber].source.src.includes("_Quicker")) {
-            soundsList[soundNumber].source.src = soundsList[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
+        if (!soundsList_losses[soundNumber].source.src.includes("_Quicker")) {
+            soundsList_losses[soundNumber].source.src = soundsList_losses[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
         }
     }
     function removeQuicker() {
         // Remove the suffix
-        soundsList[soundNumber].source.src.replaceAll("_Quicker", "");
+        soundsList_losses[soundNumber].source.src.replaceAll("_Quicker", "");
     }
 
     quicker ? addQuicker() : removeQuicker();
@@ -288,8 +315,8 @@ function updateSound(sound, newValue, quicker) {
          * future ones by an extra second). Likewise, don't do so unless the main
          * Horizon page is selected
         */
-        if ((soundsList.some(file => file.active)) && isHorizonMain()) {
-            playSounds();
+        if ((soundsList_losses.some(file => file.active)) && isHorizonMain()) {
+            playErrorSounds();
         }
     } catch (error) {
         /* Perform opposite operation, leading into an infinite loop
@@ -1393,7 +1420,7 @@ function displayUpdateFlightState(data) {
             displaySetActiveFlightState("fs-state-apogee");
 
             // Play the apogee sound (should only be once in practice)
-            apogeeSound();
+            playOtherSound("Sound");
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
@@ -1411,10 +1438,6 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
-
-            // Just in case the apogee sound is playing, stop it upon error
-            const stopApogeeSound = new CustomEvent("ended");
-            apogee.dispatchEvent(stopApogeeSound);
         }
 
         displaySetString("fs-flightstate", stateName);
