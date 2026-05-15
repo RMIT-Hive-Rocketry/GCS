@@ -312,6 +312,83 @@
     
                 </g>
                 <!-- end #flight-tank-display -->
+
+                <!-- =================================================
+                    TANK TEMPERATURES
+                    Three thermocouple readouts (top, middle, bottom)
+                    positioned alongside the flight tank, each with
+                    a connector tick to its corresponding section.
+                    ================================================= -->
+                <g id="tank-temperatures">
+
+                    <!-- Tank TOP temperature -->
+                    <g id="tank-temp-top">
+                        <rect x="1260" y="261" width="120" height="55"
+                            fill="black" stroke="#00FF4D" stroke-width="3"/>
+                        <line x1="1380" y1="288" x2="1440" y2="288"
+                            stroke="#00FF4D" stroke-width="2"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace">
+                            <text x="1320" y="281" font-size="16"
+                                fill="white" text-anchor="middle"
+                                >Tank Top</text>
+                            <text id="HMI_TANK_TOP_TEMP"
+                                x="1330" y="307" font-size="22"
+                                font-weight="bold" fill="#FFFFFF"
+                                text-anchor="end">
+                                <tspan>--.-</tspan>
+                            </text>
+                            <text x="1335" y="307" font-size="16"
+                                fill="white" text-anchor="start">°C</text>
+                        </g>
+                    </g>
+
+                    <!-- Tank MIDDLE temperature -->
+                    <g id="tank-temp-middle">
+                        <rect x="1260" y="378" width="120" height="55"
+                            fill="black" stroke="#00FF4D" stroke-width="3"/>
+                        <line x1="1380" y1="405" x2="1440" y2="405"
+                            stroke="#00FF4D" stroke-width="2"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace">
+                            <text x="1320" y="398" font-size="16"
+                                fill="white" text-anchor="middle"
+                                >Tank Middle</text>
+                            <text id="HMI_TANK_MIDDLE_TEMP"
+                                x="1330" y="424" font-size="22"
+                                font-weight="bold" fill="#FFFFFF"
+                                text-anchor="end">
+                                <tspan>--.-</tspan>
+                            </text>
+                            <text x="1335" y="424" font-size="16"
+                                fill="white" text-anchor="start">°C</text>
+                        </g>
+                    </g>
+
+                    <!-- Tank BOTTOM temperature -->
+                    <g id="tank-temp-bottom">
+                        <rect x="1260" y="495" width="120" height="55"
+                            fill="black" stroke="#00FF4D" stroke-width="3"/>
+                        <line x1="1380" y1="522" x2="1440" y2="522"
+                            stroke="#00FF4D" stroke-width="2"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace">
+                            <text x="1320" y="515" font-size="16"
+                                fill="white" text-anchor="middle"
+                                >Tank Bottom</text>
+                            <text id="HMI_TANK_BOTTOM_TEMP"
+                                x="1330" y="541" font-size="22"
+                                font-weight="bold" fill="#FFFFFF"
+                                text-anchor="end">
+                                <tspan>--.-</tspan>
+                            </text>
+                            <text x="1335" y="541" font-size="16"
+                                fill="white" text-anchor="start">°C</text>
+                        </g>
+                    </g>
+
+                </g>
+                <!-- end #tank-temperatures -->
     
     
                 <!-- =================================================
@@ -1945,6 +2022,17 @@
                 if (data?.thermocouple4) {
                     // O2 bottle temperature
                     hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
+                }
+
+                // Tank thermocouples (°C)
+                if (data?.temp_tank_top !== undefined) {
+                    hmiUpdateValue("HMI_TANK_TOP_TEMP", data.temp_tank_top);
+                }
+                if (data?.temp_tank_middle !== undefined) {
+                    hmiUpdateValue("HMI_TANK_MIDDLE_TEMP", data.temp_tank_middle);
+                }
+                if (data?.temp_tank_bottom !== undefined) {
+                    hmiUpdateValue("HMI_TANK_BOTTOM_TEMP", data.temp_tank_bottom);
                 }
     
                 // Solenoid valve states (boolean flags)
