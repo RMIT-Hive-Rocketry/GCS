@@ -1433,7 +1433,7 @@ function displayUpdateFlightState(data) {
             displaySetActiveFlightState("fs-state-apogee");
 
             // Play the apogee sound (should only be once in practice)
-            playOtherSound("Sound");
+            playOtherSound("Apogee");
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
