@@ -1,14 +1,14 @@
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.pendant_state import (
+    PendantState,
+    PendantInput,
+)
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
-
-import os
 import pygame
-
 import time
-from abc import abstractmethod
 from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
+from typing import ClassVar
 
 
 class Pygame_Button:
@@ -49,26 +49,18 @@ class Pygame_Button:
 class Pygame_Device(ControlDevice):
     """
     ABC for devices that use pygame
-    If your extending it, you must define BUTTON_NAME_ID_MAP in the child
+    If your extending it, you must define BUTTON_NAME_ID_MAP and CONTROLLER_NAME in the child
     """
 
-    # https://stackoverflow.com/questions/5960337/how-to-create-abstract-properties-in-python-abstract-classes
-    @property
-    @abstractmethod
-    def BUTTON_NAME_ID_MAP(self) -> dict[str, int]:
-        pass
-
-    @property
-    @abstractmethod
-    def CONTROLLER_NAME(self) -> str:
-        pass
+    BUTTON_NAME_ID_MAP: ClassVar[dict[PendantInput, int]]
+    CONTROLLER_NAME: ClassVar[str]
 
     # dont recompute every time
     @cached_property
-    def BUTTON_ID_NAME_MAP(self) -> dict[int, str]:
+    def BUTTON_ID_NAME_MAP(self) -> dict[int, PendantInput]:
         return {v: k for k, v in self.BUTTON_NAME_ID_MAP.items()}
 
-    buttons: dict[str, Pygame_Button]
+    buttons: dict[PendantInput, Pygame_Button]
 
     joystick: pygame.joystick.JoystickType | None
     joystick_id: int | None
@@ -157,7 +149,6 @@ class Pygame_Device(ControlDevice):
                 slogger.error("Pendnat Disconnected")
 
         if self.is_connected and self.joystick is not None:
-            # polling events on mac gave me segfaults
             for btn_name, btn_id in self.BUTTON_NAME_ID_MAP.items():
                 try:
                     pressed = bool(self.joystick.get_button(btn_id))
@@ -172,22 +163,9 @@ class Pygame_Device(ControlDevice):
                 for btn_name, btn in self.buttons.items()
             }
 
-            # Temporary fix for neutral state which isn't wired
-            states["SYS_ON"] = not states["ESTOP"]
-            states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"]
-                and not states["N2O_ACTIVE"]
-                and not states["PURGE_ACTIVE"]
-            )
-
-            # TODO: come up with some logic if estop is pressed
-            # do we want a toggle?
-            # do we want it to just send fallback table?
-            # etc
-
-            self.state_table = StateTable(**states)
+            self.state_table = PendantState(states)
         else:
-            self.state_table = StateTable.get_fallback_table()
+            self.state_table = PendantState.get_fallback_table()
 
     def cleanup(self):
         """Internal cleanup code"""

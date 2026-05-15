@@ -20,7 +20,7 @@ void PendantData::no_data() {
         "Failed to get any new pendant data from pendant service "
         "for " +
         std::to_string(sec_waited) + " seconds" +
-        ". This is OK if controller = emulated_device");
+        ".This is OK if send_pendant_state_to_server = false");
     last_timeout_warning_time_ = now;
   }
 }

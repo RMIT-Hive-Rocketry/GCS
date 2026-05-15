@@ -1,4 +1,7 @@
-from backend.includes_python.devices.state_table import StateTable
+from backend.includes_python.devices.pendant_state import (
+    PendantState,
+    PendantInput,
+)
 from backend.includes_python.devices.pygame_device import Pygame_Device
 import backend.includes_python.process_logging as slogger
 import pygame
@@ -11,58 +14,67 @@ class Emulated_Device(Pygame_Device):
     Based on the Pygame_Device class, even though it doesn't actually use Pygame
     """
 
-    BUTTON_NAME_ID_MAP: dict[str, int] = {
-        "SYS_ON": 0,
-        "ESTOP": 5,
-        "FILL_SELECTED": 6,
-        "IGNITION_SELECTED": 4,
-        "N2O_ACTIVE": 8,
-        "PURGE_ACTIVE": 3,
-        "O2_MOMENT_ACTIVE": 1,
-        "IGNITION_MOMENT_ACTIVE": 2,
+    BUTTON_NAME_ID_MAP: dict[PendantInput, int] = {
+        PendantInput.SYSTEM_ACTIVE: 0,
+        PendantInput.E_STOP: 5,
+        PendantInput.FILL_MODE: 6,
+        PendantInput.ARMED: 4,
+        PendantInput.N2O: 8,
+        PendantInput.PURGE: 3,
+        PendantInput.O2: 1,
+        PendantInput.IGNITION: 2,
     }
 
-    BUTTON_ID_NAME_MAP: dict[int, str] = {
-        v: k for k, v in BUTTON_NAME_ID_MAP.items()
-    }
+    CONTROLLER_NAME = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
 
-    BUTTON_SEQUENCE = [
+    BUTTON_SEQUENCE: list[list[PendantInput]] = [
         [],
-        ["FILL_SELECTED"],
-        ["FILL_SELECTED", "N2O_ACTIVE"],
-        ["FILL_SELECTED"],
-        ["FILL_SELECTED", "PURGE_ACTIVE"],
-        ["FILL_SELECTED"],
+        [PendantInput.SYSTEM_ACTIVE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.N2O],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
+        [
+            PendantInput.SYSTEM_ACTIVE,
+            PendantInput.FILL_MODE,
+            PendantInput.PURGE,
+        ],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
+        [PendantInput.SYSTEM_ACTIVE],
         [],
-        ["IGNITION_SELECTED"],
-        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE"],
-        ["IGNITION_SELECTED"],
-        ["IGNITION_SELECTED", "IGNITION_MOMENT_ACTIVE"],
-        ["IGNITION_SELECTED"],
-        ["IGNITION_SELECTED", "O2_MOMENT_ACTIVE", "IGNITION_MOMENT_ACTIVE"],
-        ["IGNITION_SELECTED"],
+        [PendantInput.SYSTEM_ACTIVE],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.IGNITION],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [
+            PendantInput.SYSTEM_ACTIVE,
+            PendantInput.ARMED,
+            PendantInput.O2,
+            PendantInput.IGNITION,
+        ],
+        [PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED],
+        [PendantInput.SYSTEM_ACTIVE],
         [],
     ]
 
-    CONTROLLER_NAME: str = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
     is_connected: bool = False
 
     def __init__(self):
         super().__init__()
-        self.buttons = {}
 
-    def _try_connect_device(self):
+    def _try_connect_device(self) -> None:
         # This device never has connection issues
         Emulated_Device.is_connected = True
         slogger.info(
             f"Controller initialized: {Emulated_Device.CONTROLLER_NAME}"
         )
 
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         pygame.init()
         self._try_connect_device()
 
-    def _update_state_table(self):
+    def _update_state_table(self) -> None:
         """Updates instance attributes"""
         pygame.event.pump()
 
@@ -74,24 +86,21 @@ class Emulated_Device(Pygame_Device):
                 seconds % len(Emulated_Device.BUTTON_SEQUENCE)
             ]
 
-            for btn_name, btn_id in Emulated_Device.BUTTON_NAME_ID_MAP.items():
+            for btn_name in Emulated_Device.BUTTON_NAME_ID_MAP:
                 pressed = btn_name in current_buttons
-                self.buttons[btn_name] = pressed
+                self.buttons[btn_name].update_state(pressed)
 
-            states = {btn_name: btn for btn_name, btn in self.buttons.items()}
+            states = {
+                btn_name: btn.is_pressed()
+                for btn_name, btn in self.buttons.items()
+            }
 
-            # Temporary fix for neutral state which isn't wired
-            states["SYS_ON"] = not states["ESTOP"]
-            states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"]
-                and not states["N2O_ACTIVE"]
-                and not states["PURGE_ACTIVE"]
-            )
-            self.state_table = StateTable(**states)
+            self.state_table = PendantState(states)
+
         else:
-            self.state_table = StateTable.get_fallback_table()
+            self.state_table = PendantState.get_fallback_table()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Internal cleanup code"""
         slogger.info("Quitting pygame...")
         pygame.quit()

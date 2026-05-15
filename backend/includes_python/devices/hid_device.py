@@ -1,4 +1,13 @@
-from backend.includes_python.devices.state_table import StateTable
+"""
+This has not been tested or even ran at all
+Most likely will have some runtime error if you try it
+Test the crap out of it and fix any bugs before using
+"""
+
+from backend.includes_python.devices.pendant_state import (
+    PendantState,
+    PendantInput,
+)
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
 
@@ -17,7 +26,7 @@ except (ImportError, RuntimeError) as e:
     )
 
     class hid:
-        def Device():
+        def Device(self) -> None:
             raise NotImplementedError(error_message)
 
 
@@ -36,13 +45,13 @@ class HID_Button:
     time_of_last_state_change: float
     button_is_pressed: bool = False
 
-    def __init__(self, byte, bit):
+    def __init__(self, byte: int, bit: int):
         self.byte = byte
         self.bit = bit
         self.bitmask = 1 << bit
         self.time_of_last_state_change = time.time()
 
-    def _try_update_state(self, new_state: bool):
+    def _try_update_state(self, new_state: bool) -> None:
         if new_state:
             self.safety_count = min(
                 self.safety_count + 1, HID_Button.MAX_SAFETY_COUNT
@@ -82,7 +91,7 @@ class HID_Button:
         byte_index = HID_Button.USEFUL_BYTE_OFFSET + self.byte
         hid_byte = hid_bytes[byte_index]
 
-        self._try_update_state(hid_byte & self.bitmask)
+        self._try_update_state(bool(hid_byte & self.bitmask))
 
     def is_pressed(self) -> bool:
         return self.button_is_pressed
@@ -108,23 +117,23 @@ class HID_Device(ControlDevice):
 
     # THESE ARE PROB WRONG, wiring has changed since i got these
     # name: (byte, bit)
-    BITMAP: dict[str, tuple[int, int]] = {
-        "SYS_ON": (1, 5),
-        # "ESTOP": (1, 6),
-        "FILL_SELECTED": (0, 2),
-        "IGNITION_SELECTED": (0, 1),
-        "N2O_ACTIVE": (0, 0),
-        "PURGE_ACTIVE": (1, 7),
-        "O2_MOMENT_ACTIVE": (1, 4),
-        "IGNITION_MOMENT_ACTIVE": (1, 3),
+    BITMAP: dict[PendantInput, tuple[int, int]] = {
+        PendantInput.SYSTEM_ACTIVE: (1, 5),
+        PendantInput.E_STOP: (1, 6),
+        PendantInput.FILL_MODE: (0, 2),
+        PendantInput.ARMED: (0, 1),
+        PendantInput.N2O: (0, 0),
+        PendantInput.PURGE: (1, 7),
+        PendantInput.O2: (1, 4),
+        PendantInput.IGNITION: (1, 3),
     }
 
-    buttons: dict[str, HID_Button]
+    buttons: dict[PendantInput, HID_Button]
 
     device: hid.Device
     device_is_connected: bool = False
 
-    def _try_connect_device(self):
+    def _try_connect_device(self) -> None:
         try:
             self.device = hid.Device()
             self.device.open(
@@ -136,15 +145,15 @@ class HID_Device(ControlDevice):
             slogger.warning(f"Control Pendant is not connected, error: `{e}`")
             self.device_is_connected = False
 
-    def _setup_device(self):
+    def _setup_device(self) -> None:
         self._try_connect_device()
+
+    def __init__(self):
+        super().__init__()
 
         for btn_name in HID_Device.BITMAP:
             self.buttons[btn_name] = HID_Button(*HID_Device.BITMAP[btn_name])
 
-    def __init__(self):
-        super().__init__()
-        self.buttons = {}
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical(
@@ -153,7 +162,7 @@ class HID_Device(ControlDevice):
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         slogger.critical("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-    def _update_state_table(self):
+    def _update_state_table(self) -> None:
         """Updates instance attributes"""
         try:
             if not self.device_is_connected:
@@ -161,27 +170,21 @@ class HID_Device(ControlDevice):
             if not self.device_is_connected:
                 return
 
-            bytes = self.device.read(9999)
+            data = self.device.read(9999)
 
-            for _, btn in self.buttons.items():
-                btn.update_state(bytes)
+            for btn in self.buttons.values():
+                btn.update_state(data)
 
-            states: dict[str:bool] = {
+            states: dict[PendantInput, bool] = {
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }
-            # Temporary fix for neutral state which isn't wired
-            states["NEUTRAL_ACTIVE"] = (
-                states["SYS_ON"]
-                and not states["N2O_ACTIVE"]
-                and not states["PURGE_ACTIVE"]
-            )
 
-            self.state_table = StateTable(**states)
+            self.state_table = PendantState(states)
 
         except OSError:
             self.device_is_connected = False
-            self.state_table = StateTable.get_fallback_table()
+            self.state_table = PendantState.get_fallback_table()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         self.device.close()

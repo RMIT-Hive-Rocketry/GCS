@@ -20,7 +20,7 @@ def main() -> None:
         if states != last_state:
             updates += 1
             print(f"===== UPDATE [{updates}] =====")
-            print(repr(states))
+            print(states)
         last_state = states
 
     print("service done")
