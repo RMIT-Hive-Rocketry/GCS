@@ -1127,7 +1127,7 @@ function processDataForDisplay(apiData, apiId) {
                 lostPackets: processedData.meta.totalPacketCountAv - packetsAV1,
             };
             processedData.state.av = { radio: 1 };
-        } else if ([6, 7].includes(apiId)) {
+        } else if ([55].includes(apiId)) {
             if (apiData.meta?.totalPacketCountGse) {
                 if (packetsGSE == 0) {
                     packetsGSEoffset = apiData.meta.totalPacketCountGse - 1;
@@ -1222,7 +1222,7 @@ function processDataForDisplay(apiData, apiId) {
     }
 
     // Gas fill timer
-    if ([6, 7].includes(apiId) && apiData?.stateFlags) {
+    if ([55].includes(apiId) && apiData?.stateFlags) {
         const systemActivated = apiData.stateFlags?.systemActivated;
         const gasFillSelected = apiData.stateFlags?.gasFillSelected;
         const n20FillActivated = apiData.stateFlags?.n20FillActivated;
