@@ -20,13 +20,13 @@ class HybridPygamePendant(Pygame_Device):
 class ThrustmasterAirbusFlightStick(Pygame_Device):
     BUTTON_NAME_ID_MAP = {
         PendantInput.SYSTEM_ACTIVE: 16,  # thrust lever
-        PendantInput.FILL_MODE: 0,       # bottom back trigger
-        PendantInput.ARMED: 1,           # top back trigger
-        PendantInput.O2: 2,              # spherical button
-        PendantInput.IGNITION: 3,        # red button
-        PendantInput.N2O: 6,             # top left button on the right
-        PendantInput.PURGE: 5,           # top middle button on the right
-        PendantInput.E_STOP: 13,         # bottom right button on the left
+        PendantInput.FILL_MODE: 0,  # bottom back trigger
+        PendantInput.ARMED: 1,  # top back trigger
+        PendantInput.O2: 2,  # spherical button
+        PendantInput.IGNITION: 3,  # red button
+        PendantInput.N2O: 6,  # top left button on the right
+        PendantInput.PURGE: 5,  # top middle button on the right
+        PendantInput.E_STOP: 13,  # bottom right button on the left
     }
 
     CONTROLLER_NAME = "Thrustmaster T.A320 Pilot"
