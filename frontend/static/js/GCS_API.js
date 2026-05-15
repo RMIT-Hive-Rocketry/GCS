@@ -83,7 +83,11 @@ const soundsList_losses = filenames_losses.map(src => {
     return { source: audioObject, active: false };
 });
 
-// Other non-error sounds
+// Other non-alarm sounds
+/* TODO: Add "Rocket_Hit" to this list when the application can detect
+ * the rocket potentially hitting an unsafe target. To play it,
+ * call playOtherSound() with said string as the argument.
+*/
 const filenames_other = ["Apogee", "Parachute"];
 const soundsList_other = filenames_other.map(src => {
     // Create the audio object that will return upon ending
@@ -102,7 +106,7 @@ const soundsList_other = filenames_other.map(src => {
     return audioObject;
 });
 
-// Check if all sounds (errors and otherwise) are unmuted
+// Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
     return soundsList_losses.every(item => !item.source.muted) &&
            soundsList_other.every(item => !item.muted);
@@ -215,11 +219,10 @@ function isHorizonMain() {
 // Block calls to enforce silence
 let silence = false;
 
-/* Plays error sounds in a particular (relative) order, determined by the
- * order in which their names (rather, something close to that) appear
- * in the filenames array closer to the top.
+/* Plays alarm sounds in a queue, whose order matches the priority
+ * (in descending order).
 */
-function playErrorSounds() {
+function playAlarmSounds() {
     // Return if 1 second not up, yet
     if (silence) { return; }
     silence = true;
@@ -237,7 +240,7 @@ function playErrorSounds() {
     }, 1000);
 }
 
-// Plays a non-error sound
+// Plays a non-alarm sound
 function playOtherSound(sound) {
     // Look for the sound
     const soundNumber = soundsList_other.findIndex(
@@ -258,7 +261,7 @@ function playOtherSound(sound) {
 function toggleMute() {
     // Toggle mute first, then update UI
 
-    // Error sounds
+    // Alarm sounds
     for (let i = 0; i < soundsList_losses.length; ++i) {
         soundsList_losses[i].source.muted = !soundsList_losses[i].source.muted;
     }
@@ -316,7 +319,7 @@ function updateSound(sound, newValue, quicker) {
          * Horizon page is selected
         */
         if ((soundsList_losses.some(file => file.active)) && isHorizonMain()) {
-            playErrorSounds();
+            playAlarmSounds();
         }
     } catch (error) {
         /* Perform opposite operation, leading into an infinite loop
