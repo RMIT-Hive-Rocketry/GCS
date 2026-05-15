@@ -52,12 +52,15 @@ class PendantState:
     """
     Stores state of the pendant
     Has methods which return a Dict suitable for conversion to a GSE packet
-    Also has two fallback dicts for the GSE and Pendant
+    Also has three fallback dicts for the GSE and Pendant
     """
 
     FALLBACK_PENDANT_STATES_DICT = dict.fromkeys(PendantInput, False)
 
     FALLBACK_GSE_STATES_DICT = dict.fromkeys(GSEState, False)
+
+    FALLBACK_GSE_STATES_DICT_SYS_ON = dict.fromkeys(GSEState, False)
+    FALLBACK_GSE_STATES_DICT_SYS_ON[GSEState.SYSTEM_ACTIVE] = True
 
     states: Dict[PendantInput, bool]
 
@@ -163,10 +166,11 @@ class PendantState:
             if state_is_true:
                 for nonsense in nonsense_conditions:
                     if self.states[nonsense]:
-                        slogger.warning(
-                            f"Impossible Condition detected for {state}: {nonsense}"
+                        slogger.critical(
+                            f"Impossible Condition detected for {state}: {nonsense}. Scrub is suggested as this indicates a hardware or operating system fault with the pendant."
                         )
-                        return PendantState.FALLBACK_GSE_STATES_DICT
+                        
+                        return self.FALLBACK_GSE_STATES_DICT_SYS_ON
 
             gse_state_dict[state] = state_is_true
 
