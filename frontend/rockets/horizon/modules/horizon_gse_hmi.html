@@ -325,69 +325,76 @@
                     ================================================= -->
                 <g id="tank-temperatures">
 
-                    <!-- Tank TOP temperature -->
-                    <g id="tank-temp-top">
-                        <rect x="1230" y="256" width="150" height="70"
-                              fill="black" stroke="#00FF4D" stroke-width="3"/>
-                        <line x1="1380" y1="288" x2="1440" y2="288"
-                              stroke="#00FF4D" stroke-width="2"/>
+                    <!-- Flight Tank termpearture heading  -->
+                     <g id="tank-temp-labels" transform="translate(45,-100)">
+                        <!-- <rect x="1230" y="256" width="150" height="70"
+                              fill="#0d0d0d" stroke="" stroke-width="3"/> -->
                         <g font-family="ui-monospace, SFMono-Regular, Menlo,
                                         Monaco, Consolas, monospace">
                             <text x="1305" y="281" font-size="16"
                                   fill="white" text-anchor="middle"
-                                  letter-spacing="0.12em">TANK TOP</text>
+                                  letter-spacing="0.12em">Flight-Tank</text>
+                            <text x="1305" y="305" font-size="16"
+                                  fill="white" text-anchor="middle"
+                                  letter-spacing="0.12em">Temperatures</text>
+
+                        </g>
+                    </g>
+
+                    <!-- Tank TOP temperature -->
+                    <g id="tank-temp-top" transform="translate(0,-40)">
+                        <!-- <rect x="1230" y="256" width="150" height="70"
+                              fill="#0d0d0d" stroke="" stroke-width="3"/> -->
+                        <line x1="1400" y1="288" x2="1440" y2="288"
+                              stroke="#00FF4D" stroke-width="2"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace" transform="translate(45,-15)">
                             <text id="HMI_TANK_TOP_TEMP"
                                   x="1315" y="310" font-size="22"
-                                  font-weight="bold" fill="#FFFFFF"
+                                  font-weight="bold" fill="#00FF4D"
                                   text-anchor="end">
-                                <tspan>--.-</tspan>
+                                <tspan>00.0</tspan>
                             </text>
-                            <text x="1320" y="310" font-size="14"
-                                  fill="white" text-anchor="start">°C</text>
+                            <text x="1320" y="310" font-size="22"
+                                  fill="#00FF4D" text-anchor="start">°C</text>
                         </g>
                     </g>
 
                     <!-- Tank MIDDLE temperature -->
                     <g id="tank-temp-middle">
-                        <rect x="1230" y="373" width="150" height="70"
-                              fill="black" stroke="#00FF4D" stroke-width="3"/>
-                        <line x1="1380" y1="405" x2="1440" y2="405"
+                        <!-- <rect x="1230" y="373" width="150" height="70"
+                              fill="black" stroke="#00FF4D" stroke-width="3"/> -->
+                        <line x1="1400" y1="405" x2="1440" y2="405"
                               stroke="#00FF4D" stroke-width="2"/>
                         <g font-family="ui-monospace, SFMono-Regular, Menlo,
-                                        Monaco, Consolas, monospace">
-                            <text x="1305" y="398" font-size="16"
-                                  fill="white" text-anchor="middle"
-                                  letter-spacing="0.12em">TANK MIDDLE</text>
+                                        Monaco, Consolas, monospace" transform="translate(45,102)">
                             <text id="HMI_TANK_MIDDLE_TEMP"
-                                  x="1315" y="427" font-size="22"
-                                  font-weight="bold" fill="#FFFFFF"
+                                  x="1315" y="310" font-size="22"
+                                  font-weight="bold" fill="#00FF4D"
                                   text-anchor="end">
-                                <tspan>--.-</tspan>
+                                <tspan>00.0</tspan>
                             </text>
-                            <text x="1320" y="427" font-size="14"
-                                  fill="white" text-anchor="start">°C</text>
+                            <text x="1320" y="310" font-size="22"
+                                  fill="#00FF4D" text-anchor="start">°C</text>
                         </g>
                     </g>
 
                     <!-- Tank BOTTOM temperature -->
-                    <g id="tank-temp-bottom">
-                        <rect x="1230" y="490" width="150" height="70"
-                              fill="black" stroke="#00FF4D" stroke-width="3"/>
-                        <line x1="1380" y1="522" x2="1440" y2="522"
+                    <g id="tank-temp-bottom" transform="translate(0,160)">
+                        <!-- <rect x="1230" y="373" width="150" height="70"
+                              fill="black" stroke="#00FF4D" stroke-width="3"/> -->
+                        <line x1="1400" y1="405" x2="1440" y2="405"
                               stroke="#00FF4D" stroke-width="2"/>
                         <g font-family="ui-monospace, SFMono-Regular, Menlo,
-                                        Monaco, Consolas, monospace">
-                            <text x="1305" y="515" font-size="16"
-                                  fill="white" text-anchor="middle"
-                                  letter-spacing="0.12em">TANK BOTTOM</text>
+                                        Monaco, Consolas, monospace" transform="translate(45,102)">
                             <text id="HMI_TANK_BOTTOM_TEMP"
-                                  x="1315" y="544" font-size="22"
-                                  font-weight="bold" fill="#FFFFFF"
+                                  x="1315" y="310" font-size="22"
+                                  font-weight="bold" fill="#00FF4D"
                                   text-anchor="end">
-                                <tspan>--.-</tspan>
+                                <tspan>00.0</tspan>
                             </text>
-                            <text x="1320" y="544" font-size="14"
-                                  fill="white" text-anchor="start">°C</text>
+                            <text x="1320" y="310" font-size="22"
+                                  fill="#00FF4D" text-anchor="start">°C</text>
                         </g>
                     </g>
 
