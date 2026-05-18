@@ -202,6 +202,7 @@
                         fill="black"
                         stroke="#F79322"
                         stroke-width="3"
+                        transform="translate(10,0) scale(1.25 1)"
                     />
     
                     <!-- O2 Bottle temperature readout -->
@@ -818,7 +819,7 @@
     
     
                     <!-- Ball Valve V12 -->
-                    <g id="ballV12">
+                    <g id="ballV12" transform="translate(48,0)">
                         <path
                             id="Polygon 6_5"
                             d="M162.115 674.772H135.733L148.924 648.39
@@ -1101,7 +1102,7 @@
                     <text x="343" y="768" fill="#FFFFFF" font-family="ui-monospace, SFMono-Regular, Menlo,
                         Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">V-2</text>
     
-                    <text x="93"  y="655" fill="#FFFFFF"
+                    <text x="142"  y="652" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-12</text>
@@ -1285,7 +1286,7 @@
                     />
     
                     <!-- O2 bottle outlet pipe -->
-                    <path id="Vector 7" d="M149 543.879V619.608" stroke="#F79322" stroke-width="2"></path>
+                    <path id="Vector 7" d="M197 543.879V619.608" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- N2O main horizontal run (lower) -->
                     <path
@@ -1312,7 +1313,7 @@
                     />
     
                     <!-- O2 outlet to main line -->
-                    <path id="Vector 12" d="M149 676V738" stroke="#F79322" stroke-width="2"></path>
+                    <path id="Vector 12" d="M197.5 675V738" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- Relief branch and N2O return -->
                     <path
@@ -1332,7 +1333,7 @@
     
                     <!-- Flow line now: spring valve outlet toward V1 -->
                     <line
-                        x1="148.076"
+                        x1="196.5"
                         y1="738.336"
                         x2="332"
                         y2="738.336"
@@ -1507,7 +1508,7 @@
                 <g id="rectangle-HMI">
     
                     <rect id="Rectangle-HMIV12"
-                        x="113.5" y="612.5" width="67" height="73"
+                        x="163" y="612.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV12')" />
