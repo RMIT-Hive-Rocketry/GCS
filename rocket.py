@@ -24,6 +24,7 @@ from cli.start_performance_monitor import start_performance_monitor
 from cli.start_replay_system import (
     start_replay_system,
     get_available_missions,
+    get_available_blue_ravens,
     SimulationType,
 )
 from cli.start_pendant_daemon import start_pendant_daemon
@@ -75,6 +76,9 @@ def cli_decorator_factory(selector: DecoratorSelector) -> Callable:
     )
     _mission_choices = click.Choice(
         get_available_missions(), case_sensitive=False
+    )
+    _blue_raven_choices = click.Choice(
+        get_available_blue_ravens(), case_sensitive=False
     )
     _replay_modes = click.Choice(
         ["mission", "simulation"], case_sensitive=False
@@ -139,6 +143,11 @@ def cli_decorator_factory(selector: DecoratorSelector) -> Callable:
         click.option(
             "--mission",
             type=_mission_choices,
+            help="Select what mission to replay (required for mission mode)",
+        ),
+        click.option(
+            "--blue-raven",
+            type=_blue_raven_choices,
             help="Select what mission to replay (required for mission mode)",
         ),
         click.option(
@@ -302,6 +311,7 @@ def start_services(
     frontend: bool = False,
     replay_mode: str | None = None,
     mission_arg: str | None = None,
+    blue_raven_arg: str | None = None,
     simulation_arg: str | None = None,
     experimental: bool = False,
     corruption: bool = False,
@@ -398,6 +408,7 @@ def start_services(
         replay_mode=replay_mode,
         mission_arg=mission_arg,
         simulation_arg=simulation_arg,
+        blue_raven_arg=blue_raven_arg
     )
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
@@ -415,7 +426,8 @@ def start_services(
             logger,
             aux_service_plan.device_path,
             mission=aux_service_plan.mission,
-            simulation=aux_service_plan.simulation,
+            blue_raven=aux_service_plan.blue_raven,
+            simulation=aux_service_plan.simulation
         )
 
     # 5. Start the event viewer
@@ -560,15 +572,15 @@ def simulation(docker, nobuild, logpkt) -> None:
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, logpkt, mode, mission, simulation) -> None:
+def replay(docker, nobuild, logpkt, mode, mission, blue_raven, simulation) -> None:
     """Start software in simulation mode"""
     if not mode:
         raise click.UsageError("--mode is required for the replay engine")
 
     if mode == "mission":
-        if not mission:
+        if not mission and not blue_raven:
             raise click.UsageError(
-                "--mission is required to run a specified mission"
+                "--mission or --blue-raven is required to run a specified mission"
             )
         if mission == "TEST":
             raise NotImplementedError(f"{mission} has not been implemented yet")
@@ -598,6 +610,7 @@ def replay(docker, nobuild, logpkt, mode, mission, simulation) -> None:
         frontend_only=False,
         replay_mode=mode,
         mission_arg=mission,
+        blue_raven_arg=blue_raven,
         simulation_arg=simulation,
     )
 
