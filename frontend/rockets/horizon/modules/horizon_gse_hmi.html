@@ -259,16 +259,57 @@
                         x="140"
                         y="210"
                         width="20"
-                        height="350"
+                        height="265"
                         rx="3"
                         fill="none"
-                        stroke="#F79322"
+                        stroke="white"
                         stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+
+                    <!-- 2nd Inner tank rect -->
+                    <rect
+                        x="140"
+                        y="485"
+                        width="20"
+                        height="265"
+                        rx="3"
+                        fill="none"
+                        stroke="white"
+                        stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+
+                    <!-- Inner Inner tank rect -->
+                    <rect
+                        x="146"
+                        y="220"
+                        width="8"
+                        height="250"
+                        rx="0"
+                        fill="none"
+                        stroke="#3e98c1"
+                        stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+
+                    <!-- Inside Inner Inner tank rect, TODO: make dynamic maybe somehow -->
+                    <rect
+                        x="146"
+                        y="320"
+                        width="8"
+                        height="150"
+                        rx="0"
+                        fill="#3e98c1"
+                        stroke="#3e98c1"
+                        stroke-width="2"
+                        transform="translate(0,0)"
                     />
     
-                    <!-- Connecting pipe from inner tank to external line -->
-                    <line x1="150" y1="625" x2="-150" y2="625" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
-                    <line x1="150" y1="625" x2="150" y2="560" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <!-- Filler stem pipe lines -->
+                    <line x1="147" y1="800" x2="-150" y2="800" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="147" y1="800" x2="147" y2="471" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="-150" y1="718" x2="-150" y2="800" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
     
                     <!-- Filler stem pipe label -->
                     <text
@@ -359,7 +400,7 @@
                     </g>
 
                     <!-- Tank MIDDLE temperature -->
-                    <g id="tank-temp-middle">
+                    <g id="tank-temp-middle" transform="translate(0,-40)">
                         <!-- <rect x="1230" y="373" width="150" height="70"
                               fill="black" stroke="#00FF4D" stroke-width="3"/> -->
                         <line x1="1400" y1="405" x2="1440" y2="405"
@@ -378,7 +419,7 @@
                     </g>
 
                     <!-- Tank BOTTOM temperature -->
-                    <g id="tank-temp-bottom" transform="translate(0,160)">
+                    <g id="tank-temp-bottom" transform="translate(0,75)">
                         <!-- <rect x="1230" y="373" width="150" height="70"
                               fill="black" stroke="#00FF4D" stroke-width="3"/> -->
                         <line x1="1400" y1="405" x2="1440" y2="405"
