@@ -24,7 +24,7 @@
             viewBox: 0 50 1650 900
             ========================================================= -->
         <svg
-            viewBox="-50 0 1550 1000"
+            viewBox="-50 0 1600 1000"
             style="width: 100%; height: auto;"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -289,29 +289,27 @@
     
     
                 <!-- =================================================
-                    FLIGHT TANK DISPLAY
+                    FLIGHT TANK MASS
                     Shows N₂O flight tank with border and data labels.
                     ================================================= -->
                 <g id="flight-tank-display" transform="translate(0,230)">
     
                     <!-- Green border box and black background -->
-                    <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect>
+                    <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
     
                     <!-- Tank labels -->
                     <g
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
-                        text-anchor="middle"
+                        text-anchor="middle" transform="translate(0,150)"
                     >
                         <!-- Placeholder label - rename when finalized -->
-                        <text x="1305" y="478" font-size="16"
-                              fill="white" letter-spacing="0.12em">N₂O WHAT IS</text>
-                        <text x="1305" y="500" font-size="16"
-                              fill="white" letter-spacing="0.12em">THIS CALLED</text>
-                        <text x="1305" y="522" font-size="16"
-                              fill="white" letter-spacing="0.12em">EXACTLY?</text>
-                        <text x="1305" y="558" font-size="18"
-                              fill="white" font-weight="bold">0.00 kg</text>
+                        <text x="1450" y="480" font-size="16"
+                              fill="white" letter-spacing="0.12em">N₂O MASS IN</text>
+                        <text x="1450" y="500" font-size="16"
+                              fill="white" letter-spacing="0.12em">FLIGHT TANK:</text>
+                        <text x="1450" y="530" font-size="22"
+                              fill="#00FF4D" font-weight="bold">0.00 kg</text>
                     </g>
     
                 </g>
@@ -1464,7 +1462,7 @@
                     Spread evenly across the full 1300px width.
                     All live values updated via statusBarUpdate().
                     ================================================= -->
-                <g id="HMI_status_bar" transform="translate(0, 50)">
+                <g id="HMI_status_bar" transform="translate(0, 110)">
     
                     <!-- Background band -->
                     <rect
