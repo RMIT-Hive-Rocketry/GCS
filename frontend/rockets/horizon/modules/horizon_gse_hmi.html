@@ -84,6 +84,7 @@
                         fill="#3e98c1"
                         stroke="#F79322"
                         stroke-width="3"
+                        transform="translate(-10,0) scale(1.25 1)"
                     />
     
                     <!-- N2O Bottle #2 temperature readout -->
@@ -142,7 +143,7 @@
                         fill="#3e98c1"
                         stroke="#F79322"
                         stroke-width="3"
-                        transform="translate(-2,0)"
+                        transform="translate(50,0) scale(1.25 1)"
                     />
     
                     <!-- N2O Bottle #1 temperature readout -->
@@ -709,7 +710,7 @@
     
     
                     <!-- Ball Valve V8 -->
-                    <g id="ballV8">
+                    <g id="ballV8" transform="translate(70,0)">
                         <path
                             id="Polygon 6"
                             d="M83.1155 304.772H56.7327L69.9241 278.39
@@ -736,7 +737,7 @@
     
     
                     <!-- Ball Valve V9 -->
-                    <g id="ballV9">
+                    <g id="ballV9" transform="translate(44,0)">
                         <path
                             id="Polygon 6_2"
                             d="M224.115 303.772H197.733L210.924 277.39
@@ -1042,12 +1043,12 @@
                     <!-- Shared font style for all valve labels -->
                     <!-- font-family applied individually per element -->
     
-                    <text x="22"  y="285" fill="#FFFFFF"
+                    <text x="93"  y="282" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-8</text>
     
-                    <text x="165" y="285" fill="#FFFFFF"
+                    <text x="210" y="282" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-9</text>
@@ -1249,7 +1250,7 @@
                     </g>
     
                     <!-- N2O bottle manifold connection -->
-                    <path id="Vector 3" d="M69 305V352.607H211V304" stroke="#F79322" stroke-width="2"></path>
+                    <path id="Vector 3" d="M140 305V352.607H255V304" stroke="#F79322" stroke-width="2"></path>
     
                     <!-- N2O manifold to V4 -->
                     <path
@@ -1270,7 +1271,7 @@
                     <!-- N2O bottle #1 to manifold (vertical) -->
                     <path
                         id="Vector 1"
-                        d="M69.5 176V248"
+                        d="M140 176V248"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1278,7 +1279,7 @@
                     <!-- N2O bottle #2 to manifold (vertical) -->
                     <path
                         id="Vector 2"
-                        d="M211 176V247"
+                        d="M255 176V247"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1525,13 +1526,13 @@
     
                     <rect id="Rectangle-HMIV9"
                         x="177.5" y="242.5" width="67" 
-                        height="73" transform="translate(0,-3)"
+                        height="73" transform="translate(45,-3)"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV9')" />
     
                     <rect id="rectangle-HMIV8"
-                        x="35.5" y="240.5" width="67" height="73"
+                        x="106" y="240.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV8')" />
