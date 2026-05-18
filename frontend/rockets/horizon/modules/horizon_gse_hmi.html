@@ -867,74 +867,42 @@
                 <g id="HMI_Indicators">
     
                     <!-- N2O Supply indicator (combined pressure + temperature) -->
-                    <g id="N2O Supply Indicator">
-                        <rect x="335" y="117.5" width="380" height="145" fill="black"/>
-                        <!-- Centered title -->
-                        <text
-                            x="525"
-                            y="150"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace"
-                            font-size="20"
-                            font-weight="bold"
-                            letter-spacing="0.12em"
-                            text-anchor="middle"
-                        >N₂O Supply</text>
-                        <!-- Pressure line (left-aligned) -->
-                        <text
-                            id="hmi-pressure-1"
-                            x="355"
-                            y="200"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace"
-                            font-size="18"
-                            letter-spacing="0.05em"
-                        >Pressure: <tspan>0.00</tspan> bar</text>
-                        <!-- Temperature line (left-aligned) -->
-                        <text
-                            id="HMI_N2O-INTTEMP"
-                            x="355"
-                            y="238"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace"
-                            font-size="18"
-                            letter-spacing="0.05em"
-                        >Temperature: <tspan>0.0</tspan> °C</text>
+                    <g id="N2O Supply Indicator" transform="translate(0,40)">
+                        <rect x="335" y="117.5" width="320" height="110" fill="black"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace"
+                           font-size="16"
+                           letter-spacing="0.12em">
+                            <!-- Centered title -->
+                            <text x="490" y="150" fill="white"
+                                  text-anchor="middle">N₂O Supply</text>
+                            <!-- Pressure label + green bold value -->
+                            <text x="370" y="180" fill="white">Pressure:</text>
+                            <text id="hmi-pressure-1" x="530" y="180"
+                                  fill="#00FF4D" font-weight="bold"><tspan>0.00</tspan> bar</text>
+                            <!-- Temperature label + green bold value -->
+                            <text x="370" y="210" fill="white">Temperature:</text>
+                            <text id="HMI_N2O-INTTEMP" x="530" y="210"
+                                  fill="#00FF4D" font-weight="bold"><tspan>0.0</tspan> °C</text>
+                        </g>
                     </g>
     
     
                     <!-- N2O Filler-Stem Feed indicator -->
-                    <g id="N2O Filler-Stem Feed Indicator">
-                        <rect x="731.5" y="197.5" width="370" height="65" fill="black"/>
-                        <!-- Centered title -->
-                        <text
-                            x="916.5"
-                            y="221"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace"
-                            font-size="16"
-                            font-weight="bold"
-                            letter-spacing="0.12em"
-                            text-anchor="middle"
-                        >N₂O Filler-Stem Feed</text>
-                        <!-- Pressure line (left-aligned) -->
-                        <text
-                            id="hmi-pressure-2"
-                            x="751.5"
-                            y="251"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace"
-                            font-size="16"
-                            letter-spacing="0.05em"
-                        >Pressure: <tspan>0.00</tspan> bar</text>
+                    <g id="N2O Filler-Stem Feed Indicator" transform="translate(0,40)">
+                        <rect x="731.5" y="117.5" width="320" height="80" fill="black"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace"
+                           font-size="16"
+                           letter-spacing="0.12em">
+                            <!-- Centered title -->
+                            <text x="892.5" y="150" fill="white"
+                                  text-anchor="middle">N₂O Filler-Stem Feed</text>
+                            <!-- Pressure label + green bold value -->
+                            <text x="761.5" y="180" fill="white">Pressure:</text>
+                            <text id="hmi-pressure-2" x="930" y="180"
+                                  fill="#00FF4D" font-weight="bold"><tspan>0.00</tspan> bar</text>
+                        </g>
                     </g>
     
     
@@ -944,31 +912,19 @@
     
                     <!-- O2 Supply indicator -->
                     <g id="O2 Supply Indicator">
-                        <rect x="560.5" y="593.5" width="310" height="65" fill="black"/>
-                        <!-- Centered title -->
-                        <text
-                            x="715.5"
-                            y="617"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace"
-                            font-size="16"
-                            font-weight="bold"
-                            letter-spacing="0.12em"
-                            text-anchor="middle"
-                        >O₂ Supply</text>
-                        <!-- Pressure line (left-aligned) -->
-                        <text
-                            id="hmi-pressure-3"
-                            x="580.5"
-                            y="647"
-                            fill="white"
-                            font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace"
-                            font-size="16"
-                            letter-spacing="0.05em"
-                        >Pressure: <tspan>0.00</tspan> bar</text>
+                        <rect x="525.5" y="580" width="300" height="80" fill="black"/>
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace"
+                           font-size="16"
+                           letter-spacing="0.12em">
+                            <!-- Centered title -->
+                            <text x="675" y="610" fill="white"
+                                  text-anchor="middle">O₂ Supply</text>
+                            <!-- Pressure label + green bold value -->
+                            <text x="560" y="640" fill="white">Pressure:</text>
+                            <text id="hmi-pressure-3" x="700" y="640"
+                                  fill="#00FF4D" font-weight="bold"><tspan>0.00</tspan> bar</text>
+                        </g>
                     </g>
     
                 </g>
