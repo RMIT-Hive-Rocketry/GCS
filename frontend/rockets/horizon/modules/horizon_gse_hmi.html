@@ -866,125 +866,109 @@
                     ================================================= -->
                 <g id="HMI_Indicators">
     
-                    <!-- N2O In Pressure indicator -->
-                    <g id="N2O In indicator" transform="translate(-130, -10)">
-                        <rect id="Rectangle 16" x="465" y="207.5" width="380" height="65" fill="black" stroke="#00FF4D" stroke-width="3"></rect>
-                        <!-- Value display box -->
-                        <rect
-                            id="Rectangle 11"
-                            x="760"
-                            y="224"
-                            width="70"
-                            height="32"
-                            fill="black"
-                            stroke="white"
-                            stroke-width="1"
-                        />
-                        <text x="475" y="240" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace" font-size="16" letter-spacing="0.12em" dominant-baseline="middle">
-                            N₂O BOTTLE PRESSURE (BAR)
-                        </text>
+                    <!-- N2O Supply indicator (combined pressure + temperature) -->
+                    <g id="N2O Supply Indicator">
+                        <rect x="335" y="117.5" width="380" height="145" fill="black"/>
+                        <!-- Centered title -->
+                        <text
+                            x="525"
+                            y="150"
+                            fill="white"
+                            font-family="ui-monospace, SFMono-Regular, Menlo,
+                                Monaco, Consolas, monospace"
+                            font-size="20"
+                            font-weight="bold"
+                            letter-spacing="0.12em"
+                            text-anchor="middle"
+                        >N₂O Supply</text>
+                        <!-- Pressure line (left-aligned) -->
                         <text
                             id="hmi-pressure-1"
-                            x="795"
-                            y="248"
+                            x="355"
+                            y="200"
                             fill="white"
                             font-family="ui-monospace, SFMono-Regular, Menlo,
                                 Monaco, Consolas, Liberation Mono,
                                 Courier New, monospace"
-                            font-size="22"
-                            font-weight="bold"
-                            text-anchor="middle"
-                            letter-spacing="0em"
-                        >
-                            <tspan>0.00</tspan>
-                        </text>
+                            font-size="18"
+                            letter-spacing="0.05em"
+                        >Pressure: <tspan>0.00</tspan> bar</text>
+                        <!-- Temperature line (left-aligned) -->
+                        <text
+                            id="HMI_N2O-INTTEMP"
+                            x="355"
+                            y="238"
+                            fill="white"
+                            font-family="ui-monospace, SFMono-Regular, Menlo,
+                                Monaco, Consolas, Liberation Mono,
+                                Courier New, monospace"
+                            font-size="18"
+                            letter-spacing="0.05em"
+                        >Temperature: <tspan>0.0</tspan> °C</text>
                     </g>
     
     
-                    <!-- N2O Out Pressure indicator -->
-                    <g id="N20 Out Indicator" transform="translate(-50, -10)">
-                        <rect
-                            id="Rectangle 18"
-                            x="781.5"
-                            y="207.5"
-                            width="370"
-                            height="65"
-                            fill="black"
-                            stroke="#00FF4D"
-                            stroke-width="3"
-                        />
+                    <!-- N2O Filler-Stem Feed indicator -->
+                    <g id="N2O Filler-Stem Feed Indicator">
+                        <rect x="731.5" y="197.5" width="370" height="65" fill="black"/>
+                        <!-- Centered title -->
                         <text
-                            x="790"
-                            y="240"
+                            x="916.5"
+                            y="221"
                             fill="white"
                             font-family="ui-monospace, SFMono-Regular, Menlo,
                                 Monaco, Consolas, monospace"
                             font-size="16"
+                            font-weight="bold"
                             letter-spacing="0.12em"
-                            dominant-baseline="middle"
-                        >
-                            N₂O TANK PRESSURE (BAR)
-                        </text>
-                        <!-- Value display box -->
-                        <rect
-                            id="Rectangle_19"
-                            x="1066.5"
-                            y="224"
-                            width="70"
-                            height="32"
-                            fill="black"
-                            stroke="white"
-                        />
+                            text-anchor="middle"
+                        >N₂O Filler-Stem Feed</text>
+                        <!-- Pressure line (left-aligned) -->
                         <text
                             id="hmi-pressure-2"
-                            x="1101.5"
-                            y="248"
+                            x="751.5"
+                            y="251"
                             fill="white"
                             font-family="ui-monospace, SFMono-Regular, Menlo,
                                 Monaco, Consolas, Liberation Mono,
                                 Courier New, monospace"
-                            font-size="22"
+                            font-size="16"
+                            letter-spacing="0.05em"
+                        >Pressure: <tspan>0.00</tspan> bar</text>
+                    </g>
+    
+    
+                    <!-- N2O Internal Temperature indicator: merged into N2O Supply box above. -->
+
+    
+    
+                    <!-- O2 Supply indicator -->
+                    <g id="O2 Supply Indicator">
+                        <rect x="560.5" y="593.5" width="310" height="65" fill="black"/>
+                        <!-- Centered title -->
+                        <text
+                            x="715.5"
+                            y="617"
+                            fill="white"
+                            font-family="ui-monospace, SFMono-Regular, Menlo,
+                                Monaco, Consolas, monospace"
+                            font-size="16"
                             font-weight="bold"
+                            letter-spacing="0.12em"
                             text-anchor="middle"
-                            letter-spacing="0em"
-                        >
-                            <tspan>0.00</tspan>
-                        </text>
-                    </g>
-    
-    
-                    <!-- N2O Internal Temperature indicator -->
-                    <g id="N2O Temp Indicator" transform="translate(-676.5, -80)">
-                        <rect id="Rectangle 5" x="1011.5" y="197.5" width="380" height="65" fill="black" stroke="#00FF4D" stroke-width="3"></rect>
-                        <text x="1020" y="230" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace" font-size="16" letter-spacing="0.12em" dominant-baseline="middle">
-                            N₂O TEMPERATURE (°C)
-                        </text>
-                        <!-- Value display box -->
-                        <rect id="Rectangle_13" x="1306.5" y="214" width="70" height="32" fill="black" stroke="white"></rect>
-                        <text id="HMI_N2O-INTTEMP" x="1341.5" y="238" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                        >O₂ Supply</text>
+                        <!-- Pressure line (left-aligned) -->
+                        <text
+                            id="hmi-pressure-3"
+                            x="580.5"
+                            y="647"
+                            fill="white"
+                            font-family="ui-monospace, SFMono-Regular, Menlo,
                                 Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace" font-size="22" font-weight="bold" text-anchor="middle" letter-spacing="0em">
-                            <tspan>0.00</tspan>
-                        </text>
-                    </g>
-    
-    
-                    <!-- O2 Pressure indicator -->
-                    <g id="O2 Press Indicator">
-                        <rect id="Rectangle 10" x="560.5" y="593.5" width="310" height="65" fill="black" stroke="#00FF4D" stroke-width="3"></rect>
-                        <text x="570" y="626" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, monospace" font-size="16" letter-spacing="0.12em" dominant-baseline="middle">
-                            O₂ PRESSURE (BAR)
-                        </text>
-                        <!-- Value display box -->
-                        <rect id="Rectangle_15" x="785.5" y="610" width="70" height="32" fill="black" stroke="white"></rect>
-                        <text id="hmi-pressure-3" x="820.5" y="634" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
-                                Monaco, Consolas, Liberation Mono,
-                                Courier New, monospace" font-size="22" font-weight="bold" text-anchor="middle" letter-spacing="0em">
-                            <tspan>0.00</tspan>
-                        </text>
+                                Courier New, monospace"
+                            font-size="16"
+                            letter-spacing="0.05em"
+                        >Pressure: <tspan>0.00</tspan> bar</text>
                     </g>
     
                 </g>
