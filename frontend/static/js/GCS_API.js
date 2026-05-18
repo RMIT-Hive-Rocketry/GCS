@@ -85,7 +85,8 @@ const soundsList_losses = filenames_losses.map(src => {
 
 // Other non-alarm sounds
 /* TODO: Add "Rocket_Hit" to this list when the application can detect
- * the rocket potentially hitting an unsafe target. To play it,
+ * the rocket potentially hitting an unsafe target (and Rocket_Warn for
+ * the rocket coming within 50m of the control station). To play it,
  * call playOtherSound() with said string as the argument.
 */
 const filenames_other = ["Apogee", "Parachute"];
