@@ -1566,28 +1566,33 @@
                     <!-- Background band -->
                     <rect
                         x="0" y="847"
-                        width="1300" height="40"
+                        width="1330" height="40"
                         fill="#0a0a0a"
-                        stroke="#F79322"
-                        stroke-width="1"
                     />
     
                     <!-- SECTION 1: ROCKET FILL TIMER-->
                     <text
                         x="16" y="867"
-                        fill="#888888"
+                        fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="14" letter-spacing="0.12em"
+                        font-size="18" letter-spacing="0.12em"
                         dominant-baseline="middle"
                     >ROCKET FILL TIMER</text>
                     <text
                         id="sb-fill-timer"
-                        x="195" y="867"
+                        x="250" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="16"
+                        font-size="18"
                         dominant-baseline="middle"
                     >--</text>
+                    <text
+                        x="280" y="867"
+                        fill="#00FF4D"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18"
+                        dominant-baseline="middle"
+                    >s</text>
     
                     <!-- Separator 1 -->
                     <line x1="325" y1="848" x2="325" y2="886" 
@@ -1596,69 +1601,69 @@
                     <!-- SECTION 2: N₂O IN-->
                     <text
                         x="341" y="867"
-                        fill="#888888"
+                        fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="14" letter-spacing="0.12em"
+                        font-size="18" letter-spacing="0.12em"
                         dominant-baseline="middle"
-                    >N₂O IN</text>
+                    >N₂O SUPPLY</text>
                     <text
                         id="sb-n2o-in"
-                        x="412" y="867"
+                        x="482" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="16"
+                        font-size="18"
                         dominant-baseline="middle"
-                    >0.00 bar</text>
+                    >00.0 bar</text>
     
                     <!-- Separator 2 -->
-                    <line x1="520" y1="848" x2="520" y2="886"
+                    <line x1="580" y1="848" x2="580" y2="886"
                         stroke="#444444" stroke-width="1" />
     
                     <!-- SECTION 3: O₂-->
                     <text
-                        x="536" y="867"
-                        fill="#888888"
+                        x="596" y="867"
+                        fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="14" letter-spacing="0.12em"
+                        font-size="18" letter-spacing="0.12em"
                         dominant-baseline="middle"
-                    >O₂</text>
+                    >O₂ SUPPLY</text>
                     <text
                         id="sb-o2"
-                        x="570" y="867"
+                        x="730" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="16"
+                        font-size="18"
                         dominant-baseline="middle"
-                    >0.00 bar</text>
+                    >00.0 bar</text>
     
                     <!-- Separator 3 -->
-                    <line x1="780" y1="848" x2="780" y2="886" 
+                    <line x1="830" y1="848" x2="830" y2="886" 
                         stroke="#444444" stroke-width="1" />
     
                     <!-- SECTION 4: LAST UPDATE-->
-                    <text x="796" y="867" fill="#888888"
+                    <text x="850" y="867" fill="white"
                     font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                    font-size="14" letter-spacing="0.12em" dominant-baseline="middle"
+                    font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
                     >LAST UPDATE</text>
-                    <text id="sb-last-update" x="907" y="867" 
+                    <text id="sb-last-update" x="1000" y="867" 
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="16" dominant-baseline="middle"
+                        font-size="18" dominant-baseline="middle"
                     >:--</text>
 
                     <!-- Separator 4 -->
-                    <line x1="1040" y1="848" x2="1040" y2="886" 
+                    <line x1="1100" y1="848" x2="1100" y2="886" 
                         stroke="#444444" stroke-width="1" />
 
                     <!-- SECTION 5: DATE -->
-                    <text x="1056" y="867" fill="#888888"
+                    <text x="1120" y="867" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="14" letter-spacing="0.12em" dominant-baseline="middle"
+                        font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
                     >DATE</text>
-                    <text id="sb-date" x="1100" y="867" 
+                    <text id="sb-date" x="1200" y="867" 
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="16" dominant-baseline="middle"
+                        font-size="18" dominant-baseline="middle"
                     >----</text>
 
                 </g>
@@ -1999,14 +2004,14 @@
                 const n2oEl = document.getElementById("sb-n2o-in");
                 if (n2oEl && data?.pressure_n2o_bottle != undefined) {
                     n2oEl.textContent =
-                        Number(data.pressure_n2o_bottle).toFixed(2) + " bar";
+                        Number(data.pressure_n2o_bottle).toFixed(1) + " bar";
                 }
     
                 // O₂ pressure
                 const o2El = document.getElementById("sb-o2");
                 if (o2El && data?.pressure_n2o_tank != undefined) {
                     o2El.textContent =
-                        Number(data.pressure_n2o_tank).toFixed(2) + " bar";
+                        Number(data.pressure_n2o_tank).toFixed(1) + " bar";
                 }
             }
     
