@@ -24,6 +24,18 @@ def get_available_missions() -> list[str]:
         if os.path.isdir(os.path.join(mission_path, d))
     ]
 
+def get_available_blue_ravens() -> list[str]:
+    """Scans the blue_raven directory and then returns the available missions"""
+    blue_raven_path = os.path.join("backend", "replay_system", "blue_raven")
+    if not os.path.exists(blue_raven_path):
+        return []
+
+    return [
+        d
+        for d in os.listdir(blue_raven_path)
+        if os.path.exists(os.path.join(blue_raven_path, d))
+    ]
+
 
 def get_mission_path(mission: str | None) -> str:
     """Get the mission path from the command line argument, validation should exist already"""
@@ -45,6 +57,7 @@ def start_replay_system(
     logger: logging.Logger,
     device: str,
     mission: str | None = None,
+    blue_raven: str | None = None,
     simulation: str | None = None,
 ) -> tuple[None, None] | None:
     """Starts the replay system either in simulation mode or mission mode
@@ -53,15 +66,24 @@ def start_replay_system(
         logger: Logger
         device: device
         mission: Mission directory name
+        blue-raven: Mission blue raven file
         simulation: Simulation type
     """
     service_name = "replay system"
     try:
-        if mission and simulation:
-            raise ValueError("Can't have both simulation and mission data")
-
-        if not mission and not simulation:
-            raise ValueError("Must have either mission or simulation type")
+        args = 0
+        if mission:
+            args += 1
+        if blue_raven:
+            args += 1
+        if simulation:
+            args += 1
+        
+        if args == 0:
+            raise ValueError("Must have either mission or blue-raven or simulation type")
+        if args > 1:
+            raise ValueError("Can only have one of simulation, mission or blue-raven data")
+        
         replay_command = [
             sys.executable,
             "-u",
@@ -69,8 +91,11 @@ def start_replay_system(
             "--device-rocket",
             device,
         ]
+
         if mission:
             replay_command.extend(["--mode", "mission", "--mission", mission])
+        elif blue_raven:
+            replay_command.extend(["--mode", "mission", "--blue-raven", blue_raven])
         elif simulation:
             replay_command.extend(
                 ["--mode", "simulation", "--simulation", simulation]

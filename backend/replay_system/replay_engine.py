@@ -4,7 +4,6 @@ Replay the following CSV files
 
 """
 
-from dataclasses import dataclass
 import os
 import csv
 import time
@@ -18,7 +17,8 @@ from backend.device_emulator import (
 )
 import backend.includes_python.process_logging as slogger
 import backend.includes_python.service_helper as service_helper
-from backend.replay_system.packet_type import PacketType
+from backend.replay_system.packet import PacketType, Packet
+from backend.replay_system.blue_raven_processor import process_blue_raven, get_blue_raven_path
 import configparser
 import argparse
 
@@ -28,14 +28,6 @@ timeout_cfg = cfg["Timeout"]
 MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
 MAX_FRAME_RATE = float(timeout_cfg["max_frame_rate"])
-
-
-@dataclass
-class Packet:
-    timestamp_ms: float
-    packet_type: PacketType
-    data: dict
-
 
 def process_csv_packets(
     min_timestamp_ms: int, mission_path: str
@@ -398,6 +390,7 @@ def main():
         "--mode", choices=["simulation", "mission"], required=True
     )
     parser.add_argument("--mission", help="Check the mission directory names")
+    parser.add_argument("--blue-raven", help="Check the blue raven file path")
     parser.add_argument(
         "--simulation", choices=["TEST", "legacy", "FAIL", "DEMO"]
     )
@@ -406,20 +399,35 @@ def main():
     # mission_path = get_mission_path()
     try:
         if args.mode == "mission":
-            if not args.mission:
-                raise ValueError("No mission has been provided")
-            mission_path = os.path.join(get_mission_path(), args.mission)
-            if not os.path.exists(mission_path):
-                raise FileNotFoundError(
-                    f"No mission direction found at: {mission_path}"
-                )
-            if str(args.mission).lower() == "test":
-                raise NotImplementedError("Test has not been implemented")
-            slogger.info(f"Starting mission replay for {args.mission}")
+            if args.mission and args.blue_raven:
+                raise ValueError("Do not provide --blue-raven and --mission at the same time")
+            
+            if args.mission:
+                mission_path = os.path.join(get_mission_path(), args.mission)
+                if not os.path.exists(mission_path):
+                    raise FileNotFoundError(
+                        f"No mission direction found at: {mission_path}"
+                    )
+                
+                if str(args.mission).lower() == "test":
+                    raise NotImplementedError("Test has not been implemented")
+                slogger.info(f"Starting mission replay for {args.mission}")
 
-            processed_packets = process_csv_packets(
-                MIN_TIMESTAMP_MS, mission_path
-            )
+                processed_packets = process_csv_packets(
+                    MIN_TIMESTAMP_MS, mission_path
+                )
+            elif args.blue_raven:
+                blue_raven_path = os.path.join(get_blue_raven_path(), args.blue_raven)
+                if not os.path.exists(blue_raven_path):
+                    raise FileNotFoundError(f"Blue Raven file not found: {blue_raven_path}")
+                
+                if str(args.blue_raven).lower() == "test":
+                    raise NotImplementedError("Test has not been implemented")
+                
+                slogger.info(f"Starting Blue Raven replay from {args.blue_raven}")
+                processed_packets = process_blue_raven(blue_raven_path)
+            else:
+                raise ValueError("--mission requires also providing either the --mission or --blue-raven flag")
         else:
             from backend.simulation.run_simulation import get_replay_sim_data
 
