@@ -313,11 +313,11 @@
     
                     <!-- Filler stem pipe label -->
                     <text
-                        x="3"
-                        y="600"
+                        x="0"
+                        y="785"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
-                        font-size="14"
+                        font-size="16"
                         fill="white"
                         text-anchor="middle"
                         letter-spacing="0.12em"
@@ -333,7 +333,7 @@
                     FLIGHT TANK MASS
                     Shows N₂O flight tank with border and data labels.
                     ================================================= -->
-                <g id="flight-tank-display" transform="translate(0,230)">
+                <g id="flight-tank-display" transform="translate(0,300)">
     
                     <!-- Green border box and black background -->
                     <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
@@ -354,7 +354,34 @@
                     </g>
     
                 </g>
-                <!-- end #flight-tank-display -->
+                <!-- end flight tank mass -->
+
+                <!-- =================================================
+                    N2O VENT TEMPERATURE SECTION
+                    ================================================= -->
+                <g id="flight-tank-display" transform="translate(-200,220)">
+    
+                    <!-- Green border box and black background -->
+                    <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
+    
+                    <!-- Tank labels -->
+                    <g
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        text-anchor="middle" transform="translate(0,170)"
+                    >
+                        <!-- TODO: HOOK UP TO JAVASCRIPT -->
+                        <text x="1450" y="480" font-size="16"
+                              fill="white" letter-spacing="0.12em">N₂O VENT TEMPERATURE:</text>
+                        <text x="1450" y="510" font-size="22"
+                              fill="#00FF4D" font-weight="bold">00.0 °C</text>
+                    </g>
+    
+                    <!-- vent temp line -->
+                    <line x1="1500" y1="673" x2="1653" y2="673" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="1653" y1="673" x2="1653" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
+                </g>
+                <!-- end N2O VENT TEMPERATURE -->
 
                 <!-- =================================================
                     TANK TEMPERATURES
