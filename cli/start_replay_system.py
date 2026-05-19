@@ -33,9 +33,8 @@ def get_available_blue_ravens() -> list[str]:
     return [
         d
         for d in os.listdir(blue_raven_path)
-        if os.path.exists(os.path.join(blue_raven_path, d))
+        if os.path.isdir(os.path.join(blue_raven_path, d))
     ]
-
 
 def get_mission_path(mission: str | None) -> str:
     """Get the mission path from the command line argument, validation should exist already"""
