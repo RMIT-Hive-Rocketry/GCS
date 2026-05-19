@@ -66,19 +66,25 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
     if service_helper.time_to_stop():
         return
 
-    next_earliest_frame_time = start_time
+    next_earliest_frame_time_av1 = start_time
+    next_earliest_frame_time_av2 = start_time
     for packet in packets:
         if service_helper.time_to_stop():
             break
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
 
-        # skip frame if too soon
-        if target_time < next_earliest_frame_time:
-            continue
-
-        # current packet will be sent, therefore update the next earliest allowed frame_time
-        next_earliest_frame_time += 1 / MAX_FRAME_RATE
+        # skip frame if too soon, importantly checks data 1 and 2 seperate as otherwise often end up skipping all AV2 data
+        if packet.packet_type == PacketType.AV_TO_GCS_DATA_1:
+            if target_time < next_earliest_frame_time_av1:
+                continue
+            # current packet will be sent, therefore update the next earliest allowed frame_time
+            next_earliest_frame_time_av1 += 1 / MAX_FRAME_RATE
+        if packet.packet_type == PacketType.AV_TO_GCS_DATA_2:
+            if target_time < next_earliest_frame_time_av2:
+                continue
+            # current packet will be sent, therefore update the next earliest allowed frame_time
+            next_earliest_frame_time_av2 += 1 / MAX_FRAME_RATE
 
         time_to_wait = target_time - time.time()
 
@@ -425,7 +431,7 @@ def main():
                     raise NotImplementedError("Test has not been implemented")
                 
                 slogger.info(f"Starting Blue Raven replay from {args.blue_raven}")
-                processed_packets = process_blue_raven(blue_raven_path)
+                processed_packets = process_blue_raven(args.blue_raven)
             else:
                 raise ValueError("--mission requires also providing either the --mission or --blue-raven flag")
         else:

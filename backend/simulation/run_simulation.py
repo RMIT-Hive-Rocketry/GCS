@@ -10,7 +10,7 @@ import backend.includes_python.service_helper as service_helper
 import config.config as config
 import configparser
 from backend.replay_system.replay_engine import Packet
-from backend.replay_system.packet_type import PacketType
+from backend.replay_system.packet import PacketType
 
 # Setting up enum
 
