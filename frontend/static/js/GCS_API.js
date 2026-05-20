@@ -82,11 +82,16 @@ const soundsList_losses = filenames_losses.map(src => {
     return { source: audioObject, active: false };
 });
 
-// Other non-alarm sounds
+// Other non-alarm sounds (uncomment the below when done).
 /* TODO: Add "Rocket_Hit" to this list when the application can detect
- * the rocket potentially hitting an unsafe target (and Rocket_Warn for
- * the rocket coming within 50m of the control station). To play it,
- * call playOtherSound() with said string as the argument.
+ * the rocket imminently about to hit someone on the head (and Rocket_Warn
+ * for the rocket coming within 50m of the control station). To play either
+ * sound, call playOtherSound() with the respective string as the argument.
+ * 
+ * The volume of Rocket_Warn should be inversely proportional to said distance,
+ * set using .volume(), which accepts values in range [0.0, 1.0]. Lastly, more
+ * complex logic will be required to program any loops as the other sounds in this
+ * array do not require then.
 */
 const filenames_other = ["Apogee", "Parachute"];
 const soundsList_other = filenames_other.map(src => {
