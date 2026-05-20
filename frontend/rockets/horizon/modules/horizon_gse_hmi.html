@@ -24,7 +24,7 @@
             viewBox: 0 50 1650 900
             ========================================================= -->
         <svg
-            viewBox="-50 0 1600 1000"
+            viewBox="-50 0 1600 1020"
             style="width: 100%; height: auto;"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -1556,111 +1556,112 @@
     
                 <!-- =================================================
                     STATUS BAR
-                    Sits at y=847, below the diagram (lowest content ~y=827).
-                    Shows: ROCKET FILL TIMER | N₂O IN | O₂ | LAST UPDATE | DATE
-                    Spread evenly across the full 1300px width.
                     All live values updated via statusBarUpdate().
                     ================================================= -->
-                <g id="HMI_status_bar" transform="translate(0, 110)">
-    
+                <g id="HMI_status_bar" transform="translate(180, 90)">
+
                     <!-- Background band -->
                     <rect
                         x="0" y="847"
-                        width="1330" height="40"
+                        width="900" height="80"
                         fill="#0a0a0a"
                     />
-    
-                    <!-- SECTION 1: ROCKET FILL TIMER-->
+
+                    <!-- Horizontal divider between the two rows -->
+                    <line x1="0" y1="887" x2="900" y2="887"
+                        stroke="#444444" stroke-width="1" />
+
+                    <!-- ============== TOP ROW: SUPPLIES ============== -->
+
+                    <!-- SECTION: N₂O SUPPLY -->
                     <text
                         x="16" y="867"
                         fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18" letter-spacing="0.12em"
                         dominant-baseline="middle"
-                    >ROCKET FILL TIMER</text>
+                    >N₂O Supply:</text>
                     <text
-                        id="sb-fill-timer"
-                        x="250" y="867"
+                        id="sb-n2o-in"
+                        x="157" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18"
                         dominant-baseline="middle"
-                    >--</text>
-                    <text
-                        x="280" y="867"
-                        fill="#00FF4D"
-                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                        font-size="18"
-                        dominant-baseline="middle"
-                    >s</text>
-    
-                    <!-- Separator 1 -->
-                    <line x1="325" y1="848" x2="325" y2="886" 
+                    >00.0 bar</text>
+
+                    <!-- Separator (top row) -->
+                    <line x1="325" y1="848" x2="325" y2="886"
                         stroke="#444444" stroke-width="1" />
-    
-                    <!-- SECTION 2: N₂O IN-->
+
+                    <!-- SECTION: O₂ SUPPLY -->
                     <text
                         x="341" y="867"
                         fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18" letter-spacing="0.12em"
                         dominant-baseline="middle"
-                    >N₂O SUPPLY</text>
+                    >O₂ Supply:</text>
                     <text
-                        id="sb-n2o-in"
-                        x="482" y="867"
+                        id="sb-o2"
+                        x="480" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18"
                         dominant-baseline="middle"
                     >00.0 bar</text>
-    
-                    <!-- Separator 2 -->
-                    <line x1="580" y1="848" x2="580" y2="886"
-                        stroke="#444444" stroke-width="1" />
-    
-                    <!-- SECTION 3: O₂-->
+
+                    <!-- ============== BOTTOM ROW: TIMER / UPDATE / DATE ============== -->
+
+                    <!-- SECTION: ROCKET FILL TIMER -->
                     <text
-                        x="596" y="867"
+                        x="16" y="907"
                         fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18" letter-spacing="0.12em"
                         dominant-baseline="middle"
-                    >O₂ SUPPLY</text>
+                    >Rocket-Fill Time:</text>
                     <text
-                        id="sb-o2"
-                        x="730" y="867"
+                        id="sb-fill-timer"
+                        x="250" y="907"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18"
                         dominant-baseline="middle"
-                    >00.0 bar</text>
-    
-                    <!-- Separator 3 -->
-                    <line x1="830" y1="848" x2="830" y2="886" 
+                    >--</text>
+                    <text
+                        x="280" y="907"
+                        fill="#00FF4D"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18"
+                        dominant-baseline="middle"
+                    >s</text>
+
+                    <!-- Separator (bottom row) -->
+                    <line x1="325" y1="888" x2="325" y2="926"
                         stroke="#444444" stroke-width="1" />
-    
-                    <!-- SECTION 4: LAST UPDATE-->
-                    <text x="850" y="867" fill="white"
-                    font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                    font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
-                    >LAST UPDATE</text>
-                    <text id="sb-last-update" x="1000" y="867" 
+
+                    <!-- SECTION: LAST UPDATE -->
+                    <text x="341" y="907" fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
+                    >Last Update:</text>
+                    <text id="sb-last-update" x="491" y="907"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18" dominant-baseline="middle"
                     >:--</text>
 
-                    <!-- Separator 4 -->
-                    <line x1="1100" y1="848" x2="1100" y2="886" 
+                    <!-- Separator (bottom row) -->
+                    <line x1="620" y1="888" x2="620" y2="926"
                         stroke="#444444" stroke-width="1" />
 
-                    <!-- SECTION 5: DATE -->
-                    <text x="1120" y="867" fill="white"
+                    <!-- SECTION: DATE -->
+                    <text x="636" y="907" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
-                    >DATE</text>
-                    <text id="sb-date" x="1200" y="867" 
+                    >Date:</text>
+                    <text id="sb-date" x="716" y="907"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18" dominant-baseline="middle"
