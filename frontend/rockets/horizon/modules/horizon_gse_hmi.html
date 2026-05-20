@@ -558,7 +558,7 @@
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-1</text>
                     <text x="477" y="340" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-2</text>
-                    <text x="897" y="340" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    <text x="1050" y="340" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-3</text>
                     <text x="255" y="725" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-4</text>
@@ -669,7 +669,7 @@
     
     
                     <!-- Solenoid Valve V5 — N2O fill, state-controlled -->
-                    <g id="solenoidsV5">
+                    <g id="solenoidsV5" transform="translate(150,0)">
                         <g id="needle">
                             <g id="Polygon 9_4"
                                 filter="url(#filter6_d_172_821)">
@@ -745,7 +745,7 @@
     
     
                     <!-- Solenoid Valve V7 — manual purge, normally open -->
-                    <g id="solenoidsV7">
+                    <g id="solenoidsV7" transform="translate(110,0)">
                         <g id="needle_3">
                             <g id="Polygon 9_6"
                                 filter="url(#filter10_d_172_821)">
@@ -919,7 +919,7 @@
     
     
                     <!-- Backflow Check Valve V13 -->
-                    <g id="backflowV13">
+                    <g id="backflowV13" transform="translate(-110,0)">
                         <g id="Group 2">
                             <path
                                 id="Ellipse 3"
@@ -1132,12 +1132,12 @@
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-4</text>
     
-                    <text x="665"  y="380" fill="#FFFFFF"
+                    <text x="814"  y="380" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-5</text>
     
-                    <text x="6"  y="504" fill="#FFFFFF"
+                    <text x="660"  y="504" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-3</text>
@@ -1147,12 +1147,12 @@
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-10</text>
     
-                    <text x="915"  y="431" fill="#FFFFFF"
+                    <text x="1025"  y="431" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-7</text>
     
-                    <text x="1015" y="380" fill="#FFFFFF"
+                    <text x="905" y="380" fill="#FFFFFF"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="14" letter-spacing="0.1em">V-13</text>
@@ -1237,7 +1237,7 @@
                 </g>
     
                 <!-- Pressure Recorder 2 (N2O upper line) -->
-                <g id="HMI_pressure_recorder2" transform="translate(49, 0)">
+                <g id="HMI_pressure_recorder2" transform="translate(200, 0)">
                     <circle id="Ellipse 2_2" cx="881" cy="301" r="19.5"
                         stroke="white" />
                     <path
@@ -1363,7 +1363,7 @@
                     <!-- Upper right routing: backflow to tank -->
                     <path
                         id="Vector 27"
-                        d="M1055.5 737H1150V577.5M881 350H968.5H1002M1059 350H1150V438"
+                        d="M1055.5 737H1150V577.5M945 350H950H1060M1059 350H1150V438"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1425,7 +1425,14 @@
                     <!-- V4 to recorder to V5 -->
                     <path
                         id="Vector 16"
-                        d="M431 351H553.015H649"
+                        d="M430 351H806"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+
+                    <path
+                        id="Vector 16_1"
+                        d="M849 351H899"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1467,7 +1474,7 @@
                     <!-- N2O main horizontal run (upper) -->
                     <path
                         id="Vector 17"
-                        d="M703.5 350H881M879.673 553.5H478.5"
+                        d="M995 553.5H478.5"
                         stroke="#F79322"
                         stroke-width="2"
                     />
@@ -1475,8 +1482,8 @@
                     <!-- V5 vertical drop and pressure recorder branch -->
                     <path
                         id="Vector 20"
-                        d="M880.562 351L880.711 405.165M880.561
-                           554.496L880.711 450.5"
+                        d="M995 351L995 405.165M995
+                           554.496L995 450.5"
                         stroke="#F79322"
                         stroke-width="2"
                     />
