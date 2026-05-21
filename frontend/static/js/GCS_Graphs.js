@@ -112,8 +112,14 @@ function graphCreateLine(chart) {
     if (chart.margin == undefined) {
         chart.margin = DEFAULT_MARGINS;
     }
-    chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
-    chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
+    
+    /* If the 1st parameter is 0, this would throw -ve dimension errors.
+     * This would happen if boundingRect gave 0-dimensions (such as in the
+     * diagnostics graphs where the devices aren't hardcoded and hence).
+    */
+    chart.graphWidth = Math.abs(chart.width - chart.margin.left - chart.margin.right);
+    chart.graphHeight = Math.abs(chart.height - chart.margin.top - chart.margin.bottom);
+
     chart.x = d3.scaleLinear().range([0, chart.graphWidth]);
     chart.y = d3.scaleLinear().range([chart.graphHeight, 0]);
 
@@ -224,8 +230,14 @@ function graphResize(chart) {
         .attr("preserveAspectRatio", "xMidYMid meet");
 
     // Recalculate graph drawing area
-    chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
-    chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
+    
+    /* If the 1st parameter is 0, this would throw -ve dimension errors.
+     * This would happen if boundingRect gave 0-dimensions (such as in the
+     * diagnostics graphs where the devices aren't hardcoded and hence).
+    */
+    chart.graphWidth = Math.abs(chart.width - chart.margin.left - chart.margin.right);
+    chart.graphHeight = Math.abs(chart.height - chart.margin.top - chart.margin.bottom);
+
 
     // Update axes
     chart.x.range([0, chart.graphWidth]);
