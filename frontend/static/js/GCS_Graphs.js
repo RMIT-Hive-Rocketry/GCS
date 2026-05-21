@@ -312,13 +312,7 @@ function graphRender(chart) {
             chart.x.domain([windowStart, now]);
             chart.y.domain([yMin, yMax]); //.nice();
             // Update rendering of X and Y domain
-            const xTickValues = [
-                Math.round(windowStart),
-                Math.round(windowStart + (now - windowStart) * 0.25),
-                Math.round(windowStart + (now - windowStart) * 0.50),
-                Math.round(windowStart + (now - windowStart) * 0.75),
-                Math.round(now),
-            ];
+            
             
             chart.g
                 .select("g")
@@ -326,31 +320,8 @@ function graphRender(chart) {
                 .duration(0)
                 .call(
                     d3.axisBottom(chart.x)
-                        .tickValues(xTickValues)
-                        .tickFormat((d, i) => {
-                            if (i === xTickValues.length - 1) {
-                                return "now";
-                            }
-
-                            const secondsAgo = Math.max(0, Math.round(now - d));
-                            return `-${secondsAgo}s`;
-                        }),
+                        .tickFormat((d) => (Number.isInteger(d) ? d : ""))
                 );
-
-            // Fix edge alignment of first and last labels
-            const xTicks = chart.g.select("g").selectAll(".tick");
-
-            xTicks
-                .filter((d, i) => i === 0)
-                .select("text")
-                .style("text-anchor", "start")
-                .attr("dx", "0.2em");
-
-            xTicks
-                .filter((d, i) => i === xTickValues.length - 1)
-                .select("text")
-                .style("text-anchor", "end")
-                .attr("dx", "-0.2em");
 
             chart.yAxis
                 .transition()
@@ -613,6 +584,10 @@ function graphUpdateAuxData(data) {
 const diagGraphs     = {}; // deviceName → graph object (with pingValues[])
 const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
 const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
+const DIAG_RENDER_LATENCY_SECONDS = 1.8;
+function diagNowSeconds() {
+    return performance.now() / 1000;
+}
 
 // Returns a CSS-safe ID string from a device name
 function diagSafeId(deviceName) {
@@ -621,7 +596,7 @@ function diagSafeId(deviceName) {
 
 // ── Left panel: create/update a device card ──────────────────────
 function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
-    const alive = ping >= 0;
+    const alive = ping > 0;
     const safeId   = diagSafeId(deviceName);
     const listEl   = document.getElementById("diag-device-list");
     if (!listEl) return;
@@ -677,7 +652,7 @@ function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
             </div>
 
             <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Packets</span>
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Updates</span>
                 <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pktsText}</span>
             </div>
         </div>
@@ -920,10 +895,7 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
 
 // ── Main entry point: called by GCS_API.js when packet 50 arrives ─
 function graphUpdateDiagnostics(apiData) {
-    const timestamp =
-        typeof timestampLocal !== "undefined"
-            ? timestampLocal + timestampApiConnect - timeDrift
-            : performance.now() / 1000;
+    const timestamp = diagNowSeconds();
 
     let gseWorstPing = null;
     let lanWorstPing = null;
@@ -937,7 +909,7 @@ function graphUpdateDiagnostics(apiData) {
         const ping        = deviceData.ping        ?? -1;
         const packetLoss  = deviceData.packet_loss  ?? null;
         const packetCount = deviceData.packet_count ?? null;
-        const alive       = ping >= 0;
+        const alive       = ping > 0;
 
         totalCount++;
         if (alive) onlineCount++;
@@ -990,17 +962,6 @@ function graphUpdateDiagnostics(apiData) {
 
 // Renders all diagnostics ping graphs every animation frame
 function graphRenderDiagnostics() {
-
-    window.timestampLocal = performance.now() / 1000;
-
-    if (typeof window.timestampApiConnect === "undefined") {
-        window.timestampApiConnect = 0;
-    }
-
-    if (typeof window.timeDrift === "undefined") {
-        window.timeDrift = 0;
-    }
-
     Object.values(diagGraphs).forEach((graph) => {
         diagRenderGraph(graph);
     });
@@ -1012,12 +973,10 @@ function diagRenderGraph(graph) {
     const allPoints = graph.lines.flatMap((line) => line.data);
     if (allPoints.length === 0) return;
 
-    const latestPointTime = d3.max(allPoints, (d) => d.x);
-    const renderNow = timestampLocal + timestampApiConnect - timeDrift;
+    const renderNow = diagNowSeconds();
+    const now = renderNow - DIAG_RENDER_LATENCY_SECONDS;
 
-    const now = Number.isFinite(renderNow)
-        ? Math.max(renderNow, latestPointTime)
-        : latestPointTime;
+    if (!Number.isFinite(now)) return;
 
     const windowStart = now - MAX_TIME;
 
@@ -1081,81 +1040,80 @@ function diagRenderGraph(graph) {
         graph.g.selectAll(".line-path").remove();
         graph.g.selectAll(".line-dot").remove();
 
-    graph.lines.forEach((lineData) => {
-        const visibleData = lineData.data.filter(
-            (d) => d.x >= windowStart && d.x <= now
-        );
-
-        const normalData = visibleData
-        .filter((d) => d.y > 0)
-        .map((d) => ({
-            x: d.x,
-            y: d.y,
-        }));
-
-        const stepLine = d3
-            .line()
-            .x((d) => graph.x(d.x))
-            .y((d) => graph.y(d.y))
-            .curve(d3.curveStepAfter);
-
-            const stepPath = graph.g.selectAll(".diag-step-line")
-            .data([normalData]);
+        graph.lines.forEach((lineData) => {
+            const visibleData = lineData.data.filter(
+                (d) => d.x >= windowStart && d.x <= now
+            );
         
-        stepPath
-            .enter()
-            .append("path")
-            .attr("class", "diag-step-line")
-            .attr("fill", "none")
-            .attr("stroke", "#22d3ee")
-            .attr("stroke-width", 2.5)
-            .attr("stroke-opacity", 0.95)
-            .attr("stroke-linecap", "round")
-            .attr("stroke-linejoin", "round")
-            .merge(stepPath)
-            .attr("d", stepLine);
-        
-        stepPath.exit().remove();
+            // Blue step line uses ONLY valid positive ping values.
+            const previousNormalPoint = [...lineData.data]
+            .reverse()
+            .find((d) => d.x < windowStart && d.y > 0);
 
-            const zeroPingData = visibleData.filter((d) => d.y === 0);
-            const disconnectedData = visibleData.filter((d) => d.y < 0);
-            
-            const zeroBars = graph.g.selectAll(".diag-zero-ping-bar")
-            .data(zeroPingData, d => d.x);
-        
-        zeroBars
-            .enter()
-            .append("line")
-            .attr("class", "diag-zero-ping-bar")
-            .attr("stroke", "#22d3ee")
-            .attr("stroke-width", 8)
-            .attr("stroke-opacity", 0.55)
-            .attr("stroke-linecap", "butt")
-            .merge(zeroBars)
-            .attr("x1", d => graph.x(d.x))
-            .attr("x2", d => graph.x(d.x))
-            .attr("y1", graph.y(1))
-            .attr("y2", graph.y(500));
-        
-        zeroBars.exit().remove();
-            
-        const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
-    .data(disconnectedData, d => d.x);
+            const normalData = visibleData.filter((d) => d.y > 0);
 
-    disconnectBars
-        .enter()
-        .append("line")
-        .attr("class", "diag-disconnect-bar")
-        .attr("stroke", "#ef4444")
-        .attr("stroke-width", 8)
-        .attr("stroke-opacity", 0.8)
-        .attr("stroke-linecap", "butt")
-        .merge(disconnectBars)
-        .attr("x1", d => graph.x(d.x))
-        .attr("x2", d => graph.x(d.x))
-        .attr("y1", graph.y(1))
-        .attr("y2", graph.y(500));
-
-    disconnectBars.exit().remove();
+            // Use the previous point's Y value, but start drawing exactly at windowStart.
+            // This prevents the step line from drawing into the Y-axis area.
+            const displayData = previousNormalPoint
+                ? [{ x: windowStart, y: previousNormalPoint.y }, ...normalData]
+                : normalData.slice();
+        
+            const lastNormalPoint = displayData[displayData.length - 1];
+        
+            if (
+                lastNormalPoint &&
+                lastNormalPoint.x < now
+            ) {
+                displayData.push({
+                    x: now,
+                    y: lastNormalPoint.y,
                 });
             }
+        
+            const stepLine = d3
+                .line()
+                .x((d) => graph.x(d.x))
+                .y((d) => graph.y(Math.max(1, Math.min(500, d.y))))
+                .curve(d3.curveStepAfter);
+        
+            const stepPath = graph.g.selectAll(".diag-step-line")
+                .data([displayData]);
+        
+            stepPath
+                .enter()
+                .append("path")
+                .attr("class", "diag-step-line")
+                .attr("fill", "none")
+                .attr("stroke", "#22d3ee")
+                .attr("stroke-width", 2.5)
+                .attr("stroke-opacity", 0.95)
+                .attr("stroke-linecap", "round")
+                .attr("stroke-linejoin", "round")
+                .merge(stepPath)
+                .attr("d", stepLine);
+        
+            stepPath.exit().remove();
+        
+            // Red vertical bars use ONLY disconnected ping values.
+            const disconnectedData = visibleData.filter((d) => d.y === -1);
+        
+            const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
+                .data(disconnectedData, (d) => d.x);
+        
+            disconnectBars
+                .enter()
+                .append("line")
+                .attr("class", "diag-disconnect-bar")
+                .attr("stroke", "#ef4444")
+                .attr("stroke-width", 8)
+                .attr("stroke-opacity", 0.9)
+                .attr("stroke-linecap", "butt")
+                .merge(disconnectBars)
+                .attr("x1", (d) => graph.x(d.x))
+                .attr("x2", (d) => graph.x(d.x))
+                .attr("y1", graph.y(1))
+                .attr("y2", graph.y(500));
+        
+            disconnectBars.exit().remove();
+        });            
+    }
