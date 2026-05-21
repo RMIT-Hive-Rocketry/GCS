@@ -1011,10 +1011,12 @@ function diagRenderGraph(graph) {
     const allPoints = graph.lines.flatMap((line) => line.data);
     if (allPoints.length === 0) return;
 
-    const now = Math.max(
-        d3.max(allPoints, (d) => d.x),
-        timestampLocal + timestampApiConnect - timeDrift,
-    );
+    const latestPointTime = d3.max(allPoints, (d) => d.x);
+    const renderNow = timestampLocal + timestampApiConnect - timeDrift;
+
+    const now = Number.isFinite(renderNow)
+        ? Math.max(renderNow, latestPointTime)
+        : latestPointTime;
 
     const windowStart = now - MAX_TIME;
 
@@ -1075,9 +1077,6 @@ function diagRenderGraph(graph) {
         .attr("y", top)
         .attr("height", yellowTop - top);
 
-        graph.g.selectAll(".diag-step-line").remove();
-        graph.g.selectAll(".diag-zero-ping-bar").remove();
-        graph.g.selectAll(".diag-disconnect-bar").remove();
         graph.g.selectAll(".line-path").remove();
         graph.g.selectAll(".line-dot").remove();
 
@@ -1099,9 +1098,12 @@ function diagRenderGraph(graph) {
             .y((d) => graph.y(d.y))
             .curve(d3.curveStepAfter);
 
-        graph.g
+            const stepPath = graph.g.selectAll(".diag-step-line")
+            .data([normalData]);
+        
+        stepPath
+            .enter()
             .append("path")
-            .datum(normalData)
             .attr("class", "diag-step-line")
             .attr("fill", "none")
             .attr("stroke", "#22d3ee")
@@ -1109,37 +1111,50 @@ function diagRenderGraph(graph) {
             .attr("stroke-opacity", 0.95)
             .attr("stroke-linecap", "round")
             .attr("stroke-linejoin", "round")
+            .merge(stepPath)
             .attr("d", stepLine);
+        
+        stepPath.exit().remove();
 
             const zeroPingData = visibleData.filter((d) => d.y === 0);
             const disconnectedData = visibleData.filter((d) => d.y < 0);
             
-        graph.g.selectAll(".diag-zero-ping-bar")
-                .data(zeroPingData)
-                .enter()
-                .append("line")
-                .attr("class", "diag-zero-ping-bar")
-                .attr("x1", d => graph.x(d.x))
-                .attr("x2", d => graph.x(d.x))
-                .attr("y1", graph.y(1))
-                .attr("y2", graph.y(500))
-                .attr("stroke", "#22d3ee")
-                .attr("stroke-width", 8)
-                .attr("stroke-opacity", 0.55)
-                .attr("stroke-linecap", "butt");
+            const zeroBars = graph.g.selectAll(".diag-zero-ping-bar")
+            .data(zeroPingData, d => d.x);
+        
+        zeroBars
+            .enter()
+            .append("line")
+            .attr("class", "diag-zero-ping-bar")
+            .attr("stroke", "#22d3ee")
+            .attr("stroke-width", 8)
+            .attr("stroke-opacity", 0.55)
+            .attr("stroke-linecap", "butt")
+            .merge(zeroBars)
+            .attr("x1", d => graph.x(d.x))
+            .attr("x2", d => graph.x(d.x))
+            .attr("y1", graph.y(1))
+            .attr("y2", graph.y(500));
+        
+        zeroBars.exit().remove();
             
-        graph.g.selectAll(".diag-disconnect-bar")
-                .data(disconnectedData)
-                .enter()
-                .append("line")
-                .attr("class", "diag-disconnect-bar")
-                .attr("x1", d => graph.x(d.x))
-                .attr("x2", d => graph.x(d.x))
-                .attr("y1", graph.y(1))
-                .attr("y2", graph.y(500))
-                .attr("stroke", "#ef4444")
-                .attr("stroke-width", 8)
-                .attr("stroke-opacity", 0.8)
-                .attr("stroke-linecap", "butt");
+        const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
+    .data(disconnectedData, d => d.x);
+
+    disconnectBars
+        .enter()
+        .append("line")
+        .attr("class", "diag-disconnect-bar")
+        .attr("stroke", "#ef4444")
+        .attr("stroke-width", 8)
+        .attr("stroke-opacity", 0.8)
+        .attr("stroke-linecap", "butt")
+        .merge(disconnectBars)
+        .attr("x1", d => graph.x(d.x))
+        .attr("x2", d => graph.x(d.x))
+        .attr("y1", graph.y(1))
+        .attr("y2", graph.y(500));
+
+    disconnectBars.exit().remove();
                 });
             }
