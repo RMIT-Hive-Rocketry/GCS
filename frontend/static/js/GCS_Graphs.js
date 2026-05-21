@@ -782,14 +782,14 @@ function diagEnsureGraph(deviceName) {
 // ── Middle panel: update badge, graph line, and stats ────────────
 function diagUpdateGraph(deviceName, ping, alive, timestamp) {
     const safeId = diagSafeId(deviceName);
-    const graph  = diagGraphs[deviceName];
+    const graph = diagGraphs[deviceName];
 
     // Badge
     const badge = document.getElementById(`diag-badge-${safeId}`);
     if (badge) {
-        badge.textContent       = alive ? "ONLINE" : "OFFLINE";
-        badge.style.background  = alive ? "#4ade80" : "#ef4444";
-        badge.style.color       = alive ? "black"   : "white";
+        badge.textContent = alive ? "ONLINE" : "OFFLINE";
+        badge.style.background = alive ? "#4ade80" : "#ef4444";
+        badge.style.color = alive ? "black" : "white";
     }
 
     // Graph data + stats
@@ -798,15 +798,14 @@ function diagUpdateGraph(deviceName, ping, alive, timestamp) {
 
         // Update diagnostics threshold layer positions
         if (graph?.g && graph?.graphHeight) {
-
             const greenTop = graph.y(100);
             const yellowTop = graph.y(200);
-            const bottom = graph.y(0);
+            const bottom = graph.y(1);
             const top = graph.y(500);
 
             const layers = graph.g.selectAll(".diag-threshold-layer");
 
-            // GREEN: 0–100ms
+            // GREEN: 1–100ms
             d3.select(layers.nodes()[0])
                 .attr("y", greenTop)
                 .attr("height", bottom - greenTop);
@@ -821,29 +820,37 @@ function diagUpdateGraph(deviceName, ping, alive, timestamp) {
                 .attr("y", top)
                 .attr("height", yellowTop - top);
         }
+
         // This keeps disconnected values from affecting average/min/max stats.
-        if (alive) {
+        // Ping 0 is a special graph marker, so it is also excluded from stats.
+        if (ping > 0) {
             graph.pingValues.push(ping);
             if (graph.pingValues.length > 300) graph.pingValues.shift();
         }
 
-        const avg = graph.pingValues.reduce((a, b) => a + b, 0) / graph.pingValues.length;
-        const min = Math.min(...graph.pingValues);
-        const max = Math.max(...graph.pingValues);
-
         const statsEl = document.getElementById(`diag-stats-${safeId}`);
+
         if (statsEl) {
-            statsEl.innerHTML = `
-                <span>Avg: ${avg.toFixed(1)} ms</span><span>|</span>
-                <span>Min: ${min.toFixed(0)} ms</span><span>|</span>
-                <span>Max: ${max.toFixed(0)} ms</span>
-            `;
+            if (graph.pingValues.length > 0) {
+                const avg = graph.pingValues.reduce((a, b) => a + b, 0) / graph.pingValues.length;
+                const min = Math.min(...graph.pingValues);
+                const max = Math.max(...graph.pingValues);
+
+                statsEl.innerHTML = `
+                    <span>Avg: ${avg.toFixed(1)} ms</span><span>|</span>
+                    <span>Min: ${min.toFixed(0)} ms</span><span>|</span>
+                    <span>Max: ${max.toFixed(0)} ms</span>
+                `;
+            } else {
+                statsEl.innerHTML =
+                    "<span>Avg: -- ms</span><span>|</span><span>Min: -- ms</span><span>|</span><span>Max: -- ms</span>";
+            }
         }
     } else {
         const statsEl = document.getElementById(`diag-stats-${safeId}`);
         if (statsEl) {
             statsEl.innerHTML =
-                "<span>Avg: --</span><span>|</span><span>Min: --</span><span>|</span><span>Max: --</span>";
+                "<span>Avg: -- ms</span><span>|</span><span>Min: -- ms</span><span>|</span><span>Max: -- ms</span>";
         }
     }
 }
