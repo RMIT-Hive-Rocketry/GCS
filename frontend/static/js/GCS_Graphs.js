@@ -1104,8 +1104,9 @@ function diagRenderGraph(graph) {
             .datum(normalData)
             .attr("class", "diag-step-line")
             .attr("fill", "none")
-            .attr("stroke", "#00f5ff")
-            .attr("stroke-width", 3)
+            .attr("stroke", "#22d3ee")
+            .attr("stroke-width", 2.5)
+            .attr("stroke-opacity", 0.95)
             .attr("stroke-linecap", "round")
             .attr("stroke-linejoin", "round")
             .attr("d", stepLine);
@@ -1113,7 +1114,7 @@ function diagRenderGraph(graph) {
             const zeroPingData = visibleData.filter((d) => d.y === 0);
             const disconnectedData = visibleData.filter((d) => d.y < 0);
             
-            graph.g.selectAll(".diag-zero-ping-bar")
+        graph.g.selectAll(".diag-zero-ping-bar")
                 .data(zeroPingData)
                 .enter()
                 .append("line")
@@ -1122,11 +1123,12 @@ function diagRenderGraph(graph) {
                 .attr("x2", d => graph.x(d.x))
                 .attr("y1", graph.y(1))
                 .attr("y2", graph.y(500))
-                .attr("stroke", "#00f5ff")
-                .attr("stroke-width", 14)
+                .attr("stroke", "#22d3ee")
+                .attr("stroke-width", 8)
+                .attr("stroke-opacity", 0.55)
                 .attr("stroke-linecap", "butt");
             
-                graph.g.selectAll(".diag-disconnect-bar")
+        graph.g.selectAll(".diag-disconnect-bar")
                 .data(disconnectedData)
                 .enter()
                 .append("line")
@@ -1135,8 +1137,9 @@ function diagRenderGraph(graph) {
                 .attr("x2", d => graph.x(d.x))
                 .attr("y1", graph.y(1))
                 .attr("y2", graph.y(500))
-                .attr("stroke", "#ff0000")
-                .attr("stroke-width", 14)
+                .attr("stroke", "#ef4444")
+                .attr("stroke-width", 8)
+                .attr("stroke-opacity", 0.8)
                 .attr("stroke-linecap", "butt");
                 });
             }
