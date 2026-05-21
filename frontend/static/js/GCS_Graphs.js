@@ -620,7 +620,7 @@ function diagSafeId(deviceName) {
 
 // ── Left panel: create/update a device card ──────────────────────
 function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
-    const alive = ping > 0;
+    const alive = ping >= 0;
     const safeId   = diagSafeId(deviceName);
     const listEl   = document.getElementById("diag-device-list");
     if (!listEl) return;
@@ -794,7 +794,7 @@ function diagUpdateGraph(deviceName, ping, alive, timestamp) {
 
     // Graph data + stats
     if (graph) {
-        graphAddValue(graph, 0, timestamp, alive ? ping : 0);
+        graphAddValue(graph, 0, timestamp, ping);
 
         // Update diagnostics threshold layer positions
         if (graph?.g && graph?.graphHeight) {
@@ -821,7 +821,7 @@ function diagUpdateGraph(deviceName, ping, alive, timestamp) {
                 .attr("y", top)
                 .attr("height", yellowTop - top);
         }
-        //This stops 0 or disconnected values from ruining the average/min/max stats.
+        // This keeps disconnected values from affecting average/min/max stats.
         if (alive) {
             graph.pingValues.push(ping);
             if (graph.pingValues.length > 300) graph.pingValues.shift();
@@ -929,7 +929,7 @@ function graphUpdateDiagnostics(apiData) {
         const ping        = deviceData.ping        ?? -1;
         const packetLoss  = deviceData.packet_loss  ?? null;
         const packetCount = deviceData.packet_count ?? null;
-        const alive       = ping > 0;
+        const alive       = ping >= 0;
 
         totalCount++;
         if (alive) onlineCount++;
@@ -1018,7 +1018,7 @@ function diagRenderGraph(graph) {
     });
 
     graph.x.domain([windowStart, now]);
-    graph.y.domain([0, 500]);
+    graph.y.domain([1, 500]);
 
     graph.g
         .select("g")
@@ -1035,7 +1035,7 @@ function diagRenderGraph(graph) {
         .duration(0)
         .call(
             d3.axisLeft(graph.y)
-                .tickValues([0, 100, 200, 300, 400, 500])
+                .tickValues([1, 100, 200, 300, 400, 500])
                 .tickFormat((d) => `${d}`)
         );
 
@@ -1045,7 +1045,7 @@ function diagRenderGraph(graph) {
 
     const greenTop = graph.y(100);
     const yellowTop = graph.y(200);
-    const bottom = graph.y(0);
+    const bottom = graph.y(1);
     const top = graph.y(500);
 
     const layers = graph.g.selectAll(".diag-threshold-layer");
@@ -1069,20 +1069,21 @@ function diagRenderGraph(graph) {
         .attr("height", yellowTop - top);
 
         graph.g.selectAll(".diag-step-line").remove();
+        graph.g.selectAll(".diag-zero-ping-bar").remove();
         graph.g.selectAll(".diag-disconnect-bar").remove();
         graph.g.selectAll(".line-path").remove();
         graph.g.selectAll(".line-dot").remove();
-        //graph.g.selectAll(".diag-step-line").remove();
-        // graph.g.selectAll(".diag-disconnect-bar").remove();
 
     graph.lines.forEach((lineData) => {
         const visibleData = lineData.data.filter(
             (d) => d.x >= windowStart && d.x <= now
         );
 
-        const normalData = visibleData.map((d) => ({
+        const normalData = visibleData
+        .filter((d) => d.y > 0)
+        .map((d) => ({
             x: d.x,
-            y: Math.max(d.y, 5),
+            y: d.y,
         }));
 
         const stepLine = d3
@@ -1102,19 +1103,33 @@ function diagRenderGraph(graph) {
             .attr("stroke-linejoin", "round")
             .attr("d", stepLine);
 
-        const disconnectedData = visibleData.filter((d) => d.y <= 0);
-
-        graph.g.selectAll(".diag-disconnect-bar")
-            .data(disconnectedData)
-            .enter()
-            .append("line")
-            .attr("class", "diag-disconnect-bar")
-            .attr("x1", d => graph.x(d.x))
-            .attr("x2", d => graph.x(d.x))
-            .attr("y1", graph.y(0))
-            .attr("y2", graph.y(500))
-            .attr("stroke", "#ff0000")
-            .attr("stroke-width", 14)
-            .attr("stroke-linecap", "butt");
-    });
-}
+            const zeroPingData = visibleData.filter((d) => d.y === 0);
+            const disconnectedData = visibleData.filter((d) => d.y < 0);
+            
+            graph.g.selectAll(".diag-zero-ping-bar")
+                .data(zeroPingData)
+                .enter()
+                .append("line")
+                .attr("class", "diag-zero-ping-bar")
+                .attr("x1", d => graph.x(d.x))
+                .attr("x2", d => graph.x(d.x))
+                .attr("y1", graph.y(1))
+                .attr("y2", graph.y(500))
+                .attr("stroke", "#00f5ff")
+                .attr("stroke-width", 14)
+                .attr("stroke-linecap", "butt");
+            
+                graph.g.selectAll(".diag-disconnect-bar")
+                .data(disconnectedData)
+                .enter()
+                .append("line")
+                .attr("class", "diag-disconnect-bar")
+                .attr("x1", d => graph.x(d.x))
+                .attr("x2", d => graph.x(d.x))
+                .attr("y1", graph.y(1))
+                .attr("y2", graph.y(500))
+                .attr("stroke", "#ff0000")
+                .attr("stroke-width", 14)
+                .attr("stroke-linecap", "butt");
+                });
+            }
