@@ -2066,9 +2066,6 @@
             // Colour palettes
             // ---------------------------------------------------------------
     
-            // Three-state colour: red | green | yellow
-            const color = ["#FF0000", "#00FF4D", "#FFF600"];
-    
             // Two-state colour for valves: red = closed, green = open
             const colorBoolean = ["#FF0000", "#00FF4D"];
     
@@ -2232,49 +2229,6 @@
     
                 elem.innerHTML = value.toFixed(1);
             }
-    
-    
-            // ---------------------------------------------------------------
-            // hmiUpdateTemperature(fillId, value, barId)
-            // Sets fill colour based on temperature bands and adjusts the
-            // white overlay bar height to represent the current reading.
-            //
-            //   < 15°C  → green  (cold / safe fill temp)
-            //   15–25°C → yellow (nominal)
-            //   > 25°C  → red    (too warm)
-            //
-            // Bar height maps 0–36°C linearly onto 0–69 px.
-            // ---------------------------------------------------------------
-            function hmiUpdateTemperature(fillId, value, barId) {
-                const gauge    = document.getElementById(fillId);
-                const gaugeBar = document.getElementById(barId);
-                if (!gauge) return;
-    
-                // Colour band logic
-                if (value < 15) {
-                    gauge.setAttribute("fill", color[1]);      // green
-                } else if (value <= 25) {
-                    gauge.setAttribute("fill", color[2]);      // yellow
-                } else {
-                    gauge.setAttribute("fill", color[0]);      // red
-                }
-    
-                // Bar height: full when cold, empty when hot
-                const MAX_HEIGHT = 69;
-                const TEMP_MAX   = 36;
-                let barHeight;
-    
-                if (value < 0) {
-                    barHeight = MAX_HEIGHT;
-                } else if (value > TEMP_MAX) {
-                    barHeight = 0;
-                } else {
-                    barHeight = MAX_HEIGHT - (value / TEMP_MAX) * MAX_HEIGHT;
-                }
-    
-                gaugeBar.setAttribute("height", barHeight);
-            }
-    
     
             // ---------------------------------------------------------------
             // hmiUpdateSolenoid(id, state)
