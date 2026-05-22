@@ -1,5 +1,5 @@
 from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python import service_helper
 
 
 def main() -> None:

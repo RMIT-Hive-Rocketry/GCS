@@ -1,5 +1,5 @@
 import logging
-import cli.process as process
+from cli import process
 from enum import Enum
 import os
 from pathlib import Path

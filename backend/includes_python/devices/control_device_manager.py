@@ -1,6 +1,6 @@
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
-import config.config as config
+from config import config
 from collections.abc import Callable
 
 
@@ -20,7 +20,7 @@ class ControlDeviceManager:
 
     def add_managed_device(
         self, name: str, import_func: Callable[[], type[ControlDevice]]
-    ):
+    ) -> None:
         self.managed_devices[name] = import_func
 
     def get_control_device(self) -> ControlDevice:
@@ -47,8 +47,10 @@ if __name__ == "__main__":
 
     manager = ControlDeviceManager()
 
-    def example_import():
-        from backend.includes_python.devices.control_device import ControlDevice
+    def example_import() -> type[ControlDevice]:
+        from backend.includes_python.devices.control_device import (  # noqa: PLC0415 lazy import
+            ControlDevice,
+        )
 
         return ControlDevice
 

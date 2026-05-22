@@ -7,15 +7,14 @@ import backend.includes_python.process_logging as slogger
 import zmq
 import os
 import time
-import backend.device_emulator as device_emulator
-import backend.includes_python.service_helper as service_helper
+from backend import device_emulator
+from backend.includes_python import service_helper
 from backend.includes_python.timers import RepeatingTimer
 from backend.includes_python.devices.control_device_manager import (
     ControlDeviceManager,
 )
 from backend.includes_python.devices.control_device import ControlDevice
-
-import config.config as config
+from config import config
 
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
