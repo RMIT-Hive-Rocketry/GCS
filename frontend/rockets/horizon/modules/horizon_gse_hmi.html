@@ -2116,9 +2116,9 @@
     
                 // O₂ pressure
                 const o2El = document.getElementById("sb-o2");
-                if (o2El && data?.pressure_n2o_tank != undefined) {
+                if (o2El && data?.pressure_o2_tank != undefined) {
                     o2El.textContent =
-                        Number(data.pressure_n2o_tank).toFixed(1) + " bar";
+                        Number(data.pressure_o2_tank).toFixed(1) + " bar";
                 }
             }
     
@@ -2160,7 +2160,7 @@
                 }
                 if (data?.pressure_n2o_tank) {
                     // O2 pressure
-                    hmiUpdateValue("hmi-pressure-3", data.pressure_n2o_tank);
+                    hmiUpdateValue("hmi-pressure-3", data.pressure_o2_tank);
                 }
     
                 // Thermocouples (°C)
