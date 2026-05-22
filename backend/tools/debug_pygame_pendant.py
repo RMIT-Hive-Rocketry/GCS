@@ -1,7 +1,7 @@
 from backend.includes_python.devices.pygame_devices import (
     HybridPygamePendant,
 )
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python import service_helper
 
 import faulthandler
 import signal

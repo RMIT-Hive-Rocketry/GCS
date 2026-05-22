@@ -1,8 +1,7 @@
 import logging
-import cli.process as process
+from cli import process
 import os
 from enum import StrEnum
-import config.config as config
 from dataclasses import dataclass
 
 

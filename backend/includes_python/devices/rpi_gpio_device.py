@@ -1,3 +1,5 @@
+from typing import ClassVar
+from typing_extensions import override
 from backend.includes_python.devices.control_device import ControlDevice
 from backend.includes_python.devices.pendant_state import PendantState
 import backend.includes_python.process_logging as slogger
@@ -39,7 +41,7 @@ class RPI_GPIO_Device(ControlDevice):
     # PIN9 -> GND
 
     # What GPIO ports represent the logical input
-    PIN_MAP = {
+    PIN_MAP: ClassVar[dict[int, str]] = {
         4: "SYS_ON",
         17: "FILL_SELECTED",
         27: "IGNITION_SELECTED",
@@ -50,8 +52,9 @@ class RPI_GPIO_Device(ControlDevice):
         5: "PURGE_ACTIVE",
     }
 
-    def _setup_device(self):
-        self.buttons = {
+    @override
+    def _setup_device(self) -> None:
+        self.buttons: dict[int, Button] = {
             pin: Button(pin, pull_up=False, bounce_time=0.05)
             for pin in RPI_GPIO_Device.PIN_MAP
         }
@@ -59,7 +62,8 @@ class RPI_GPIO_Device(ControlDevice):
     def __init__(self):
         super().__init__()
 
-    def _update_state_table(self):
+    @override
+    def _update_state_table(self) -> None:
         """Updates instance attributes and returns a dictionary of the current states."""
         for pin, attr in RPI_GPIO_Device.PIN_MAP.items():
             setattr(self, attr, self.buttons[pin].is_pressed)
@@ -67,4 +71,8 @@ class RPI_GPIO_Device(ControlDevice):
             attr: getattr(self, attr)
             for attr in RPI_GPIO_Device.PIN_MAP.values()
         }
-        self.state_table = PendantState(states)
+        self.state_table: PendantState = PendantState(states)
+
+    @override
+    def cleanup(self) -> None:
+        return super().cleanup()

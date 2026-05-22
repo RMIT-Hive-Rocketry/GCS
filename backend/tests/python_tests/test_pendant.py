@@ -1,7 +1,5 @@
+from typing_extensions import override
 from backend.includes_python.devices.control_device import ControlDevice
-from backend.includes_python.devices.control_device_manager import (
-    ControlDeviceManager,
-)
 from backend.includes_python.devices.pendant_state import (
     PendantState,
     PendantInput,
@@ -10,13 +8,16 @@ from typing import Never
 
 
 class ExampleControlDevice(ControlDevice):
+    @override
     def _setup_device(self) -> None:
         pass
 
+    @override
     def _update_state_table(self) -> None:
         # simulate not getting packets
         pass
 
+    @override
     def cleanup(self) -> None:
         return super().cleanup()
 

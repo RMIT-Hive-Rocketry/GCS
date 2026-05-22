@@ -228,36 +228,36 @@ class AVtoGCSData1(MockPacket):
         RSSI: float = 0.0,
         SNR: float = 61,
         FLIGHT_STATE_: int = 0,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=2048 * 1,
-        ACCEL_LOW_Y=2048 * 2,
-        ACCEL_LOW_Z=-2048 * 3,
-        ACCEL_HIGH_X=-1024 * 1,
-        ACCEL_HIGH_Y=-1024 * 2,
-        ACCEL_HIGH_Z=1024 * 3,
-        GYRO_X=int(1 / 0.00875),
-        GYRO_Y=int(2 / 0.00875),
-        GYRO_Z=int(3 / 0.00875),
-        ALTITUDE=1234,
-        VELOCITY=1234,
-        APOGEE_PRIMARY_TEST_COMPETE=True,
-        APOGEE_SECONDARY_TEST_COMPETE=False,
-        APOGEE_PRIMARY_TEST_RESULTS=False,
-        APOGEE_SECONDARY_TEST_RESULTS=False,
-        MAIN_PRIMARY_TEST_COMPETE=True,
-        MAIN_SECONDARY_TEST_COMPETE=False,
-        MAIN_PRIMARY_TEST_RESULTS=False,
-        MAIN_SECONDARY_TEST_RESULTS=False,
-        MOVE_TO_BROADCAST=False,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool = False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool = False,
+        GPS_FIX_FLAG: bool = False,
+        PAYLOAD_CONNECTION_FLAG: bool = True,
+        CAMERA_CONTROLLER_CONNECTION: bool = True,
+        ACCEL_LOW_X: int = 2048 * 1,
+        ACCEL_LOW_Y: int = 2048 * 2,
+        ACCEL_LOW_Z: int = -2048 * 3,
+        ACCEL_HIGH_X: int = -1024 * 1,
+        ACCEL_HIGH_Y: int = -1024 * 2,
+        ACCEL_HIGH_Z: int = 1024 * 3,
+        GYRO_X: int = int(1 / 0.00875),
+        GYRO_Y: int = int(2 / 0.00875),
+        GYRO_Z: int = int(3 / 0.00875),
+        ALTITUDE: int = 1234,
+        VELOCITY: int = 1234,
+        APOGEE_PRIMARY_TEST_COMPETE: bool = True,
+        APOGEE_SECONDARY_TEST_COMPETE: bool = False,
+        APOGEE_PRIMARY_TEST_RESULTS: bool = False,
+        APOGEE_SECONDARY_TEST_RESULTS: bool = False,
+        MAIN_PRIMARY_TEST_COMPETE: bool = True,
+        MAIN_SECONDARY_TEST_COMPETE: bool = False,
+        MAIN_PRIMARY_TEST_RESULTS: bool = False,
+        MAIN_SECONDARY_TEST_RESULTS: bool = False,
+        MOVE_TO_BROADCAST: bool = False,
     ):
         super().__init__()
-        self.ID = 0x03
-        self.RSSI = RSSI
-        self.SNR = SNR
+        self.ID: int = 0x03
+        self.RSSI: float = RSSI
+        self.SNR: float = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
             metric.Metric.state_flag_s3p0(
@@ -303,18 +303,18 @@ class AVtoGCSData2(MockPacket):
         RSSI: float = 0.0,
         SNR: float = 62,
         FLIGHT_STATE_: int = 0,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
-        LATITUDE=-37.80808500000,
-        LONGITUDE=144.96507800000,
-        NAV_STATUS="G2",
-        QW=0,
-        QX=1,
-        QY=-1,
-        QZ=0.5,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool = False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool = False,
+        GPS_FIX_FLAG: bool = False,
+        PAYLOAD_CONNECTION_FLAG: bool = True,
+        CAMERA_CONTROLLER_CONNECTION: bool = True,
+        LATITUDE: float = -37.80808500000,
+        LONGITUDE: float = 144.96507800000,
+        NAV_STATUS: str = "G2",
+        QW: int = 0,
+        QX: int = 1,
+        QY: int = -1,
+        QZ: int = 0.5,
     ):
         super().__init__()
         self.ID = 0x04
@@ -345,11 +345,11 @@ class AVtoGCSData3(MockPacket):
         RSSI: float = 0.0,
         SNR: float = 63,
         FLIGHT_STATE_: int = 0,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool = False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool = False,
+        GPS_FIX_FLAG: bool = False,
+        PAYLOAD_CONNECTION_FLAG: bool = True,
+        CAMERA_CONTROLLER_CONNECTION: bool = True,
     ):
         super().__init__()
         self.ID = 0x05
@@ -570,21 +570,21 @@ def sinusoid(
     return base
 
 
-def changing_int(t: float, min: int, max: int, wait_time_s: float):
+def changing_int(t: float, min: int, max: int, wait_time_s: float) -> int:
     """Output an int from `min` to `max` increimenting every `wait_time_s` seconds"""
     span = max - min + 1
     step = int(t // wait_time_s) % span
     return min + step
 
 
-def changing_bool(t: float, wait_time_s: float = 1):
+def changing_bool(t: float, wait_time_s: float = 1) -> bool:
     """Bool changing every `wait_time_s` seconds"""
     return t % wait_time_s * 2 > wait_time_s
 
 
 def corrupt_packet(
     packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3
-):
+) -> None:
     """Corrupts data inside a packet with random bit flips
 
     Args:

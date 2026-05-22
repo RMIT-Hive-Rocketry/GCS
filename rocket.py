@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import click
-import cli.rocket_logging as rocket_logging
-import cli.process as process
-import config.config as config
+from cli import rocket_logging
+from cli import process
+from config import config
 import logging
 import subprocess
 import sys

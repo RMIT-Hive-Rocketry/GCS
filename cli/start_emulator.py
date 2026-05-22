@@ -1,6 +1,6 @@
 import logging
-import cli.process as process
-import cli.start_middleware as start_middleware
+from cli import process
+from cli import start_middleware
 import sys
 
 

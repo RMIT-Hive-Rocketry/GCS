@@ -25,6 +25,9 @@ black
 pre-commit
 codespell
 
+# types
+pandas-stubs
+
 # Testing
 # serial
 # tabulate

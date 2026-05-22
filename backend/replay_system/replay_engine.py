@@ -7,7 +7,7 @@ Replay the following CSV files
 import os
 import csv
 import time
-import config.config as config
+from config import config
 from backend.device_emulator import (
     AVtoGCSData1,
     AVtoGCSData2,
@@ -16,9 +16,8 @@ from backend.device_emulator import (
     MockPacket,
 )
 import backend.includes_python.process_logging as slogger
-import backend.includes_python.service_helper as service_helper
-from backend.replay_system.packet import PacketType, Packet
-from backend.replay_system.blue_raven_processor import process_blue_raven, get_blue_raven_path
+from backend.includes_python import service_helper
+from backend.replay_system.packet_type import PacketType
 import configparser
 import argparse
 

@@ -8,7 +8,7 @@ PACKETS_TO_DEBUG = [10]
 DEBUG_ALL_PACKETS = False
 
 
-async def pretty_print_json(uri) -> Never:
+async def pretty_print_json(uri: str) -> Never:
     while True:
         try:
             async with websockets.connect(uri) as websocket:

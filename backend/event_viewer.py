@@ -16,9 +16,9 @@ import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.includes_python.process_logging as slogger  # slog deez nuts
-import backend.includes_python.ansci as ansci
+from backend.includes_python import ansci
 from backend.includes_python.mach import Mach
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python import service_helper
 
 # Just prints useful information from AV and saves it to csv file
 
@@ -28,11 +28,11 @@ class Packet(ABC):
     _setup: bool = False
 
     # Defined in _setup_logging
-    _session_log_folder: str = None
-    _CSV_FILES_WITH_HEADERS: dict[str, str] = None
+    _session_log_folder: str | None = None
+    _CSV_FILES_WITH_HEADERS: dict[str, list[str]] | None = None
 
     @classmethod
-    def _setup_logging(cls):
+    def _setup_logging(cls) -> None:
         # Create the logging file and write headers
         # First, make a directory for each of the CSV files per session
 
@@ -222,10 +222,10 @@ class Packet(ABC):
             csv_path = os.path.join(cls._session_log_folder, f"{file_name}.csv")
             with open(csv_path, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["timestamp_ms_log_time"] + headers)
+                writer.writerow(["timestamp_ms_log_time", *headers])
 
     @classmethod
-    def setup(cls, STARTUP_TIME: datetime.datetime, CREATE_LOGS: bool):
+    def setup(cls, STARTUP_TIME: datetime.datetime, CREATE_LOGS: bool) -> None:
 
         cls._VIEWER_STARTUP_TIMESTAMP = STARTUP_TIME
         cls._VIEWER_STARTUP_TIMESTAMP_STR = STARTUP_TIME.strftime(

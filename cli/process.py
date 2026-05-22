@@ -5,7 +5,7 @@ import threading
 from queue import Queue
 from collections.abc import Callable
 import backend.includes_python.process_logging as slogger
-import cli.rocket_logging as rocket_logging
+from cli import rocket_logging
 
 logger = logging.getLogger("rocket")
 

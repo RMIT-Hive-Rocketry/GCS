@@ -1,3 +1,4 @@
+from typing_extensions import override
 from backend.includes_python.devices.pendant_state import (
     PendantState,
     PendantInput,
@@ -13,7 +14,7 @@ from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
 
 
-class Pygame_Button:
+class PygameButton:
     MIN_TIME_BETWEEN_STATE_CHANGE: float = 0.05
 
     time_of_last_state_change: float
@@ -22,14 +23,14 @@ class Pygame_Button:
     def __init__(self):
         self.time_of_last_state_change = time.time()
 
-    def _try_update_state(self, new_state: bool):
+    def _try_update_state(self, new_state: bool) -> None:
         time_since_last_state_change = (
             time.time() - self.time_of_last_state_change
         )
 
         if (
             time_since_last_state_change
-            < Pygame_Button.MIN_TIME_BETWEEN_STATE_CHANGE
+            < PygameButton.MIN_TIME_BETWEEN_STATE_CHANGE
         ):
             return
 
@@ -41,14 +42,14 @@ class Pygame_Button:
             self.time_of_last_state_change = time.time()
 
     # will update state if safe to do so
-    def update_state(self, new_state: bool):
+    def update_state(self, new_state: bool) -> None:
         self._try_update_state(new_state)
 
-    def is_pressed(self):
+    def is_pressed(self) -> bool:
         return self.button_is_pressed
 
 
-class Pygame_Device(ControlDevice):
+class PygameDevice(ControlDevice):
     """
     ABC for devices that use pygame
     If your extending it, you must define BUTTON_NAME_ID_MAP and CONTROLLER_NAME in the child
@@ -59,10 +60,10 @@ class Pygame_Device(ControlDevice):
 
     # dont recompute every time
     @cached_property
-    def BUTTON_ID_NAME_MAP(self) -> Dict[int, PendantInput]:
+    def button_id_name_map(self) -> dict[int, PendantInput]:
         return {v: k for k, v in self.BUTTON_NAME_ID_MAP.items()}
 
-    buttons: Dict[PendantInput, Pygame_Button]
+    buttons: dict[PendantInput, PygameButton]
 
     joystick: pygame.joystick.JoystickType | None
     joystick_id: int | None
@@ -79,10 +80,10 @@ class Pygame_Device(ControlDevice):
 
         super().__init__()
         self.buttons = {}
-        for but_name, _ in self.BUTTON_NAME_ID_MAP.items():
-            self.buttons[but_name] = Pygame_Button()
+        for but_name in self.BUTTON_NAME_ID_MAP:
+            self.buttons[but_name] = PygameButton()
 
-    def _try_connect_device(self):
+    def _try_connect_device(self) -> None:
         should_complain = self.complain_timer.time_has_passed()
 
         # Attempt controller connection
@@ -127,13 +128,15 @@ class Pygame_Device(ControlDevice):
                 )
             return
 
-    def _setup_device(self):
+    @override
+    def _setup_device(self) -> None:
         # https://stackoverflow.com/questions/32900155/pygame-headless-setup
         pygame.display.init()
         pygame.joystick.init()
         self._try_connect_device()
 
-    def _update_state_table(self):
+    @override
+    def _update_state_table(self) -> None:
         """Updates instance attributes"""
         if not self.is_connected:
             self._try_connect_device()
@@ -165,11 +168,12 @@ class Pygame_Device(ControlDevice):
                 for btn_name, btn in self.buttons.items()
             }
 
-            self.state_table = PendantState(states)
+            self.state_table: PendantState = PendantState(states)
         else:
             self.state_table = PendantState.get_fallback_table()
 
-    def cleanup(self):
+    @override
+    def cleanup(self) -> None:
         """Internal cleanup code"""
         slogger.info("Quitting pygame...")
         pygame.quit()

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+
 from frontend.rocket_loader import load_rockets
 from flask import (
     Flask,
+    Response,
     send_from_directory,
     abort,
     render_template,
@@ -9,8 +11,9 @@ from flask import (
 )
 from os import path as os_path
 import backend.includes_python.process_logging as slogger
-import config.config as config
+from config import config
 
+# pyright: reportUnusedFunction=false
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -25,20 +28,11 @@ class SubprocessLogHandler(logging.Handler):
 """
 
 # Initialise flask app
-def create_app():
-    # App configuration
-    app = Flask(__name__)
-    app.config.from_object(
-        "frontend.config." + frontend.config.rocket + "Config"
-    )
-    static_dir = os.path.join(os.path.dirname(__file__), "static")
-    file_extensions = (
-        ".css",
-        ".js",  # CSS, JavaScript
-        ".png",
-        ".jpg",
-        ".ico",
-        ".svg",  # Images
+def create_app() -> Flask:
+    # Create flask app
+    app = Flask(
+        __name__,
+        template_folder=os_path.join(os_path.dirname(__file__), "."),
     )
 
     # Load rocket assets and configurations from /rockets dir
@@ -70,7 +64,7 @@ def create_app():
 
     # Render modular layout
     @app.route("/")
-    def index():
+    def index() -> str:
         # Get active rocket config default
         active = app.config.get("default")
         name = ""
@@ -131,7 +125,7 @@ def create_app():
 
     # Serve static files and HTML pages
     @app.route("/<path:filename>")
-    def serve_html(filename):
+    def serve_html(filename) -> Response:
         # Make sure rocket assets are loaded from a different directory
         file_directory = DIR_STATIC
         if filename.startswith(tuple([r.name for r in app.config.get("rockets")])):
@@ -161,7 +155,7 @@ def create_app():
 
     # Debug rocket loading
     @app.route("/debug/rockets")
-    def debug_rockets():
+    def debug_rockets() -> str:
         return render_template(
             "templates/debug_rockets.html",
             websocket=websocket,
@@ -170,7 +164,7 @@ def create_app():
     # Debug modules
     # Shows all modules from loaded rockets
     @app.route("/debug/modules")
-    def debug_modules():
+    def debug_modules() -> str:
         return render_template(
             "templates/debug_modules.html",
             websocket=websocket,
@@ -179,7 +173,7 @@ def create_app():
     # Debug control pendant
     # Shows all modules from loaded rockets
     @app.route("/debug/pendant")
-    def debug_pendant():
+    def debug_pendant() -> str:
         return render_template(
             "templates/debug_pendant.html",
             websocket=websocket,

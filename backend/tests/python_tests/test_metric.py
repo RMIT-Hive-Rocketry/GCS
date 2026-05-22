@@ -1,4 +1,4 @@
-import backend.includes_python.metric as metric
+from backend.includes_python import metric
 import re
 
 # ASCII extended printable
