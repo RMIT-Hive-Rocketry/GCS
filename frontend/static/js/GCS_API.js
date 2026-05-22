@@ -88,10 +88,15 @@ const soundsList_losses = filenames_losses.map(src => {
  * for the rocket coming within 50m of the control station). To play either
  * sound, call playOtherSound() with the respective string as the argument.
  * 
- * The volume of Rocket_Warn should be inversely proportional to said distance,
- * set using .volume(), which accepts values in range [0.0, 1.0]. Lastly, more
- * complex logic will be required to program any loops as the other sounds in this
- * array do not require then.
+ * The volume of Rocket_Warn, which can be set using .volume() and accepts values
+ * in range [0.0, 1.0], should be inversely proportional to the distance to the GCS,
+ * where by my estimates, the lowest value it should be set to is 0.25. More complex
+ * logic will be required to program any loops as the other sounds in this array
+ * do not require then.
+ * 
+ * To put these sounds into Combined_Sounds, add them to the end of the corresponding
+ * track/segment in the attached Audacity project (static/sounds), continuing the pattern
+ * of 0.5 seconds between each sound.
 */
 const filenames_other = ["Apogee", "Parachute"];
 const soundsList_other = filenames_other.map(src => {
@@ -1641,8 +1646,11 @@ function displayUpdateFlightState(data) {
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
 
-            // Play the apogee sound (should only be once in practice)
+            // Play the apogee, followed by the parachute sound 2 seconds after
             playOtherSound("Apogee");
+            setTimeout(() => {
+                playOtherSound("Parachute");
+            }, 1000);
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
