@@ -1,7 +1,9 @@
 import asyncio
 from collections import deque
+import config.config as config
 import backend.includes_python.process_logging as slogger
-
+import os
+import json
 
 try:
     import ping3
@@ -12,7 +14,13 @@ except ModuleNotFoundError:
 # Edit this to whatever you want to just test things
 TEST_NETWORK_DEVICE_MANIFEST = {
     "Google": "google.com",
-    "My Phone (LAN)": "192.168.0.49"
+    "My Phone (LAN)": "192.168.0.49",
+    "TP-Link": "192.168.0.1",
+    "Labjack": "192.168.0.100",
+    "QuantumX DAQ": "192.168.0.132",
+    "DAQ 4 Channel": "192.168.0.133",
+    "GSE ESP32": "192.168.0.150",
+    "GCS Raspberry Pi": "192.168.0.2"
 }
 
 HIVE_NETWORK_DEVICE_MANIFEST = {
@@ -29,9 +37,21 @@ HIVE_NETWORK_DEVICE_MANIFEST = {
 }
 
 # Change it here based on test or prod mode.
-# This should be auto based on the environment mode but i cbf right now.
-# It needs fixes outlines in GCS-2026#50
-default_manifest = TEST_NETWORK_DEVICE_MANIFEST
+# This is suboptimal as it differs from existing methods
+# It needs to be unified as per GCS-2026#50.
+dev_mode = bool(os.environ.get("GCS_DEV_MODE", False))
+default_manifest: dict = None
+cfg = config.get_config()
+manifest_path = (
+    cfg.get("tcp", "path_json_network_device_test", fallback=None)
+    if dev_mode
+    else cfg.get("tcp", "path_json_network_device_prod", fallback=None)
+)
+
+if manifest_path == None:
+    raise FileNotFoundError("Config path has not been set in config.ini")
+with open(manifest_path, "r") as f:
+    default_manifest = json.load(f)
 
 # Store information about each device and it's packet loss here.
 # Ring buffer of last 30 pings or so. Based on amount, not time.

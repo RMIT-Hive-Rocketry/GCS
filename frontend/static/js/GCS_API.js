@@ -141,12 +141,36 @@ function checkStateIndicator(elem = null) {
         let sound = "",
             indicator = e1.attributes[0].textContent;
 
-        // See horizon_preflight.html for sources
+        /* See horizon_preflight.html for sound sources. Also set the corresponding
+         * summary light for the 1st 2 states if the function exists.
+        */
         if (indicator.includes("av.radio")) {
             sound = "AV_Loss";
+            if (typeof diagSetStatusBox === 'function') {
+                diagSetStatusBox("diag-summary-av", e1.classList.value.includes("green"));
+            }
         }
         else if (indicator.includes("gse.radio")) {
             sound = "GSE_Loss";
+            if (typeof diagSetStatusBox === 'function') {
+                const alive = ["Vulcan ESP32", "WiFi Bridge @ GSE"].every((device) => {
+                    let ping = document.querySelector(`[data-key="${device}.ping"]`);
+                    return ping && ping.getAttribute('value') >= 0;
+                });
+
+                diagSetStatusBox("diag-summary-gse", alive && e1.classList.value.includes("green"));
+            }
+
+            // // Track summary status, unless alive has already been set false
+            // let alive = true;
+            // if ((["Vulcan ESP32", "WiFi Bridge @ GSE"].includes(deviceName)) && alive) {
+            //     // GSE: Check if the GSE radio indicator and the above pings are > 0
+            //     const gseIndicator = document.querySelector('[data-key="state.gse.radio"][data-type="state"]');
+            //     if (gseIndicator) {
+            //         alive = gseIndicator.classList.contains("green") && (ping >= 0);
+            //         diagSetStatusBox("diag-summary-gse", alive);
+            //     }
+            // }
         }
         else if (indicator.includes("gpsFix")) {
             sound = "GPS_Fix_Loss";
@@ -606,6 +630,11 @@ function API_OnMessage(event) {
             if (typeof updatePendantState === "function") {
                 updatePendantState(apiData);
             }
+        } else if (apiData.id == 50) {
+            ///// ----- NETWORK DIAGNOSTICS ----- /////
+            if (typeof graphUpdateDiagnostics === "function") {
+                graphUpdateDiagnostics(apiData);
+            }
         }
     } catch (error) {
         console.error("Data processing error:", error);
@@ -874,6 +903,9 @@ function checkErrorConditions(apiData) {
     });
 }
 
+// May not be required
+const networkPackets = [];
+
 function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData }; // Shallow copy
@@ -884,6 +916,29 @@ function processDataForDisplay(apiData, apiId) {
     }
     if (processedData.meta == undefined) {
         processedData.meta = {};
+    }
+
+    if (apiId === 50) {
+        // Track packet counts per device and attach to processedData.
+        // All HTML rendering is handled by graphUpdateDiagnostics() in GCS_Graphs.js.
+        Object.keys(apiData).forEach(device => {
+            if (typeof apiData[device] !== 'object' || apiData[device] === null) return;
+            if (!('ping' in apiData[device])) return;
+
+            let index = networkPackets.findIndex(item => item.name === device);
+            if (index >= 0) {
+                networkPackets[index].count++;
+            } else {
+                networkPackets.push({ name: device, count: 1, offset: 0 });
+                index = networkPackets.length - 1;
+            }
+
+            // Attach packet count so graphUpdateDiagnostics() can display it
+            processedData[device] = {
+                ...apiData[device],
+                packet_count: networkPackets[index].count,
+            };
+        });
     }
 
     if (apiData?.meta) {

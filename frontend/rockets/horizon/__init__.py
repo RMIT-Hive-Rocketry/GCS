@@ -16,7 +16,7 @@ class ConfigHorizon(Config):
 
         # Load Horizon modules
         self.MODULES = [
-            # Header / nav
+            # Header / nav (including sounds)
             "horizon/modules/horizon_logos.html",
             "horizon/modules/horizon_nav.html",
             "horizon/modules/horizon_radio.html",
@@ -30,11 +30,17 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_rocket.html",
             "horizon/modules/horizon_timeline.html",
 
-            # Other pages
+            # HMI modules
             "horizon/modules/horizon_pendant.html",
             "horizon/modules/horizon_gse_hmi.html",
             "horizon/modules/horizon_preflight.html",
             "horizon/modules/horizon_graph_colours.html",
+
+            # Diagnostics modules
+            "horizon/modules/horizon_diagnostics_packets.html",
+            "horizon/modules/horizon_diagnostics_graphs.html",
+            "horizon/modules/horizon_diagnostics_summary.html",
+            "horizon/modules/horizon_diagnostics_bottom.html",
         ]
 
         # Define pages for Horizon
@@ -53,6 +59,7 @@ class ConfigHorizon(Config):
         # Header row (y=0): logos 0-5, mute/unmute icon 6-11, nav 12-17, radio 18-23.
         # Overview content area is now 24 cols x 11 rows (y = 1..11).
         self.MODULE_PAGES = {
+            # Header / nav (including sounds)
             "horizon_logos": [
                 ("page-main", 0, 0, 8, 1),
                 ("page-preflight", 0, 0, 8, 1),
@@ -72,6 +79,7 @@ class ConfigHorizon(Config):
                 ("page-diagnostics", 16, 0, 8, 1),
             ],
 
+            # Main page modules (mirrors Legacy III's main page for now)
             "horizon_avionics_position": [("page-main", 0, 1, 8, 11)],
             "horizon_rocket": [("page-main", 8, 1, 8, 8)],
             "horizon_timeline": [("page-main", 8, 9, 8, 3)],
@@ -84,5 +92,13 @@ class ConfigHorizon(Config):
 
             # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)
             "horizon_gse_hmi": [("page-control", 0, 1, 14, 11)],
-            "horizon_pendant": [("page-control", 14, 1, 10, 11)]
+            "horizon_pendant": [("page-control", 14, 1, 10, 11)],
+
+            # Diagnostics modules
+            # Content area: rows 1-10 (10 rows tall)
+            # Bottom bar:   row 11  (1 row tall, full width)
+            "horizon_diagnostics_packets": [("page-diagnostics", 0,  1, 5,  10)],
+            "horizon_diagnostics_graphs":  [("page-diagnostics", 5,  1, 15, 10)],
+            "horizon_diagnostics_summary": [("page-diagnostics", 20, 1, 4,  10)],
+            "horizon_diagnostics_bottom":  [("page-diagnostics", 0,  11, 24, 1)],
         }
