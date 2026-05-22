@@ -287,7 +287,7 @@ function playOtherSound(sound) {
     const soundNumber = soundsList_other.findIndex(
         file => file.src.includes(sound)
     );
-
+    
     // Not found or already playing
     if ((soundNumber === -1) || (!soundsList_other[soundNumber].paused)) {
         return;
@@ -1646,11 +1646,8 @@ function displayUpdateFlightState(data) {
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
 
-            // Play the apogee, followed by the parachute sound 2 seconds after
+            // Play the apogee sound, whose file includes a parachute sound 2 seconds afterwards
             playOtherSound("Apogee");
-            setTimeout(() => {
-                playOtherSound("Parachute");
-            }, 1000);
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
