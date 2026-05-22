@@ -2153,36 +2153,18 @@
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
     
-                // Pressure transducers (bar)
                 if (data?.pressure_n2o_bottle) {
-                    // N2O in pressure
                     hmiUpdateValue("hmi-pressure-1", data.pressure_n2o_bottle);
                 }
                 if (data?.pressure_n2o_tank) {
-                    // N2O out pressure
                     hmiUpdateValue("hmi-pressure-2", data.pressure_n2o_tank);
                 }
                 if (data?.pressure_n2o_tank) {
-                    // O2 pressure
                     hmiUpdateValue("hmi-pressure-3", data.pressure_o2_tank);
                 }
     
-                // Thermocouples (°C)
                 if (data?.temp_pipe_n2o_gse) {
-                    // N2O internal temperature
                     hmiUpdateValue("HMI_N2O-INTTEMP", data.temp_pipe_n2o_gse);
-                }
-                if (data?.thermocouple2) {
-                    // N2O bottle #1 temperature
-                    hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
-                }
-                if (data?.thermocouple3) {
-                    // N2O bottle #2 temperature
-                    hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
-                }
-                if (data?.thermocouple4) {
-                    // O2 bottle temperature
-                    hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
                 }
 
                 // Flight tank thermocouples (°C) — top, middle, bottom
@@ -2249,15 +2231,6 @@
                 if (!elem) return;
     
                 elem.innerHTML = value.toFixed(1);
-    
-                // Gauge bar updates are only needed for bottle temperatures
-                if (id == "HMI_N2O-1TEMP") {
-                    hmiUpdateTemperature("gauge_1_fill", value, "gauge_1_bar");
-                } else if (id == "HMI_N2O-2TEMP") {
-                    hmiUpdateTemperature("gauge_2_fill", value, "gauge_2_bar");
-                } else if (id == "HMI_O2TEMP") {
-                    hmiUpdateTemperature("gauge_3_fill", value, "gauge_3_bar");
-                }
             }
     
     
