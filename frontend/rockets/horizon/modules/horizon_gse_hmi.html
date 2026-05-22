@@ -445,8 +445,10 @@
                               fill="white" letter-spacing="0.12em">N₂O Vent</text>
                         <text x="1450" y="500" font-size="18"
                               fill="white" letter-spacing="0.12em">Temperature:</text>
-                        <text x="1450" y="530" font-size="22"
-                              fill="#00FF4D" font-weight="bold">00.0 °C</text>
+                        <text id="HMI_VENT_TEMP" x="1455" y="530" font-size="22"
+                              fill="#00FF4D" font-weight="bold" text-anchor="end"><tspan>--.-</tspan></text>
+                        <text x="1475" y="530" font-size="22"
+                              fill="#00FF4D" font-weight="bold">°C</text>
                     </g>
     
                     <!-- vent temp line -->
@@ -2191,6 +2193,14 @@
                 }
                 if (data?.temp_tank_bottom !== undefined) {
                     hmiUpdateValue("HMI_TANK_BOTTOM_TEMP", data.temp_tank_bottom);
+                }
+
+                // Vent and weight rocket
+                if (data?.temp_vent !== undefined) {
+                    hmiUpdateValue("HMI_VENT_TEMP", data.temp_vent);
+                }
+                if (data?.weight_rocket !== undefined) {
+                    hmiUpdateValue("HMI_WEIGHT", data.weight_rocket);
                 }
     
                 // Solenoid valve states (boolean flags)
