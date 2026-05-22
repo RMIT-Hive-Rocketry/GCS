@@ -2090,12 +2090,6 @@
             // ---------------------------------------------------------------
             // statusBarUpdate(data)
             // Refreshes the four status bar fields from live telemetry.
-            //   - Rocket Fill Timer: read from hidden gasBottleTime input
-            //   - N₂O In pressure:   data.pressure_n2o_bottle (bar)
-            //   - O₂ pressure:       data.pressure_n2o_tank (bar)
-            //   - Last Update:       timestamp of most recent telemetry packet (local time)
-            //   - Date:              browser Date (set once, refreshes at
-            //                        midnight via setInterval)
             // ---------------------------------------------------------------
             function statusBarUpdate(data) {
     
