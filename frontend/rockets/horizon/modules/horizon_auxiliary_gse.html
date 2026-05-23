@@ -1,7 +1,7 @@
 <!-- Auxiliary data module (GSE) -->
 <!-- Includes transducers, thermocouples, internal temperature, gas bottle weights -->
 <div class="module-horizon">
-    <h2>Auxiliary (GSE)</h2>
+    <h2>GSE</h2>
 
     <div class="grid grid-cols-2 grow gap-2 h-full">
         <!-- Transducers -->
@@ -17,7 +17,7 @@
             </div>
             <div class="flex flex-row gap-2 grow justify-evenly text-center">
                 <label class="w-1/3">
-                    N<sub>2</sub>O&nbsp;in:<br /><input
+                    N<sub>2</sub>O&nbsp;Sup:<br /><input
                         data-key="pressure_n2o_bottle"
                         data-precision="1"
                         readonly
@@ -51,7 +51,7 @@
 
         <!-- Thermocouples -->
         <section class="flex flex-col">
-            <h3>Thermocouple Readings</h3>
+            <h3>Flight Tank Temperature</h3>
             <div class="grow w-full h-full">
                 <svg
                     id="graph-aux-thermocouples"
@@ -62,18 +62,18 @@
             </div>
             <div class="flex flex-row gap-2 grow justify-evenly text-center">
                 <label class="w-1/4">
-                    N<sub>2</sub>O&nbsp;(int):<br /><input
-                        data-key="temp_pipe_n2o_gse"
+                    Top Tank<br /><input
+                        data-key="temp_tank_top"
                         data-precision="0"
                         readonly
                         autocomplete="off"
-                        style="border-bottom: 2px solid #FF0000"
+                        style="border-bottom: 2px solid #ff0000"
                         size="4"
                     />&deg;C
                 </label>
                 <label class="w-1/4">
-                    Top RTD<br /><input
-                        data-key="temp_tank_top"
+                    Mid Tank<br /><input
+                        data-key="temp_tank_middle"
                         data-precision="0"
                         readonly
                         autocomplete="off"
@@ -82,22 +82,12 @@
                     />&deg;C
                 </label>
                 <label class="w-1/4">
-                    Mid RTD<br /><input
-                        data-key="temp_tank_middle"
-                        data-precision="0"
-                        readonly
-                        autocomplete="off"
-                        style="border-bottom: 2px solid #0000FF"
-                        size="4"
-                    />&deg;C
-                </label>
-                <label class="w-1/4">
-                    Bottom RTD /><input
+                    Bot Tank<input
                         data-key="temp_tank_bottom"
                         data-precision="0"
                         readonly
                         autocomplete="off"
-                        style="border-bottom: 2px solid #FFFFFF"
+                        style="border-bottom: 2px solid #0000FF"
                         size="4"
                     />&deg;C
                 </label>
@@ -128,12 +118,12 @@
             </label>
         </section>
 
-        <!-- Gas bottle weights -->
+        <!-- N2O Supply Temperature -->
         <section class="flex flex-col">
-            <h3>Gas-Bottle Masses</h3>
+            <h3>N2O Supply Temperature</h3>
             <div class="grow w-full h-full">
                 <svg
-                    id="graph-aux-gasbottles"
+                    id="graph-aux-n2o-supply-temp"
                     class="w-full h-full"
                     width="0"
                     height="0"
@@ -141,24 +131,14 @@
             </div>
             <div class="flex flex-row gap-4 grow justify-evenly">
                 <label>
-                    N<sub>2</sub>O&nbsp;#1:<input
-                        data-key="gasBottleWeight1"
+                    Temperature<input
+                        data-key="temp_pipe_n2o_gse"
                         data-precision="1"
                         readonly
                         autocomplete="off"
-                        style="border-bottom: 2px solid #FF0000"
+                        style="border-bottom: 2px solid #ff0000"
                         size="5"
-                    />kg
-                </label>
-                <label>
-                    N<sub>2</sub>O&nbsp;#2:<input
-                        data-key="gasBottleWeight2"
-                        data-precision="1"
-                        readonly
-                        autocomplete="off"
-                        style="border-bottom: 2px solid #00FF00"
-                        size="5"
-                    />kg
+                    />&deg;C
                 </label>
             </div>
         </section>
