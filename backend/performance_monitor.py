@@ -208,23 +208,23 @@ def get_global_status_linux() -> GlobalSystemInfo:
                         line.split()[1]
                     )  # Used Memory equals the total memory - available to get most accurate
 
-
-        # scan the folders in the directory for the proper type 
+        # scan the folders in the directory for the proper type
 
         for folders in Path("/sys/class/thermal").glob("thermal_zone*"):
             with open(folders.joinpath("type")) as f:
                 sensor_type = f.readline().strip()
-                
+
             # Cpu Temp for x86 and arm / raspberry pi i think the docs are quite inconstant
-            if(sensor_type == "x86_pkg_temp" or sensor_type == "soc_thermal"):
+            if sensor_type == "x86_pkg_temp" or sensor_type == "soc_thermal":
                 with open(folders.joinpath("temp")) as f:
-                    sys_info.cpu_temp = float(f.read()) / 1000 # divide by 1000 to go from millidegrees to celsius
+                    sys_info.cpu_temp = (
+                        float(f.read()) / 1000
+                    )  # divide by 1000 to go from millidegrees to celsius
 
             # Motherboard Temp
-            if(sensor_type == "acpitz"):
+            if sensor_type == "acpitz":
                 with open(folders.joinpath("temp")) as f:
                     sys_info.mother_board_temp = float(f.read()) / 1000
-
 
     except FileNotFoundError as e:
         slogger.error(f"Process Not Found {e}")
@@ -243,7 +243,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
     psapi = ctypes.WinDLL("psapi.dll")
     kernel32 = ctypes.WinDLL("kernel32.dll")
 
-    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0,0,0)
+    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     process_query_limited_information = 0x1000
     # PROCESS_VM_READ = 0x0010 Might Need In future
@@ -292,7 +292,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
 
 
 def get_global_status_windows() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0,0,0,0,0,0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FileTime()
     kernel = FileTime()
@@ -349,7 +349,7 @@ def get_process_status_mac(pid) -> ProcessSystemData:
 
 
 def get_global_status_mac() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0,0,0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     cpu_info = HostCPULoadInfoDataT()
 
@@ -357,7 +357,7 @@ def get_global_status_mac() -> GlobalSystemInfo:
     count = ctypes.c_uint(ctypes.sizeof(cpu_info) // ctypes.sizeof(c_uint))
 
     clock_tick = os.sysconf(
-        "SC_clock_tick"
+        "SC_CLK_TCK"
     )  # Get Current Tick rate to convert to ns
 
     ret = libc.host_statistics64(
@@ -436,7 +436,7 @@ def get_global_status() -> GlobalSystemInfo:
         return get_global_status_linux()
     if platform.system() == "Darwin":
         return get_global_status_mac()
-    return GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0,0,0)
+    return GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 
 def main() -> None:
@@ -499,7 +499,7 @@ def main() -> None:
         "total_cpu_percent",
         "our_cpu_percent",
         "cpu_temp",
-        "motherboard_temp"
+        "motherboard_temp",
     ]
 
     for i in range(len(processes_data_list)):
@@ -519,15 +519,16 @@ def main() -> None:
         # Call function to get global system data
         system_data = get_global_status()
 
-        if(system_data == None):
-            slogger.error("Performance Monitor has failed to get global system data SHUTING DOWN.")
+        if system_data == None:
+            slogger.error(
+                "Performance Monitor has failed to get global system data SHUTTING DOWN."
+            )
             break
-        if(previous_sys_data == None):
-            slogger.error("Performance Monitor has failed to get old global system data SHUTING DOWN.")
+        if previous_sys_data == None:
+            slogger.error(
+                "Performance Monitor has failed to get old global system data SHUTTING DOWN."
+            )
             break
-
-
-        
 
         # Calculate Values from the global data
         total_time = (
@@ -582,7 +583,8 @@ def main() -> None:
             )
 
             ps.delta_cpu_usage_time = (
-                ps.cpu_usage_time - our_previous_process_data[idx].cpu_usage_time
+                ps.cpu_usage_time
+                - our_previous_process_data[idx].cpu_usage_time
             )
 
             # Total Current CpuUse cycles added across all monitored processes
@@ -657,7 +659,6 @@ def main() -> None:
         # Update Old Values with current ones
         previous_sys_data = system_data
 
-        
         our_previous_process_data.clear()
         our_previous_process_data = [
             get_process_status(active_process[0])
