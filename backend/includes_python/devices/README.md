@@ -39,10 +39,10 @@ The state table is a class which represents the state of a control device. It is
 Don't try modify it recklessly, as it is tightly coupled with device_emulator.py and our custom SRAD networking scheme.
 
 ## Pygame Device
-Pygame_Device is an ABC, where children only need to define the name of the hid device and the mapping between buttons and states.
+PygameDevice is an ABC, where children only need to define the name of the hid device and the mapping between buttons and states.
 
 ```
-class HybridPygamePendant(Pygame_Device):
+class HybridPygamePendant(PygameDevice):
     BUTTON_NAME_ID_MAP = {
         "SYS_ON": 0,
         "ESTOP": 5,

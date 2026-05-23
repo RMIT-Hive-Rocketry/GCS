@@ -1,5 +1,5 @@
+from typing_extensions import override
 import backend.includes_python.process_logging as slogger
-from typing import Dict, Tuple
 from enum import StrEnum
 
 
@@ -55,16 +55,22 @@ class PendantState:
     Also has three fallback dicts for the GSE and Pendant
     """
 
-    FALLBACK_PENDANT_STATES_DICT = dict.fromkeys(PendantInput, False)
+    FALLBACK_PENDANT_STATES_DICT: dict[PendantInput, bool] = dict.fromkeys(
+        PendantInput, False
+    )
 
-    FALLBACK_GSE_STATES_DICT = dict.fromkeys(GSEState, False)
+    FALLBACK_GSE_STATES_DICT: dict[GSEState, bool] = dict.fromkeys(
+        GSEState, False
+    )
 
-    FALLBACK_GSE_STATES_DICT_SYS_ON = dict.fromkeys(GSEState, False)
+    FALLBACK_GSE_STATES_DICT_SYS_ON: dict[GSEState, bool] = dict.fromkeys(
+        GSEState, False
+    )
     FALLBACK_GSE_STATES_DICT_SYS_ON[GSEState.SYSTEM_ACTIVE] = True
 
-    states: Dict[PendantInput, bool]
+    states: dict[PendantInput, bool]
 
-    def __init__(self, states: Dict[PendantInput, bool]):
+    def __init__(self, states: dict[PendantInput, bool]):
         # states can be a subset, and all other inputs will be assumed false
 
         # make sure all the keys are valid
@@ -76,80 +82,77 @@ class PendantState:
         self.states = {}
 
         # build states, assuming any missing input is false
-        for key, _ in self.FALLBACK_PENDANT_STATES_DICT.items():
-            if key in states:
-                self.states[key] = states[key]
-            else:
-                self.states[key] = False
+        for key in self.FALLBACK_PENDANT_STATES_DICT:
+            self.states[key] = states.get(key, False)
 
-    def get_gse_states(self) -> Dict[GSEState, bool]:
-        REQUIRED_TRUE = "required true"
-        REQUIRED_FALSE = "required false"
-        NONSENSE_TO_BE_TRUE = "nonsense true"
+    def get_gse_states(self) -> dict[GSEState, bool]:
+        required_true = "required true"
+        required_false = "required false"
+        nonsense_to_be_true = "nonsense true"
 
-        # REQUIRED_TRUE are all pendant that must be true for the gse state to be true
-        # REQUIRED_FALSE are all the pendant states that are required to be off, but is okay if it is on
-        # NONSENSE_TO_BE_TRUE are all the pendant states that do not make logical sense to be on, given the GSEState evaluates to true
+        # required_true are all pendant that must be true for the gse state to be true
+        # required_false are all the pendant states that are required to be off, but is okay if it is on
+        # nonsense_to_be_true are all the pendant states that do not make logical sense to be on, given the GSEState evaluates to true
 
         # fmt: off
-        conditions: Dict[GSEState, Dict[str, Tuple[PendantInput, ...]]] = {
+        conditions: dict[GSEState, dict[str, tuple[PendantInput, ...]]] = {
             GSEState.SYSTEM_ACTIVE: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE,),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: tuple()
+                required_true: (PendantInput.SYSTEM_ACTIVE,),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: ()
             },
 
             GSEState.FILL_MODE: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: (PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: (PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
             },
 
             GSEState.ARMED: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
             },
 
             GSEState.N2O: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.N2O),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: (PendantInput.PURGE, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.N2O),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: (PendantInput.PURGE, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
             },
 
             GSEState.NEUTRAL: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE),
-                REQUIRED_FALSE: (PendantInput.E_STOP, PendantInput.N2O, PendantInput.PURGE),
-                NONSENSE_TO_BE_TRUE: (PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE),
+                required_false: (PendantInput.E_STOP, PendantInput.N2O, PendantInput.PURGE),
+                nonsense_to_be_true: (PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
             },
 
             GSEState.PURGE: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.PURGE),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: (PendantInput.N2O, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.PURGE),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: (PendantInput.N2O, PendantInput.ARMED, PendantInput.O2, PendantInput.IGNITION)
             },
 
             GSEState.O2: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.O2),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
             },
 
             GSEState.IGNITION: {
-                REQUIRED_TRUE: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.IGNITION),
-                REQUIRED_FALSE: (PendantInput.E_STOP,),
-                NONSENSE_TO_BE_TRUE: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.IGNITION),
+                required_false: (PendantInput.E_STOP,),
+                nonsense_to_be_true: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
             }
         }
         # fmt: on
 
-        gse_state_dict: Dict[GSEState, bool] = {}
+        gse_state_dict: dict[GSEState, bool] = {}
 
         # check conditions
         for state in conditions:
-            required_true_conditions = conditions[state][REQUIRED_TRUE]
-            required_false_conditions = conditions[state][REQUIRED_FALSE]
-            nonsense_conditions = conditions[state][NONSENSE_TO_BE_TRUE]
+            required_true_conditions = conditions[state][required_true]
+            required_false_conditions = conditions[state][required_false]
+            nonsense_conditions = conditions[state][nonsense_to_be_true]
 
             state_is_true = True
 
@@ -177,30 +180,32 @@ class PendantState:
         return gse_state_dict
 
     @staticmethod
-    def get_fallback_table():
+    def get_fallback_table() -> "PendantState":
         return PendantState(PendantState.FALLBACK_PENDANT_STATES_DICT)
 
+    @override
     def __str__(self):
         gse_states = self.get_gse_states()
-        KEY_COL_WIDTH = max([len(key) for key, _ in gse_states.items()])
-        print(KEY_COL_WIDTH)
+        key_col_width = max([len(key) for key, _ in gse_states.items()])
+        print(key_col_width)
 
         output = "\033[1mPendant States: \033[0m\n"
         output += "".join(
             [
-                f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n"
+                f"{key: <{key_col_width}}: {'[X]' if value else '[ ]'}\n"
                 for key, value in self.states.items()
             ]
         )
         output += "\n\033[1mGSE States: \033[0m\n"
         output += "".join(
             [
-                f"{key: <{KEY_COL_WIDTH}}: {'[X]' if value else '[ ]'}\n"
+                f"{key: <{key_col_width}}: {'[X]' if value else '[ ]'}\n"
                 for key, value in gse_states.items()
             ]
         )
         return output
 
+    @override
     def __repr__(self):
         output = "PendantState({"
         output += "".join(
@@ -212,6 +217,7 @@ class PendantState:
         output += "})"
         return output
 
+    @override
     def __eq__(self, other: object):
         if not isinstance(other, PendantState):
             return NotImplemented

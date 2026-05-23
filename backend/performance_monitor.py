@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from config.config import get_config
 import ast
 import csv
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python import service_helper
 import ctypes
 import subprocess
 

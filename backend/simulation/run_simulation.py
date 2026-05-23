@@ -6,8 +6,8 @@ import sys
 import pandas as pd
 import time
 import backend.includes_python.process_logging as slogger
-import backend.includes_python.service_helper as service_helper
-import config.config as config
+from backend.includes_python import service_helper
+from config import config
 import configparser
 from backend.replay_system.replay_engine import Packet
 from backend.replay_system.packet_type import PacketType

@@ -1,8 +1,8 @@
-from backend.includes_python.devices.pygame_device import Pygame_Device
+from backend.includes_python.devices.pygame_device import PygameDevice
 from backend.includes_python.devices.pendant_state import PendantInput
 
 
-class HybridPygamePendant(Pygame_Device):
+class HybridPygamePendant(PygameDevice):
     BUTTON_NAME_ID_MAP = {
         PendantInput.SYSTEM_ACTIVE: 2,
         PendantInput.E_STOP: 5,
@@ -17,7 +17,7 @@ class HybridPygamePendant(Pygame_Device):
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
 
 
-class ThrustmasterAirbusFlightStick(Pygame_Device):
+class ThrustmasterAirbusFlightStick(PygameDevice):
     BUTTON_NAME_ID_MAP = {
         PendantInput.SYSTEM_ACTIVE: 16,  # thrust lever
         PendantInput.FILL_MODE: 0,  # bottom back trigger
@@ -35,7 +35,7 @@ class ThrustmasterAirbusFlightStick(Pygame_Device):
 # this ones for Freddy
 # sorry it doesn't have all the cool toggle logic :/
 # I tried to match the buttons best I could
-class LogitechGamepadF710(Pygame_Device):
+class LogitechGamepadF710(PygameDevice):
     BUTTON_NAME_ID_MAP = {
         PendantInput.SYSTEM_ACTIVE: 7,
         PendantInput.E_STOP: 3,

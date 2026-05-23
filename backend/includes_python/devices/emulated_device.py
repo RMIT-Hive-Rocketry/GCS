@@ -1,17 +1,18 @@
+from typing_extensions import override
 from backend.includes_python.devices.pendant_state import (
     PendantState,
     PendantInput,
 )
-from backend.includes_python.devices.pygame_device import Pygame_Device
+from backend.includes_python.devices.pygame_device import PygameDevice
 import backend.includes_python.process_logging as slogger
 import pygame
 import time
 
 
-class Emulated_Device(Pygame_Device):
+class EmulatedDevice(PygameDevice):
     """
     Emulated device class, FOR TESTING ONLY
-    Based on the Pygame_Device class, even though it doesn't actually use Pygame
+    Based on the PygameDevice class, even though it doesn't actually use Pygame
     """
 
     BUTTON_NAME_ID_MAP: dict[PendantInput, int] = {
@@ -63,30 +64,33 @@ class Emulated_Device(Pygame_Device):
     def __init__(self):
         super().__init__()
 
+    @override
     def _try_connect_device(self) -> None:
         # This device never has connection issues
-        Emulated_Device.is_connected = True
+        EmulatedDevice.is_connected = True
         slogger.info(
-            f"Controller initialized: {Emulated_Device.CONTROLLER_NAME}"
+            f"Controller initialized: {EmulatedDevice.CONTROLLER_NAME}"
         )
 
+    @override
     def _setup_device(self) -> None:
-        pygame.init()
+        _ = pygame.init()
         self._try_connect_device()
 
+    @override
     def _update_state_table(self) -> None:
         """Updates instance attributes"""
         pygame.event.pump()
 
-        if Emulated_Device.is_connected:
+        if EmulatedDevice.is_connected:
 
             # Loop through states and update them
             seconds = int(time.time())
-            current_buttons = Emulated_Device.BUTTON_SEQUENCE[
-                seconds % len(Emulated_Device.BUTTON_SEQUENCE)
+            current_buttons = EmulatedDevice.BUTTON_SEQUENCE[
+                seconds % len(EmulatedDevice.BUTTON_SEQUENCE)
             ]
 
-            for btn_name in Emulated_Device.BUTTON_NAME_ID_MAP:
+            for btn_name in EmulatedDevice.BUTTON_NAME_ID_MAP:
                 pressed = btn_name in current_buttons
                 self.buttons[btn_name].update_state(pressed)
 
@@ -95,11 +99,12 @@ class Emulated_Device(Pygame_Device):
                 for btn_name, btn in self.buttons.items()
             }
 
-            self.state_table = PendantState(states)
+            self.state_table: PendantState = PendantState(states)
 
         else:
             self.state_table = PendantState.get_fallback_table()
 
+    @override
     def cleanup(self) -> None:
         """Internal cleanup code"""
         slogger.info("Quitting pygame...")

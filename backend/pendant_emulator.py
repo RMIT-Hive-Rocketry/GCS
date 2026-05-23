@@ -7,15 +7,15 @@ import backend.includes_python.process_logging as slogger
 import zmq
 import os
 import time
-import backend.device_emulator as device_emulator
-import backend.includes_python.service_helper as service_helper
+from backend import device_emulator
+from backend.includes_python import service_helper
 from backend.includes_python.timers import RepeatingTimer
 from backend.includes_python.devices.control_device_manager import (
     ControlDeviceManager,
 )
 from backend.includes_python.devices.control_device import ControlDevice
 
-import config.config as config
+from config import config
 
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
@@ -31,38 +31,38 @@ def get_control_device() -> ControlDevice:
     manager = ControlDeviceManager()
 
     def hybrid_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import HybridPygamePendant
+        from backend.includes_python.devices.pygame_devices import HybridPygamePendant  # noqa: PLC0415
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
 
     def rpi_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device  # noqa: PLC0415
         return RPI_GPIO_Device
 
     manager.add_managed_device("rpi_gpio_device",rpi_import)
 
     def f710_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
+        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710  # noqa: PLC0415
         return LogitechGamepadF710
 
     manager.add_managed_device("f710", f710_import)
 
     def emulated_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.emulated_device import Emulated_Device
-        return Emulated_Device
+        from backend.includes_python.devices.emulated_device import EmulatedDevice  # noqa: PLC0415
+        return EmulatedDevice
 
     manager.add_managed_device("emulated_device", emulated_import)
 
     def hid_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.hid_device import HID_Device
-        return HID_Device
+        from backend.includes_python.devices.hid_device import HIDDevice  # noqa: PLC0415
+        return HIDDevice
 
     manager.add_managed_device("hid_device", hid_import)
 
     # only really used by me (Xavier)
     def thrustmaster_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick
+        from backend.includes_python.devices.pygame_devices import ThrustmasterAirbusFlightStick  # noqa: PLC0415
         return ThrustmasterAirbusFlightStick
 
     manager.add_managed_device("thrustmaster", thrustmaster_import)
@@ -85,7 +85,7 @@ def send_packet() -> None:
     try:
         frontend_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         frontend_pub_socket.setsockopt(zmq.SNDHWM, 1)
-        frontend_pub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
+        _ = frontend_pub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
 
         previous_packet = {}
 
