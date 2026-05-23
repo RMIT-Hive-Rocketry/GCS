@@ -9,8 +9,7 @@ import backend.includes_python.process_logging as slogger
 from backend.includes_python import service_helper
 from config import config
 import configparser
-from backend.replay_system.replay_engine import Packet
-from backend.replay_system.packet import PacketType
+from backend.replay_system.packet import Packet, PacketType
 
 # Setting up enum
 
