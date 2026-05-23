@@ -17,7 +17,7 @@ from backend.device_emulator import (
 )
 import backend.includes_python.process_logging as slogger
 from backend.includes_python import service_helper
-from backend.replay_system.packet_type import Packet, PacketType
+from backend.replay_system.packet import Packet, PacketType
 from backend.replay_system.blue_raven_processor import (
     process_blue_raven,
     get_blue_raven_path,
