@@ -118,12 +118,12 @@
             </label>
         </section>
 
-        <!-- Gas bottle weights -->
+        <!-- N2O Supply Temperature -->
         <section class="flex flex-col">
-            <h3>Gas-Bottle Masses</h3>
+            <h3>N2O Supply Temperature</h3>
             <div class="grow w-full h-full">
                 <svg
-                    id="graph-aux-gasbottles"
+                    id="graph-aux-n2o-supply-temp"
                     class="w-full h-full"
                     width="0"
                     height="0"
@@ -131,24 +131,14 @@
             </div>
             <div class="flex flex-row gap-4 grow justify-evenly">
                 <label>
-                    N<sub>2</sub>O&nbsp;#1:<input
-                        data-key="gasBottleWeight1"
+                    Temperature<input
+                        data-key="temp_pipe_n2o_gse"
                         data-precision="1"
                         readonly
                         autocomplete="off"
-                        style="border-bottom: 2px solid #FF0000"
+                        style="border-bottom: 2px solid #ff0000"
                         size="5"
-                    />kg
-                </label>
-                <label>
-                    N<sub>2</sub>O&nbsp;#2:<input
-                        data-key="gasBottleWeight2"
-                        data-precision="1"
-                        readonly
-                        autocomplete="off"
-                        style="border-bottom: 2px solid #00FF00"
-                        size="5"
-                    />kg
+                    />&deg;C
                 </label>
             </div>
         </section>
