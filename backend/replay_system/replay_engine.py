@@ -258,9 +258,9 @@ def _handle_av_to_gcs_data_2(packet: Packet) -> None:
         LATITUDE=float(data["GPS_latitude"]),
         LONGITUDE=float(data["GPS_longitude"]),
         QW=float(data["qw"]),
-        QX=float(data["qx"]),
-        QY=float(data["qy"]),
-        QZ=float(data["qz"]),
+        QX=float(data["qz"]),
+        QY=float(data["qx"]),
+        QZ=float(data["qy"]),
     )
     item.write_payload()
 
