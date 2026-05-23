@@ -61,7 +61,7 @@ const GRAPH_AUX_TRANSDUCERS = {
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
     ylabel: "Temperature (°C)",
-    numLines: 4,
+    numLines: 3,
     limits: {
         yBottomMax: 0,
     },
@@ -629,32 +629,32 @@ function graphUpdateAuxData(data) {
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.pressure_n2o_tank);
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.pressure_o2_tank);
 
-        // Thermocouples
-        graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
-            0,
-            timestamp,
-            data.temp_pipe_n2o_gse,
-        );
+        // // Thermocouples
+        // graphAddValue(
+        //     GRAPH_AUX_THERMOCOUPLES,
+        //     0,
+        //     timestamp,
+        //     data.temp_pipe_n2o_gse,
+        // );
 
         // Vent temperature
         graphAddValue(GRAPH_AUX_VENTTEMP, 0, timestamp, data.temp_vent);
 
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
-            1,
+            0,
             timestamp,
             data.temp_tank_top,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
-            2,
+            1,
             timestamp,
             data.temp_tank_middle,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
-            3,
+            2,
             timestamp,
             data.temp_tank_bottom,
         );
