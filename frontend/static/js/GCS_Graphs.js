@@ -668,7 +668,7 @@ function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
         listEl.appendChild(card);
     }
 
-    const lossText  = packetLoss != null ? (packetLoss * 100).toFixed(1) + "%" : "--";
+    const lossText  = packetLoss != null ? packetLoss + "%" : "--";
     const pingText  = alive ? `${ping.toFixed(0)} ms` : "-- ms";
     const pktsText  = packetCount != null ? packetCount : "--";
 
