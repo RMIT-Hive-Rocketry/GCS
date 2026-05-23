@@ -5,7 +5,10 @@ target-version = ['py311']
 
 # basedpyright lsp
 [tool.pyright]
-typeCheckingMode = "standard"
+typeCheckingMode = "all"
+
+reportAny = true
+reportExplicitAny = false
 
 # spellchecker
 [tool.codespell]
@@ -33,6 +36,12 @@ select = [
 	"PERF", # performance
 	"FURB", # refurb
 	"N",    # PEP8 naming
+	"E",    # pycodestyle errors
+	"W",    # pycodestyle warnings
+	"YTT",  # flake8
+	"TC",   # type checking
+	"PL",   # pylint
+	"RUF",  # ruff
 ]
 
 ignore = [
@@ -42,4 +51,5 @@ ignore = [
 	"ANN001",
 	# overkill
 	"ANN204",
+	"E501",
 ]
