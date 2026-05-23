@@ -2143,6 +2143,8 @@
             // transducer, thermocouple, and stateFlag fields.
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
+
+                console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
     
                 if (data?.pressure_n2o_bottle) {
                     hmiUpdateValue("hmi-pressure-1", data.pressure_n2o_bottle);
@@ -2176,23 +2178,6 @@
                 }
                 if (data?.weight_rocket !== undefined) {
                     hmiUpdateValue("HMI_WEIGHT", data.weight_rocket);
-                }
-    
-                // Solenoid valve states (boolean flags)
-                if (data?.stateFlags) {
-                    hmiUpdateSolenoid(
-                        "solenoidsV5",
-                        data.stateFlags.n20FillActivated
-                    );
-                    hmiUpdateSolenoid(
-                        "solenoidsV6",
-                        data.stateFlags.o2FillActivated
-                    );
-                    // V7 is normally open; flag inverts meaning
-                    hmiUpdateSolenoid(
-                        "solenoidsV7",
-                        data.stateFlags.manualPurgeActivated
-                    );
                 }
     
                 // Refresh status bar with latest telemetry values
