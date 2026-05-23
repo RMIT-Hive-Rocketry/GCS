@@ -2,7 +2,7 @@ import enum
 import logging
 import os
 from dataclasses import dataclass
-import config.config as config
+from config import config
 from cli.start_middleware import (
     InterfaceType,
     MiddlewareConfig,

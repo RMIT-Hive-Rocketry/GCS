@@ -1,5 +1,5 @@
 import logging
-import cli.process as process
+from cli import process
 import os
 import sys
 
@@ -7,7 +7,7 @@ import sys
 def start_performance_monitor(
     logger: logging.Logger,
     performance_logging: process.RunningProcess,
-    start_time,
+    start_time: float,
 ) -> None:
     service_name = "performance_monitor"
     try:

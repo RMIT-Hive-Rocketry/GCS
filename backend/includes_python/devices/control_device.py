@@ -10,10 +10,10 @@ class ControlDevice(ABC):
         # Use the get_control_device() function
         self._setup_device()
         # Set default fallback state to send whist waiting for inputs
-        self.state_table = PendantState.get_fallback_table()
-        self.previous_table = self.state_table
+        self.state_table: PendantState = PendantState.get_fallback_table()
+        self.previous_table: PendantState = self.state_table
         # avoid spamming logs if something goes wrong
-        self.complain_timer = RepeatingTimer(10)
+        self.complain_timer: RepeatingTimer = RepeatingTimer(10)
 
     @abstractmethod
     def _setup_device(self) -> None:
@@ -38,10 +38,11 @@ class ControlDevice(ABC):
             self.state_table = PendantState.get_fallback_table()
 
         if self.state_table != self.previous_table:
-            slogger.info(f"Pendant State changed to {repr(self.state_table)}")
+            slogger.info(f"Pendant State changed to {self.state_table!r}")
             self.previous_table = self.state_table
 
         return self.state_table
 
+    @abstractmethod
     def cleanup(self) -> None:
         """Code to run after controller is no longer needed."""

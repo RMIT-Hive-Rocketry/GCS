@@ -13,12 +13,12 @@ def parse_args() -> argparse.Namespace:
             "Intended for debugging the middleware TcpInterface (127.0.0.1:5001)."
         )
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--host",
         default="127.0.0.1",
         help="IP address to bind to (default: 127.0.0.1)",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--port",
         type=int,
         default=5001,

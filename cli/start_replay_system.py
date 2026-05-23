@@ -1,5 +1,5 @@
 import logging
-import cli.process as process
+from cli import process
 import enum
 import os
 import sys
@@ -24,6 +24,7 @@ def get_available_missions() -> list[str]:
         if os.path.isdir(os.path.join(mission_path, d))
     ]
 
+
 def get_available_blue_ravens() -> list[str]:
     """Scans the blue_raven directory and then returns the available missions"""
     blue_raven_path = os.path.join("backend", "replay_system", "blue_raven")
@@ -35,6 +36,7 @@ def get_available_blue_ravens() -> list[str]:
         for d in os.listdir(blue_raven_path)
         if os.path.isdir(os.path.join(blue_raven_path, d))
     ]
+
 
 def get_mission_path(mission: str | None) -> str:
     """Get the mission path from the command line argument, validation should exist already"""
@@ -77,12 +79,16 @@ def start_replay_system(
             args += 1
         if simulation:
             args += 1
-        
+
         if args == 0:
-            raise ValueError("Must have either mission or blue-raven or simulation type")
+            raise ValueError(
+                "Must have either mission or blue-raven or simulation type"
+            )
         if args > 1:
-            raise ValueError("Can only have one of simulation, mission or blue-raven data")
-        
+            raise ValueError(
+                "Can only have one of simulation, mission or blue-raven data"
+            )
+
         replay_command = [
             sys.executable,
             "-u",
@@ -94,7 +100,9 @@ def start_replay_system(
         if mission:
             replay_command.extend(["--mode", "mission", "--mission", mission])
         elif blue_raven:
-            replay_command.extend(["--mode", "mission", "--blue-raven", blue_raven])
+            replay_command.extend(
+                ["--mode", "mission", "--blue-raven", blue_raven]
+            )
         elif simulation:
             replay_command.extend(
                 ["--mode", "simulation", "--simulation", simulation]

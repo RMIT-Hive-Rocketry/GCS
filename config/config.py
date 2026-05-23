@@ -28,7 +28,7 @@ def get_default_config_path() -> str:
 # Cache/Singleton this. The config file does not chang during runtime.
 # You should only read the config once at startup anyway
 @cache
-def get_config(file_path=None) -> dict[str, dict[str, str]]:
+def get_config(file_path: str | None = None) -> ConfigParser:
     """Loads configuration settings from an INI file.
 
     Args:
@@ -43,7 +43,7 @@ def get_config(file_path=None) -> dict[str, dict[str, str]]:
     config = ConfigParser()
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Config file not found: {file_path}")
-    config.read(file_path)
+    _ = config.read(file_path)
 
     # TODO add range, exisitance and type checks here. Throw errors if not valid.
 

@@ -5,12 +5,12 @@ import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
-import config.config as config
+from config import config
 from google.protobuf.json_format import MessageToDict
 import signal
 import asyncio
 import sys
-import backend.device_emulator as device_emulator
+from backend import device_emulator
 import json
 import websockets
 import zmq

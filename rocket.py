@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import click
-import cli.rocket_logging as rocket_logging
-import cli.process as process
-import config.config as config
+from cli import rocket_logging
+from cli import process
+from config import config
 import logging
 import subprocess
 import sys
@@ -418,7 +418,7 @@ def start_services(
         replay_mode=replay_mode,
         mission_arg=mission_arg,
         simulation_arg=simulation_arg,
-        blue_raven_arg=blue_raven_arg
+        blue_raven_arg=blue_raven_arg,
     )
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
@@ -437,7 +437,7 @@ def start_services(
             aux_service_plan.device_path,
             mission=aux_service_plan.mission,
             blue_raven=aux_service_plan.blue_raven,
-            simulation=aux_service_plan.simulation
+            simulation=aux_service_plan.simulation,
         )
 
     # 5. Start the event viewer
@@ -573,7 +573,9 @@ def simulation(docker, nobuild, logpkt) -> None:
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, logpkt, mode, mission, blue_raven, simulation) -> None:
+def replay(
+    docker, nobuild, logpkt, mode, mission, blue_raven, simulation
+) -> None:
     """Start software in simulation mode"""
     if not mode:
         raise click.UsageError("--mode is required for the replay engine")

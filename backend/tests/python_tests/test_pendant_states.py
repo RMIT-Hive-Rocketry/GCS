@@ -70,9 +70,6 @@ all_correct_states: dict[tuple[PendantInput, ...], tuple[GSEState, ...]] = {
 def test_correct_states() -> None:
     # list of all possible correct states
     # also tests if filling in non existent states as false works
-
-    global all_correct_states
-
     for test_pendant_states, expected_gse_states in all_correct_states.items():
         pendant_state_dict = dict.fromkeys(test_pendant_states, True)
 
@@ -88,7 +85,7 @@ def test_correct_states() -> None:
 
 def test_invalid_key_raises() -> None:
     # passing an invalid key should raise TypeError
-    import pytest
+    import pytest  # noqa: PLC0415
 
     with pytest.raises(TypeError):
         PendantState({"NOT_A_REAL_INPUT": True})  # type: ignore
@@ -96,8 +93,6 @@ def test_invalid_key_raises() -> None:
 
 def test_all_state() -> None:
     # check that for every other possible state, they are either all off (for estop) or the fallback table
-
-    global all_correct_states
 
     # https://stackoverflow.com/questions/464864/how-to-get-all-possible-2n-combinations-of-a-list-s-elements-of-any-length
     count = 0

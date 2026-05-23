@@ -1,11 +1,12 @@
 import logging
+from typing_extensions import override
 from config.config import get_config
 import time
 import os
 import re
 import zmq
 from datetime import datetime
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python import service_helper
 
 # Capture application start time (initialized in `initialise()`)
 APP_START_TIME: float | None = None
@@ -33,15 +34,17 @@ LOG_MAPPING = {
 class CustomFormatter(logging.Formatter):
     """Logging formatter from https://stackoverflow.com/a/56944256/14141223"""
 
-    DARK_YELLOW = "\x1b[33;20m"
-    GREY = "\x1b[38;20m"
-    YELLOW = "\x1b[33;20m"
-    RED = "\x1b[31;20m"
-    BOLD_RED = "\x1b[31;1m"
-    GREEN = "\x1b[32;20m"
-    RESET = "\x1b[0m"
-    FORMAT = "[%(levelname)-7s] %(post_start_s)5s s | %(subprocess_name)s: %(message)s"
-    FORMAT_SHORT = "%(levelname_short)s %(post_start_s)ss %(subprocess_name)s | %(message)s"
+    DARK_YELLOW: str = "\x1b[33;20m"
+    GREY: str = "\x1b[38;20m"
+    YELLOW: str = "\x1b[33;20m"
+    RED: str = "\x1b[31;20m"
+    BOLD_RED: str = "\x1b[31;1m"
+    GREEN: str = "\x1b[32;20m"
+    RESET: str = "\x1b[0m"
+    # fmt: off
+    FORMAT: str = "[%(levelname)-7s] %(post_start_s)5s s | %(subprocess_name)s: %(message)s"
+    FORMAT_SHORT: str = "%(levelname_short)s %(post_start_s)ss %(subprocess_name)s | %(message)s"
+    # fmt: on
 
     LEVEL_SHORT = {
         logging.DEBUG: "D",
@@ -95,6 +98,7 @@ class PlainFormatter(CustomFormatter):
     def __init__(self, detailed_prefix: bool = True):
         super().__init__(detailed_prefix=detailed_prefix)
 
+    @override
     def format(self, record) -> str:
         # First format with the parent formatter that adds colors
         formatted_message = super().format(record)
@@ -126,6 +130,7 @@ class LogsLoopback(logging.Handler):
         # Regex pattern to match ANSI escape sequences
         self.ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
+    @override
     def emit(self, record) -> None:
         if service_helper.time_to_stop():
             # if stop signal given close socket and clean up handler
