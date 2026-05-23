@@ -925,18 +925,11 @@ function processDataForDisplay(apiData, apiId) {
             if (typeof apiData[device] !== 'object' || apiData[device] === null) return;
             if (!('ping' in apiData[device])) return;
 
-            let index = networkPackets.findIndex(item => item.name === device);
-            if (index >= 0) {
-                networkPackets[index].count++;
-            } else {
-                networkPackets.push({ name: device, count: 1, offset: 0 });
-                index = networkPackets.length - 1;
-            }
-
-            // Attach packet count so graphUpdateDiagnostics() can display it
             processedData[device] = {
                 ...apiData[device],
-                packet_count: networkPackets[index].count,
+                ping: apiData[device].ping,
+                packet_loss: (apiData[device].packet_loss * 100).toFixed(1),
+                count: apiData[device].packet_count ?? 0,
             };
         });
     }
@@ -985,22 +978,7 @@ function processDataForDisplay(apiData, apiId) {
             };
             processedData.state.av = { radio: 1 };
         } else if ([55].includes(apiId)) {
-            if (apiData.meta?.totalPacketCountGse) {
-                if (packetsGSE == 0) {
-                    packetsGSEoffset = apiData.meta.totalPacketCountGse - 1;
-                }
-                processedData.meta.totalPacketCountGse =
-                    apiData.meta.totalPacketCountGse - packetsGSEoffset;
-            }
-
             processedData.meta.radio = "gse";
-            processedData.meta.gse = {
-                rssi: apiData.meta.rssi,
-                snr: apiData.meta.snr,
-                packets: ++packetsGSE,
-                lostPackets:
-                    processedData.meta.totalPacketCountGse - packetsGSE,
-            };
             processedData.state.gse = { radio: 1 };
         }
     }
