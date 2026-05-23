@@ -76,10 +76,10 @@ const GRAPH_AUX_VENTTEMP = {
     },
     data: [],
 };
-const GRAPH_AUX_GASBOTTLES = {
-    selector: "#graph-aux-gasbottles",
-    ylabel: "Mass (kg)",
-    numLines: 2,
+const GRAPH_AUX_SUPPLY_TEMP = {
+    selector: "#graph-aux-n2o-supply-temp",
+    ylabel: "Temperature (°C)",
+    numLines: 1,
     data: [],
 };
 
@@ -475,7 +475,7 @@ function graphRequestRender() {
     graphRender(GRAPH_AUX_TRANSDUCERS);
     graphRender(GRAPH_AUX_THERMOCOUPLES);
     graphRender(GRAPH_AUX_VENTTEMP);
-    graphRender(GRAPH_AUX_GASBOTTLES);
+    graphRender(GRAPH_AUX_SUPPLY_TEMP);
 
     graphRender(GRAPH_TEST_COLOURS);
 
@@ -519,7 +519,7 @@ function graphInit() {
     graphCreateLine(GRAPH_AUX_TRANSDUCERS);
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
     graphCreateLine(GRAPH_AUX_VENTTEMP);
-    graphCreateLine(GRAPH_AUX_GASBOTTLES);
+    graphCreateLine(GRAPH_AUX_SUPPLY_TEMP);
     graphCreateLine(GRAPH_TEST_COLOURS);
 
     // Update the test colours graph
@@ -552,7 +552,7 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
         // Update the colours (even if no data is coming through)
         const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY,
                             GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES,
-                            GRAPH_AUX_VENTTEMP, GRAPH_AUX_GASBOTTLES, GRAPH_TEST_COLOURS];
+                            GRAPH_AUX_VENTTEMP, GRAPH_AUX_SUPPLY_TEMP, GRAPH_TEST_COLOURS];
         graphsList.forEach((g1) => {
             g1.lines.forEach((l1, index) => {
                 l1.color = LINE_COLOURS[index];
@@ -629,13 +629,13 @@ function graphUpdateAuxData(data) {
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.pressure_n2o_tank);
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.pressure_o2_tank);
 
-        // // Thermocouples
-        // graphAddValue(
-        //     GRAPH_AUX_THERMOCOUPLES,
-        //     0,
-        //     timestamp,
-        //     data.temp_pipe_n2o_gse,
-        // );
+        // Supply Temp
+        graphAddValue(
+            GRAPH_AUX_SUPPLY_TEMP,
+            0,
+            timestamp,
+            data.temp_pipe_n2o_gse,
+        );
 
         // Vent temperature
         graphAddValue(GRAPH_AUX_VENTTEMP, 0, timestamp, data.temp_vent);
@@ -658,21 +658,6 @@ function graphUpdateAuxData(data) {
             timestamp,
             data.temp_tank_bottom,
         );
-
-        // TODO Change to gas bottle pressures
-        // Gas bottle weights
-        // graphAddValue(
-        //     GRAPH_AUX_GASBOTTLES,
-        //     0,
-        //     timestamp,
-        //     data.gasBottleWeight1,
-        // );
-        // graphAddValue(
-        //     GRAPH_AUX_GASBOTTLES,
-        //     1,
-        //     timestamp,
-        //     data.gasBottleWeight2,
-        // );
     }
 }
 // ================================================================
