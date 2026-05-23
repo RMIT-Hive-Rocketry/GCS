@@ -51,7 +51,7 @@
 
         <!-- Thermocouples -->
         <section class="flex flex-col">
-            <h3>Thermocouple Readings</h3>
+            <h3>Temperature Readings</h3>
             <div class="grow w-full h-full">
                 <svg
                     id="graph-aux-thermocouples"
@@ -62,17 +62,7 @@
             </div>
             <div class="flex flex-row gap-2 grow justify-evenly text-center">
                 <label class="w-1/4">
-                    N<sub>2</sub>O&nbsp;(int):<br /><input
-                        data-key="temp_pipe_n2o_gse"
-                        data-precision="0"
-                        readonly
-                        autocomplete="off"
-                        style="border-bottom: 2px solid #FF0000"
-                        size="4"
-                    />&deg;C
-                </label>
-                <label class="w-1/4">
-                    Top RTD<br /><input
+                    Top Tank<br /><input
                         data-key="temp_tank_top"
                         data-precision="0"
                         readonly
@@ -82,7 +72,7 @@
                     />&deg;C
                 </label>
                 <label class="w-1/4">
-                    Mid RTD<br /><input
+                    Mid Tank<br /><input
                         data-key="temp_tank_middle"
                         data-precision="0"
                         readonly
@@ -92,7 +82,7 @@
                     />&deg;C
                 </label>
                 <label class="w-1/4">
-                    Bottom RTD /><input
+                    Bot Tank<input
                         data-key="temp_tank_bottom"
                         data-precision="0"
                         readonly
