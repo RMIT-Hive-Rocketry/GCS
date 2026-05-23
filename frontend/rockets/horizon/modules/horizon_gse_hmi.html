@@ -1615,7 +1615,7 @@
                     Transparent hit areas over each valve symbol.
                     onclick calls changecolor() to toggle valve state.
                     ================================================= -->
-                <g id="rectangle-HMI">
+                <!-- <g id="rectangle-HMI">
     
                     <rect id="Rectangle-HMIV12"
                         x="163" y="630" width="67" height="73"
@@ -1660,7 +1660,7 @@
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('needleV1')" />
     
-                </g>
+                </g> -->
                 <!-- end #rectangle-HMI -->
     
     
@@ -2144,7 +2144,13 @@
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
 
-                console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
+                //console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
+
+                // State/control packet check
+                if (data?.SYSTEM_ACTIVATE !== undefined) {
+                    hmiUpdateValveStates(data);
+                    return;
+                }
     
                 if (data?.pressure_n2o_bottle) {
                     hmiUpdateValue("hmi-pressure-1", data.pressure_n2o_bottle);
@@ -2221,6 +2227,80 @@
                 if (!solenoid) return;
     
                 solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
+            }
+
+            function hmiUpdateValveStates(data) {
+
+                const flags = {
+                    systemActivate:   !!data.SYSTEM_ACTIVATE,
+                    gasFillSelected:  !!data.GAS_FILL_SELECTED,
+                    ignitionSelected: !!data.IGNITION_SELECTED,
+                    ignitionFire:     !!data.IGNITION_FIRE,
+                    n2oFill:          !!data.N2O_FILL_ACTIVATE,
+                    o2Fill:           !!data.O2_FILL_ACTIVATE,
+                    manualPurge:      !!data.MANUAL_PURGE,
+                    selectorNeutral:  !!data.SELECTOR_SWITCH_NEUTRAL_POSITION,
+                };
+
+                // Each rule is checked in order. First match wins.
+                // Valve IDs use whatever SVG element IDs the valves have,
+                // e.g "solenoidsV5", "solenoidsV6", "solenoidsV7", etc.
+
+                const rules = [
+                    {
+                        name: "N2O Fill Mode",
+                        condition: () => flags.systemActivate && flags.gasFillSelected && flags.n2oFill,
+                        valves: {
+                            "solenoidsV5": true,
+                            "solenoidsV6": true,
+                            "solenoidsV7": true,
+                        }
+                    },
+                    // {
+                    //     name: "O2 Fill Mode",
+                    //     condition: () => flags.systemActivate && flags.gasFillSelected && flags.o2Fill,
+                    //     valves: {
+                    //         "solenoidsV5": false,
+                    //         "solenoidsV6": true,
+                    //         "solenoidsV7": false,
+                    //     }
+                    // },
+                    // {
+                    //     name: "Manual Purge",
+                    //     condition: () => flags.systemActivate && flags.manualPurge,
+                    //     valves: {
+                    //         "solenoidsV5": false,
+                    //         "solenoidsV6": false,
+                    //         "solenoidsV7": true,
+                    //     }
+                    // },
+                ];
+
+                // ----- Default: all valves closed (no rule matched) -----
+                const defaultValves = {
+                    // "solenoidsV5": false,
+                    // "solenoidsV6": false,
+                    // "solenoidsV7": false,
+                };
+
+                // Rule evaluation
+                let matched = false;
+                for (const rule of rules) {
+                    if (rule.condition()) {
+                        console.log("Valve rule matched:", rule.name);
+                        for (const [valveId, state] of Object.entries(rule.valves)) {
+                            hmiUpdateSolenoid(valveId, state);
+                        }
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (!matched) {
+                    for (const [valveId, state] of Object.entries(defaultValves)) {
+                        hmiUpdateSolenoid(valveId, state);
+                    }
+                }
             }
     
         </script>
