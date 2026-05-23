@@ -17,6 +17,7 @@ from backend.includes_python.gsedaq_metrics import GseDaqMetrics
 import json
 import websockets
 import zmq
+import time
 import zmq.asyncio
 import os
 
@@ -65,7 +66,12 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
     tcp_gse_task = None
     tcp_gse_packet_count = 0
     # Used to copy across packets that need to be synced with the sevrer
-    server_timestamp = 0
+    # Because this software uses the server as the official true timestamp,
+    # The frontnend will use it to interpolate lag based on that time. 
+    # TCP does not come from the 'server'. It needs to know what time the server is on,
+    # Then figure out how far behind it is. It has to be synced. This plots properly
+    last_server_timestamp = 0
+    server_monotonic_time = 0 # Use time.monotonic difference in seconds
 
     try:
         context = zmq.asyncio.Context()
@@ -176,7 +182,8 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         proto_object.ParseFromString(message)
                         data = MessageToDict(proto_object)
                         data = append_data(data, packet_id)
-                        server_timestamp = data["meta"]["timestampS"]
+                        last_server_timestamp = data["meta"]["timestampS"]
+                        server_monotonic_time = time.monotonic()
                         output = {"id": packet_id, "data": data}
                         try:
                             await websocket.send(json.dumps(output))
@@ -210,12 +217,16 @@ async def zmq_to_websocket(websocket, ZMQ_SUB_SOCKET):
                         gse_data = GseDaqMetrics.labview_row_bytes_to_data_dict(
                             gse_line
                         )
+                        # TODO make this packetcount serverside.
+                        # It resets if no clients are connected I think
                         tcp_gse_packet_count += 1
+                        # See variable definition comments
+                        tcp_update_timestamp_s = time.monotonic() - server_monotonic_time + last_server_timestamp
                         output = {
                             "id": GSE_LABVIEW_TCP_PACKET_ID,
                             "data": {"meta": {
                                 "totalPacketCountGse": tcp_gse_packet_count,
-                                "timestampS": server_timestamp}
+                                "timestampS": tcp_update_timestamp_s}
                             } | gse_data,
                         }
                         await websocket.send(json.dumps(output))
