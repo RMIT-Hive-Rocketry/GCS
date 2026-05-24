@@ -1662,7 +1662,7 @@ function displayUpdateFlightState(data) {
             data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY"
         ) {
             // Preflight (not ready)
-            stateName = "Pre-flight (not ready)";
+            stateName = "Pre-flight";
             displaySetActiveFlightState("fs-state-preflight");
         } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
