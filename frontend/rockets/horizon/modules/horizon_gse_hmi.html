@@ -35,7 +35,13 @@
             <!-- font-family shorthand used inline on each text element -->
     
             <g id="HMI">
-    
+
+                <!-- Clickable legend button -->
+                <g onclick="document.getElementById('instrument-modal').style.display='flex'" style="cursor:pointer;" transform="translate(300,0)">
+                    <rect x="70" y="5" width="230" height="32" rx="4" fill="black" stroke="#555" stroke-width="0.5"/>
+                    <text x="82" y="26" fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    Monaco, Consolas, monospace" letter-spacing="0.12em">Instrument Legend</text>
+                </g>
     
                 <!-- =================================================
                     GAS BOTTLES
@@ -2070,6 +2076,53 @@
         </svg>
         <!-- end SVG -->
     
+        <!-- Instrument Legend Modal -->
+        <div id="instrument-modal"
+            onclick="this.style.display='none'"
+            style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+                    align-items:center; justify-content:center; z-index:9999;">
+            <div onclick="event.stopPropagation()"
+                style="background:#232323; color:#e0e0e0; padding:28px 32px; border-radius:10px;
+                        max-height:80vh; overflow-y:auto; border:1px solid #333;
+                        box-shadow:0 8px 32px rgba(0,0,0,0.5); min-width:460px;">
+                <h3 style="margin:0 0 16px 0; color:#fff; font-size:18px;">Instrument &amp; Valve Legend</h3>
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #444;">
+                            <th style="text-align:left; padding:6px 12px 6px 0; color:white;">Label</th>
+                            <th style="text-align:left; padding:6px 0; color:white;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-1</td><td style="padding:5px 0;">O₂ flow-control needle valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-2</td><td style="padding:5px 0;">O₂ cylinder pressure regulator with relief valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-3</td><td style="padding:5px 0;">N₂O pressure-relief valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-4</td><td style="padding:5px 0;">N₂O flow-control needle valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-5</td><td style="padding:5px 0;">N₂O fill solenoid valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-6</td><td style="padding:5px 0;">O₂ fill solenoid valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-7</td><td style="padding:5px 0;">N₂O purge solenoid valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-8</td><td style="padding:5px 0;">N₂O cylinder-1 main valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-9</td><td style="padding:5px 0;">N₂O cylinder-2 main valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-10</td><td style="padding:5px 0;">N₂O manual purge valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-11</td><td style="padding:5px 0;">O₂ manual purge valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-12</td><td style="padding:5px 0;">O₂ cylinder main valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-13</td><td style="padding:5px 0;">N₂O backflow-prevention check (poppet) valve</td></tr>
+                        <tr style="border-bottom:2px solid #444;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-14</td><td style="padding:5px 0;">O₂ backflow-prevention check (poppet) valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-1</td><td style="padding:5px 0;">N₂O supply-temperature sensor</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-2</td><td style="padding:5px 0;">N₂O supply-pressure gauge</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-3</td><td style="padding:5px 0;">N₂O filler-stem pressure gauge</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-4</td><td style="padding:5px 0;">O₂ cylinder-pressure gauge</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-5</td><td style="padding:5px 0;">O₂ supply-pressure gauge</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-6</td><td style="padding:5px 0;">O₂ filler-stem pressure gauge</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-7</td><td style="padding:5px 0;">Temperature sensor at top of flight tank</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-8</td><td style="padding:5px 0;">Temperature sensor at middle of flight tank</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-9</td><td style="padding:5px 0;">Temperature sensor at bottom of flight tank</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-10</td><td style="padding:5px 0;">Temperature sensor at vent</td></tr>
+                        <tr><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-11</td><td style="padding:5px 0;">Load capacity sensor at rocket</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     
         <!-- =================================================================
             HMI JAVASCRIPT
@@ -2159,7 +2212,7 @@
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
 
-                //console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
+                console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
 
                 // State/control packet check
                 if (data?.SYSTEM_ACTIVATE !== undefined) {
