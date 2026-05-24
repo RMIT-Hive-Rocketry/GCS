@@ -412,7 +412,7 @@
                     <g
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
-                        text-anchor="middle" transform="translate(0,130)"
+                        text-anchor="middle" transform="translate(0,160)"
                     >
                         <!-- TODO: HOOK UP JAVASCRIPT -->
                         <text x="1450" y="480" font-size="18"
@@ -440,7 +440,7 @@
                     <g
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
-                        text-anchor="middle" transform="translate(70, 150)"
+                        text-anchor="middle" transform="translate(50, 150)"
                     >
                         <text x="1450" y="480" font-size="18"
                               fill="white" letter-spacing="0.12em">N₂O Vent</text>
@@ -456,6 +456,7 @@
                     <!-- <line x1="1580" y1="573" x2="1653" y2="573" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line> -->
                     <line x1="1653" y1="588" x2="1653" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
                     <line x1="1650" y1="588" x2="1650" y2="650" stroke="white" stroke-width="1"></line>
+                    <line x1="1620" y1="635" x2="1650" y2="635" stroke="white" stroke-width="1"></line>
                 </g>
                 <!-- end N2O VENT TEMPERATURE -->
 
@@ -1294,32 +1295,24 @@
                 </g>
     
                 <!-- Temperature Recorder (TR symbol, N2O line) -->
-                <g id="HMI_temperature_recorders" transform="translate(-659,-5)">
-                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5"
-                        stroke="white" />
-                    <!-- "TR" glyph rendered as inline path -->
-                    <path
-                        id="TR"
-                        d="M1107.99 296.127H1104.92V305H1103.69V296.127H1100.61
-                           V295.047H1107.99V296.127ZM1112.98 300.939H1111V305H1109.74
-                           V295.047H1112.66C1113.12 295.056 1113.56 295.122 1113.97
-                           295.245C1114.38 295.368 1114.74 295.553 1115.05 295.799
-                           C1115.35 296.045 1115.59 296.355 1115.77 296.729C1115.94
-                           297.098 1116.03 297.533 1116.03 298.034C1116.03 298.358
-                           1115.99 298.654 1115.89 298.923C1115.8 299.192 1115.67
-                           299.436 1115.51 299.654C1115.34 299.873 1115.15 300.067
-                           1114.92 300.235C1114.69 300.404 1114.44 300.548 1114.17
-                           300.666L1116.28 304.918L1116.27 305H1114.94L1112.98
-                           300.939ZM1111 299.9H1112.69C1112.97 299.896 1113.24
-                           299.853 1113.49 299.771C1113.74 299.684 1113.96 299.561
-                           1114.15 299.401C1114.34 299.242 1114.49 299.048 1114.6
-                           298.82C1114.71 298.588 1114.76 298.321 1114.76 298.021
-                           C1114.76 297.701 1114.71 297.424 1114.6 297.187C1114.5
-                           296.945 1114.35 296.742 1114.17 296.578C1113.98 296.419
-                           1113.76 296.298 1113.5 296.216C1113.24 296.134 1112.96
-                           296.09 1112.66 296.086H1111V299.9Z"
-                        fill="white"
-                    />
+                <g id="HMI_temperature_recorder1" transform="translate(-659,-5)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <!-- Temperature Recorder -->
+                <g id="HMI_temperature_recorder2" transform="translate(290,550)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <!-- LC Recorder -->
+                <g id="HMI_LC_recorder1" transform="translate(341,585)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">LC</text>
                 </g>
     
     
