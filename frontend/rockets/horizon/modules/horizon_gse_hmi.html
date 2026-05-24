@@ -348,14 +348,14 @@
                     />
     
                     <!-- Filler stem pipe lines -->
-                    <line x1="153" y1="850" x2="-150" y2="850" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
-                    <line x1="153" y1="850" x2="153" y2="471" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
-                    <line x1="-150" y1="718" x2="-150" y2="850" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="147" y1="800" x2="-150" y2="800" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="147" y1="800" x2="147" y2="471" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="-150" y1="718" x2="-150" y2="800" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
     
                     <!-- Filler stem pipe label -->
                     <text
                         x="0"
-                        y="835"
+                        y="780"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="18"
@@ -440,9 +440,8 @@
                     <g
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
-                        text-anchor="middle" transform="translate(70, 50)"
+                        text-anchor="middle" transform="translate(70, 170)"
                     >
-                        <!-- TODO: HOOK UP TO JAVASCRIPT -->
                         <text x="1450" y="480" font-size="18"
                               fill="white" letter-spacing="0.12em">N₂O Vent</text>
                         <text x="1450" y="500" font-size="18"
@@ -454,8 +453,9 @@
                     </g>
     
                     <!-- vent temp line -->
-                    <line x1="1580" y1="573" x2="1647" y2="573" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
-                    <line x1="1647" y1="573" x2="1647" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
+                    <!-- <line x1="1580" y1="573" x2="1653" y2="573" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line> -->
+                    <line x1="1653" y1="588" x2="1653" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="1650" y1="588" x2="1650" y2="650" stroke="white" stroke-width="1"></line>
                 </g>
                 <!-- end N2O VENT TEMPERATURE -->
 
@@ -1217,8 +1217,7 @@
     
     
                 <!-- =================================================
-                    PRESSURE RECORDERS
-                    Circular recorder symbols with internal arrow paths.
+                    Pressure and Temp Recorders
                     ================================================= -->
     
                 <!-- Pressure Recorder (N2O line, lower) -->
@@ -2251,9 +2250,20 @@
                         name: "N2O Fill Mode",
                         condition: () => flags.systemActivate && flags.gasFillSelected && flags.n2oFill,
                         valves: {
-                            "solenoidsV5": true,
-                            "solenoidsV6": true,
+                            "needleV1": true,
+                            "springValve": true,
+                            "reliefValveV3": true,
+                            "needleV4": true,
+                            "solenoidsV5": false,
+                            "solenoidsV6": false,
                             "solenoidsV7": true,
+                            "ballV8": false,
+                            "ballV9": true,
+                            "ballV10": true,
+                            "ballV11": true,
+                            "ballV12": true,
+                            "backflowV13": false,
+                            "backflowV14": true,
                         }
                     },
                     // {
