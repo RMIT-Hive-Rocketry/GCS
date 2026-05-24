@@ -259,7 +259,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
 
                     if log_dicts:
                         output = {
-                            "id": slogger_packet_id,
+                            "id": SLOGGER_PACKET_ID,
                             "data": {"slogger": log_dicts},
                         }
 
@@ -384,7 +384,7 @@ async def consumer(websocket) -> None:
             slogger.error(f"Consumer error: {e}")
     finally:
         slogger.debug("ZMQ socket closing")
-        push_socket.close(linger=LINGER_TIME_MS)
+        push_socket.close(linger=linger_time_ms)
         context.term()
         slogger.debug("Consumer ZMQ context terminated")
 
