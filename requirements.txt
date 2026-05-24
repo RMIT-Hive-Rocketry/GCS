@@ -27,6 +27,7 @@ codespell
 
 # types
 pandas-stubs
+typing-extensions~=4.15.0
 
 # Testing
 # serial
