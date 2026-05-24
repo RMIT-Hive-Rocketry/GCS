@@ -2077,13 +2077,16 @@
         <!-- end SVG -->
     
         <!-- Instrument Legend Modal -->
+         <style>
+            #instrument-modal > div::-webkit-scrollbar { display: none; }
+        </style>
         <div id="instrument-modal"
             onclick="this.style.display='none'"
             style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
                     align-items:center; justify-content:center; z-index:9999;">
             <div onclick="event.stopPropagation()"
                 style="background:#232323; color:#e0e0e0; padding:28px 32px; border-radius:10px;
-                        max-height:80vh; overflow-y:auto; border:1px solid #333;
+                        max-height:80vh; overflow-y:auto; scrollbar-width: none; -ms-overflow-style: none; border:1px solid #333;
                         box-shadow:0 8px 32px rgba(0,0,0,0.5); min-width:460px;">
                 <h3 style="margin:0 0 16px 0; color:#fff; font-size:18px;">Instrument &amp; Valve Legend</h3>
                 <table style="width:100%; border-collapse:collapse; font-size:14px;">
