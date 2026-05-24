@@ -3,9 +3,9 @@
 #include <cassert>
 #include <thread>
 
-// AvSequence constrcutor.
+// AvSequence constructor.
 // This object should be treated like a singleton,
-// but passed by refference across threads instead of calling the constructor
+// but passed by reference across threads instead of calling the constructor
 // on each new instance
 AvSequence::AvSequence() {
   assert(singleton_created_ == false);

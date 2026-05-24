@@ -12,9 +12,8 @@ const maxReconnectInterval = 5000; // Maximum amount of time between reconnect a
 const graphRenderRate = 20; // FPS for rendering graphs
 const metricOffline = {}; // key -> boolean
 
-// API connection
-const api_url = window.location.host.split(":")[0];
-const ws_url = `ws://${api_url}:1887`;
+// WebSocket API connection
+const ws_url = _ws != undefined ? `ws://${_ws["host"]}:${_ws["port"]}` : `ws://${window.location.host.split(":")[0]}:1887`
 const apiSocket = new WebSocket(ws_url);
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
@@ -427,7 +426,7 @@ function updateTime() {
 }
 
 // Logging code
-function logMessage(message, type = "", timestamp = "") {
+function logMessage(message, logType = "", timestamp = "") {
     // Make sure log area exists
     const logArea = document.getElementById("errorLogBox");
     if (!logArea) {
@@ -436,8 +435,7 @@ function logMessage(message, type = "", timestamp = "") {
     }
 
     // Calculate timestamp
-    if(timestamp == "")
-    {
+    if (timestamp == "") {
         let timestamp = "?";
         if (timestampLocal != undefined && timestampApiConnect != undefined) {
             timestamp =
@@ -445,43 +443,48 @@ function logMessage(message, type = "", timestamp = "") {
         }
     }
 
-
-
     // Handle different message types
-    let logName = "Notice";
-    let textColor = "text-white";
+    const messageTypes = {
+        "error": {
+            logName: "Error",
+            textColor: "text-red-400",
+            function: console.error
+        },
+        "warning": {
+            logName: "Warning",
+            textColor: "text-yellow-300",
+            function: console.warn
+        },
+        "ws": {
+            logName: "WebSocket",
+            textColor: "text-emerald-300",
+            function: console.debug
+        },
+        "debug": {
+            logName: "Debug",
+            textColor: "text-white-900",
+            function: console.debug
+        },
+        "critical": {
+            logName: "CRITICAL",
+            textColor: "text-red-crit",
+            function: console.error
+        },
+        "success": {
+            logName: "Success",
+            textColor: "text-green-300",
+            function: console.debug
+        },
+    }
 
-    if (type == "error") {
-        logName = "Error";
-        textColor = "text-red-400";
-        console.error(timestamp, message);
-
-    } else if (type == "warning") {
-        logName = "Warning";
-        textColor = "text-yellow-300";
-        console.warn(timestamp, message);
-
-    } else if (type == "ws") {
-        logName = "WebSocket";
-        textColor = "text-emerald-300";
-        console.debug(timestamp, message);
-
-    } else if (type == "debug") {
-        logName = "Debug";
-        textColor = "text-white-900";
-        console.debug(timestamp, message);
-
-    } else if (type == "critical") {
-        logName = "CRITICAL";
-        textColor = "text-red-crit";
-        console.error(timestamp, message);
-
-    } else if (type == "success") {
-        logName = "success";
-        textColor = "text-green-300";
-        console.debug(timestamp, message);
-
+    let logName, textColor;
+    if (Object.keys(messageTypes).indexOf(logType) != -1) {
+        logName = messageTypes[logType].logName;
+        textColor = messageTypes[logType].textColor;
+        messageTypes[logType].function(timestamp, message);
     } else {
+        logName = "Notice";
+        textColr = "text-white";
         console.log(timestamp, message);
     }
 
@@ -492,7 +495,7 @@ function logMessage(message, type = "", timestamp = "") {
     logArea.appendChild(line);
 
     // Limit lines
-    const maxlines = 16;
+    const maxlines = 256;
     while (logArea.children.length > maxlines) {
         logArea.removeChild(logArea.firstChild);
     }
@@ -1550,8 +1553,7 @@ function displayUpdateFlightState(data) {
 
 
 
-function displaySloggerLogs(apiData)
-{
+function displaySloggerLogs(apiData) {
     apiData.forEach(log => {
         logMessage(log.message, log.level.toLowerCase(), log.timestamp);
     });

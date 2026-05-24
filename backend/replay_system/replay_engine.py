@@ -4,26 +4,20 @@ Replay the following CSV files
 
 """
 
-from enum import Enum
 from dataclasses import dataclass
-import sys
 import os
 import csv
-from typing import List
 import time
-import config.config as config
+from config import config
 from backend.device_emulator import (
     AVtoGCSData1,
     AVtoGCSData2,
-    AVtoGCSData3,
     GSEtoGCSData1,
     GSEtoGCSData2,
-    GCStoAVStateCMD,
-    GCStoGSEStateCMD,
     MockPacket,
 )
 import backend.includes_python.process_logging as slogger
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python import service_helper
 from backend.replay_system.packet_type import PacketType
 import configparser
 import argparse
@@ -33,6 +27,7 @@ cfg.read("config/replay.ini")
 timeout_cfg = cfg["Timeout"]
 MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
+MAX_FRAME_RATE = float(timeout_cfg["max_frame_rate"])
 
 
 @dataclass
@@ -44,14 +39,14 @@ class Packet:
 
 def process_csv_packets(
     min_timestamp_ms: int, mission_path: str
-) -> List[Packet]:
+) -> list[Packet]:
     """Read and sort all the csv files"""
     packets = []
     for packet_type in PacketType:
 
         filename = os.path.join(mission_path, f"{packet_type.name}.csv")
         try:
-            with open(filename, "r", encoding="utf-8-sig") as f:
+            with open(filename, encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     timestamp_ms = float(row["timestamp_ms"])
@@ -68,7 +63,7 @@ def process_csv_packets(
     return sorted(packets, key=lambda x: x.timestamp_ms)
 
 
-def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
+def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
     if not packets:
         return
 
@@ -78,12 +73,23 @@ def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
 
     if service_helper.time_to_stop():
         return
+
+    next_earliest_frame_time = start_time
     for packet in packets:
         if service_helper.time_to_stop():
             break
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
+
+        # skip frame if too soon
+        if target_time < next_earliest_frame_time:
+            continue
+
+        # current packet will be sent, therefore update the next earliest allowed frame_time
+        next_earliest_frame_time += 1 / MAX_FRAME_RATE
+
         time_to_wait = target_time - time.time()
+
         if time_to_wait >= 3.0:
             slogger.warning(
                 f"Time until next packet: {round(time_to_wait,3)} seconds"
@@ -385,7 +391,7 @@ def get_mission_path():
 
 
 def main():
-    # Using parser because theres too many arguments and I couldn't get sys working
+    # Using parser because there's too many arguments and I couldn't get sys working
     parser = argparse.ArgumentParser()
     parser.add_argument("--device-rocket", required=True)
     parser.add_argument(

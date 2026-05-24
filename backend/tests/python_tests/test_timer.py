@@ -1,14 +1,13 @@
 from backend.includes_python.timers import RepeatingTimer
-import pytest
 import time
 
 EPSILON = 1e-3
 
 
-def test_repeating_timer():
+def test_repeating_timer() -> None:
     timer = RepeatingTimer(0.01)
 
-    # timer is supposed to retun true immidiently
+    # timer is supposed to return true immidiently
     assert timer.time_has_passed()
 
     start_time = time.monotonic()

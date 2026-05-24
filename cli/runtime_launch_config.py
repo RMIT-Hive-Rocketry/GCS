@@ -2,10 +2,7 @@ import enum
 import logging
 import os
 from dataclasses import dataclass
-from typing import Dict, Optional
-from functools import cache
-
-import config.config as config
+from config import config
 from cli.start_middleware import (
     InterfaceType,
     MiddlewareConfig,
@@ -16,21 +13,23 @@ from cli.start_socat import start_fake_serial_device
 
 @dataclass(frozen=True)
 class AuxServicePlan:
-    service: Optional[str]
-    device_path: Optional[str]
-    interface_type: Optional[InterfaceType]
-    mission: Optional[str]
-    simulation: Optional[str]
+    service: str | None
+    device_path: str | None
+    interface_type: InterfaceType | None
+    mission: str | None
+    simulation: str | None
 
 
 class RuntimeLaunchConfig:
     """Resolve launch-time interfaces, device paths, and middleware config."""
 
+    _test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
+
     def __init__(
         self,
         command: enum.Enum,
-        interface_av_arg: Optional[str],
-        interface_gse_arg: Optional[str],
+        interface_av_arg: str | None,
+        interface_gse_arg: str | None,
         gse_only: bool,
         logger: logging.Logger,
     ) -> None:
@@ -38,19 +37,37 @@ class RuntimeLaunchConfig:
         self.logger = logger
         self.is_release = self._is_release_mode(command)
 
+        # get from config if not specified in CLI args
+        if not interface_gse_arg:
+            interface_gse_arg = (
+                config.get_config()["hardware"]["interface_dev_gse"]
+                .strip()
+                .upper()
+            )
+
+        if not interface_av_arg:
+            interface_av_arg = (
+                config.get_config()["hardware"]["interface_dev_av"]
+                .strip()
+                .upper()
+            )
+
         self.interface_gse_type = get_interface_type(interface_gse_arg)
         self.interface_av_type = get_interface_type(interface_av_arg)
 
+        if gse_only:
+            self.interface_av_type = InterfaceType.NONE
+
         self._validate_split_emulation_support()
 
-        self.lora_config: Optional[Dict[str, str]] = None
+        self.lora_config: dict[str, str] | None = None
         self.device_path_gse: str = ""
         self.device_path_av: str = ""
-        self._aux_device_path: Optional[str] = None
+        self._aux_device_path: str | None = None
 
         self._resolve_paths_and_radio()
 
-        self.optional_arg = "--GSE_ONLY" if gse_only else None
+        self.optional_arg = "--GSE-ONLY" if gse_only else None
         self.middleware_config = MiddlewareConfig(
             release=self.is_release,
             interface_gse_type=self.interface_gse_type,
@@ -75,31 +92,50 @@ class RuntimeLaunchConfig:
         return getattr(command, "name", "").upper() == "RUN"
 
     def _validate_split_emulation_support(self) -> None:
-        test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
         if (
-            self.interface_av_type in test_interfaces
-            or self.interface_gse_type in test_interfaces
-        ) and self.interface_av_type != self.interface_gse_type:
+            self.interface_gse_type == InterfaceType.NONE
+            or self.interface_av_type == InterfaceType.NONE
+        ):
+            # NONE should allow split emulation
+            return
+
+        any_interface_is_test = (
+            self.interface_av_type in self._test_interfaces
+            or self.interface_gse_type in self._test_interfaces
+        )
+        interfaces_differ = self.interface_gse_type != self.interface_av_type
+
+        if (any_interface_is_test) and interfaces_differ:
             raise NotImplementedError(
                 "Device emulator does not support split emulation interfaces yet"
             )
 
     def _resolve_paths_and_radio(self) -> None:
-        test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
+        either_is_test = (
+            self.interface_gse_type in self._test_interfaces
+            or self.interface_av_type in self._test_interfaces
+        )
+        either_is_none = (
+            self.interface_gse_type == InterfaceType.NONE
+            or self.interface_av_type == InterfaceType.NONE
+        )
+        both_are_test = (
+            self.interface_gse_type in self._test_interfaces
+            and self.interface_av_type in self._test_interfaces
+        )
 
-        gse_is_test = self.interface_gse_type in test_interfaces
-        av_is_test = self.interface_av_type in test_interfaces
-
-        if gse_is_test and av_is_test:
+        if either_is_none and either_is_test or both_are_test:
             middleware_device, aux_device = self._run_pseudoterm_setup()
             self.device_path_gse = middleware_device
             self.device_path_av = middleware_device
             self._aux_device_path = aux_device
             return
 
-        if gse_is_test or av_is_test:
+        if either_is_test:
             raise NotImplementedError(
                 "Mixed test/non-test interfaces are not supported yet"
+                + self.interface_av_type.value
+                + self.interface_gse_type.value
             )
 
         self.device_path_gse = self._resolve_non_test_device_path(
@@ -150,9 +186,14 @@ class RuntimeLaunchConfig:
                 raise RuntimeError("tcp-port must be between 1 and 65535")
             return f"{tcp_ip}:{tcp_port}"
 
+        if interface_type == InterfaceType.NONE:
+            self.logger.info(f"Starting NONE interface ({link_name})")
+            return "NONE"
+
         raise ValueError("Invalid interface type")
 
     def _run_pseudoterm_setup(self) -> tuple[str, str]:
+        """Starts a subprocess of socat to create linked pseudo-terminals and returns their paths."""
         if self.is_release:
             self.logger.warning("Test interface selected in production mode")
         self.logger.info("Starting pseudo-terminals for emulation")
@@ -169,16 +210,14 @@ class RuntimeLaunchConfig:
 
     def build_aux_service_plan(
         self,
-        replay_mode: Optional[str],
-        mission_arg: Optional[str],
-        simulation_arg: Optional[str],
+        replay_mode: str | None,
+        mission_arg: str | None,
+        simulation_arg: str | None,
     ) -> AuxServicePlan:
         command_name = getattr(self.command, "name", "").upper()
-        test_interfaces = {InterfaceType.TEST, InterfaceType.TEST_UART_E5}
-
         if command_name == "DEV" and (
-            self.interface_av_type in test_interfaces
-            or self.interface_gse_type in test_interfaces
+            self.interface_av_type in self._test_interfaces
+            or self.interface_gse_type in self._test_interfaces
         ):
             return AuxServicePlan(
                 service="emulator",

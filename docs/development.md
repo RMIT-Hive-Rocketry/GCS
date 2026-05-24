@@ -5,7 +5,7 @@ See [usage](./usage.md)
 
 ### Debugging in dev mode
 
-See launch options in `.vscode/` for pre-conifgured debug setups. Note that the cli option will start the ENTIRE system in dev mode and attach a python debugger to all procceses except the pendant emulator. Other launch options may require manual injection or manual monitoring depending on what the subsystem is. If you're starting the server by itself, you'll need to specify it's command arguments and read the ZeroMQ socket
+See launch options in `.vscode/` for pre-conifgured debug setups. Note that the cli option will start the ENTIRE system in dev mode and attach a python debugger to all processes except the pendant emulator. Other launch options may require manual injection or manual monitoring depending on what the subsystem is. If you're starting the server by itself, you'll need to specify it's command arguments and read the ZeroMQ socket
 
 ## Semantic Versioning
 
@@ -35,17 +35,17 @@ Would be the first release, as it's the first internal test. If the code changes
 
 ## Writing a subprocess
 
-Important requirements for each subproccess you spawn from the CLI:
+Important requirements for each subprocess you spawn from the CLI:
 
 - All python subprocess have to have unbuffered output to be logged correctly.
 
 Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example.
 
-Also I've seen a python subprocces run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`.
+Also I've seen a python subprocess run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`.
 
 If you're using `subprocess_logging.py`, this is already handled for you.
 
-- You must support signal handling at a minimum. Graceful shutdown prefferably
+- You must support signal handling at a minimum. Graceful shutdown preferably
 
 Graceful shutdown in python can be done by including this line in any of your python modules in your process
 
@@ -77,7 +77,7 @@ cleanup_code()
 
 ## Writing a Payload Reader
 
-Payload readers are found in `backend/middleware/payloads/*.hpp` with the excpetion of the helper headers.
+Payload readers are found in `backend/middleware/payloads/*.hpp` with the exception of the helper headers.
 
 They follow a typical template of:
 
@@ -107,7 +107,7 @@ class AV_TO_GCS_DATA_1 {
     ByteParser parser(DATA, SIZE);
 
     // DON'T EXTRACT BITS FOR ID!!!!
-    // ID is handled seperatly in main loop for packet type identification
+    // ID is handled separately in main loop for packet type identification
     accel_low_x_ = calc_low_accel_xy_(parser.extract_signed_bits(16));
   }
 

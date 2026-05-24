@@ -197,27 +197,34 @@ int main(int argc, char* argv[]) {
   // Broken pipe: let TCP send() return EPIPE, don't kill process
   signal(SIGPIPE, SIG_IGN);
 
+  // Data input reader from GCS processes (single mutex inside gcs_state)
+  // Includes AV sequence data
+  SharedGcsState gcs_state;
+  gcs_state.set_gse_only_mode(args.gse_only_mode);
+
   std::shared_ptr<RadioInterface> interface_gse =
       create_interface(args.gse_type, args.gse_path);
   interface_gse->initialize();
   slogger::info("Interface [GSE] initialised with type: " + args.gse_type);
 
-  std::shared_ptr<RadioInterface> interface_av;
-  if (args.gse_type == args.av_type && args.gse_path == args.av_path) {
-    interface_av = interface_gse;
-    slogger::info("Interface  [AV] reusing GSE interface (same type/path)");
+  std::optional<std::shared_ptr<RadioInterface>> interface_av;
+
+  if (gcs_state.gse_only_mode()) {
+    interface_av = std::nullopt;
   } else {
-    interface_av = create_interface(args.av_type, args.av_path, args.lora_cfg);
-    interface_av->initialize();
-    slogger::info("Interface  [AV] initialised with type: " + args.av_type);
+    std::shared_ptr<RadioInterface> interface_av_tmp;
+    if (args.gse_type == args.av_type && args.gse_path == args.av_path) {
+      interface_av_tmp = interface_gse;
+      slogger::info("Interface  [AV] reusing GSE interface (same type/path)");
+    } else {
+      interface_av_tmp = create_interface(args.av_type, args.av_path, args.lora_cfg);
+      interface_av_tmp->initialize();
+      slogger::info("Interface  [AV] initialised with type: " + args.av_type);
+    }
+    interface_av = std::optional<std::shared_ptr<RadioInterface>>(interface_av_tmp);
   }
 
   zmq::context_t all_context(1);
-
-  // Data input reader from GCS processes (single mutex inside gcs_state)
-  // Includes AV sequence data
-  SharedGcsState gcs_state;
-  gcs_state.set_gse_only_mode(args.gse_only_mode);
 
   // PUB socket for broadcasting incoming data
   // why is this called pendant_socket_path? I think this is generic.
@@ -226,8 +233,12 @@ int main(int argc, char* argv[]) {
   pub_socket.bind("ipc:///tmp/" + args.pendant_socket_path + "_pub.sock");
 
   // Data input reader from AV or GSE (shared with GSE when same interface)
-  std::thread av_reader(input_read_loop, interface_av, std::ref(pub_socket),
-                        std::ref(gcs_state));
+  std::optional<std::thread> av_reader;
+  if (gcs_state.gse_only_mode()) {
+    av_reader = std::nullopt;
+  } else {
+    av_reader = std::optional(std::thread(input_read_loop, interface_av.value(), std::ref(pub_socket), std::ref(gcs_state)));
+  }
 
   std::thread gcs_reader(server_listen_loop, std::ref(all_context), args,
                          std::ref(gcs_state), std::ref(running));
@@ -309,7 +320,7 @@ int main(int argc, char* argv[]) {
         case AvSequence::State::LOOP_PRE_LAUNCH:
           // Wait for data from GSE (blocking rest of this loop, or timeout)
           // Send data to AV
-          interface_av->write_data(
+          interface_av.value()->write_data(
               create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           gcs_state.av_sequence.start_await_av();
           // Wait for data from AV (blocking rest of this loop, or timeout)
@@ -318,35 +329,35 @@ int main(int argc, char* argv[]) {
         case AvSequence::State::LOOP_IGNITION:
           // This stage is identical to pre-launch for GCS
           if (av_broadcast) {
-            interface_av->write_data(
+            interface_av.value()->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         // It says once, but it's a conditional loop anyway.
         case AvSequence::State::ONCE_AV_DETERMINING_LAUNCH:
-          interface_av->write_data(
+          interface_av.value()->write_data(
               create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           gcs_state.av_sequence.start_await_av();
           gcs_state.av_sequence.sit_and_wait_for_av();
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_BURN:
-          // Just listen. This thread can just close bassically
+          // Just listen. This thread can just close basically
           if (av_broadcast) {
-            interface_av->write_data(
+            interface_av.value()->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_APOGEE:
-          // Just listen. This thread can just close bassically
+          // Just listen. This thread can just close basically
           if (av_broadcast) {
-            interface_av->write_data(
+            interface_av.value()->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
         case AvSequence::State::LOOP_AV_DATA_TRANSMISSION_LANDED:
-          // Just listen. This thread can just close bassically
+          // Just listen. This thread can just close basically
           if (av_broadcast) {
-            interface_av->write_data(
+            interface_av.value()->write_data(
                 create_GCS_TO_AV_data(av_broadcast, gcs_state.av_sequence));
           }
           break;
@@ -370,7 +381,9 @@ int main(int argc, char* argv[]) {
   try {
     // Cleanup
     gcs_reader.join();
-    av_reader.join();
+    if (av_reader.has_value()) {
+      av_reader.value().join();
+    }
     tcp_writer.join();
     pub_socket.close();
 

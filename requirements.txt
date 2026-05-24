@@ -19,6 +19,18 @@ websockets>=15.0.1
 flask>=3.1
 python-dotenv
 
-# Formatter
+# Development
+basedpyright
+ruff
 black
 pre-commit
+codespell
+
+# types
+pandas-stubs
+typing-extensions~=4.15.0
+
+# Testing
+# serial
+# tabulate
+# tqdm
