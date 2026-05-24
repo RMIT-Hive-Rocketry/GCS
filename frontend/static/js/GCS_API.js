@@ -1245,10 +1245,10 @@ function processDataForDisplay(apiData, apiId) {
     }
 
     // Gas fill timer
-    if ([55].includes(apiId) && apiData?.stateFlags) {
-        const systemActivated = apiData.stateFlags?.systemActivated;
-        const gasFillSelected = apiData.stateFlags?.gasFillSelected;
-        const n20FillActivated = apiData.stateFlags?.n20FillActivated;
+    if ([10].includes(apiId) && apiData != null) {
+        const systemActivated = apiData.SYS_ON;
+        const gasFillSelected = apiData.FILL_SELECTED;
+        const n20FillActivated = apiData.N2O_ACTIVE;
 
         if (systemActivated && gasFillSelected && n20FillActivated) {
             // Increase gas fill timer
