@@ -158,7 +158,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
                     packet = {
-                        "id": pendant_packet_id,
+                        "id": PENDANT_PACKET_ID,
                         "data": pendant_state_dict,
                     }
                     try:
