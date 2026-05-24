@@ -427,7 +427,7 @@ function updateTime() {
     // Local time
     if (timestampLocal != undefined && timestampLocal != 0) {
         sendDataToRegistry({
-            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
+            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)} s`,
         });
     }
 }
