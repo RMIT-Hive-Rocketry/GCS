@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-from abc import ABC, abstractmethod
+from abc import ABC
 import config.config as config
 from typing import Optional, List, Tuple
 from dataclasses import asdict
@@ -27,10 +26,10 @@ import threading
 
 class MockPacket(ABC):
     # Name of the fake device socat has made
-    _FAKE_DEVICE_NAME: Optional[str] = None
-    _INITIALISED: bool = (
-        False  # Flag to check if the settings have been initialized
-    )
+    _FAKE_DEVICE_NAME: str | None = None
+    # Flag to check if the settings have been initialized
+    _INITIALISED: bool = False
+
     _write_lock = threading.Lock()
 
     TIME_INBETWEEN_PACKETS = 0.01
@@ -46,7 +45,7 @@ class MockPacket(ABC):
         EMULATION_CONFIG: dict,
         FAKE_DEVICE_NAME: str = None,
         INTERFACE_TYPE: InterfaceType = InterfaceType.TEST,
-    ):
+    ) -> None:
         """Initialise settings for the MockPacket object
 
         Args:
@@ -75,10 +74,10 @@ class MockPacket(ABC):
             raise RuntimeError(
                 "Cannot create instances of MockPacket or its subclasses before initializing class settings."
             )
-        self.ID: Optional[int] = None  # Packet ID
+        self.ID: int | None = None  # Packet ID
         # High level payload builder
-        self.payload_after_id_and_meta: Optional[List[bytes]] = None
-        self.ORIGIN_DEVICE: Optional[MockPacket._SourceDevice] = None
+        self.payload_after_id_and_meta: list[bytes] | None = None
+        self.ORIGIN_DEVICE: MockPacket._SourceDevice | None = None
 
     def write_payload(self):
         """Writes payload of bytes to device"""
@@ -140,6 +139,8 @@ class MockPacket(ABC):
                 return _format_test_payload()
             case InterfaceType.TEST_UART_E5:
                 return _format_test_uart_payload()
+            case InterfaceType.NONE:
+                return b""
 
 
 class GCStoGSEStateCMD(MockPacket):
@@ -162,7 +163,7 @@ class GCStoGSEStateCMD(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id_and_meta = [
-            metric.Metric.StateSetFlags2p1(
+            metric.Metric.state_set_flag_s2p1(
                 MANUAL_PURGE,
                 O2_FILL_ACTIVATE,
                 SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -172,7 +173,7 @@ class GCStoGSEStateCMD(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATE,
             ),
-            metric.Metric.StateSetFlagINVERTEDs2p2(
+            metric.Metric.state_set_flag_inverted_s2p2(
                 MANUAL_PURGE,
                 O2_FILL_ACTIVATE,
                 SELECTOR_SWITCH_NEUTRAL_POSITION,
@@ -182,7 +183,7 @@ class GCStoGSEStateCMD(MockPacket):
                 GAS_FILL_SELECTED,
                 SYSTEM_ACTIVATE,
             ),
-            metric.Metric.dummyByte(),
+            metric.Metric.dummy_byte(),
         ]
 
 
@@ -203,19 +204,19 @@ class GCStoAVStateCMD(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.GCS
         self.payload_after_id_and_meta = [
-            metric.Metric.continuityCheckCMDFlags(
+            metric.Metric.continuity_check_cmd_flags(
                 MAIN_SECONDARY_TEST,
                 MAIN_PRIMARY_TEST,
                 APOGEE_SECONDARY_TEST,
                 APROGEE_PRIMARY_TEST,
             ),
-            metric.Metric.continuityCheckCMDFlagsINVERTED(
+            metric.Metric.continuity_check_cmd_flags_inverted(
                 MAIN_SECONDARY_TEST,
                 MAIN_PRIMARY_TEST,
                 APOGEE_SECONDARY_TEST,
                 APROGEE_PRIMARY_TEST,
             ),
-            metric.Metric.BroadcastBeginCMDFlags(BEGIN_BROADCAST),
+            metric.Metric.broadcast_begin_cmd_flags(BEGIN_BROADCAST),
         ]
 
 
@@ -233,39 +234,39 @@ class AVtoGCSData1(MockPacket):
         RSSI: float = 0.0,
         SNR: float = 61,
         FLIGHT_STATE_: int = 0,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
-        ACCEL_LOW_X=2048 * 1,
-        ACCEL_LOW_Y=2048 * 2,
-        ACCEL_LOW_Z=-2048 * 3,
-        ACCEL_HIGH_X=-1024 * 1,
-        ACCEL_HIGH_Y=-1024 * 2,
-        ACCEL_HIGH_Z=1024 * 3,
-        GYRO_X=int(1 / 0.00875),
-        GYRO_Y=int(2 / 0.00875),
-        GYRO_Z=int(3 / 0.00875),
-        ALTITUDE=1234,
-        VELOCITY=1234,
-        APOGEE_PRIMARY_TEST_COMPETE=True,
-        APOGEE_SECONDARY_TEST_COMPETE=False,
-        APOGEE_PRIMARY_TEST_RESULTS=False,
-        APOGEE_SECONDARY_TEST_RESULTS=False,
-        MAIN_PRIMARY_TEST_COMPETE=True,
-        MAIN_SECONDARY_TEST_COMPETE=False,
-        MAIN_PRIMARY_TEST_RESULTS=False,
-        MAIN_SECONDARY_TEST_RESULTS=False,
-        MOVE_TO_BROADCAST=False,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool = False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool = False,
+        GPS_FIX_FLAG: bool = False,
+        PAYLOAD_CONNECTION_FLAG: bool = True,
+        CAMERA_CONTROLLER_CONNECTION: bool = True,
+        ACCEL_LOW_X: int = 2048 * 1,
+        ACCEL_LOW_Y: int = 2048 * 2,
+        ACCEL_LOW_Z: int = -2048 * 3,
+        ACCEL_HIGH_X: int = -1024 * 1,
+        ACCEL_HIGH_Y: int = -1024 * 2,
+        ACCEL_HIGH_Z: int = 1024 * 3,
+        GYRO_X: int = int(1 / 0.00875),
+        GYRO_Y: int = int(2 / 0.00875),
+        GYRO_Z: int = int(3 / 0.00875),
+        ALTITUDE: int = 1234,
+        VELOCITY: int = 1234,
+        APOGEE_PRIMARY_TEST_COMPETE: bool = True,
+        APOGEE_SECONDARY_TEST_COMPETE: bool = False,
+        APOGEE_PRIMARY_TEST_RESULTS: bool = False,
+        APOGEE_SECONDARY_TEST_RESULTS: bool = False,
+        MAIN_PRIMARY_TEST_COMPETE: bool = True,
+        MAIN_SECONDARY_TEST_COMPETE: bool = False,
+        MAIN_PRIMARY_TEST_RESULTS: bool = False,
+        MAIN_SECONDARY_TEST_RESULTS: bool = False,
+        MOVE_TO_BROADCAST: bool = False,
     ):
         super().__init__()
-        self.ID = 0x03
-        self.RSSI = RSSI
-        self.SNR = SNR
+        self.ID: int = 0x03
+        self.RSSI: float = RSSI
+        self.SNR: float = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
-            metric.Metric.StateFlags3p0(
+            metric.Metric.state_flag_s3p0(
                 FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
@@ -273,32 +274,32 @@ class AVtoGCSData1(MockPacket):
                 PAYLOAD_CONNECTION_FLAG,
                 CAMERA_CONTROLLER_CONNECTION,
             ),
-            metric.Metric.ACCEL_LOW_X(ACCEL_LOW_X),
-            metric.Metric.ACCEL_LOW_Y(ACCEL_LOW_Y),
-            metric.Metric.ACCEL_LOW_Z(ACCEL_LOW_Z),
-            metric.Metric.ACCEL_HIGH_X(ACCEL_HIGH_X),
-            metric.Metric.ACCEL_HIGH_Y(ACCEL_HIGH_Y),
-            metric.Metric.ACCEL_HIGH_Z(ACCEL_HIGH_Z),
-            metric.Metric.GYRO_X(GYRO_X),
-            metric.Metric.GYRO_Y(GYRO_Y),
-            metric.Metric.GYRO_Z(GYRO_Z),
-            metric.Metric.ALTITUDE(ALTITUDE),
-            metric.Metric.VELOCITY(VELOCITY),
-            metric.Metric.continuityCheckResultsApogee(
+            metric.Metric.accel_low_x(ACCEL_LOW_X),
+            metric.Metric.accel_low_y(ACCEL_LOW_Y),
+            metric.Metric.accel_low_z(ACCEL_LOW_Z),
+            metric.Metric.accel_high_x(ACCEL_HIGH_X),
+            metric.Metric.accel_high_y(ACCEL_HIGH_Y),
+            metric.Metric.accel_high_z(ACCEL_HIGH_Z),
+            metric.Metric.gyro_x(GYRO_X),
+            metric.Metric.gyro_y(GYRO_Y),
+            metric.Metric.gyro_z(GYRO_Z),
+            metric.Metric.altitude(ALTITUDE),
+            metric.Metric.velocity(VELOCITY),
+            metric.Metric.continuity_check_results_apogee(
                 APOGEE_PRIMARY_TEST_COMPETE,
                 APOGEE_SECONDARY_TEST_COMPETE,
                 APOGEE_PRIMARY_TEST_RESULTS,
                 APOGEE_SECONDARY_TEST_RESULTS,
             ),
-            metric.Metric.continuityCheckResultsMain(
+            metric.Metric.continuity_check_results_main(
                 MAIN_PRIMARY_TEST_COMPETE,
                 MAIN_SECONDARY_TEST_COMPETE,
                 MAIN_PRIMARY_TEST_RESULTS,
                 MAIN_SECONDARY_TEST_RESULTS,
             ),
-            metric.Metric.MovingToBroadCastFlag(MOVE_TO_BROADCAST),
+            metric.Metric.moving_to_broad_cast_flag(MOVE_TO_BROADCAST),
             # Note the dummy byte here for TBC purposes
-            metric.Metric.dummyByte(),
+            metric.Metric.dummy_byte(),
         ]
 
 
@@ -308,18 +309,18 @@ class AVtoGCSData2(MockPacket):
         RSSI: float = 0.0,
         SNR: float = 62,
         FLIGHT_STATE_: int = 0,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
-        LATITUDE=-37.80808500000,
-        LONGITUDE=144.96507800000,
-        NAV_STATUS="G2",
-        QW=0,
-        QX=1,
-        QY=-1,
-        QZ=0.5,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool = False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool = False,
+        GPS_FIX_FLAG: bool = False,
+        PAYLOAD_CONNECTION_FLAG: bool = True,
+        CAMERA_CONTROLLER_CONNECTION: bool = True,
+        LATITUDE: float = -37.80808500000,
+        LONGITUDE: float = 144.96507800000,
+        NAV_STATUS: str = "G2",
+        QW: int = 0,
+        QX: int = 1,
+        QY: int = -1,
+        QZ: int = 0.5,
     ):
         super().__init__()
         self.ID = 0x04
@@ -327,7 +328,7 @@ class AVtoGCSData2(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
-            metric.Metric.StateFlags3p0(
+            metric.Metric.state_flag_s3p0(
                 FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
@@ -335,12 +336,12 @@ class AVtoGCSData2(MockPacket):
                 PAYLOAD_CONNECTION_FLAG,
                 CAMERA_CONTROLLER_CONNECTION,
             ),
-            metric.Metric.GPS(LATITUDE, LONGITUDE),
-            metric.Metric.NAVIGATION_STATUS(NAV_STATUS),
-            metric.Metric.QUATERNION(QW),
-            metric.Metric.QUATERNION(QX),
-            metric.Metric.QUATERNION(QY),
-            metric.Metric.QUATERNION(QZ),
+            metric.Metric.gps(LATITUDE, LONGITUDE),
+            metric.Metric.navigation_status(NAV_STATUS),
+            metric.Metric.quaternion(QW),
+            metric.Metric.quaternion(QX),
+            metric.Metric.quaternion(QY),
+            metric.Metric.quaternion(QZ),
         ]
 
 
@@ -350,11 +351,11 @@ class AVtoGCSData3(MockPacket):
         RSSI: float = 0.0,
         SNR: float = 63,
         FLIGHT_STATE_: int = 0,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=False,
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=False,
-        GPS_FIX_FLAG=False,
-        PAYLOAD_CONNECTION_FLAG=True,
-        CAMERA_CONTROLLER_CONNECTION=True,
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG: bool = False,
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY: bool = False,
+        GPS_FIX_FLAG: bool = False,
+        PAYLOAD_CONNECTION_FLAG: bool = True,
+        CAMERA_CONTROLLER_CONNECTION: bool = True,
     ):
         super().__init__()
         self.ID = 0x05
@@ -362,7 +363,7 @@ class AVtoGCSData3(MockPacket):
         self.SNR = SNR
         self.ORIGIN_DEVICE = MockPacket._SourceDevice.AV
         self.payload_after_id_and_meta = [
-            metric.Metric.StateFlags3p0(
+            metric.Metric.state_flag_s3p0(
                 FLIGHT_STATE_,
                 DUAL_BOARD_CONNECTIVITY_STATE_FLAG,
                 RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY,
@@ -371,7 +372,7 @@ class AVtoGCSData3(MockPacket):
                 CAMERA_CONTROLLER_CONNECTION,
             ),
             # TBC for rest of the bytes?
-        ] + [metric.Metric.dummyByte()] * 30
+        ] + [metric.Metric.dummy_byte()] * 30
 
 
 # A bit like the GCS class. Just used for context
@@ -448,21 +449,21 @@ def sinusoid(
     return base
 
 
-def changing_int(t: float, min: int, max: int, wait_time_s: float):
+def changing_int(t: float, min: int, max: int, wait_time_s: float) -> int:
     """Output an int from `min` to `max` increimenting every `wait_time_s` seconds"""
     span = max - min + 1
     step = int(t // wait_time_s) % span
     return min + step
 
 
-def changing_bool(t: float, wait_time_s: float = 1):
+def changing_bool(t: float, wait_time_s: float = 1) -> bool:
     """Bool changing every `wait_time_s` seconds"""
     return t % wait_time_s * 2 > wait_time_s
 
 
 def corrupt_packet(
     packet: dict, corruption_chance: float = 0.01, max_corruption: float = 0.3
-):
+) -> None:
     """Corrupts data inside a packet with random bit flips
 
     Args:
@@ -511,7 +512,8 @@ def corrupt_packet(
                     for i in range(0, len(binary_corrupt), 8)
                 )
                 byte_data = bytes(
-                    a ^ b for a, b in zip(bytes_str, bytes_corrupt)
+                    a ^ b
+                    for a, b in zip(bytes_str, bytes_corrupt, strict=False)
                 )
 
                 # Pack bits back into a value
@@ -531,7 +533,7 @@ def corrupt_packet(
 
 def get_sinusoid_packets_av(
     START_TIME: float, EXPERIMENTAL: bool, CORRUPTION: bool
-) -> List[MockPacket]:
+) -> list[MockPacket]:
     """Just generate packets with sinusoidal values over time.
     Values ranges should cover optimal operating conditions unless specified otherwise
 
@@ -817,7 +819,7 @@ def main():
     )
 
     # Always consider the implications of writing GCSto* packets.
-    # They are not recieved by the GCS
+    # They are not received by the GCS
 
     # Used for the sequence lock class GSE debugging
     CONFIG_LOADED = config.get_config()

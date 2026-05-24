@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
+
 from frontend.rocket_loader import load_rockets
-from flask import Flask, send_from_directory, abort, render_template, request
+from flask import (
+    Flask,
+    Response,
+    send_from_directory,
+    abort,
+    render_template,
+    request,
+)
 from os import path as os_path
 import backend.includes_python.process_logging as slogger
+from config import config
+
+# pyright: reportUnusedFunction=false
 
 """
 class SubprocessLogHandler(logging.Handler):
@@ -28,7 +39,7 @@ valid_file_extensions = (
 
 
 # Initialise flask app
-def create_app():
+def create_app() -> Flask:
     # Create flask app
     app = Flask(
         __name__,
@@ -44,6 +55,13 @@ def create_app():
     # Load rocket assets and configurations from /rockets dir
     app.config["rockets"] = load_rockets(app)
     app.config["default"] = app.config["rockets"][0].configs[0]
+
+    # Load additional configuration from config.ini
+    frontend_config = config.get_config()["frontend"]
+    websocket = {
+        "host": frontend_config.get("ws_host"),
+        "port": frontend_config.get("ws_port"),
+    }
 
     """
     Logging
@@ -67,7 +85,7 @@ def create_app():
 
     # Render modular layout
     @app.route("/")
-    def index():
+    def index() -> str:
         # Get active rocket config default
         active = app.config.get("default")
         name = ""
@@ -86,6 +104,7 @@ def create_app():
             config=app.config,
             active=active,
             name=name,
+            websocket=websocket,
         )
 
     """
@@ -94,7 +113,7 @@ def create_app():
 
     # Serve static files and HTML pages
     @app.route("/<path:filename>")
-    def serve_html(filename):
+    def serve_html(filename) -> Response:
         # Make sure rocket assets are loaded from a different directory
         file_directory = DIR_STATIC
         if filename.startswith(
@@ -113,14 +132,14 @@ def create_app():
             return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
-        elif os_path.isfile(filepath + ".html"):
+        if os_path.isfile(filepath + ".html"):
             slogger.debug(f"Serving static webpage: {filename}.html")
             return send_from_directory(file_directory, filename + ".html")
 
         # 404 page not found
-        else:
-            slogger.warning(f"404 not found: {filename}")
-            abort(404)
+        slogger.warning(f"404 not found: {filename}")
+        abort(404)
+        return None
 
     """
     Debugging
@@ -128,19 +147,28 @@ def create_app():
 
     # Debug rocket loading
     @app.route("/debug/rockets")
-    def debug_rockets():
-        return render_template("templates/debug_rockets.html")
+    def debug_rockets() -> str:
+        return render_template(
+            "templates/debug_rockets.html",
+            websocket=websocket,
+        )
 
     # Debug modules
     # Shows all modules from loaded rockets
     @app.route("/debug/modules")
-    def debug_modules():
-        return render_template("templates/debug_modules.html")
+    def debug_modules() -> str:
+        return render_template(
+            "templates/debug_modules.html",
+            websocket=websocket,
+        )
 
     # Debug control pendant
     # Shows all modules from loaded rockets
     @app.route("/debug/pendant")
-    def debug_pendant():
-        return render_template("templates/debug_pendant.html")
+    def debug_pendant() -> str:
+        return render_template(
+            "templates/debug_pendant.html",
+            websocket=websocket,
+        )
 
     return app

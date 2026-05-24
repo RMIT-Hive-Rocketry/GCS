@@ -138,10 +138,10 @@ def test_build_middleware_argv_opt_arg_gse_only():
         "127.0.0.1:9000",
         InterfaceType.TCP,
         "127.0.0.1:9000",
-        opt_arg="--GSE_ONLY",
+        opt_arg="--GSE-ONLY",
     )
     argv = build_middleware_argv(cfg, FAKE_BINARY)
-    assert argv[-1] == "--GSE_ONLY"
+    assert argv[-1] == "--GSE-ONLY"
     assert len(argv) == 8
 
 
@@ -151,11 +151,11 @@ def test_build_middleware_argv_uart_e5_plus_opt_arg():
         "/dev/serial0",
         InterfaceType.UART_E5,
         "/dev/serial0",
-        opt_arg="--GSE_ONLY",
+        opt_arg="--GSE-ONLY",
         lora_config=LORA_CONFIG,
     )
     argv = build_middleware_argv(cfg, FAKE_BINARY)
-    assert argv[-1] == "--GSE_ONLY"
+    assert argv[-1] == "--GSE-ONLY"
     assert len(argv) == 17
 
 
@@ -169,7 +169,7 @@ def test_build_middleware_argv_ordering():
         device_path_av="/dev/pty/0",
         pendant_socket_path="pendant_sock",
         web_control_socket_path="web_sock",
-        opt_arg="--GSE_ONLY",
+        opt_arg="--GSE-ONLY",
         lora_config=None,
     )
     argv = build_middleware_argv(cfg, FAKE_BINARY)
@@ -181,7 +181,7 @@ def test_build_middleware_argv_ordering():
         "/dev/pty/0",
         "pendant_sock",
         "web_sock",
-        "--GSE_ONLY",
+        "--GSE-ONLY",
     ]
 
 

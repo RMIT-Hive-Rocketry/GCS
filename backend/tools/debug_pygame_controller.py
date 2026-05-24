@@ -25,6 +25,18 @@ PENDANT_BINDINGS = {
     8: "FILL_N2O",
 }
 
+THRUSTMASTER_PENDANT_BINDINGS = {
+    16: "SYSTEM ACTIVE",  # thrust lever
+    0: "FILL MODE",  # bottom back trigger
+    1: "ARMED",  # top back trigger
+    2: "02",  # spherical button
+    3: "FIRE",  # red button
+    6: "N2O",  # top left button on the right
+    5: "PURGE",  # top middle button on the right
+}
+
+PENDANT_BINDINGS = THRUSTMASTER_PENDANT_BINDINGS
+
 PENDANT_ACTIVE = set()  # Set to keep track of active buttons
 
 running = True

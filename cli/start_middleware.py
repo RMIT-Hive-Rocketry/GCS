@@ -1,39 +1,40 @@
 import logging
-import cli.proccess as process
+from cli import process
 import os
-import enum
-import config.config as config
+from enum import StrEnum
 from dataclasses import dataclass
-from typing import List, Optional
 
 
-class InterfaceType(enum.Enum):
+class InterfaceType(StrEnum):
     # Reference the main middleware cpp file
     UART_E5 = "UART_E5"
     TEST = "TEST"
     TEST_UART_E5 = "TEST_UART_E5"
     TCP = "TCP"
 
+    # for --gse-only
+    # acts like a release interface, but can be used in split emulation
+    NONE = "NONE"
 
-def get_interface_type(interface: Optional[str]) -> InterfaceType:
-    """Get the interface type from the command line argument or config"""
-    if interface is None:  # Unspecified by user
-        interface = config.get_config()["hardware"]["interface"].strip().upper()
-    else:
-        interface = interface.strip().upper()
+
+def get_interface_type(interface: str) -> InterfaceType:
+    """Get the interface type from the command line argument"""
+    interface = interface.strip().upper()
 
     # Convert string to InterfaceType enum
     try:
-        for enum_member in InterfaceType:
-            if enum_member.name == interface:
-                return enum_member
-        # If we get here, no matching enum value was found
-        valid_types = [e.name for e in InterfaceType]
-        raise ValueError(
-            f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
-        )
+        try:
+            return InterfaceType(interface)
+        except ValueError as e:
+            # If we get here, no matching enum value was found
+            valid_types = [e.name for e in InterfaceType]
+
+            # propagate error
+            raise ValueError(
+                f"Invalid interface type: '{interface}'. Valid types are: {', '.join(valid_types)}"
+            ) from e
     except Exception as e:
-        raise ValueError(f"Invalid interface type: {interface}")
+        raise ValueError(f"Invalid interface type: {interface}") from e
 
 
 @dataclass
@@ -52,9 +53,9 @@ class MiddlewareConfig:
     # I am confused as to why this is called pendant_socket_path?
     # - from idiot who wrote this code
     pendant_socket_path: str = "gcs_rocket"
-    web_control_socket_path: Optional[str] = None
-    opt_arg: Optional[str] = None
-    lora_config: Optional[dict] = None
+    web_control_socket_path: str | None = None
+    opt_arg: str | None = None
+    lora_config: dict | None = None
 
 
 class MiddlewareSubprocess(process.LoggedSubProcess):
@@ -69,62 +70,59 @@ class MiddlewareSubprocess(process.LoggedSubProcess):
         return False
 
 
-def middleware_started_callback(line: str, stream_name: str):
+def middleware_started_callback(line: str, stream_name: str) -> bool | None:
     """Check if middleware has started"""
 
     if "Middleware server started successfully" in line:
         return True
+    return None
 
 
-def get_middleware_path(
-    BINARY_NAME_PREFIX: str, RELEASE: bool
-) -> Optional[str]:
+def get_middleware_path(binary_name_prefix: str, release: bool) -> str | None:
     """Check if middleware is in build/ then check if it is in root folder.
     This helps when sharing releases, but still prioritises the build/ folder.
     """
 
-    if RELEASE:
-        BUILD_DIR = "build-release"
-    else:
-        BUILD_DIR = "build-debug"
+    build_dir = "build-release" if release else "build-debug"
 
     # Cmake folder
-    BUILD_PATH_ABS = os.path.join(os.getcwd(), BUILD_DIR)
-    if not os.path.exists(BUILD_PATH_ABS):
-        os.makedirs(BUILD_PATH_ABS)
+    build_path_abs = os.path.join(os.getcwd(), build_dir)
+    if not os.path.exists(build_path_abs):
+        os.makedirs(build_path_abs)
     build_path_files = [
-        os.path.join(BUILD_PATH_ABS, x) for x in os.listdir(BUILD_PATH_ABS)
+        os.path.join(build_path_abs, x) for x in os.listdir(build_path_abs)
     ]
     build_path_files = [x for x in build_path_files if os.path.isfile(x)]
+
     # User placed
-    PROJECT_PATH_ABS = os.getcwd()
+    project_path_abs = os.getcwd()
     project_root_files = [
-        os.path.join(PROJECT_PATH_ABS, x) for x in os.listdir(PROJECT_PATH_ABS)
+        os.path.join(project_path_abs, x) for x in os.listdir(project_path_abs)
     ]
     project_root_files = [x for x in project_root_files if os.path.isfile(x)]
 
     file_matches = []
     for path in build_path_files + project_root_files:
         filename = os.path.basename(path)
-        if filename.startswith(BINARY_NAME_PREFIX):
+        if filename.startswith(binary_name_prefix):
             file_matches.append(path)
 
     if len(file_matches) > 1:
         raise RuntimeError(
             f"Multiple middleware binaries found. Please remove or archive the extra ones: {file_matches}"
         )
-    elif len(file_matches) == 0:
+    if len(file_matches) == 0:
         return None
 
-    BINARY_PATH = file_matches[0]
+    binary_path = file_matches[0]
 
-    with open("VERSION", "r") as f:
-        VERSION_STRING = f.read().strip()
+    with open("VERSION") as f:
+        version_string = f.read().strip()
 
     # Actual file may have build metadata in it. Substring match is fine
-    if VERSION_STRING not in os.path.basename(BINARY_PATH):
+    if version_string not in os.path.basename(binary_path):
         raise RuntimeError(
-            f"Middleware binary version mismatch. Expected prefix: {VERSION_STRING}, found: {os.path.basename(BINARY_PATH)}. The repository branch VERSION file does not match the binary version found"
+            f"Middleware binary version mismatch. Expected prefix: {version_string}, found: {os.path.basename(binary_path)}. The repository branch VERSION file does not match the binary version found"
         )
 
     return file_matches[0]
@@ -132,11 +130,11 @@ def get_middleware_path(
 
 def build_middleware_argv(
     config: MiddlewareConfig, binary_path: str
-) -> List[str]:
+) -> list[str]:
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
-    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE_ONLY].
+    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE-ONLY].
     """
     if not isinstance(
         config.interface_gse_type, InterfaceType
@@ -153,10 +151,13 @@ def build_middleware_argv(
         config.pendant_socket_path,
         config.web_control_socket_path,
     ]
-    if (
+
+    an_interface_is_uart_e5 = (
         config.interface_gse_type == InterfaceType.UART_E5
         or config.interface_av_type == InterfaceType.UART_E5
-    ):
+    )
+
+    if an_interface_is_uart_e5:
         if config.lora_config is None:
             raise ValueError("UART_E5 interface requires lora_config")
         argv.extend(
@@ -177,42 +178,48 @@ def build_middleware_argv(
     return argv
 
 
-def start_middleware(logger: logging.Logger, config: MiddlewareConfig) -> None:
+def start_middleware(
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess,
+    config: MiddlewareConfig,
+) -> None:
 
-    SERVICE_NAME = "server"  # Formally the middleware_server
+    service_name = "server"  # Formally the middleware_server
     if config.web_control_socket_path is None:
         config.web_control_socket_path = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
         )
     try:
-        BINARY_NAME = (
+        binary_name = (
             "middleware_release" if config.release else "middleware_debug"
         )
-        MIDDLEWARE_BINARY_PATH = get_middleware_path(
-            BINARY_NAME, config.release
+        middleware_binary_path = get_middleware_path(
+            binary_name, config.release
         )
-        if MIDDLEWARE_BINARY_PATH is None:
+        if middleware_binary_path is None:
             logger.debug(f"WORKING DIRECTORY: {os.getcwd()}")
             raise FileNotFoundError(
-                f"Could not find {SERVICE_NAME} binary ({BINARY_NAME}) in build folders or root folder. Please run $ bash scripts/release.sh"
+                f"Could not find {service_name} binary ({binary_name}) in build folders or root folder. Please run $ bash scripts/release.sh"
             )
 
         middleware_command = build_middleware_argv(
-            config, MIDDLEWARE_BINARY_PATH
+            config, middleware_binary_path
         )
 
-        logger.debug(f"Starting {SERVICE_NAME} with: {middleware_command}")
+        logger.debug(f"Starting {service_name} with: {middleware_command}")
 
         middleware_process = MiddlewareSubprocess(
-            middleware_command, name=SERVICE_NAME, parse_output=True
+            middleware_command, name=service_name, parse_output=True
         )
         middleware_process.register_callback(middleware_started_callback)
         middleware_process.start()
+        performance_logging.AddNewProcess(middleware_process)
+
         finished = False
         while not finished:
             finished = middleware_process.get_parsed_data()
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
-        # This is important, propogate this one
+        logger.error(f"An error occurred while starting {service_name}: {e}")
+        # This is important, propagate this one
         raise

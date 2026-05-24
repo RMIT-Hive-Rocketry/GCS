@@ -13,17 +13,17 @@ def run_flight():
     """
     rocket = create_rocket()
     if service_helper.time_to_stop():
-        return
+        return None
     slogger.info("Rocket has been successfully created!")
     slogger.info("Creating environment...")
     env = create_environment()
     if service_helper.time_to_stop():
-        return
+        return None
     slogger.info("Environment has been successfully created!")
     slogger.info("Creating flight config...")
     cfg = get_flight_config()
     if service_helper.time_to_stop():
-        return
+        return None
     slogger.info("Flight config has been successfully created!")
     return Flight(
         rocket=rocket,

@@ -101,7 +101,7 @@
             "command": "socat -d -d pty,raw,echo=0 pty,raw,echo=0",
             "icon": {
                 "id": "debug-console"
-            },
+            }
         },
         {
             "label": "start emulator manually",
@@ -109,7 +109,7 @@
             "command": "./venv/bin/python -u -Xfrozen_modules=off -m backend.device_emulator --device-rocket ${input:terminalPath}",
             "icon": {
                 "id": "debug-console"
-            },
+            }
         },
         {
             "label": "start ZeroMQ debug subscriber",
@@ -126,7 +126,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start RPI pendant controller debug",
@@ -142,7 +142,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start Pygame pendant controller debug",
@@ -158,7 +158,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start Pygame input decoder",
@@ -174,7 +174,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start websocket debug subscriber",
@@ -190,7 +190,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start frontend API manually",
@@ -208,7 +208,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start frontend API manually",
@@ -226,7 +226,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start hardware pendant emulator manually",
@@ -242,7 +242,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Compile Manual Protobuf Payload",
@@ -283,7 +283,7 @@
             "command": "./frontend/tailwind.sh",
             "icon": {
                 "id": "paintcan"
-            },
+            }
         },
         {
             "label": "Frontend Setup",
@@ -300,8 +300,6 @@
             "type": "shell",
             "command": "flask",
             "args": [
-                "-e",
-                "./frontend/.flaskenv",
                 "-A",
                 "frontend.server",
                 "run"
@@ -314,7 +312,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Frontend Dev",
@@ -339,7 +337,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Frontend Dev [EXPERIMENTAL]",
@@ -367,6 +365,7 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             },
+            "problemMatcher": []
         },
         {
             "label": "Frontend Rocket.py",
@@ -391,7 +390,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Frontend Replay 20250504",
@@ -416,7 +415,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Frontend Replay IREC2025",
@@ -441,7 +440,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Frontend Replay 20260428 @ White Cliffs",
@@ -466,7 +465,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "Run Simulation",
@@ -546,7 +545,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         },
         {
             "label": "start E5 fake AV spam debug",
@@ -564,7 +563,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
+            }
         }
     ],
     "inputs": [

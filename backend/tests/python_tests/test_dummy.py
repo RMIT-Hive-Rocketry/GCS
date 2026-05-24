@@ -1,5 +1,5 @@
 # This should always pass
 
 
-def test_dummy():
+def test_dummy() -> None:
     assert True
