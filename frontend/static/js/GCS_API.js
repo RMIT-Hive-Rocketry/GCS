@@ -10,6 +10,7 @@
 const initialReconnectInterval = 200; // Initial reconnection wait time
 const maxReconnectInterval = 5000; // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20; // FPS for rendering graphs
+const metricOffline = {}; // key -> boolean
 
 // WebSocket API connection
 const ws_url = _ws != undefined ? `ws://${_ws["host"]}:${_ws["port"]}` : `ws://${window.location.host.split(":")[0]}:1887`
@@ -419,7 +420,7 @@ function updateTime() {
     // Local time
     if (timestampLocal != undefined && timestampLocal != 0) {
         sendDataToRegistry({
-            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
+            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)} s`,
         });
     }
 }
@@ -590,6 +591,11 @@ function API_OnMessage(event) {
 
         // Flag data for errors
         checkErrorConditions(apiLatest.data);
+
+        // Check if any data has gone offline
+        // This should be constant throughout runtime,
+        // But it's worth checking every packet at this stage to avoid a bug
+        checkOfflineData(apiLatest.data)
 
         // Process data for display
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
@@ -904,6 +910,28 @@ function checkErrorConditions(apiData) {
             }
         });
     });
+}
+
+// Mark devices offline and manage their display change 
+function checkOfflineData(apiData) {
+    const offlineSentinel = "offline"; // From gsedaq_metrics.py
+    function isOffline(value) {return value === offlineSentinel;}
+
+    // Top level check.
+    // Recursion will be needed if you want to impliment for other packets
+    if (apiData == null) {
+        console.warning("apiData passed as null to checkOfflineData");
+    }
+    
+    for (const [key, value] of Object.entries(apiData)) {
+        if (value == null) {
+            metricOffline[key] = true;
+        } else if (isOffline(value)) {
+            metricOffline[key] = true;
+        } else {
+            metricOffline[key] = false;
+        }
+    }
 }
 
 // May not be required
@@ -1266,6 +1294,11 @@ function sendDataToRegistry(apiData) {
     Object.entries(flat).forEach(([key, value]) => {
         if (key in displayRegistry) {
             for (const reg of displayRegistry[key]) {
+                if (metricOffline[key]) {
+                    displaySetOffline(reg.e);
+                    continue;  
+                }
+                displaySetOnline(reg.e); 
                 let elem = reg.e,
                     prec = reg.p,
                     type = reg.t;
@@ -1398,6 +1431,20 @@ function displaySetError(item, error) {
     }
 }
 
+function displaySetOffline(elem) {
+    const label = elem.closest("label");
+    elem.value = "N/A"; // Has to be small
+    elem.classList.add("offline");
+    elem.classList.remove("error");
+    if (label) label.classList.add("sensor-offline");
+}
+
+function displaySetOnline(elem) {
+    const label = elem.closest("label");
+    elem.classList.remove("offline");
+    if (label) label.classList.remove("sensor-offline");
+}
+
 function displaySetActiveFlightState(item) {
     // Updates active flight state to a specific html element
     let elements = document.querySelectorAll(`.${item}`);
@@ -1464,7 +1511,7 @@ function displayUpdateFlightState(data) {
             data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY"
         ) {
             // Preflight (not ready)
-            stateName = "Pre-flight (not ready)";
+            stateName = "Pre-flight";
             displaySetActiveFlightState("fs-state-preflight");
         } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
