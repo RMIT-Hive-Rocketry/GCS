@@ -2330,6 +2330,9 @@
                 solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
             }
 
+            // Function that updates valve colours dynamically, depending on state
+            // rules are inside
+
             function hmiUpdateValveStates(data) {
 
                 const flags = {
@@ -2347,10 +2350,26 @@
                 // Valve IDs use whatever SVG element IDs the valves have,
                 // e.g "solenoidsV5", "solenoidsV6", "solenoidsV7", etc.
 
+                // All valve IDs, commented out for my reference:
+                    // "needleV1": true,
+                    // "springValve": true,
+                    // "reliefValveV3": true,
+                    // "needleV4": true,
+                    // "solenoidsV5": false,
+                    // "solenoidsV6": false,
+                    // "solenoidsV7": true,
+                    // "ballV8": false,
+                    // "ballV9": true,
+                    // "ballV10": true,
+                    // "ballV11": true,
+                    // "ballV12": true,
+                    // "backflowV13": false,
+                    // "backflowV14": true,
+
                 const rules = [
                     {
-                        name: "N2O Fill Mode",
-                        condition: () => flags.systemActivate && flags.gasFillSelected && flags.n2oFill,
+                        name: "System Active w/ no rocket",
+                        condition: () => rocketStatus === 0 && flags.systemActivate,
                         valves: {
                             "needleV1": true,
                             "springValve": true,
@@ -2358,7 +2377,7 @@
                             "needleV4": true,
                             "solenoidsV5": false,
                             "solenoidsV6": false,
-                            "solenoidsV7": true,
+                            "solenoidsV7": false,
                             "ballV8": false,
                             "ballV9": true,
                             "ballV10": true,
@@ -2388,11 +2407,22 @@
                     // },
                 ];
 
-                // ----- Default: all valves closed (no rule matched) -----
+                // Default valve setup
                 const defaultValves = {
-                    // "solenoidsV5": false,
-                    // "solenoidsV6": false,
-                    // "solenoidsV7": false,
+                    "needleV1": true,
+                    "springValve": false,
+                    "reliefValveV3": false,
+                    "needleV4": true,
+                    "solenoidsV5": false,
+                    "solenoidsV6": false,
+                    "solenoidsV7": true,
+                    "ballV8": false,
+                    "ballV9": false,
+                    "ballV10": false,
+                    "ballV11": false,
+                    "ballV12": false,
+                    "backflowV13": true,
+                    "backflowV14": true,
                 };
 
                 // Rule evaluation
