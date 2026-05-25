@@ -2112,7 +2112,7 @@
                     </thead>
                     <tbody>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-1</td><td style="padding:5px 0;">O₂ flow-control needle valve</td></tr>
-                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-2</td><td style="padding:5px 0;">O₂ cylinder pressure regulator with relief valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-2</td><td style="padding:5px 0;">O₂ pressure regulator</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-3</td><td style="padding:5px 0;">N₂O pressure-relief valve</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-4</td><td style="padding:5px 0;">N₂O flow-control needle valve</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-5</td><td style="padding:5px 0;">N₂O fill solenoid valve</td></tr>
@@ -2126,11 +2126,11 @@
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-13</td><td style="padding:5px 0;">N₂O backflow-prevention check (poppet) valve</td></tr>
                         <tr style="border-bottom:2px solid #444;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-14</td><td style="padding:5px 0;">O₂ backflow-prevention check (poppet) valve</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-1</td><td style="padding:5px 0;">N₂O supply-temperature sensor</td></tr>
-                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-2</td><td style="padding:5px 0;">N₂O supply-pressure gauge</td></tr>
-                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-3</td><td style="padding:5px 0;">N₂O filler-stem pressure gauge</td></tr>
-                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-4</td><td style="padding:5px 0;">O₂ cylinder-pressure gauge</td></tr>
-                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-5</td><td style="padding:5px 0;">O₂ supply-pressure gauge</td></tr>
-                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-6</td><td style="padding:5px 0;">O₂ filler-stem pressure gauge</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-2</td><td style="padding:5px 0;">N₂O supply-pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-3</td><td style="padding:5px 0;">N₂O filler-stem pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-4</td><td style="padding:5px 0;">O₂ cylinder-pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-5</td><td style="padding:5px 0;">O₂ supply-pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-6</td><td style="padding:5px 0;">O₂ filler-stem pressure transducer</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-7</td><td style="padding:5px 0;">Temperature sensor at top of flight tank</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-8</td><td style="padding:5px 0;">Temperature sensor at middle of flight tank</td></tr>
                         <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-9</td><td style="padding:5px 0;">Temperature sensor at bottom of flight tank</td></tr>
@@ -2423,7 +2423,7 @@
                         ...ALL_CLOSED,
                         "needleV1": true,
                         "needleV4": true,
-                        "solenoidsV7": true,
+                        "solenoidsV5": true,
                         "backflowV13": true,
                         "backflowV14": true,
                     },
@@ -2454,7 +2454,6 @@
                         ...ALL_CLOSED,
                         "needleV1": true,
                         "needleV4": true,
-                        "solenoidsV7": true,
                         "backflowV13": true,
                         "backflowV14": true,
                     },
@@ -2462,7 +2461,7 @@
                         ...ALL_CLOSED,
                         "needleV1": true,
                         "needleV4": true,
-                        "solenoidsV7": true,
+                        "solenoidsV6": true,
                         "backflowV13": true,
                         "backflowV14": true,
                     },
