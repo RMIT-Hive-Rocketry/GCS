@@ -38,9 +38,23 @@
 
                 <!-- Clickable legend button -->
                 <g onclick="document.getElementById('instrument-modal').style.display='flex'" style="cursor:pointer;" transform="translate(300,0)">
-                    <rect x="70" y="5" width="230" height="32" rx="4" fill="black" stroke="#555" stroke-width="0.5"/>
-                    <text x="82" y="26" fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    <rect x="70" y="5" width="240" height="42" rx="4" fill="black" stroke="#999" stroke-width="1"/>
+                    <text x="87" y="31" fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo,
                     Monaco, Consolas, monospace" letter-spacing="0.12em">Instrument Legend</text>
+                </g>
+
+                <!-- Rocket Status Button -->
+                <g id="rocket-status-button" onclick="cycleRocketStatus()" style="cursor: pointer;" transform="translate(700,0)">
+                    <rect x="10" y="10" width="240" height="60" rx="5"
+                        fill="black" stroke="#999" stroke-width="1"/>
+                    <text x="130" y="30" text-anchor="middle" letter-spacing="0.12em"
+                        fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+                        Rocket Status:
+                    </text>
+                    <text id="rocket-status-label" x="130" y="55" text-anchor="middle" letter-spacing="0.12em"
+                        fill="#00FF4D" font-size="18" font-weight="bold" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+                        Setup &amp; Testing
+                    </text>
                 </g>
     
                 <!-- =================================================
@@ -2133,12 +2147,28 @@
             ================================================================= -->
         <script>
     
-            // ---------------------------------------------------------------
-            // Colour palettes
-            // ---------------------------------------------------------------
-    
             // Two-state colour for valves: red = closed, green = open
             const colorBoolean = ["#FF0000", "#00FF4D"];
+
+            // Rocket status, set by operator via SVG button
+            // 0 = Setup & Testing, 1 = Rocket on Rail, 2 = Post-Launch
+            let rocketStatus = 0;
+            const rocketStatusLabels = ["Setup & Testing", "Rocket on Rail", "Post-Launch"];
+
+            function cycleRocketStatus() {
+                const next = (rocketStatus + 1) % 3;
+                const confirmed = confirm(
+                    "Change rocket status from\n\"" +
+                    rocketStatusLabels[rocketStatus] +
+                    "\"\nto\n\"" +
+                    rocketStatusLabels[next] + "\"?"
+                );
+                if (confirmed) {
+                    rocketStatus = next;
+                    const label = document.getElementById("rocket-status-label");
+                    if (label) label.textContent = rocketStatusLabels[rocketStatus];
+                }
+            }
     
     
             // ---------------------------------------------------------------
