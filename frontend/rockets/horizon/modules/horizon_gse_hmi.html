@@ -38,9 +38,23 @@
 
                 <!-- Clickable legend button -->
                 <g onclick="document.getElementById('instrument-modal').style.display='flex'" style="cursor:pointer;" transform="translate(300,0)">
-                    <rect x="70" y="5" width="230" height="32" rx="4" fill="black" stroke="#555" stroke-width="0.5"/>
-                    <text x="82" y="26" fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    <rect x="70" y="5" width="240" height="42" rx="4" fill="black" stroke="#999" stroke-width="1"/>
+                    <text x="87" y="31" fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo,
                     Monaco, Consolas, monospace" letter-spacing="0.12em">Instrument Legend</text>
+                </g>
+
+                <!-- Rocket Status Button -->
+                <g id="rocket-status-button" onclick="cycleRocketStatus()" style="cursor: pointer;" transform="translate(700,0)">
+                    <rect x="10" y="10" width="240" height="70" rx="5"
+                        fill="black" stroke="#999" stroke-width="1"/>
+                    <text x="130" y="35" text-anchor="middle" letter-spacing="0.12em"
+                        fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+                        Rocket Status:
+                    </text>
+                    <text id="rocket-status-label" x="130" y="60" text-anchor="middle" letter-spacing="0.12em"
+                        fill="#00FF4D" font-size="18" font-weight="bold" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+                        Setup &amp; Testing
+                    </text>
                 </g>
     
                 <!-- =================================================
@@ -2077,13 +2091,16 @@
         <!-- end SVG -->
     
         <!-- Instrument Legend Modal -->
+         <style>
+            #instrument-modal > div::-webkit-scrollbar { display: none; }
+        </style>
         <div id="instrument-modal"
             onclick="this.style.display='none'"
             style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
                     align-items:center; justify-content:center; z-index:9999;">
             <div onclick="event.stopPropagation()"
                 style="background:#232323; color:#e0e0e0; padding:28px 32px; border-radius:10px;
-                        max-height:80vh; overflow-y:auto; border:1px solid #333;
+                        max-height:80vh; overflow-y:auto; scrollbar-width: none; -ms-overflow-style: none; border:1px solid #333;
                         box-shadow:0 8px 32px rgba(0,0,0,0.5); min-width:460px;">
                 <h3 style="margin:0 0 16px 0; color:#fff; font-size:18px;">Instrument &amp; Valve Legend</h3>
                 <table style="width:100%; border-collapse:collapse; font-size:14px;">
@@ -2130,12 +2147,48 @@
             ================================================================= -->
         <script>
     
-            // ---------------------------------------------------------------
-            // Colour palettes
-            // ---------------------------------------------------------------
-    
             // Two-state colour for valves: red = closed, green = open
             const colorBoolean = ["#FF0000", "#00FF4D"];
+
+            // Rocket status, set by operator via SVG button
+            // 0 = Setup & Testing, 1 = Rocket on Rail, 2 = Post-Launch
+            let rocketStatus = 0;
+            const rocketStatusLabels = ["Setup & Testing", "Rocket on Rail", "Post-Launch"];
+
+            // A constant that gives all valves closed
+            // Useful later when defining rules so I don't have to define
+            // ALL of them every time, just the ones that are open
+            const ALL_CLOSED = {
+                "needleV1": false,
+                "springValve": false,
+                "reliefValveV3": false,
+                "needleV4": false,
+                "solenoidsV5": false,
+                "solenoidsV6": false,
+                "solenoidsV7": false,
+                "ballV8": false,
+                "ballV9": false,
+                "ballV10": false,
+                "ballV11": false,
+                "ballV12": false,
+                "backflowV13": false,
+                "backflowV14": false,
+            };
+
+            function cycleRocketStatus() {
+                const next = (rocketStatus + 1) % 3;
+                const confirmed = confirm(
+                    "Change rocket status from\n\"" +
+                    rocketStatusLabels[rocketStatus] +
+                    "\"\nto\n\"" +
+                    rocketStatusLabels[next] + "\"?"
+                );
+                if (confirmed) {
+                    rocketStatus = next;
+                    const label = document.getElementById("rocket-status-label");
+                    if (label) label.textContent = rocketStatusLabels[rocketStatus];
+                }
+            }
     
     
             // ---------------------------------------------------------------
@@ -2212,7 +2265,7 @@
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
 
-                console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
+                //console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
 
                 // State/control packet check
                 if (data?.SYSTEM_ACTIVATE !== undefined) {
@@ -2297,6 +2350,11 @@
                 solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
             }
 
+            // ---------------------------------------------------------------
+            // hmiUpdateValveStates(data)
+            // Derives the operating mode from control flags.
+            // Then look up valve states from mode + rocketStatus.
+            // ---------------------------------------------------------------
             function hmiUpdateValveStates(data) {
 
                 const flags = {
@@ -2310,75 +2368,222 @@
                     selectorNeutral:  !!data.SELECTOR_SWITCH_NEUTRAL_POSITION,
                 };
 
-                // Each rule is checked in order. First match wins.
-                // Valve IDs use whatever SVG element IDs the valves have,
-                // e.g "solenoidsV5", "solenoidsV6", "solenoidsV7", etc.
+                let mode = "";
 
-                const rules = [
-                    {
-                        name: "N2O Fill Mode",
-                        condition: () => flags.systemActivate && flags.gasFillSelected && flags.n2oFill,
-                        valves: {
-                            "needleV1": true,
-                            "springValve": true,
-                            "reliefValveV3": true,
-                            "needleV4": true,
-                            "solenoidsV5": false,
-                            "solenoidsV6": false,
-                            "solenoidsV7": true,
-                            "ballV8": false,
-                            "ballV9": true,
-                            "ballV10": true,
-                            "ballV11": true,
-                            "ballV12": true,
-                            "backflowV13": false,
-                            "backflowV14": true,
+                // SystemActivate gotta be on before we care about anything
+                if (flags.systemActivate) {
+                    // Everything under the "ARMED" section
+                    if (flags.ignitionSelected) {
+                        if (flags.ignitionFire && flags.o2Fill) {
+                            mode = "ignition_o2";
+                        } else if (flags.ignitionFire) {
+                            mode = "ignition";
+                        } else if (flags.o2Fill) {
+                            mode = "o2";
+                        } else {
+                            mode = "armed";
                         }
-                    },
-                    // {
-                    //     name: "O2 Fill Mode",
-                    //     condition: () => flags.systemActivate && flags.gasFillSelected && flags.o2Fill,
-                    //     valves: {
-                    //         "solenoidsV5": false,
-                    //         "solenoidsV6": true,
-                    //         "solenoidsV7": false,
-                    //     }
-                    // },
-                    // {
-                    //     name: "Manual Purge",
-                    //     condition: () => flags.systemActivate && flags.manualPurge,
-                    //     valves: {
-                    //         "solenoidsV5": false,
-                    //         "solenoidsV6": false,
-                    //         "solenoidsV7": true,
-                    //     }
-                    // },
-                ];
-
-                // ----- Default: all valves closed (no rule matched) -----
-                const defaultValves = {
-                    // "solenoidsV5": false,
-                    // "solenoidsV6": false,
-                    // "solenoidsV7": false,
-                };
-
-                // Rule evaluation
-                let matched = false;
-                for (const rule of rules) {
-                    if (rule.condition()) {
-                        console.log("Valve rule matched:", rule.name);
-                        for (const [valveId, state] of Object.entries(rule.valves)) {
-                            hmiUpdateSolenoid(valveId, state);
+                    // Everything under the "FILL MODE" section
+                    } else if (flags.gasFillSelected) {
+                        if (flags.n2oFill) {
+                            mode = "n2o";
+                        } else if (flags.manualPurge) {
+                            mode = "purge";
+                        } else if (flags.selectorNeutral) {
+                            mode = "fillNeutral"
                         }
-                        matched = true;
-                        break;
+                    } else {
+                        mode = "idle";
                     }
                 }
 
-                if (!matched) {
-                    for (const [valveId, state] of Object.entries(defaultValves)) {
-                        hmiUpdateSolenoid(valveId, state);
-                    }
+                console.log("Mode:", mode, "| Rocket status:", rocketStatusLabels[rocketStatus]);
+
+                // Now we got a name for the mode we're in, this is the lookup table for it
+                // Key format: "mode:rocketStatus"
+                // Valve values: true = open (green), false = closed (red)
+
+                const valveTable = {
+                    // Rules for rocketStatus = 0 (no rocket present)
+                    "idle:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "fillNeutral:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "n2o:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "purge:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "armed:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "o2:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV6": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "ignition:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "ignition_o2:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+
+                    // Rules for rocket status = 1
+                    "idle:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "fillNeutral:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "n2o:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "solenoidsV5": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "purge:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "armed:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "o2:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "solenoidsV6": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "ignition_o2:1": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "springValve": true,
+                        "needleV4": true,
+                        "solenoidsV6": true,
+                        "ballV8": true,
+                        "ballV9": true,
+                        "ballV12": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+
+                    // Rules for rocket status = 2
+                    "purge:2": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                };
+
+                // Default valve setup
+                const defaultValves = {
+                    "needleV1": true,
+                    "springValve": false,
+                    "reliefValveV3": false,
+                    "needleV4": true,
+                    "solenoidsV5": false,
+                    "solenoidsV6": false,
+                    "solenoidsV7": true,
+                    "ballV8": false,
+                    "ballV9": false,
+                    "ballV10": false,
+                    "ballV11": false,
+                    "ballV12": false,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                };
+
+                const key = mode + ":" + rocketStatus;
+                const valves = valveTable[key] || defaultValves;
+
+                for (const [valveId, state] of Object.entries(valves)) {
+                    hmiUpdateSolenoid(valveId, state);
                 }
             }
     
