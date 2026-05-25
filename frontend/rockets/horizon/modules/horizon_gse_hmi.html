@@ -2245,7 +2245,7 @@
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
 
-                console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
+                //console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
 
                 // State/control packet check
                 if (data?.SYSTEM_ACTIVATE !== undefined) {
@@ -2332,7 +2332,27 @@
 
             // Function that updates valve colours dynamically, depending on state
             // rules are inside
+            // All valve IDs, commented out for my reference:
+                // "needleV1": true,
+                // "springValve": true,
+                // "reliefValveV3": true,
+                // "needleV4": true,
+                // "solenoidsV5": false,
+                // "solenoidsV6": false,
+                // "solenoidsV7": true,
+                // "ballV8": false,
+                // "ballV9": true,
+                // "ballV10": true,
+                // "ballV11": true,
+                // "ballV12": true,
+                // "backflowV13": false,
+                // "backflowV14": true,
 
+            // ---------------------------------------------------------------
+            // hmiUpdateValveStates(data)
+            // Step 1: Derive the operating mode from control flags.
+            // Step 2: Look up valve states from mode + rocketStatus.
+            // ---------------------------------------------------------------
             function hmiUpdateValveStates(data) {
 
                 const flags = {
@@ -2346,66 +2366,59 @@
                     selectorNeutral:  !!data.SELECTOR_SWITCH_NEUTRAL_POSITION,
                 };
 
-                // Each rule is checked in order. First match wins.
-                // Valve IDs use whatever SVG element IDs the valves have,
-                // e.g "solenoidsV5", "solenoidsV6", "solenoidsV7", etc.
+                // This section gives a name to each mode formed by the combinations of state flags
+                let mode = "";
 
-                // All valve IDs, commented out for my reference:
-                    // "needleV1": true,
-                    // "springValve": true,
-                    // "reliefValveV3": true,
-                    // "needleV4": true,
-                    // "solenoidsV5": false,
-                    // "solenoidsV6": false,
-                    // "solenoidsV7": true,
-                    // "ballV8": false,
-                    // "ballV9": true,
-                    // "ballV10": true,
-                    // "ballV11": true,
-                    // "ballV12": true,
-                    // "backflowV13": false,
-                    // "backflowV14": true,
-
-                const rules = [
-                    {
-                        name: "System Active w/ no rocket",
-                        condition: () => rocketStatus === 0 && flags.systemActivate,
-                        valves: {
-                            "needleV1": true,
-                            "springValve": true,
-                            "reliefValveV3": true,
-                            "needleV4": true,
-                            "solenoidsV5": false,
-                            "solenoidsV6": false,
-                            "solenoidsV7": false,
-                            "ballV8": false,
-                            "ballV9": true,
-                            "ballV10": true,
-                            "ballV11": true,
-                            "ballV12": true,
-                            "backflowV13": false,
-                            "backflowV14": true,
+                // SystemActivate gotta be on before we care about anything
+                if (flags.systemActivate) {
+                    // Everything under the "ARMED" section
+                    if (flags.ignitionSelected) {
+                        if (flags.ignitionFire && flags.o2Fill) {
+                            mode = "ignition_o2";
+                        } else if (flags.ignitionFire) {
+                            mode = "ignition";
+                        } else if (flags.o2Fill) {
+                            mode = "o2";
+                        } else {
+                            mode = "armed";
                         }
-                    },
-                    // {
-                    //     name: "O2 Fill Mode",
-                    //     condition: () => flags.systemActivate && flags.gasFillSelected && flags.o2Fill,
-                    //     valves: {
-                    //         "solenoidsV5": false,
-                    //         "solenoidsV6": true,
-                    //         "solenoidsV7": false,
-                    //     }
+                    // Everything under the "FILL MODE" section
+                    } else if (flags.gasFillSelected) {
+                        if (flags.n2oFill) {
+                            mode = "n2o";
+                        } else if (flags.manualPurge) {
+                            mode = "purge";
+                        } else if (flags.selectorNeutral) {
+                            mode = "fillNeutral"
+                        }
+                    } else {
+                        mode = "idle";
+                    }
+                }
+
+                console.log("Mode:", mode, "| Rocket status:", rocketStatusLabels[rocketStatus]);
+
+                // Now we got a name for the mode we're in, this is the lookup table for it
+                // Key format: "mode:rocketStatus"
+                // Valve values: true = open (green), false = closed (red)
+
+                const valveTable = {
+                    // "n2o_fill:0": {  // n2o_fill + Setup & Testing
+                    //     "solenoidsV5": true,
+                    //     "solenoidsV6": false,
+                    //     "solenoidsV7": false,
                     // },
-                    // {
-                    //     name: "Manual Purge",
-                    //     condition: () => flags.systemActivate && flags.manualPurge,
-                    //     valves: {
-                    //         "solenoidsV5": false,
-                    //         "solenoidsV6": false,
-                    //         "solenoidsV7": true,
-                    //     }
+                    // "n2o_fill:1": {  // n2o_fill + Rocket on Rail
+                    //     "solenoidsV5": true,
+                    //     "solenoidsV6": false,
+                    //     "solenoidsV7": true,
                     // },
-                ];
+                    // "n2o_fill:2": {  // n2o_fill + Post-Launch
+                    //     "solenoidsV5": false,
+                    //     "solenoidsV6": false,
+                    //     "solenoidsV7": false,
+                    // },
+                };
 
                 // Default valve setup
                 const defaultValves = {
@@ -2425,23 +2438,11 @@
                     "backflowV14": true,
                 };
 
-                // Rule evaluation
-                let matched = false;
-                for (const rule of rules) {
-                    if (rule.condition()) {
-                        console.log("Valve rule matched:", rule.name);
-                        for (const [valveId, state] of Object.entries(rule.valves)) {
-                            hmiUpdateSolenoid(valveId, state);
-                        }
-                        matched = true;
-                        break;
-                    }
-                }
+                const key = mode + ":" + rocketStatus;
+                const valves = valveTable[key] || defaultValves;
 
-                if (!matched) {
-                    for (const [valveId, state] of Object.entries(defaultValves)) {
-                        hmiUpdateSolenoid(valveId, state);
-                    }
+                for (const [valveId, state] of Object.entries(valves)) {
+                    hmiUpdateSolenoid(valveId, state);
                 }
             }
     
