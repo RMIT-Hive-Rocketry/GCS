@@ -133,10 +133,11 @@
 
     .module-pendant .pendant-layout {
         grid-template-columns: 1fr 280px;
-        grid-template-rows: 1fr auto;
+        grid-template-rows: auto 1fr;
         grid-template-areas:
             "pendant status"
             "console console";
+        row-gap: 1rem;
     }
 
     .module-pendant .pendant-visual {
@@ -150,7 +151,6 @@
 
     .module-pendant .pendant-console {
         grid-area: console;
-        min-height: 250px;
         min-width: 0;
         display: flex;
         flex-direction: column;
