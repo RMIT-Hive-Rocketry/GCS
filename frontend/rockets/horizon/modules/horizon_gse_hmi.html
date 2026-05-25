@@ -2404,11 +2404,71 @@
                 // Valve values: true = open (green), false = closed (red)
 
                 const valveTable = {
-                    // "idle:0": {
-                    //     "solenoidsV5": true,
-                    //     "solenoidsV6": false,
-                    //     "solenoidsV7": false,
-                    // },
+                    // Rules for rocketStatus = 0 (no rocket present)
+                    "idle:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "fillNeutral:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "n2o:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "purge:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "armed:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "o2:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV6": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "ignition:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+                    "ignition_o2:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
+
+                    // Rules for rocket status = 1
+                    
                 };
 
                 // Default valve setup
