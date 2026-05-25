@@ -2155,6 +2155,26 @@
             let rocketStatus = 0;
             const rocketStatusLabels = ["Setup & Testing", "Rocket on Rail", "Post-Launch"];
 
+            // A constant that gives all valves closed
+            // Useful later when defining rules so I don't have to define
+            // ALL of them every time, just the ones that are open
+            const ALL_CLOSED = {
+                "needleV1": false,
+                "springValve": false,
+                "reliefValveV3": false,
+                "needleV4": false,
+                "solenoidsV5": false,
+                "solenoidsV6": false,
+                "solenoidsV7": false,
+                "ballV8": false,
+                "ballV9": false,
+                "ballV10": false,
+                "ballV11": false,
+                "ballV12": false,
+                "backflowV13": false,
+                "backflowV14": false,
+            };
+
             function cycleRocketStatus() {
                 const next = (rocketStatus + 1) % 3;
                 const confirmed = confirm(
@@ -2330,28 +2350,10 @@
                 solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
             }
 
-            // Function that updates valve colours dynamically, depending on state
-            // rules are inside
-            // All valve IDs, commented out for my reference:
-                // "needleV1": true,
-                // "springValve": true,
-                // "reliefValveV3": true,
-                // "needleV4": true,
-                // "solenoidsV5": false,
-                // "solenoidsV6": false,
-                // "solenoidsV7": true,
-                // "ballV8": false,
-                // "ballV9": true,
-                // "ballV10": true,
-                // "ballV11": true,
-                // "ballV12": true,
-                // "backflowV13": false,
-                // "backflowV14": true,
-
             // ---------------------------------------------------------------
             // hmiUpdateValveStates(data)
-            // Step 1: Derive the operating mode from control flags.
-            // Step 2: Look up valve states from mode + rocketStatus.
+            // Derives the operating mode from control flags.
+            // Then look up valve states from mode + rocketStatus.
             // ---------------------------------------------------------------
             function hmiUpdateValveStates(data) {
 
@@ -2366,7 +2368,6 @@
                     selectorNeutral:  !!data.SELECTOR_SWITCH_NEUTRAL_POSITION,
                 };
 
-                // This section gives a name to each mode formed by the combinations of state flags
                 let mode = "";
 
                 // SystemActivate gotta be on before we care about anything
@@ -2403,18 +2404,8 @@
                 // Valve values: true = open (green), false = closed (red)
 
                 const valveTable = {
-                    // "n2o_fill:0": {  // n2o_fill + Setup & Testing
+                    // "idle:0": {
                     //     "solenoidsV5": true,
-                    //     "solenoidsV6": false,
-                    //     "solenoidsV7": false,
-                    // },
-                    // "n2o_fill:1": {  // n2o_fill + Rocket on Rail
-                    //     "solenoidsV5": true,
-                    //     "solenoidsV6": false,
-                    //     "solenoidsV7": true,
-                    // },
-                    // "n2o_fill:2": {  // n2o_fill + Post-Launch
-                    //     "solenoidsV5": false,
                     //     "solenoidsV6": false,
                     //     "solenoidsV7": false,
                     // },
