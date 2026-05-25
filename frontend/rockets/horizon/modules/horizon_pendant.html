@@ -88,9 +88,6 @@
             <div class="pendant-phase">
                 <div class="pendant-section-label">Current Phase</div>
                 <div class="pendant-phase-value phase-off" data-pendant-phase>OFF</div>
-                <div class="pendant-phase-desc" data-pendant-desc>
-                    System idle. Awaiting activation.
-                </div>
             </div>
 
             <div class="pendant-progression">
@@ -348,14 +345,6 @@
         animation: pendantPulse 0.4s infinite alternate;
     }
 
-    .module-pendant .pendant-phase-desc {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.55);
-        font-style: italic;
-        margin-top: 6px;
-        line-height: 1.35;
-    }
-
     /* Sequence secton */
     .module-pendant .pendant-progression-list {
         list-style: none;
@@ -438,17 +427,17 @@
 </style>
 
 <script>
-    // Mapping from a phase to its display label and description
+    // Mapping from a phase to its display label and CSS class
     const PENDANT_PHASE_INFO = {
-        OFF:          { label: "OFF",               cls: "phase-off",          desc: "System idle. Awaiting activation." },
-        STANDBY:      { label: "STANDBY",           cls: "phase-standby",      desc: "System on. No selector engaged." },
-        FILL_NEUTRAL: { label: "FILL MODE - Neutral",cls: "phase-fill-neutral", desc: "Fill mode selected. Selector neutral." },
-        FILL_N2O:     { label: "FILL MODE - N₂O",   cls: "phase-fill-n2o",     desc: "N₂O fill active." },
-        PURGE:        { label: "PURGE",             cls: "phase-purge",        desc: "Manual purge active." },
-        ARMED:        { label: "ARMED",             cls: "phase-armed",        desc: "Ignition mode selected." },
-        ARMED_O2:     { label: "ARMED - O₂ FILL",  cls: "phase-armed-o2",     desc: "Armed. O₂ fill active." },
-        IGNITION:     { label: "IGNITION",          cls: "phase-ignition",     desc: "Ignition firing." },
-        ESTOP:        { label: "E-STOP",            cls: "phase-estop",        desc: "Emergency stop active." },
+        OFF:          { label: "OFF",                cls: "phase-off"          },
+        STANDBY:      { label: "STANDBY",            cls: "phase-standby"      },
+        FILL_NEUTRAL: { label: "FILL MODE - Neutral", cls: "phase-fill-neutral" },
+        FILL_N2O:     { label: "FILL MODE - N₂O",    cls: "phase-fill-n2o"     },
+        PURGE:        { label: "PURGE",              cls: "phase-purge"        },
+        ARMED:        { label: "ARMED",              cls: "phase-armed"        },
+        ARMED_O2:     { label: "ARMED - O₂ FILL",   cls: "phase-armed-o2"     },
+        IGNITION:     { label: "IGNITION",           cls: "phase-ignition"     },
+        ESTOP:        { label: "E-STOP",             cls: "phase-estop"        },
     };
 
     // This is the "priority order" of phases, since multiple can be true at once
@@ -527,9 +516,6 @@
             phaseEl.textContent = info.label;
             phaseEl.className = "pendant-phase-value " + info.cls;
         }
-
-        const descEl = document.querySelector("[data-pendant-desc]");
-        if (descEl) descEl.textContent = info.desc;
 
         // Highlight the current step in the sequence
         document.querySelectorAll("[data-progression]").forEach((el) => {
