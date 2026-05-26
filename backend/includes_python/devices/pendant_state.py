@@ -96,6 +96,9 @@ class PendantState:  # noqa: PLW1641
         for key in self.FALLBACK_PENDANT_STATES_DICT:
             self.states[key] = states.get(key, False)
 
+    def get_pendant_states(self) -> dict[PendantInput, bool]:
+        return self.states
+
     def get_gse_states(self) -> dict[GSEState, bool]:
         required_true = "required true"
         required_false = "required false"
