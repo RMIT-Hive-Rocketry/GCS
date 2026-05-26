@@ -1095,25 +1095,47 @@ function diagRenderGraph(graph) {
             stepPath.exit().remove();
         
             // Red vertical bars use ONLY disconnected ping values.
-            const disconnectedData = visibleData.filter((d) => d.y === -1);
-        
+            const offlineSpans = [];
+
+            let offlineStart = null;
+
+            visibleData.forEach((d) => {
+                if (d.y === -1 && offlineStart === null) {
+                    offlineStart = d.x;
+                }
+
+                if (d.y > 0 && offlineStart !== null) {
+                    offlineSpans.push({
+                        start: offlineStart,
+                        end: d.x,
+                    });
+
+                    offlineStart = null;
+                }
+            });
+
+            if (offlineStart !== null) {
+                offlineSpans.push({
+                    start: offlineStart,
+                    end: now,
+                });
+            }
+
             const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
-                .data(disconnectedData, (d) => d.x);
-        
+                .data(offlineSpans, (d) => `${d.start}-${d.end}`);
+
             disconnectBars
                 .enter()
-                .append("line")
+                .append("rect")
                 .attr("class", "diag-disconnect-bar")
-                .attr("stroke", "#ef4444")
-                .attr("stroke-width", 8)
-                .attr("stroke-opacity", 0.9)
-                .attr("stroke-linecap", "butt")
+                .attr("fill", "#ef4444")
+                .attr("fill-opacity", 0.75)
                 .merge(disconnectBars)
-                .attr("x1", (d) => graph.x(d.x))
-                .attr("x2", (d) => graph.x(d.x))
-                .attr("y1", graph.y(1))
-                .attr("y2", graph.y(500));
-        
+                .attr("x", (d) => graph.x(d.start))
+                .attr("y", graph.y(500))
+                .attr("width", (d) => Math.max(2, graph.x(d.end) - graph.x(d.start)))
+                .attr("height", graph.y(1) - graph.y(500));
+
             disconnectBars.exit().remove();
         });            
     }
