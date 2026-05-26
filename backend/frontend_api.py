@@ -51,8 +51,8 @@ def append_data(data: dict, packet_id: int) -> dict:
             new_data = copy.deepcopy(data)
 
             for k, v in data.items():
-                if k == "E_STOP":
-                    # leave estop alone, since it wasent being sent before
+                if k == PendantInput.E_STOP:
+                    # leave estop alone, since it wasn't being sent before
                     # there is no naming convention for it
                     continue
                 if k not in PendantInput.__members__:
