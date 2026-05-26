@@ -53,7 +53,7 @@ def append_data(data: dict, packet_id: int) -> dict:
             for k, v in data.items():
                 if k == PendantInput.E_STOP:
                     # leave estop alone, since it wasn't being sent before
-                    # there is no naming convention for it
+                    # there was no naming convention for it
                     continue
                 if k not in PendantInput.__members__:
                     continue
@@ -61,13 +61,13 @@ def append_data(data: dict, packet_id: int) -> dict:
                 new_data.pop(k, None)
                 new_data[GSEState[k].value] = v
 
-            new_data[GSEState.NEUTRAL] = not new_data[GSEState.N2O] and not new_data[GSEState.PURGE]
+            new_data[GSEState.NEUTRAL] = (
+                not new_data[GSEState.N2O] and not new_data[GSEState.PURGE]
+            )
 
             data = new_data
 
-
     return data
-
 
 
 # TODO Find why might a compile error cause the script to fail silently when i ran an incorrect argument it failed silently without notice or throwing an error
@@ -200,7 +200,9 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
-                    pendant_state_dict = append_data(pendant_state_dict, pendant_packet_id)
+                    pendant_state_dict = append_data(
+                        pendant_state_dict, pendant_packet_id
+                    )
 
                     packet = {
                         "id": pendant_packet_id,
