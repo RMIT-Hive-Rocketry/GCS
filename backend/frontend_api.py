@@ -20,6 +20,8 @@ import zmq
 import time
 import zmq.asyncio
 import os
+from backend.includes_python.devices.pendant_state import PendantInput, GSEState
+import copy
 
 # Global flag for shutdown control
 shutdown_event = asyncio.Event()
@@ -43,7 +45,27 @@ def append_data(data: dict, packet_id: int) -> dict:
             data["mach_number"] = Mach.mach_from_alt_estimate(
                 VELOCITY_M=data["velocity"], ALTITUDE_M=data["altitude"]
             )
+        case 10:
+            # this maps from the PendantInput names to GSEState names
+            # for backwards compatibility because frontend still uses the old names
+            new_data = copy.deepcopy(data)
+
+            for k, v in data.items():
+                if k == "E_STOP":
+                    # leave estop alone, since it wasent being sent before
+                    # there is no naming convention for it
+                    continue
+                if k not in PendantInput.__members__:
+                    continue
+
+                new_data.pop(k, None)
+                new_data[GSEState[k].value] = v
+
+            data = new_data
+
+
     return data
+
 
 
 # TODO Find why might a compile error cause the script to fail silently when i ran an incorrect argument it failed silently without notice or throwing an error
@@ -175,6 +197,8 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                 # print(events)
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
+
+                    pendant_state_dict = append_data(pendant_state_dict, pendant_packet_id)
 
                     packet = {
                         "id": pendant_packet_id,
