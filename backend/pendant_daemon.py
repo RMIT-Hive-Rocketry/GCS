@@ -95,9 +95,11 @@ def send_packet() -> None:
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
-            pendant_state_dict = controller.get_state_table().get_gse_states()
+            state_table = controller.get_state_table()
+            pendant_state_dict = state_table.get_pendant_states()
+
             state_command = device_emulator.GCStoGSEStateCMD(
-                **pendant_state_dict
+                **state_table.get_gse_states()
             )
 
             change_in_pendant_data = previous_packet != pendant_state_dict
