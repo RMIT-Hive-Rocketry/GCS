@@ -61,6 +61,8 @@ def append_data(data: dict, packet_id: int) -> dict:
                 new_data.pop(k, None)
                 new_data[GSEState[k].value] = v
 
+            new_data[GSEState.NEUTRAL] = not new_data[GSEState.N2O] and not new_data[GSEState.PURGE]
+
             data = new_data
 
 
