@@ -90,20 +90,6 @@
                 <div class="pendant-phase-value phase-off" data-pendant-phase>OFF</div>
             </div>
 
-            <div class="pendant-progression">
-                <div class="pendant-section-label">Sequence</div>
-                <ol class="pendant-progression-list">
-                    <li data-progression="OFF" class="active">Off</li>
-                    <li data-progression="STANDBY">Standby</li>
-                    <li data-progression="FILL_N2O">Fill - N₂O</li>
-                    <li data-progression="FILL_NEUTRAL">Fill - Neutral</li>
-                    <li data-progression="PURGE">Purge</li>
-                    <li data-progression="ARMED">Armed</li>
-                    <li data-progression="ARMED_O2">Armed - O₂</li>
-                    <li data-progression="IGNITION">Ignition</li>
-                </ol>
-            </div>
-
             <div class="pendant-inputs">
                 <div class="pendant-section-label">Inputs</div>
                 <ul class="pendant-input-list">
@@ -345,33 +331,6 @@
         animation: pendantPulse 0.4s infinite alternate;
     }
 
-    /* Sequence secton */
-    .module-pendant .pendant-progression-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 0.88rem;
-    }
-
-    .module-pendant .pendant-progression-list li {
-        padding: 5px 10px;
-        border: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
-        color: rgba(255, 255, 255, 0.4);
-        background: color-mix(in oklab, var(--color-horizon-mauve) 8%, transparent);
-        transition: all 0.15s ease;
-    }
-
-    .module-pendant .pendant-progression-list li.active {
-        color: var(--color-horizon-yellow);
-        border-color: var(--color-horizon-yellow);
-        background: color-mix(in oklab, var(--color-horizon-mauve) 30%, transparent);
-        box-shadow: 0 0 6px color-mix(in oklab, var(--color-horizon-yellow) 35%, transparent);
-    }
-
     /* Input dots */
     .module-pendant .pendant-input-list {
         list-style: none;
@@ -516,14 +475,6 @@
             phaseEl.textContent = info.label;
             phaseEl.className = "pendant-phase-value " + info.cls;
         }
-
-        // Highlight the current step in the sequence
-        document.querySelectorAll("[data-progression]").forEach((el) => {
-            el.classList.toggle(
-                "active",
-                phase !== "ESTOP" && el.dataset.progression === phase,
-            );
-        });
 
         // Update the per-input dots
         document.querySelectorAll("[data-state-check]").forEach((el) => {
