@@ -596,7 +596,7 @@ function diagSafeId(deviceName) {
 
 // ── Left panel: create/update a device card ──────────────────────
 function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
-    const alive = ping > 0;
+    const alive = ping >= 1;
     const safeId   = diagSafeId(deviceName);
     const listEl   = document.getElementById("diag-device-list");
     if (!listEl) return;
@@ -799,7 +799,7 @@ function diagUpdateGraph(deviceName, ping, alive, timestamp) {
 
         // This keeps disconnected values from affecting average/min/max stats.
         // Ping 0 is a special graph marker, so it is also excluded from stats.
-        if (ping > 0) {
+        if (ping  >= 1) {
             graph.pingValues.push(ping);
             if (graph.pingValues.length > 300) graph.pingValues.shift();
         }
@@ -837,7 +837,7 @@ function diagSetStatusBox(id, pingValue) {
     if (!el) return;
 
     // No data / offline
-    if (pingValue == null || pingValue < 0) {
+    if (pingValue == null || pingValue < 1) {
         el.textContent = "DOWN";
         el.style.backgroundColor = "var(--color-red-500,#ef4444)";
         el.style.borderColor = "var(--color-red-800,#991b1b)";
@@ -870,6 +870,25 @@ function diagSetStatusBox(id, pingValue) {
     el.style.color = "white";
 }
 
+function diagSetSummaryOnlineBox(id, online) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.textContent = online ? "GOOD" : "DOWN";
+    el.style.backgroundColor = online ? "#4ade80" : "#ef4444";
+    el.style.borderColor = online ? "#15803d" : "#991b1b";
+    el.style.color = online ? "black" : "white";
+}
+
+function diagSetAvIndicator(online) {
+    const el = document.getElementById("diag-av-indicator");
+    if (!el) return;
+
+    el.style.background = online ? "#4ade80" : "#ef4444";
+    el.style.boxShadow = online
+        ? "0 0 6px #4ade80"
+        : "0 0 6px #ef4444";
+}
 // ── Bottom bar: update summary counts ────────────────────────────
 function diagUpdateBottomBar(totalDevices, onlineCount) {
     const offlineCount = totalDevices - onlineCount;
@@ -897,9 +916,12 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
 function graphUpdateDiagnostics(apiData) {
     const timestamp = diagNowSeconds();
 
-    let gseWorstPing = null;
-    let lanWorstPing = null;
+    
     let onlineCount = 0, totalCount = 0;
+    let gseOnline = true;
+    let lanOnline = true;
+    let hasGseDevice = false;
+    let hasLanDevice = false;
 
     Object.entries(apiData).forEach(([deviceName, deviceData]) => {
         if (deviceName === "id" || deviceName === "state" || deviceName === "meta") return;
@@ -909,7 +931,23 @@ function graphUpdateDiagnostics(apiData) {
         const ping        = deviceData.ping        ?? -1;
         const packetLoss  = deviceData.packet_loss  ?? null;
         const packetCount = deviceData.packet_count ?? null;
-        const alive       = ping > 0;
+        const alive       = ping >= 1;
+
+        const isGseDevice = DIAG_GSE_DEVICES.includes(deviceName);
+
+        if (isGseDevice) {
+            hasGseDevice = true;
+
+            if (!alive) {
+                gseOnline = false;
+            }
+        } else {
+            hasLanDevice = true;
+
+            if (!alive) {
+                lanOnline = false;
+            }
+        }
 
         totalCount++;
         if (alive) onlineCount++;
@@ -921,32 +959,28 @@ function graphUpdateDiagnostics(apiData) {
         diagEnsureGraph(deviceName);
         diagUpdateGraph(deviceName, ping, alive, timestamp);
 
-        // Summary tracking
-        if (DIAG_GSE_DEVICES.includes(deviceName) && alive) {
-            gseWorstPing =
-                gseWorstPing == null
-                    ? ping
-                    : Math.max(gseWorstPing, ping);
-        }
+        
 
-        if (DIAG_LAN_DEVICES.includes(deviceName) && alive) {
-            lanWorstPing =
-                lanWorstPing == null
-                    ? ping
-                    : Math.max(lanWorstPing, ping);
-        }
+        // if (DIAG_LAN_DEVICES.includes(deviceName) && alive) {
+        //     lanWorstPing =
+        //         lanWorstPing == null
+        //             ? ping
+        //             : Math.max(lanWorstPing, ping);
+        // }
     });
 
 
     // Right panel
-    diagSetStatusBox("diag-summary-gse", gseWorstPing);
-    diagSetStatusBox("diag-summary-lan", lanWorstPing);
+    diagSetSummaryOnlineBox("diag-summary-gse", hasGseDevice && gseOnline);
+    diagSetSummaryOnlineBox("diag-summary-lan", hasLanDevice && lanOnline);
 
     const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
 
     if (avIndicator) {
-        const avPing = avIndicator.classList.contains("green") ? 50 : 300;
-        diagSetStatusBox("diag-summary-av", avPing);
+        const avOnline = avIndicator.classList.contains("green");
+
+        diagSetSummaryOnlineBox("diag-summary-av", avOnline);
+        diagSetAvIndicator(avOnline);
     }
 
     // Bottom bar
@@ -1045,40 +1079,60 @@ function diagRenderGraph(graph) {
                 (d) => d.x >= windowStart && d.x <= now
             );
         
-            // Blue step line uses ONLY valid positive ping values.
-            const previousNormalPoint = [...lineData.data]
-            .reverse()
-            .find((d) => d.x < windowStart && d.y > 0);
+            // Build separate blue step-line segments.
+            // A -1 offline point breaks the blue line completely.
+            const normalSegments = [];
+            let currentSegment = [];
 
-            const normalData = visibleData.filter((d) => d.y > 0);
+            const previousRawPoint = [...lineData.data]
+                .reverse()
+                .find((d) => d.x < windowStart);
 
-            // Use the previous point's Y value, but start drawing exactly at windowStart.
-            // This prevents the step line from drawing into the Y-axis area.
-            const displayData = previousNormalPoint
-                ? [{ x: windowStart, y: previousNormalPoint.y }, ...normalData]
-                : normalData.slice();
-        
-            const lastNormalPoint = displayData[displayData.length - 1];
-        
-            if (
-                lastNormalPoint &&
-                lastNormalPoint.x < now
-            ) {
-                displayData.push({
-                    x: now,
-                    y: lastNormalPoint.y,
+            // Only continue from before the window if the device was already online.
+            if (previousRawPoint && previousRawPoint.y >= 1) {
+                currentSegment.push({
+                    x: windowStart,
+                    y: previousRawPoint.y,
                 });
             }
-        
+
+            visibleData.forEach((d) => {
+                if (d.y >= 1) {
+                    currentSegment.push(d);
+                } else if (d.y < 1) {
+                    if (currentSegment.length > 0) {
+                        normalSegments.push(currentSegment);
+                        currentSegment = [];
+                    }
+                }
+            });
+
+
+            // Only extend the final blue segment if the latest real point is online.
+            if(currentSegment.length > 0){
+                const lastNormalPoint = currentSegment[currentSegment.length - 1];
+
+                if (lastNormalPoint.x < now) {
+                    currentSegment.push({
+                        x: now,
+                        y: lastNormalPoint.y,
+                    });
+                }
+            }
+
+            if (currentSegment.length > 0) {
+                normalSegments.push(currentSegment);
+            }
+
             const stepLine = d3
                 .line()
                 .x((d) => graph.x(d.x))
                 .y((d) => graph.y(Math.max(1, Math.min(500, d.y))))
                 .curve(d3.curveStepAfter);
-        
+
             const stepPath = graph.g.selectAll(".diag-step-line")
-                .data([displayData]);
-        
+                .data(normalSegments);
+
             stepPath
                 .enter()
                 .append("path")
@@ -1091,7 +1145,7 @@ function diagRenderGraph(graph) {
                 .attr("stroke-linejoin", "round")
                 .merge(stepPath)
                 .attr("d", stepLine);
-        
+
             stepPath.exit().remove();
         
             // Red vertical bars use ONLY disconnected ping values.
@@ -1100,11 +1154,11 @@ function diagRenderGraph(graph) {
             let offlineStart = null;
 
             visibleData.forEach((d) => {
-                if (d.y === -1 && offlineStart === null) {
+                if (d.y < 1 && offlineStart === null) {
                     offlineStart = d.x;
                 }
 
-                if (d.y > 0 && offlineStart !== null) {
+                if (d.y >= 1 && offlineStart !== null){
                     offlineSpans.push({
                         start: offlineStart,
                         end: d.x,

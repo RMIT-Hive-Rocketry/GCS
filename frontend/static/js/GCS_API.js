@@ -127,8 +127,15 @@ function checkStateIndicator(elem = null) {
         */
         if (indicator.includes("av.radio")) {
             sound = "AV_Loss";
-            if (typeof diagSetStatusBox === 'function') {
-                diagSetStatusBox("diag-summary-av", e1.classList.value.includes("green"));
+        
+            const avOnline = e1.classList.value.includes("green");
+        
+            if (typeof diagSetSummaryOnlineBox === "function") {
+                diagSetSummaryOnlineBox("diag-summary-av", avOnline);
+            }
+        
+            if (typeof diagSetAvIndicator === "function") {
+                diagSetAvIndicator(avOnline);
             }
         }
         else if (indicator.includes("gse.radio")) {
