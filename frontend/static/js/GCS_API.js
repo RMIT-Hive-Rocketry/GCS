@@ -84,22 +84,14 @@ const soundsList_losses = filenames_losses.map(src => {
 });
 
 // Other non-alarm sounds (uncomment the below when done).
-/* TODO: Add "Rocket_Hit" to this list when the application can detect
- * the rocket imminently about to hit someone on the head (and Rocket_Warn
- * for the rocket coming within 50m of the control station). To play either
- * sound, call playOtherSound() with the respective string as the argument.
+/* TODO: Add "Rocket_Hit" to this list when the application can detect the rocket imminently
+ * about to hit someone on the head, using playOtherSound(). At this stage, though, same as Rocket_Warn
  * 
- * The volume of Rocket_Warn, which can be set using .volume() and accepts values
- * in range [0.0, 1.0], should be inversely proportional to the distance to the GCS,
- * where by my estimates, the lowest value it should be set to is 0.25. More complex
- * logic will be required to program any loops as the other sounds in this array
- * do not require then.
- * 
- * To put these sounds into Combined_Sounds, add them to the end of the corresponding
- * track/segment in the attached Audacity project (static/sounds), continuing the pattern
+ * To put this sound into Combined_Sounds, add it to the end of the corresponding track/
+ * segment in the attached Audacity project (static/sounds), continuing the pattern
  * of 0.5 seconds between each sound.
 */
-const filenames_other = ["Apogee", "Parachute"];
+const filenames_other = ["Apogee", "Parachute", "Rocket_Warn"];
 const soundsList_other = filenames_other.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
@@ -107,11 +99,16 @@ const soundsList_other = filenames_other.map(src => {
     // Mute sound by default
     audioObject.muted = true;
 
-    // Self-return after playing
-    audioObject.addEventListener('ended', () => {
-        audioObject.pause();
-        audioObject.currentTime = 0;
-    });
+    // Loop in case required, else self-return after playing
+    if (src === "Rocket_Warn") {
+        audioObject.loop = true;
+    }
+    else {
+        audioObject.addEventListener('ended', () => {
+            audioObject.pause();
+            audioObject.currentTime = 0;
+        });
+    }
 
     // This time there is no queue so no active
     return audioObject;
@@ -1091,6 +1088,42 @@ function processDataForDisplay(apiData, apiId) {
     }
     if (apiData.GPSLongitude != undefined) {
         processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude);
+    }
+    
+    /* If the rocket is within 50m of the GCS, play a warning sound.
+     * Use Pythagorean theorem, scaling up latitude and longitude, both
+     * of which are required to be present in the packet.
+     * 
+     * Requires matching the GCS coordinates to "LATITUDE": sinusoid() in
+     * device_emulator.py (or vice versa) during testing, or else the rocket
+     * will appear to be 23000-24000m metres (23-24km) away from the GCS.
+    */
+    if (apiData.GPSLatitude != undefined && apiData.GPSLongitude != undefined) {
+        // Scaling constants
+        const lat_kilometers = 110.87;
+        const long_kilometers = 95.48;
+
+        // Coordinates of the GCS (currently set to the launch site in general)
+        const lat_GCS = 31.9425;
+        const long_GCS = -102.2019;
+
+        // Distance to GCS in km (both latitude and longitude)
+        const lat_distance = ((apiData.GPSLatitude - lat_GCS)*lat_kilometers) ** 2;
+        const long_distance = ((apiData.GPSLongitude - long_GCS)*long_kilometers) ** 2;
+        
+        const final_distance = Math.sqrt(lat_distance + long_distance);
+        if (final_distance <= 50) {
+            /* Rocket_Warn is the 3rd item, with the volume inversely proportional
+             * as the rocket goes from 50 to 0m from the GCS.
+            */
+            soundsList_other[2].volume = -3/155*final_distance + 1;
+            playOtherSound("Rocket_Warn");
+        }
+        else {
+            // Rocket_Warn is the 3rd item.
+            soundsList_other[2].pause();
+            soundsList_other[2].currentTime = 0;
+        }
     }
 
     // Gas fill timer
