@@ -31,7 +31,6 @@ class EmulatedDevice(PygameDevice):
 
     BUTTON_SEQUENCE: List[List[PendantInput]] = [
         [],
-        [PendantInput.E_STOP],
         [PendantInput.SYSTEM_ACTIVE],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE, PendantInput.N2O],
