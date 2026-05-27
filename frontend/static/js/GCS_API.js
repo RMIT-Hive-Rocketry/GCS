@@ -1105,9 +1105,9 @@ function processDataForDisplay(apiData, apiId) {
         const lat_kilometers = 110.87;
         const long_kilometers = 95.48;
 
-        // Coordinates of the GCS (currently set to the launch site in general)
-        const lat_GCS = 31.9425;
-        const long_GCS = -102.2019;
+        // Coordinates of the GCS
+        const lat_GCS = 31.044653;
+        const long_GCS = 103.535598;
 
         // Distance to GCS in km (both latitude and longitude)
         const lat_distance = ((apiData.GPSLatitude - lat_GCS)*lat_kilometers) ** 2;
