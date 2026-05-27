@@ -63,7 +63,8 @@ const timers = {
 };
 
 // Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
-const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+// Note: Horizon doesn't have 2 AV boards (which is Dual_Board_Loss)
+const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss"];
 const soundsList_losses = filenames_losses.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
@@ -172,9 +173,10 @@ function checkStateIndicator(elem = null) {
         else if (indicator.includes("gpsFix")) {
             sound = "GPS_Fix_Loss";
         }
-        else if (indicator.includes("dualBoard")) {
-            sound = "Dual_Board_Loss";
-        }
+        // Currently moved out of scope
+        // else if (indicator.includes("dualBoard")) {
+        //     sound = "Dual_Board_Loss";
+        // }
 
         // Should only execute with one of the above values
         if (sound !== "") {
