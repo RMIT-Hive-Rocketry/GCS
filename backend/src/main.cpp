@@ -362,6 +362,7 @@ int main(int argc, char* argv[]) {
           }
           break;
       }
+      std::this_thread::sleep_for(middleware_timing::SEQUENCE_BUSY_WAIT);
     }
     slogger::info("Middleware shutdown starting");
   } catch (const zmq::error_t& e) {
