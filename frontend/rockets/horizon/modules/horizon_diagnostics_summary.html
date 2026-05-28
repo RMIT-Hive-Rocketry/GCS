@@ -204,4 +204,38 @@
           >DOWN</span>
       </div>
   </div>
+  <div class="flex flex-col gap-2 min-h-0" style="font-family: inherit;">
+    <p
+        class="font-bold text-sm mt-2"
+        style="color:var(--color-horizon-yellow,#f59e0b); font-family: inherit;"
+    >
+        DIAGNOSTIC LOG
+    </p>
+
+    <div
+        id="diag-transition-log-list"
+        class="flex flex-col gap-1 overflow-y-auto rounded-xl"
+        style="
+            height: 10rem;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,45,105,0.45);
+            padding: 0.5rem;
+            font-family: inherit;
+        "
+    >
+        <div
+            id="diag-transition-log-empty"
+            style="
+                color: rgba(255,255,255,0.35);
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-align: center;
+                padding-top: 0.5rem;
+                font-family: inherit;
+            "
+        >
+            No state changes yet
+        </div>
+    </div>
+</div>
 </div>
