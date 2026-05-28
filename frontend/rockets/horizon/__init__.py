@@ -40,7 +40,7 @@ class ConfigHorizon(Config):
             "horizon/modules/horizon_diagnostics_packets.html",
             "horizon/modules/horizon_diagnostics_graphs.html",
             "horizon/modules/horizon_diagnostics_summary.html",
-            # "horizon/modules/horizon_diagnostics_bottom.html",
+            "horizon/modules/horizon_diagnostics_bottom.html",
         ]
 
         # Define pages for Horizon
@@ -97,7 +97,8 @@ class ConfigHorizon(Config):
             # Diagnostics modules
             # Content area: rows 1-10 (10 rows tall)
             # Bottom bar:   row 11  (1 row tall, full width)
-            "horizon_diagnostics_packets": [("page-diagnostics", 0,  1, 5,  11)],
-            "horizon_diagnostics_graphs":  [("page-diagnostics", 5,  1, 15, 11)],
-            "horizon_diagnostics_summary": [("page-diagnostics", 20, 1, 4,  11)],
+            "horizon_diagnostics_packets": [("page-diagnostics", 0,  1, 5,  10)],
+            "horizon_diagnostics_graphs":  [("page-diagnostics", 5,  1, 15, 10)],
+            "horizon_diagnostics_summary": [("page-diagnostics", 20, 1, 4,  10)],
+            "horizon_diagnostics_bottom":  [("page-diagnostics", 0,  11, 24, 1)],
         }
