@@ -1106,8 +1106,8 @@ function processDataForDisplay(apiData, apiId) {
         const long_kilometers = 95.48;
 
         // Coordinates of the GCS
-        const lat_GCS = 31.044653;
-        const long_GCS = 103.535598;
+        const lat_GCS = 31.039581;
+        const long_GCS = 103.526623;
 
         // Distance to GCS in km (both latitude and longitude)
         const lat_distance = ((apiData.GPSLatitude - lat_GCS)*lat_kilometers) ** 2;
