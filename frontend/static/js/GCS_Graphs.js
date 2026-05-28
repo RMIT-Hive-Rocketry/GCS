@@ -587,6 +587,9 @@ const DIAG_RENDER_LATENCY_SECONDS = 1.8;
 function diagNowSeconds() {
     return performance.now() / 1000;
 }
+function diagClampGraphPing(value) {
+    return Math.max(1, Math.min(498, value));
+}
 
 // Returns a CSS-safe ID string from a device name
 function diagSafeId(deviceName) {
@@ -1078,55 +1081,57 @@ function diagRenderGraph(graph) {
                 (d) => d.x >= windowStart && d.x <= now
             );
         
-            // Build separate blue step-line segments.
-            // A -1 offline point breaks the blue line completely.
+            // Build a single continuous blue step-line segment.
+            // Offline points (-1) do NOT break the line — instead the line
+            // holds at the last valid ping value so it stays visible through
+            // offline (red-bar) regions. This gives the "always connected"
+            // mono effect: the red block shows the offline period while the
+            // blue line continues at the last known ping level.
             const normalSegments = [];
             let currentSegment = [];
+            let lastValidY = null;
 
-            const previousRawPoint = [...lineData.data]
-                .reverse()
-                .find((d) => d.x < windowStart);
+            // Look for the most recent valid (online) point before the window
+            // so we can seed lastValidY and start the line at the window edge.
+            const lastOnlineBeforeWindow = [...lineData.data]
+            .reverse()
+            .find((d) => d.x < windowStart && d.y >= 1);
 
-            // Only continue from before the window if the device was already online.
-            if (previousRawPoint && previousRawPoint.y >= 1) {
-                currentSegment.push({
-                    x: windowStart,
-                    y: previousRawPoint.y,
-                });
+            if (lastOnlineBeforeWindow) {
+            lastValidY = lastOnlineBeforeWindow.y;
+            currentSegment.push({ x: windowStart, y: lastValidY });
             }
 
             visibleData.forEach((d) => {
-                if (d.y >= 1) {
-                    currentSegment.push(d);
-                } else if (d.y < 1) {
-                    if (currentSegment.length > 0) {
-                        normalSegments.push(currentSegment);
-                        currentSegment = [];
-                    }
+            if (d.y >= 1) {
+                // Normal online point — update last known valid ping.
+                lastValidY = d.y;
+                currentSegment.push(d);
+            } else {
+                // Offline point — hold the last valid ping so the line
+                // stays visible through the red offline block.
+                if (lastValidY !== null) {
+                    currentSegment.push({ x: d.x, y: lastValidY });
                 }
+                // If we have never seen a valid ping yet there is nothing
+                // to draw, so we simply skip until the first online point.
+            }
             });
 
-
-            // Only extend the final blue segment if the latest real point is online.
-            if(currentSegment.length > 0){
-                const lastNormalPoint = currentSegment[currentSegment.length - 1];
-
-                if (lastNormalPoint.x < now) {
-                    currentSegment.push({
-                        x: now,
-                        y: lastNormalPoint.y,
-                    });
-                }
-            }
-
+            // Always extend the segment to the current render time so the
+            // line reaches the right edge of the graph.
             if (currentSegment.length > 0) {
-                normalSegments.push(currentSegment);
+            const lastPoint = currentSegment[currentSegment.length - 1];
+            if (lastPoint.x < now) {
+                currentSegment.push({ x: now, y: lastPoint.y });
+            }
+            normalSegments.push(currentSegment);
             }
 
             const stepLine = d3
                 .line()
                 .x((d) => graph.x(d.x))
-                .y((d) => graph.y(Math.max(1, Math.min(500, d.y))))
+                .y((d) => graph.y(diagClampGraphPing(d.y)))
                 .curve(d3.curveStepAfter);
 
             const stepPath = graph.g.selectAll(".diag-step-line")
@@ -1182,7 +1187,7 @@ function diagRenderGraph(graph) {
                 .append("rect")
                 .attr("class", "diag-disconnect-bar")
                 .attr("fill", "#ef4444")
-                .attr("fill-opacity", 0.75)
+                .attr("fill-opacity", 1.2)
                 .merge(disconnectBars)
                 .attr("x", (d) => graph.x(d.start))
                 .attr("y", graph.y(500))

@@ -598,12 +598,12 @@ function API_OnMessage(event) {
             }
         } else if (apiData.id == 50) {
             ///// ----- NETWORK DIAGNOSTICS ----- /////
-            if (typeof graphUpdateDiagnostics === "function") {
-                graphUpdateDiagnostics(apiData);
-            }
-
             if (typeof horizonDiagNavAlertProcessPacket === "function") {
                 horizonDiagNavAlertProcessPacket(apiData);
+            }
+            
+            if (typeof graphUpdateDiagnostics === "function") {
+                graphUpdateDiagnostics(apiData);
             }
         }
     } catch (error) {
