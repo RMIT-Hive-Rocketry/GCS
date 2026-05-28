@@ -601,6 +601,10 @@ function API_OnMessage(event) {
             if (typeof graphUpdateDiagnostics === "function") {
                 graphUpdateDiagnostics(apiData);
             }
+
+            if (typeof horizonDiagNavAlertProcessPacket === "function") {
+                horizonDiagNavAlertProcessPacket(apiData);
+            }
         }
     } catch (error) {
         console.error("Data processing error:", error);

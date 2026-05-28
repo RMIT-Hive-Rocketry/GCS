@@ -158,3 +158,71 @@ body.horizon .module-horizon:has([data-key^="meta.av"]),
 body.horizon .module-horizon:has([data-key^="meta.gse"]) {
     overflow: hidden;
 }
+/* ============================================================
+ * Diagnostics navigation blue aura alert
+ * ============================================================ */
+
+ body.horizon nav a.horizon-diag-nav-alert-pulse {
+    animation: horizonDiagNavBlueAura 1s ease-in-out 5;
+}
+
+body.horizon nav a.horizon-diag-nav-alert-pulse span {
+    animation: horizonDiagNavBlueTextAura 1s ease-in-out 5;
+}
+
+body.horizon nav a.horizon-diag-nav-alert-pulse .icon {
+    animation: horizonDiagNavBlueIconAura 1s ease-in-out 5;
+}
+
+@keyframes horizonDiagNavBlueAura {
+    0% {
+        box-shadow: none;
+    }
+
+    50% {
+        box-shadow:
+            inset 0 0 14px rgba(34, 211, 238, 0.55),
+            inset 0 0 24px rgba(59, 130, 246, 0.35),
+            0 0 14px rgba(34, 211, 238, 0.45),
+            0 0 24px rgba(59, 130, 246, 0.25);
+    }
+
+    100% {
+        box-shadow: none;
+    }
+}
+
+@keyframes horizonDiagNavBlueTextAura {
+    0% {
+        text-shadow: none;
+        color: inherit;
+    }
+
+    50% {
+        text-shadow:
+            0 0 6px rgba(34, 211, 238, 0.95),
+            0 0 14px rgba(59, 130, 246, 0.75);
+        color: #67e8f9;
+    }
+
+    100% {
+        text-shadow: none;
+        color: inherit;
+    }
+}
+
+@keyframes horizonDiagNavBlueIconAura {
+    0% {
+        filter: none;
+    }
+
+    50% {
+        filter:
+            drop-shadow(0 0 5px rgba(34, 211, 238, 0.95))
+            drop-shadow(0 0 12px rgba(59, 130, 246, 0.75));
+    }
+
+    100% {
+        filter: none;
+    }
+}
