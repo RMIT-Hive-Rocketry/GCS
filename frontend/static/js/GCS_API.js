@@ -1260,18 +1260,16 @@ function processDataForDisplay(apiData, apiId) {
         /* Distance to GCS in km (both latitude and longitude). Use the decimal
          * version of the coordinates as this is what the GCS coordinates are given
          * as.
-         * 
-         * Crucially, the processedData fields will be both defined as they get
-         * their data from the corresponding apiData fields (likewise both defined).
         */
-        const lat_distance = ((apiData.GPSLatitude - lat_GCS) * lat_kilometers) ** 2;
-        const long_distance = ((apiData.GPSLongitude - long_GCS) * long_kilometers) ** 2;
+        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2;
+        const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2;
         const final_distance = Math.sqrt(lat_distance + long_distance);
-        
+                
         // Rocket_Warn sound
         let currSound = soundsList_other[2];
         
-        if (final_distance <= 50) {
+        // 50m in km
+        if (final_distance <= 50/1000) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
             if (currSound.source.duration === currSound.source.duration) {
                 /* Volume rises in logarithmic fashion the longer the rocket stays within
