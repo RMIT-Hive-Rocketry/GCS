@@ -1106,8 +1106,7 @@ function processDataForDisplay(apiData, apiId) {
      * 
      * Requires matching the GCS coordinates to "LATITUDE": sinusoid() and/or
      * "LONGITUDE": sinusoid() in backend/device_emulator.py (or vice versa) during
-     * testing, or else the rocket will appear to be 23000-24000m metres (23-24km)
-     * away from the GCS.
+     * testing, or else the rocket will appear to be very far from the GCS
     */
     if (apiData.GPSLatitude != undefined && apiData.GPSLongitude != undefined) {
         // Scaling constants
