@@ -226,3 +226,66 @@ body.horizon nav a.horizon-diag-nav-alert-pulse .icon {
         filter: none;
     }
 }
+
+/* ============================================================
+ * Diagnostics transition log
+ * ============================================================ */
+
+ body.horizon .diag-transition-log-entry {
+    display: grid;
+    grid-template-columns: 5.6rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+
+    padding: 0.45rem 0.55rem;
+
+    background: rgba(8, 8, 12, 0.72);
+    border-bottom: 1px solid rgba(255, 45, 105, 0.35);
+
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+body.horizon .diag-transition-log-entry:last-child {
+    border-bottom: none;
+}
+
+body.horizon .diag-transition-log-time {
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+body.horizon .diag-transition-log-device {
+    color: rgba(255, 255, 255, 0.78);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+body.horizon .diag-transition-log-state {
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.45rem;
+    font-size: 0.62rem;
+    line-height: 1;
+    white-space: nowrap;
+
+    font-family: inherit;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+body.horizon .diag-transition-log-entry.online .diag-transition-log-state {
+    background: #4ade80;
+    color: black;
+}
+
+body.horizon .diag-transition-log-entry.offline .diag-transition-log-state {
+    background: #ef4444;
+    color: white;
+}
