@@ -46,11 +46,7 @@ class ConfigHorizon(Config):
         # Define pages for Horizon
         self.PAGES = [
             {"name": "Overview", "icon": "icon-rocket", "id": "page-main"},
-            {
-                "name": "Pre-flight",
-                "icon": "icon-tasks",
-                "id": "page-preflight",
-            },
+            {"name": "Pre-flight", "icon": "icon-tasks", "id": "page-preflight"},
             {"name": "Control", "icon": "icon-gamepad", "id": "page-control"},
             {"name": "Diagnostics", "icon": "icon-signal", "id": "page-diagnostics"},
         ]
@@ -87,7 +83,7 @@ class ConfigHorizon(Config):
             "horizon_auxiliary_gse": [("page-main", 16, 4, 8, 8)],
 
             # Preflight page
-            "horizon_preflight": [("page-preflight", 0, 1, 24, 6)],
+            "horizon_preflight": [("page-preflight", 0, 1, 24, 5)],
             "horizon_graph_colours": [("page-preflight", 0, 7, 24, 5)],
 
             # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)

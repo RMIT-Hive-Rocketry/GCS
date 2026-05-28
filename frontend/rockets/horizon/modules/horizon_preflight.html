@@ -1,61 +1,38 @@
 <!-- Preflight information -->
-<div class="module-horizon">
+<div class="module-horizon grid grow gap-2 h-full">
     <!-- Sound files -->
     <h2>Overview</h2>
     <p>
-        The above mute/unmute (default mute) icon can be used to toggle whether sounds play or not. The 1st 4 sounds (2 of them with quicker versions) are alarms that signify if something is wrong
-        with connections to external devices (signified by a non-green indicator), and play in a queue from top to bottom priority (GSE, AV, GPS Fix, Dual Board), the others being for specific events.
-        Click the following button to hear them in succession (same order as the below table), with 0.5 sec of silence between each (including any quicker versions):
+        The above mute/unmute (default mute) icon can be used to toggle whether sounds play or not.
+        The 1st 4 sounds (2 of them with quicker versions) are alarms that signify if something is wrong
+        with connections to external devices (signified by a non-green indicator), and play in a queue
+        from top to bottom priority (GSE, AV, GPS Fix), the others being for specific events. Click the
+        following button to hear them in succession (same order as described below), with 0.5 sec of
+        silence between each (including any quicker versions):
         <audio id="combined" src="sounds/Combined_Sounds.mp3" preload="auto" controls></audio>
     </p>
-    Description of each sound:
-    <table>
-        <tr>
-            <th>Sound (sorted by descending order of priority)</th>
-            <th>Alarm sound</th>
-            <th>Source</th>
-        </tr>
-        <tr>
-            <td>GSE loss</td>
-            <td>High-pitched chord (if timeout > 5 seconds, plays in quicker succession)</td>
-            <td>https://www.youtube.com/watch?v=EWnhSCFCYto</td>
-        </tr>
-        <tr>
-            <td>AV loss</td>
-            <td>1kHz square wave (if timeout > 5 seconds, plays in quicker succession)</td>
-            <td>https://www.youtube.com/watch?v=W5Z-d1Zx02o</td>
-        </tr>
-        <tr>
-            <td>GPS Fix loss</td>
-            <td>Triangle wave pitch-shifted to ~0.5-octave below AV (was ~250hZ)</td>
-            <td>https://www.youtube.com/watch?v=EWnhSCFCYto</td>
-        </tr>
-        <!-- Sound effect was originally required for Horizon, keep for future rockets -->
-        <!-- <tr>
-            <td>Dual Board loss</td>
-            <td>Low-pitched sound, slightly ascending</td>
-            <td>https://www.youtube.com/watch?v=W5Z-d1Zx02o</td>
-        </tr> -->
-        <tr>
-            <td>Apogee flight state</td>
-            <td>Celebratory piano chord</td>
-            <td>Created in MuseScore</td>
-        </tr>
-        <tr>
-            <td>Parachute deployed</td>
-            <td>Descending sine sweep (plays twice, 2 seconds after Apogee and when the rocket drops below 1200 ft)</td>
-            <td>Created in Audacity</td>
-        </tr>
-        <tr>
-            <td>Rocket might land within 50m of the GCS</td>
-            <td>Horn tritone (full volume and small snippet here, loops in the real thing with volume rising for the 1st interation)</td>
-            <td>Created in MuseScore</td>
-        </tr>
-        <!-- Quick timpani increasing in pitch -->
-        <tr>
-            <td>Rocket is imminently about to hit someone on the head</td>
-            <td>At this stage, the same as the previous one</td>
-            <td>Created in MuseScore</td>
-        </tr>
-    </table>
+    <p>
+        Description of each sound:<br>
+        The GSE loss is a high-pitched chord (and AV loss a 1kHz square wave), both of which play
+        in quicker succession when timed out for more than 5 seconds. The GPS Fix Loss is a triangle
+        wave pitch-shifted to ~0.5 octaves below AV loss. When the rocket reaches Apogee a celebratory
+        piano chord is played, 2 seconds after which (and then at 1200ft) a descending sine sweep is
+        played. In terms of safety, if the rocket is within 50m of the GCS, a horn tritone plays for as
+        long as is the case, increasing to full volume during the 1st iteration (~16 seconds). Currently
+        this covers the case when the rocket is about to hit someone on the head (as this event is not 
+        separately detectable)
+    </p>
+    <p>
+        Sources:<br>
+        GSE and GPS Fix losses are from https://www.youtube.com/watch?v=EWnhSCFCYto, AV loss is from
+        https://www.youtube.com/watch?v=W5Z-d1Zx02o, the parachute sound was created in Audacity and
+        the rest created in Musescore
+    </p>
+
+    <!-- Future requirements, when required:
+        Mention that the dual board loss is a low-pitched sound (slightly ascending) from
+        https://www.youtube.com/watch?v=W5Z-d1Zx02o, with the rocket hitting on the head sound being a
+        quick timpani increasing in pitch (and warn that it is all-out crazy, but so would the
+        scenario)
+    </tr> -->
 </div>
