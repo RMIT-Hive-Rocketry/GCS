@@ -1139,46 +1139,35 @@ function diagRenderGraph(graph) {
             .reverse()
             .find((d) => d.x < windowStart && d.y >= 1);
 
-            if (lastOnlineBeforeWindow) {
-            lastValidY = lastOnlineBeforeWindow.y;
-            currentSegment.push({ x: windowStart, y: lastValidY });
-            }
+            const normalData = visibleData.filter((d) => d.y > 0);
 
-            visibleData.forEach((d) => {
-            if (d.y >= 1) {
-                // Normal online point — update last known valid ping.
-                lastValidY = d.y;
-                currentSegment.push(d);
-            } else {
-                // Offline point — hold the last valid ping so the line
-                // stays visible through the red offline block.
-                if (lastValidY !== null) {
-                    currentSegment.push({ x: d.x, y: lastValidY });
-                }
-                // If we have never seen a valid ping yet there is nothing
-                // to draw, so we simply skip until the first online point.
+            // Use the previous point's Y value, but start drawing exactly at windowStart.
+            // This prevents the step line from drawing into the Y-axis area.
+            const displayData = previousNormalPoint
+                ? [{ x: windowStart, y: previousNormalPoint.y }, ...normalData]
+                : normalData.slice();
+        
+            const lastNormalPoint = displayData[displayData.length - 1];
+        
+            if (
+                lastNormalPoint &&
+                lastNormalPoint.x < now
+            ) {
+                displayData.push({
+                    x: now,
+                    y: lastNormalPoint.y,
+                });
             }
-            });
-
-            // Always extend the segment to the current render time so the
-            // line reaches the right edge of the graph.
-            if (currentSegment.length > 0) {
-            const lastPoint = currentSegment[currentSegment.length - 1];
-            if (lastPoint.x < now) {
-                currentSegment.push({ x: now, y: lastPoint.y });
-            }
-            normalSegments.push(currentSegment);
-            }
-
+        
             const stepLine = d3
                 .line()
                 .x((d) => graph.x(d.x))
-                .y((d) => graph.y(diagClampGraphPing(d.y)))
+                .y((d) => graph.y(Math.max(1, Math.min(500, d.y))))
                 .curve(d3.curveStepAfter);
-
+        
             const stepPath = graph.g.selectAll(".diag-step-line")
-                .data(normalSegments);
-
+                .data([displayData]);
+        
             stepPath
                 .enter()
                 .append("path")
@@ -1191,51 +1180,29 @@ function diagRenderGraph(graph) {
                 .attr("stroke-linejoin", "round")
                 .merge(stepPath)
                 .attr("d", stepLine);
-
+        
             stepPath.exit().remove();
         
             // Red vertical bars use ONLY disconnected ping values.
-            const offlineSpans = [];
-
-            let offlineStart = null;
-
-            visibleData.forEach((d) => {
-                if (d.y < 1 && offlineStart === null) {
-                    offlineStart = d.x;
-                }
-
-                if (d.y >= 1 && offlineStart !== null){
-                    offlineSpans.push({
-                        start: offlineStart,
-                        end: d.x,
-                    });
-
-                    offlineStart = null;
-                }
-            });
-
-            if (offlineStart !== null) {
-                offlineSpans.push({
-                    start: offlineStart,
-                    end: now,
-                });
-            }
-
+            const disconnectedData = visibleData.filter((d) => d.y === -1);
+        
             const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
-                .data(offlineSpans, (d) => `${d.start}-${d.end}`);
-
+                .data(disconnectedData, (d) => d.x);
+        
             disconnectBars
                 .enter()
-                .append("rect")
+                .append("line")
                 .attr("class", "diag-disconnect-bar")
-                .attr("fill", "#ef4444")
-                .attr("fill-opacity", 1.2)
+                .attr("stroke", "#ef4444")
+                .attr("stroke-width", 8)
+                .attr("stroke-opacity", 0.9)
+                .attr("stroke-linecap", "butt")
                 .merge(disconnectBars)
-                .attr("x", (d) => graph.x(d.start))
-                .attr("y", graph.y(500))
-                .attr("width", (d) => Math.max(2, graph.x(d.end) - graph.x(d.start)))
-                .attr("height", graph.y(1) - graph.y(500));
-
+                .attr("x1", (d) => graph.x(d.x))
+                .attr("x2", (d) => graph.x(d.x))
+                .attr("y1", graph.y(1))
+                .attr("y2", graph.y(500));
+        
             disconnectBars.exit().remove();
         });            
     }
