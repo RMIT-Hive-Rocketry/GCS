@@ -15,7 +15,7 @@ const LINE_COLOURS = [
     "#FF0000",
     "#00FF00",
     "#0000FF",
-    "#FFFFFF",
+    // "#FFFFFF", - not required at this stage
 ];
 const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
@@ -86,7 +86,7 @@ const GRAPH_AUX_SUPPLY_TEMP = {
 const GRAPH_TEST_COLOURS = {
     selector: "#graph-test-colours",
     ylabel: "Sample metric",
-    numLines: 4,
+    numLines: 3,
     data: [],
 }
 
@@ -523,7 +523,7 @@ function graphInit() {
     graphCreateLine(GRAPH_TEST_COLOURS);
 
     // Update the test colours graph
-    for (i = 0; i < 4; ++i) {
+    for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
         graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
         graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
     }
@@ -544,7 +544,7 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
         LINE_COLOURS[index] = event.target.value;
         
         // Same code as above
-        for (i = 0; i < 4; ++i) {
+        for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
             graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
             graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
         }
@@ -559,13 +559,12 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
             });
         });
 
-        // Update the bottom borders
-        const lineOne = ["test1", "accelX", "gyroX", "pressure_n2o_bottle", "temp_pipe_n2o_gse", "gasBottleWeight1", "temp_vent", "altitudeFeet", "velocity"];
-        const lineTwo = ["test2", "accelY", "gyroY", "pressure_n2o_tank", "temp_tank_top", "gasBottleWeight2"];
-        const lineThree = ["test3", "accelZ", "gyroZ", "pressure_o2_tank", "temp_tank_middle"];
-        const lineFour = ["test4", "temp_tank_bottom"];
+        // Update the bottom borders (lineFour not required at this stage)
+        const lineOne = ["test1", "accelX", "gyroX", "pressure_n2o_bottle", "temp_tank_top", "temp_pipe_n2o_gse", "gasBottleWeight1", "temp_vent", "altitudeFeet", "velocity"];
+        const lineTwo = ["test2", "accelY", "gyroY", "pressure_n2o_tank", "temp_tank_middle", "gasBottleWeight2"];
+        const lineThree = ["test3", "accelZ", "gyroZ", "pressure_o2_tank", "temp_tank_bottom"];
 
-        [lineOne, lineTwo, lineThree, lineFour].forEach((line, index) => {
+        [lineOne, lineTwo, lineThree].forEach((line, index) => {
             line.forEach((c1) => {
                 let inputElement = document.querySelector('input[data-key="' + c1 + '"]');
                 if (inputElement != null) {
