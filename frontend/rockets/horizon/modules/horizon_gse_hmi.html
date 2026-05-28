@@ -289,7 +289,7 @@
                     Contains outer body, inner tank rect, and
                     connecting pipe with "Filler Stem" label.
                     ================================================= -->
-                <g id="rocket" transform="translate(1300, 20)">
+                <g id="rocket" class="rocket-part" transform="translate(1300, 20)">
     
                     <!-- Outer rocket body with stepped nozzle-style tail -->
                     <path
@@ -423,7 +423,7 @@
                     FLIGHT TANK MASS
                     Shows N₂O flight tank with border and data labels.
                     ================================================= -->
-                <g id="flight-tank-display" transform="translate(0,300)">
+                <g id="flight-tank-display" class="rocket-part" transform="translate(0,300)">
     
                     <!-- Green border box and black background -->
                     <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
@@ -451,7 +451,7 @@
                 <!-- =================================================
                     N2O VENT TEMPERATURE SECTION
                     ================================================= -->
-                <g id="flight-tank-display" transform="translate(-200,220)">
+                <g id="flight-tank-display" class="rocket-part" transform="translate(-200,220)">
     
                     <!-- Green border box and black background -->
                     <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
@@ -486,7 +486,7 @@
                     positioned alongside the flight tank, each with
                     a connector tick to its corresponding section.
                     ================================================= -->
-                <g id="tank-temperatures">
+                <g id="tank-temperatures" class="rocket-part">
 
                     <!-- Flight Tank termpearture heading  -->
                      <g id="tank-temp-labels" transform="translate(30,-100)">
@@ -2187,7 +2187,18 @@
                     rocketStatus = next;
                     const label = document.getElementById("rocket-status-label");
                     if (label) label.textContent = rocketStatusLabels[rocketStatus];
+                    updateRocketVisibility();
                 }
+            }
+            
+            // Need to run this function once, so it works on load, and not just on switch
+            updateRocketVisibility();
+
+            function updateRocketVisibility() {
+                const visible = (rocketStatus === 1);
+                document.querySelectorAll('.rocket-part').forEach(el => {
+                    el.setAttribute('visibility', visible ? 'visible' : 'hidden');
+                });
             }
     
     
