@@ -1264,7 +1264,8 @@ function processDataForDisplay(apiData, apiId) {
         const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2;
         const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2;
         const final_distance = Math.sqrt(lat_distance + long_distance);
-                
+        console.error(final_distance);
+        
         // Rocket_Warn sound
         let currSound = soundsList_other[2];
         
