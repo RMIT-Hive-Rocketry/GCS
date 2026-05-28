@@ -102,8 +102,7 @@ const soundsList_other = filenames_other.map(src => {
 
     /* This time there is no queue so no active, but keep
      * track of how many times a sound has been looping for
-     * (if required). Can't just put this in the return
-     * statement, otherwise loopCount won't be tied to the object.
+     * (if required)
     */
     let returnValue = {source: audioObject, loopCount: 0};
 
