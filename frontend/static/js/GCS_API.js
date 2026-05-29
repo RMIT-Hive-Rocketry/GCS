@@ -26,7 +26,11 @@ const logVerbose = false;
 const logIncomingMessages = false;
 const errors = [];
 
-// Combine all timeouts into one array of objects (only for radios)
+/* Combine all timeouts into one array of objects (only for radios).
+ * This makes it easier to program sound alarms in a queue, with
+ * past rockets included just so that their functionality is (hopefully)
+ * preserved, as there used to be a data-timeout attribute.
+*/
 const timeoutsList = [
     // This allows for customisation (note duration in ms)
     {name:"av", duration:3000, state:4, rocket:"Legacy3"},
@@ -63,7 +67,7 @@ const timers = {
 };
 
 // Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
-// Note: Horizon doesn't have 2 AV boards (which is Dual_Board_Loss)
+// Note: Horizon doesn't have 2 Australis boards (which is Dual_Board_Loss)
 const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss"];
 const soundsList_losses = filenames_losses.map(src => {
     // Create the audio object that will return upon ending
