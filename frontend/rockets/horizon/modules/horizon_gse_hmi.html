@@ -2226,6 +2226,8 @@
             function statusBarUpdate(data) {
     
                 // Rocket Fill Timer — pull from the hidden data-key input
+                // TODO: yo wtf is happening? why's it pulling from some
+                // invisible DOM element on the page
                 const timerInput = document.getElementById(
                     "gasBottleTime-input"
                 );
