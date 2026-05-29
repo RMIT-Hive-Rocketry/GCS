@@ -4,10 +4,13 @@
         <!-- Logos and project/launch information module -->
         <div class="module-legacy flex-row p-2 pl-4 pb-0 justify-evenly items-center gap-4">
             <img src="/img/logo-rmit.svg" width="163" height="58" class="max-h-16 w-auto h-auto py-2 px-1" />
-            <img src="/img/logo-hive.256.png" width="256" height="256" class="max-h-20 w-auto h-auto cursor-pointer"
-                onclick="window.location.href = '/'" />
-            <img src="/horizon/static/img/logo-horizon-gradient.png" width="1680" height="387"
-                class="w-auto h-auto max-w-48" />
+            <a href="/" title="Back to rocket selection"
+                style="border-radius: 8px; padding: 4px; transition: background 150ms ease; cursor: pointer;"
+                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+                onmouseout="this.style.background='transparent'">
+                <img src="/img/logo-hive.256.png" width="256" height="256" class="max-h-20 w-auto h-auto" />
+            </a>
+            <img src="/legacy/static/img/logo-legacy3.svg" width="418" height="51" class="w-auto h-auto max-w-48" />
         </div>
     </div>
     <nav
@@ -26,6 +29,11 @@
                 <p class="font-bold text-hive">&nbsp;AV</p>
                 <div data-key="state.av.radio" data-type="state" data-timeout='{"3000":4,"10000":5}'
                     class="indicator-state mx-0 timeout"></div>
+                <div
+                    data-key="state.av.radio"
+                    data-type="state"
+                    class="indicator-state mx-0 timeout"
+                ></div>
                 <div class="flex flex-row gap-2 grow justify-between">
                     <label>
                         RSSI:<input data-key="meta.av.rssi" data-precision="0" readonly autocomplete="off"
@@ -44,6 +52,11 @@
                 <p class="font-bold text-hive">GSE</p>
                 <div data-key="state.gse.radio" data-type="state" data-timeout='{"3000":4,"10000":5}'
                     class="indicator-state mx-0 timeout"></div>
+                <div
+                    data-key="state.gse.radio"
+                    data-type="state"
+                    class="indicator-state mx-0 timeout"
+                ></div>
                 <div class="flex flex-row gap-2 grow justify-between">
                     <label>
                         RSSI:<input data-key="meta.gse.rssi" data-precision="0" readonly autocomplete="off"

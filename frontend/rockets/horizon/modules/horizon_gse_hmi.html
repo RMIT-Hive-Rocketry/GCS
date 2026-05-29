@@ -1,0 +1,2619 @@
+<!-- ============================================================
+    GSE HMI Module (Horizon)
+    Displays ground support equipment state via SVG diagram.
+    Handles valves, pressure sensors, thermocouples, and gauges.
+    ============================================================ -->
+    <div class="module-horizon justify-start items-center">
+
+        <h2>GSE Process and Instrumentation Diagram</h2>
+    
+        <!-- Rocket Fill Timer: now displayed in the SVG status bar below.
+            Hidden input retains the data-key binding for external updates. -->
+        <input
+            id="gasBottleTime-input"
+            data-key="gasBottleTime"
+            data-type="string"
+            readonly
+            autocomplete="off"
+            style="display:none"
+        />
+    
+    
+        <!-- =========================================================
+            MAIN SVG DIAGRAM
+            viewBox: 0 50 1650 900
+            ========================================================= -->
+        <svg
+            viewBox="60 0 1500 1050"
+            style="width: 100%; height: auto;"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="max-h-full"
+        >
+    
+            <!-- Shared font stack for all monospace labels -->
+            <!-- font-family shorthand used inline on each text element -->
+    
+            <g id="HMI">
+
+                <!-- Clickable legend button -->
+                <g onclick="document.getElementById('instrument-modal').style.display='flex'" style="cursor:pointer;" transform="translate(300,0)">
+                    <rect x="70" y="10" width="240" height="42" rx="4" fill="black" stroke="#f79322" stroke-width="1"/>
+                    <text x="87" y="35" fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    Monaco, Consolas, monospace" letter-spacing="0.12em">Label Definitions</text>
+                </g>
+
+                <!-- Rocket Status Button -->
+                <g id="rocket-status-button" onclick="cycleRocketStatus()" style="cursor: pointer;" transform="translate(700,0)">
+                    <rect x="10" y="10" width="240" height="70" rx="5"
+                        fill="black" stroke="#f79322" stroke-width="1"/>
+                    <text x="130" y="35" text-anchor="middle" letter-spacing="0.12em"
+                        fill="white" font-size="18" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+                        Rocket Status:
+                    </text>
+                    <text id="rocket-status-label" x="130" y="60" text-anchor="middle" letter-spacing="0.12em"
+                        fill="#ffd931" font-size="18" font-weight="bold" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+                        Setup &amp; Testing
+                    </text>
+                </g>
+    
+                <!-- =================================================
+                    GAS BOTTLES
+                    Three bottles: N2O #1, N2O #2, O2
+                    Each bottle has a temperature text readout.
+                    ================================================= -->
+                <g id="bottles">
+    
+                    <!-- N2O Gas Bottle #2 (right bottle) -->
+                    <path
+                        id="HMI_N2OgasBottle2"
+                        d="M203.628 175.513L208.334 175.479C211.873 175.451
+                           215.576 175.421 218.414 175.42C219.768 175.419
+                           220.934 175.427 221.795 175.442L221.8 168.061L221.8
+                           167.173L222.577 166.748L222.577 166.747L222.579
+                           166.746C222.581 166.745 222.584 166.743 222.588
+                           166.741C222.597 166.736 222.611 166.728 222.63
+                           166.718C222.668 166.696 222.727 166.663 222.805
+                           166.618C222.961 166.528 223.194 166.393 223.492
+                           166.214C224.088 165.854 224.947 165.318 225.979
+                           164.621C228.045 163.225 230.796 161.191 233.54
+                           158.637C239.002 153.554 244.165 146.671 244.333
+                           138.847L244.337 138.473C244.345 129.851 244.35
+                           116.56 244.352 105.423C244.354 99.8548 244.355
+                           94.8251 244.355 91.1877C244.356 89.369 244.356
+                           87.898 244.356 86.882C244.356 86.374 244.356
+                           85.9794 244.356 85.7121C244.356 85.5786 244.356
+                           85.4768 244.356 85.4084L244.356 85.3039L244.377
+                           28.5841L177.45 28.5962L177.429 85.3219L177.43
+                           85.4254C177.43 85.4943 177.429 85.5967 177.429
+                           85.7311C177.429 85.9999 177.429 86.3966 177.429
+                           86.9078C177.429 87.9303 177.429 89.4114 177.429
+                           91.2457C177.428 94.9147 177.427 99.9974 177.426
+                           105.651C177.423 116.927 177.418 130.476 177.409
+                           139.615C178.24 148.171 182.635 154.366 187.521
+                           158.732C191.821 162.573 196.457 164.954 199.249
+                           166.216L200.326 166.689C200.85 166.913 201.057
+                           167.347 201.088 167.409C201.156 167.545 201.19
+                           167.662 201.204 167.716C201.236 167.833 201.25
+                           167.941 201.258 167.999C201.274 168.13 201.284
+                           168.28 201.292 168.422C201.307 168.715 201.315
+                           169.109 201.32 169.554C201.328 170.449 201.322
+                           171.623 201.309 172.769C201.298 173.765 201.28
+                           174.748 201.266 175.523C201.997 175.521 202.791
+                           175.519 203.628 175.513Z"
+                        fill="#3e98c1"
+                        stroke="#F79322"
+                        stroke-width="3"
+                        transform="translate(-10,0) scale(1.25 1)"
+                    />
+    
+                    <!-- N2O Bottle #2 temperature readout -->
+                    <!-- <text
+                        id="HMI_N2O-2TEMP"
+                        fill="white"
+                        xml:space="preserve"
+                        style="white-space: pre"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, Liberation Mono,
+                            Courier New, monospace"
+                        font-size="16"
+                        letter-spacing="0em"
+                    >
+                        <tspan x="211" y="83.438">0.0</tspan>
+                    </text> -->
+    
+    
+                    <!-- N2O Gas Bottle #1 (left bottle) -->
+                    <path
+                        id="HMI_N2OgasBottle1"
+                        d="M61.6026 175.524C65.1075 175.511 70.0392 175.463
+                           74.3642 175.437C76.8594 175.421 79.1524 175.414
+                           80.8388 175.426C81.3185 175.429 81.7531 175.435
+                           82.1318 175.442L82.1362 168.061L82.1362 167.173
+                           L82.9136 166.748L82.9136 166.747L82.9155 166.746
+                           C82.9173 166.745 82.9202 166.743 82.9243 166.741
+                           C82.9331 166.736 82.9471 166.728 82.9663 166.718
+                           C83.0046 166.696 83.0638 166.663 83.1418 166.618
+                           C83.2979 166.528 83.5305 166.393 83.8284 166.214
+                           C84.4249 165.854 85.2833 165.318 86.3152 164.621
+                           C88.3818 163.225 91.132 161.191 93.8764 158.637
+                           C99.3388 153.554 104.502 146.671 104.669 138.847
+                           L104.673 138.473C104.681 129.851 104.686 116.56
+                           104.689 105.423C104.69 99.8548 104.691 94.8251
+                           104.692 91.1877C104.692 89.369 104.692 87.898
+                           104.692 86.882C104.692 86.374 104.693 85.9794
+                           104.693 85.7121C104.693 85.5786 104.693 85.4768
+                           104.693 85.4084L104.693 85.3039L104.713 28.5841
+                           L37.7865 28.5962L37.7659 85.3219L37.7661 85.4254
+                           C37.7661 85.4943 37.7658 85.5967 37.7658 85.7311
+                           C37.7658 85.9999 37.7655 86.3966 37.7654 86.9078
+                           C37.7653 87.9303 37.7654 89.4114 37.7651 91.2457
+                           C37.7646 94.9147 37.7639 99.9974 37.7624 105.651
+                           C37.7596 116.927 37.7542 130.476 37.7458 139.615
+                           C38.5769 148.171 42.9715 154.366 47.8579 158.732
+                           C52.1572 162.573 56.7931 164.954 59.5852 166.216
+                           L60.6624 166.689C61.1868 166.913 61.3936 167.347
+                           61.4247 167.409C61.4923 167.545 61.5262 167.662
+                           61.5407 167.716C61.5721 167.833 61.5865 167.941
+                           61.594 167.999C61.6107 168.13 61.621 168.28
+                           61.6281 168.422C61.643 168.715 61.6516 169.109
+                           61.656 169.554C61.6649 170.449 61.6583 171.623
+                           61.6454 172.769C61.6342 173.765 61.617 174.749
+                           61.6026 175.524Z"
+                        fill="#3e98c1"
+                        stroke="#F79322"
+                        stroke-width="3"
+                        transform="translate(50,0) scale(1.25 1)"
+                    />
+
+                    <!-- labels for both N2O bottles -->
+                    <text
+                        x="139"
+                        y="100"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="18"
+                        fill="white"
+                        text-anchor="middle"
+                    >
+                        N₂O
+                    </text>
+
+                    <text
+                        x="140"
+                        y="100"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="18"
+                        fill="white"
+                        text-anchor="middle"
+                        transform="translate(114,0)"
+                    >
+                        N₂O
+                    </text>
+    
+                    <!-- N2O Bottle #1 temperature readout -->
+                    <!-- <text
+                        id="HMI_N2O-1TEMP"
+                        fill="white"
+                        xml:space="preserve"
+                        style="white-space: pre"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, Liberation Mono,
+                            Courier New, monospace"
+                        font-size="16"
+                        letter-spacing="0em"
+                    >
+                        <tspan x="69" y="83.438">0.0</tspan>
+                    </text> -->
+    
+    
+                    <!-- O2 Gas Bottle -->
+                    <path
+                        id="HMI_O2gasBottle"
+                        d="M139.527 542.796C143.032 542.783 147.963 542.735
+                           152.288 542.708C154.784 542.693 157.077 542.686
+                           158.763 542.697C159.243 542.701 159.677 542.707
+                           160.056 542.714L160.06 535.332L160.06 534.445
+                           L160.838 534.02L160.838 534.019L160.84 534.018
+                           C160.841 534.017 160.844 534.015 160.848 534.013
+                           C160.857 534.008 160.871 534 160.89 533.989
+                           C160.929 533.968 160.988 533.934 161.066 533.89
+                           C161.222 533.8 161.455 533.665 161.753 533.485
+                           C162.349 533.126 163.207 532.59 164.239 531.893
+                           C166.306 530.497 169.056 528.463 171.8 525.909
+                           C177.263 520.826 182.426 513.943 182.593 506.119
+                           L182.597 505.745C182.605 497.123 182.61 483.831
+                           182.613 472.695C182.614 467.127 182.615 462.097
+                           182.616 458.459C182.616 456.641 182.616 455.17
+                           182.616 454.154C182.616 453.646 182.617 453.251
+                           182.617 452.984C182.617 452.85 182.617 452.749
+                           182.617 452.68L182.617 452.576L182.637 395.856
+                           L115.711 395.868L115.69 452.594L115.69 452.697
+                           C115.69 452.766 115.69 452.868 115.69 453.003
+                           C115.69 453.272 115.69 453.668 115.69 454.18
+                           C115.689 455.202 115.69 456.683 115.689 458.517
+                           C115.689 462.186 115.688 467.269 115.687 472.923
+                           C115.684 484.199 115.678 497.747 115.67 506.887
+                           C116.501 515.443 120.896 521.638 125.782 526.004
+                           C130.081 529.845 134.717 532.226 137.509 533.487
+                           L138.587 533.961C139.111 534.185 139.318 534.619
+                           139.349 534.681C139.416 534.816 139.45 534.934
+                           139.465 534.988C139.496 535.105 139.511 535.213
+                           139.518 535.271C139.535 535.402 139.545 535.552
+                           139.552 535.694C139.567 535.987 139.576 536.381
+                           139.58 536.825C139.589 537.721 139.582 538.894
+                           139.57 540.04C139.558 541.037 139.541 542.021
+                           139.527 542.796Z"
+                        fill="black"
+                        stroke="#F79322"
+                        stroke-width="3"
+                        transform="translate(10,17) scale(1.25 1)"
+                    />
+
+                    <!-- labels for O2 bottle -->
+                    <text
+                        x="198"
+                        y="482"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="18"
+                        fill="white"
+                        text-anchor="middle"
+                    >
+                        O₂
+                    </text>
+    
+                    <!-- O2 Bottle temperature readout -->
+                    <!-- <text
+                        id="HMI_O2TEMP"
+                        fill="white"
+                        xml:space="preserve"
+                        style="white-space: pre"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, Liberation Mono,
+                            Courier New, monospace"
+                        font-size="16"
+                        letter-spacing="0em"
+                    >
+                        <tspan x="151" y="456.438">0.0</tspan>
+                    </text> -->
+    
+                </g>
+                <!-- end #bottles -->
+    
+    
+                <!-- =================================================
+                    ROCKET BODY
+                    Positioned at translate(1280, 20).
+                    Contains outer body, inner tank rect, and
+                    connecting pipe with "Filler Stem" label.
+                    ================================================= -->
+                <g id="rocket" class="rocket-part" transform="translate(1300, 20)">
+    
+                    <!-- Outer rocket body with stepped nozzle-style tail -->
+                    <path
+                        d="M150 40
+                           Q170 125 170 300
+                           L170 650
+                           L190 700
+                           L170 730
+                           L170 760
+                           L160 790
+                           L140 790
+                           L130 760
+                           L130 730
+                           L110 700
+                           L130 650
+                           L130 300
+                           Q130 125 150 40
+                           Z"
+                        fill="none"
+                        stroke="#6f6f6f"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+    
+                    <!-- Inner tank rect — no connecting pipe attached -->
+                    <rect
+                        x="140"
+                        y="210"
+                        width="20"
+                        height="265"
+                        rx="3"
+                        fill="none"
+                        stroke="white"
+                        stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+
+                    <!-- 2nd Inner tank rect -->
+                    <rect
+                        x="140"
+                        y="485"
+                        width="20"
+                        height="265"
+                        rx="3"
+                        fill="none"
+                        stroke="white"
+                        stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+
+                    <!-- Inner Inner tank rect -->
+                    <rect
+                        x="146"
+                        y="220"
+                        width="8"
+                        height="250"
+                        rx="0"
+                        fill="none"
+                        stroke="#3e98c1"
+                        stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+
+                    <!-- Inside Inner Inner tank rect, TODO: make dynamic maybe somehow -->
+                    <rect
+                        x="146"
+                        y="320"
+                        width="8"
+                        height="150"
+                        rx="0"
+                        fill="#3e98c1"
+                        stroke="#3e98c1"
+                        stroke-width="2"
+                        transform="translate(0,0)"
+                    />
+    
+                    <!-- Filler stem pipe lines -->
+                    <line x1="147" y1="800" x2="-150" y2="800" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="147" y1="800" x2="147" y2="471" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="-150" y1="718" x2="-150" y2="800" stroke="#F79322" stroke-width="2" stroke-linecap="round"></line>
+    
+                    <!-- Filler stem pipe label -->
+                    <text
+                        x="0"
+                        y="780"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="18"
+                        fill="white"
+                        text-anchor="middle"
+                        letter-spacing="0.12em"
+                    >
+                        Filler Stem
+                    </text>
+
+                    <!-- labels for the rocket body thingies -->
+                    <text
+                        x="-350"
+                        y="215"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="18"
+                        fill="white"
+                        text-anchor="middle"
+                        letter-spacing="0.12em"
+                        transform="rotate(-90)"
+                    >
+                        Flight Tank
+                    </text>
+
+                    <text
+                        x="-615"
+                        y="215"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="18"
+                        fill="white"
+                        text-anchor="middle"
+                        letter-spacing="0.12em"
+                        transform="rotate(-90)"
+                    >
+                        Combustion Chamber
+                    </text>
+    
+                </g>
+                <!-- end #rocket -->
+    
+    
+                <!-- =================================================
+                    FLIGHT TANK MASS
+                    Shows N₂O flight tank with border and data labels.
+                    ================================================= -->
+                <g id="flight-tank-display" class="rocket-part" transform="translate(0,300)">
+    
+                    <!-- Green border box and black background -->
+                    <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
+    
+                    <!-- Tank labels -->
+                    <g
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        text-anchor="middle" transform="translate(0,160)"
+                    >
+                        <!-- TODO: HOOK UP JAVASCRIPT -->
+                        <text x="1450" y="480" font-size="18"
+                              fill="white" letter-spacing="0.12em">N₂O Mass in</text>
+                        <text x="1450" y="500" font-size="18"
+                              fill="white" letter-spacing="0.12em">Flight Tank:</text>
+                        <text id="HMI_WEIGHT" x="1450" y="530" font-size="22"
+                              fill="#ffd931" font-weight="bold" text-anchor="end"><tspan>--.-</tspan></text>
+                        <text x="1470" y="530" font-size="22"
+                              fill="#ffd931" font-weight="bold">kg</text>
+                    </g>
+    
+                </g>
+                <!-- end flight tank mass -->
+
+                <!-- =================================================
+                    N2O VENT TEMPERATURE SECTION
+                    ================================================= -->
+                <g id="flight-tank-display" class="rocket-part" transform="translate(-200,220)">
+    
+                    <!-- Green border box and black background -->
+                    <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
+    
+                    <!-- Tank labels -->
+                    <g
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        text-anchor="middle" transform="translate(50, 150)"
+                    >
+                        <text x="1450" y="480" font-size="18"
+                              fill="white" letter-spacing="0.12em">N₂O Vent</text>
+                        <text x="1450" y="500" font-size="18"
+                              fill="white" letter-spacing="0.12em">Temperature:</text>
+                        <text id="HMI_VENT_TEMP" x="1455" y="530" font-size="22"
+                              fill="#ffd931" font-weight="bold" text-anchor="end"><tspan>--.-</tspan></text>
+                        <text x="1475" y="530" font-size="22"
+                              fill="#ffd931" font-weight="bold">°C</text>
+                    </g>
+    
+                    <!-- vent temp line -->
+                    <!-- <line x1="1580" y1="573" x2="1653" y2="573" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line> -->
+                    <line x1="1653" y1="588" x2="1653" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
+                    <line x1="1650" y1="588" x2="1650" y2="650" stroke="white" stroke-width="1"></line>
+                    <line x1="1620" y1="635" x2="1650" y2="635" stroke="white" stroke-width="1"></line>
+                </g>
+                <!-- end N2O VENT TEMPERATURE -->
+
+                <!-- =================================================
+                    TANK TEMPERATURES
+                    Three thermocouple readouts (top, middle, bottom)
+                    positioned alongside the flight tank, each with
+                    a connector tick to its corresponding section.
+                    ================================================= -->
+                <g id="tank-temperatures" class="rocket-part">
+
+                    <!-- Flight Tank termpearture heading  -->
+                     <g id="tank-temp-labels" transform="translate(30,-100)">
+                        <!-- <rect x="1230" y="256" width="150" height="70"
+                              fill="#0d0d0d" stroke="" stroke-width="3"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace">
+                            <text x="1305" y="281" font-size="18"
+                                  fill="white" text-anchor="middle"
+                                  letter-spacing="0.12em">Flight-Tank</text>
+                            <text x="1305" y="305" font-size="18"
+                                  fill="white" text-anchor="middle"
+                                  letter-spacing="0.12em">Temperature:</text>
+                        </g>
+                    </g>
+
+                    <!-- Tank TOP temperature -->
+                    <g id="tank-temp-top" transform="translate(0,-40)">
+                        <!-- <rect x="1230" y="256" width="150" height="70"
+                              fill="#0d0d0d" stroke="" stroke-width="3"/> -->
+                        <!-- <line x1="1400" y1="288" x2="1440" y2="288"
+                              stroke="#00FF4D" stroke-width="2"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace" transform="translate(25,-15)">
+                            <text id="HMI_TANK_TOP_TEMP"
+                                  x="1315" y="310" font-size="22"
+                                  font-weight="bold" fill="#ffd931"
+                                  text-anchor="end">
+                                <tspan>00.0</tspan>
+                            </text>
+                            <text x="1320" y="310" font-size="22"
+                                  fill="#ffd931" text-anchor="start">°C</text>
+                        </g>
+                        <!-- <circle id="Ellipse 3_1" cx="1400" cy="287" r="19.5" stroke="white"></circle> -->
+                        <line x1="1420" y1="287" x2="1440" y2="287" stroke="white" stroke-width="1"></line>
+                    </g>
+
+                    <!-- Tank MIDDLE temperature -->
+                    <g id="tank-temp-middle" transform="translate(0,-40)">
+                        <!-- <rect x="1230" y="373" width="150" height="70"
+                              fill="black" stroke="#00FF4D" stroke-width="3"/> -->
+                        <!-- <line x1="1400" y1="405" x2="1440" y2="405"
+                              stroke="#00FF4D" stroke-width="2"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace" transform="translate(25,102)">
+                            <text id="HMI_TANK_MIDDLE_TEMP"
+                                  x="1315" y="310" font-size="22"
+                                  font-weight="bold" fill="#ffd931"
+                                  text-anchor="end">
+                                <tspan>00.0</tspan>
+                            </text>
+                            <text x="1320" y="310" font-size="22"
+                                  fill="#ffd931" text-anchor="start">°C</text>
+                        </g>
+                        <!-- <circle id="Ellipse 3_2" cx="1400" cy="405" r="19.5" stroke="white"></circle> -->
+                        <line x1="1420" y1="405" x2="1440" y2="405" stroke="white" stroke-width="1"></line>
+                    </g>
+
+                    <!-- Tank BOTTOM temperature -->
+                    <g id="tank-temp-bottom" transform="translate(0,75)">
+                        <!-- <rect x="1230" y="373" width="150" height="70"
+                              fill="black" stroke="#00FF4D" stroke-width="3"/> -->
+                        <!-- <line x1="1400" y1="405" x2="1440" y2="405"
+                              stroke="#00FF4D" stroke-width="2"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace" transform="translate(25,102)">
+                            <text id="HMI_TANK_BOTTOM_TEMP"
+                                  x="1315" y="310" font-size="22"
+                                  font-weight="bold" fill="#ffd931"
+                                  text-anchor="end">
+                                <tspan>00.0</tspan>
+                            </text>
+                            <text x="1320" y="310" font-size="22"
+                                  fill="#ffd931" text-anchor="start">°C</text>
+                        </g>
+                        <!-- <circle id="Ellipse 3_3" cx="1400" cy="405" r="19.5" stroke="white"></circle> -->
+                        <line x1="1420" y1="405" x2="1440" y2="405" stroke="white" stroke-width="1"></line>
+                    </g>
+
+                </g>
+                <!-- end #tank-temperatures -->
+
+                <!-- =================================================
+                    Instrument labels
+                    ================================================= -->
+                <g id="instrument-labels">
+                    <text x="415" y="340" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-1</text>
+                    <text x="477" y="340" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-2</text>
+                    <text x="1050" y="340" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-3</text>
+                    <text x="255" y="725" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-4</text>
+                    <text x="387" y="725" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-5</text>
+                    <text x="635" y="725" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-6</text>
+                    <text class="rocket-part" x="1360" y="278" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-7</text>
+                    <text class="rocket-part" x="1360" y="395" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-8</text>
+                    <text class="rocket-part" x="1360" y="510" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-9</text>
+                    <text class="rocket-part" x="1365" y="890" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-10</text>
+                    <text class="rocket-part" x="1475" y="910" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-11</text>
+                    
+
+                </g>
+                <!-- end #instrumnenta labelss -->
+    
+    
+                <!-- =================================================
+                    VALVES
+                    Needle valves, solenoids, ball valves,
+                    backflow checks, spring valve.
+                    ================================================= -->
+                <g id="HMI_valves">
+    
+                    <!-- Needle Valve V1 -->
+                    <g id="needleV1">
+                        <g id="Polygon 9" filter="url(#filter0_d_172_821)">
+                            <path
+                                d="M542.674 746.79V726.753L562.803 736.772
+                                   L542.674 746.79Z"
+                                stroke="white"
+                                shape-rendering="crispEdges"
+                            />
+                        </g>
+                        <g id="Polygon 10" filter="url(#filter1_d_172_821)">
+                            <path
+                                d="M584.424 746.777V726.767L565.015 736.772
+                                   L584.424 746.777Z"
+                                stroke="white"
+                                shape-rendering="crispEdges"
+                            />
+                        </g>
+                        <!-- Valve stem line -->
+                        <path
+                            id="Vector 4"
+                            d="M563.924 736.272V724.272"
+                            stroke="white"
+                            stroke-width="3"
+                        />
+                    </g>
+    
+    
+                    <!-- Relief Valve V3 -->
+                    <g id="reliefValveV3" transform="translate(-46,0)">
+                        <g id="Polygon 9_2" filter="url(#filter2_d_172_821)">
+                            <path
+                                d="M665.75 483.519V463.481L685.879 473.5
+                                   L665.75 483.519Z"
+                                stroke="white"
+                                shape-rendering="crispEdges"
+                            />
+                        </g>
+                        <g id="Polygon 10_2" filter="url(#filter3_d_172_821)">
+                            <path
+                                d="M676.495 494.5H696.505L686.5 475.091
+                                   L676.495 494.5Z"
+                                stroke="white"
+                                shape-rendering="crispEdges"
+                            />
+                        </g>
+                        <!-- Relief vent exhaust lines -->
+                        <path
+                            id="Vector 24"
+                            d="M687 474H736.5"
+                            stroke="white"
+                        />
+                        <path
+                            id="Vector 26"
+                            d="M695 466.5L706.5 483M712 466.5L722.5 483
+                               M727.5 466.5L737.5 483"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Needle Valve V4 -->
+                    <g id="needleV4">
+                        <g id="Polygon 9_3" filter="url(#filter4_d_172_821)">
+                            <path
+                                d="M320.674 362.79V342.753L340.803 352.772
+                                   L320.674 362.79Z"
+                                stroke="white"
+                                shape-rendering="crispEdges"
+                            />
+                        </g>
+                        <g id="Polygon 10_3" filter="url(#filter5_d_172_821)">
+                            <path
+                                d="M362.424 362.777V342.767L343.015 352.772
+                                   L362.424 362.777Z"
+                                stroke="white"
+                                shape-rendering="crispEdges"
+                            />
+                        </g>
+                        <!-- Valve stem line -->
+                        <path
+                            id="Vector 4_2"
+                            d="M341.924 352.272V340.272"
+                            stroke="white"
+                            stroke-width="3"
+                        />
+                    </g>
+    
+    
+                    <!-- Solenoid Valve V5 — N2O fill, state-controlled -->
+                    <g id="solenoidsV5" transform="translate(150,0)">
+                        <g id="needle">
+                            <g id="Polygon 9_4"
+                                filter="url(#filter6_d_172_821)">
+                                <path
+                                    d="M656.75 361.519V341.481L676.879 351.5
+                                       L656.75 361.519Z"
+                                    stroke="white"
+                                    shape-rendering="crispEdges"
+                                />
+                            </g>
+                            <g id="Polygon 10_4"
+                                filter="url(#filter7_d_172_821)">
+                                <path
+                                    d="M698.5 361.505V341.495L679.091 351.5
+                                       L698.5 361.505Z"
+                                    stroke="white"
+                                    shape-rendering="crispEdges"
+                                />
+                            </g>
+                            <!-- Valve stem -->
+                            <path
+                                id="Vector 4_3"
+                                d="M678 352V344"
+                                stroke="white"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <!-- Solenoid coil box -->
+                        <path
+                            id="Rectangle 6"
+                            d="M684.5 329.5V343.5H670.5V329.5H684.5Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Solenoid Valve V6 — O2 fill, state-controlled -->
+                    <g id="solenoidsV6">
+                        <g id="needle_2">
+                            <g id="Polygon 9_5"
+                                filter="url(#filter8_d_172_821)">
+                                <path
+                                    d="M835.75 749.519V729.481L855.879 739.5
+                                       L835.75 749.519Z"
+                                    stroke="white"
+                                    shape-rendering="crispEdges"
+                                />
+                            </g>
+                            <g id="Polygon 10_5"
+                                filter="url(#filter9_d_172_821)">
+                                <path
+                                    d="M877.5 749.505V729.495L858.091 739.5
+                                       L877.5 749.505Z"
+                                    stroke="white"
+                                    shape-rendering="crispEdges"
+                                />
+                            </g>
+                            <!-- Valve stem -->
+                            <path
+                                id="Vector 4_4"
+                                d="M857 739V732"
+                                stroke="white"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <!-- Solenoid coil box -->
+                        <path
+                            id="Rectangle 6_2"
+                            d="M863.5 717.5V731.5H849.5V717.5H863.5Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Solenoid Valve V7 — manual purge, normally open -->
+                    <g id="solenoidsV7" transform="translate(110,0)">
+                        <g id="needle_3">
+                            <g id="Polygon 9_6"
+                                filter="url(#filter10_d_172_821)">
+                                <path
+                                    d="M874.55 406.753L894.587 406.781
+                                       L884.54 426.896L874.55 406.753Z"
+                                    stroke="white"
+                                    shape-rendering="crispEdges"
+                                />
+                            </g>
+                            <g id="Polygon 10_6"
+                                filter="url(#filter11_d_172_821)">
+                                <path
+                                    d="M874.505 448.503L894.515 448.531
+                                       L884.537 429.108L874.505 448.503Z"
+                                    stroke="white"
+                                    shape-rendering="crispEdges"
+                                />
+                            </g>
+                            <!-- Valve stem -->
+                            <path
+                                id="Vector 4_5"
+                                d="M885.039 428.018L892 428"
+                                stroke="white"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <!-- Solenoid coil box -->
+                        <path
+                            id="Rectangle 8"
+                            d="M906.53 434.548L892.53 434.528L892.549
+                               420.528L906.549 420.548L906.53 434.548Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Ball Valve V8 -->
+                    <g id="ballV8" transform="translate(70,0)">
+                        <path
+                            id="Polygon 6"
+                            d="M83.1155 304.772H56.7327L69.9241 278.39
+                               L83.1155 304.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Polygon 7"
+                            d="M83.1272 248.772H56.7209L69.9241 276.122
+                               L83.1272 248.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Ellipse 1"
+                            d="M70.4241 263.772C77.6217 263.772 83.4241
+                               269.386 83.4241 276.272C83.4241 283.158
+                               77.6217 288.772 70.4241 288.772C63.2264
+                               288.772 57.4241 283.158 57.4241 276.272
+                               C57.4241 269.386 63.2264 263.772 70.4241
+                               263.772Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Ball Valve V9 -->
+                    <g id="ballV9" transform="translate(44,0)">
+                        <path
+                            id="Polygon 6_2"
+                            d="M224.115 303.772H197.733L210.924 277.39
+                               L224.115 303.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Polygon 7_2"
+                            d="M224.127 247.772H197.721L210.924 275.122
+                               L224.127 247.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Ellipse 1_2"
+                            d="M211.424 262.772C218.622 262.772 224.424
+                               268.386 224.424 275.272C224.424 282.158
+                               218.622 287.772 211.424 287.772C204.226
+                               287.772 198.424 282.158 198.424 275.272
+                               C198.424 268.386 204.226 262.772 211.424
+                               262.772Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Ball Valve V10 -->
+                    <g id="ballV10" transform="translate(-40)">
+                        <path
+                            id="Polygon 6_3"
+                            d="M808.115 455.772H781.733L794.924 429.39
+                               L808.115 455.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Polygon 7_3"
+                            d="M808.127 399.772H781.721L794.924 427.122
+                               L808.127 399.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Ellipse 1_3"
+                            d="M795.424 414.772C802.622 414.772 808.424
+                               420.386 808.424 427.272C808.424 434.158
+                               802.622 439.772 795.424 439.772C788.226
+                               439.772 782.424 434.158 782.424 427.272
+                               C782.424 420.386 788.226 414.772 795.424
+                               414.772Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Ball Valve V11 -->
+                    <g id="ballV11">
+                        <path
+                            id="Polygon 6_4"
+                            d="M488.116 846.772H461.733L474.924 820.39
+                               L488.116 846.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Polygon 7_4"
+                            d="M488.127 790.772H461.721L474.924 818.122
+                               L488.127 790.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Ellipse 1_4"
+                            d="M475.424 805.772C482.622 805.772 488.424
+                               811.386 488.424 818.272C488.424 825.158
+                               482.622 830.772 475.424 830.772C468.226
+                               830.772 462.424 825.158 462.424 818.272
+                               C462.424 811.386 468.226 805.772 475.424
+                               805.772Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Ball Valve V12 -->
+                    <g id="ballV12" transform="translate(48,19)">
+                        <path
+                            id="Polygon 6_5"
+                            d="M162.115 674.772H135.733L148.924 648.39
+                               L162.115 674.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Polygon 7_5"
+                            d="M162.127 618.772H135.721L148.924 646.122
+                               L162.127 618.772Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Ellipse 1_5"
+                            d="M149.424 633.772C156.622 633.772 162.424
+                               639.386 162.424 646.272C162.424 653.158
+                               156.622 658.772 149.424 658.772C142.226
+                               658.772 136.424 653.158 136.424 646.272
+                               C136.424 639.386 142.226 633.772 149.424
+                               633.772Z"
+                            stroke="white"
+                        />
+                    </g>
+    
+    
+                    <!-- Backflow Check Valve V13 -->
+                    <g id="backflowV13" transform="translate(-110,0)">
+                        <g id="Group 2">
+                            <path
+                                id="Ellipse 3"
+                                d="M1009.89 336C1010.77 336 1011.53 336.271
+                                   1012.04 336.663C1012.56 337.054 1012.79
+                                   337.523 1012.79 337.962C1012.79 338.4
+                                   1012.56 338.869 1012.04 339.26C1011.53
+                                   339.652 1010.77 339.923 1009.89 339.923
+                                   C1009.02 339.923 1008.26 339.652 1007.75
+                                   339.26C1007.23 338.869 1007 338.4 1007
+                                   337.962C1007 337.523 1007.23 337.054
+                                   1007.75 336.663C1008.26 336.271 1009.02
+                                   336 1009.89 336Z"
+                                stroke="white"
+                                stroke-width="2"
+                            />
+                        </g>
+                        <path
+                            id="Vector 23"
+                            d="M1009.89 339.846V366.5"
+                            stroke="white"
+                            stroke-width="2"
+                        />
+                        <path
+                            id="Vector 25"
+                            d="M1012.9 339.308L1053.96 365.154L1053.96
+                               335.538"
+                            stroke="white"
+                            stroke-width="2"
+                        />
+                    </g>
+    
+    
+                    <!-- Backflow Check Valve V14 -->
+                    <g id="backflowV14">
+                        <g id="Group 2_2">
+                            <path
+                                id="Ellipse 3_2"
+                                d="M1009.89 718C1010.77 718 1011.53 718.271
+                                   1012.04 718.663C1012.56 719.054 1012.79
+                                   719.523 1012.79 719.962C1012.79 720.4
+                                   1012.56 720.869 1012.04 721.26C1011.53
+                                   721.652 1010.77 721.923 1009.89 721.923
+                                   C1009.02 721.923 1008.26 721.652 1007.75
+                                   721.26C1007.23 720.869 1007 720.4 1007
+                                   719.962C1007 719.523 1007.23 719.054
+                                   1007.75 718.663C1008.26 718.271 1009.02
+                                   718 1009.89 718Z"
+                                stroke="white"
+                                stroke-width="2"
+                            />
+                        </g>
+                        <path
+                            id="Vector 23_2"
+                            d="M1009.89 721.846V748.5"
+                            stroke="white"
+                            stroke-width="2"
+                        />
+                        <path
+                            id="Vector 25_2"
+                            d="M1012.9 721.308L1053.96 747.154L1053.96
+                               717.538"
+                            stroke="white"
+                            stroke-width="2"
+                        />
+                    </g>
+    
+    
+                    <!-- Spring-loaded check valve (no ID prefix, unnamed) -->
+                    <g id="springValve">
+                        <path
+                            id="Polygon 6_6"
+                            d="M331.424 725.379V748.323L354.367 736.851
+                               L331.424 725.379Z"
+                            stroke="white"
+                        />
+                        <path
+                            id="Polygon 7_6"
+                            d="M380.424 725.367V748.335L356.636 736.851
+                               L380.424 725.367Z"
+                            stroke="white"
+                        />
+                        <!-- Spring seat shape -->
+                        <path
+                            id="Polygon 11"
+                            d="M355.924 700.07C360.372 700.07 363.086 702.363
+                               364.707 704.681C365.521 705.845 366.055 707.011
+                               366.387 707.888C366.508 708.21 366.6 708.492
+                               366.67 708.719H345.178C345.248 708.492 345.339
+                               708.21 345.461 707.888C345.792 707.011 346.328
+                               705.845 347.142 704.681C348.712 702.436 351.307
+                               700.214 355.512 700.077L355.924 700.07Z"
+                            stroke="white"
+                        />
+                        <!-- Valve stem and spring coil lines -->
+                        <path
+                            id="Vector 9"
+                            d="M355.486 736.412V708.781"
+                            stroke="white"
+                        />
+                        <!-- <path
+                            id="Vector 10"
+                            d="M355.924 700.009V55.272"
+                            stroke="white"
+                        /> -->
+                        <!-- <path
+                            id="Vector 11"
+                            d="M366.889 658.342L344.521 665.798L366.889
+                               672.816L344.521 682.465L366.889 689.921"
+                            stroke="white"
+                        /> -->
+                    </g>
+    
+                </g>
+                <!-- end #HMI_valves -->
+    
+    
+                <!-- =================================================
+                    PRESSURE & TEMPERATURE INDICATORS
+                    Live readout boxes at top and O2 pressure section.
+                    ================================================= -->
+                <g id="HMI_Indicators">
+    
+                    <!-- N2O Supply indicator (combined pressure + temperature) -->
+                    <g id="N2O Supply Indicator" transform="translate(0,40)">
+                        <!-- <rect x="335" y="117.5" width="320" height="110" fill="#0d0d0d"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace"
+                           font-size="18"
+                           letter-spacing="0.12em">
+                            <!-- Centered title -->
+                            <text x="490" y="150" fill="white"
+                                  text-anchor="middle">N₂O Supply</text>
+                            <!-- Pressure label + green bold value -->
+                            <text x="376" y="180" fill="white">Pressure:</text>
+                            <text id="hmi-pressure-1" x="500" y="180"
+                                  fill="#ffd931" font-weight="bold"><tspan>0.00</tspan> bar</text>
+                            <!-- Temperature label + green bold value -->
+                            <text x="340" y="210" fill="white">Temperature:</text>
+                            <text id="HMI_N2O-INTTEMP" x="500" y="210"
+                                  fill="#ffd931" font-weight="bold"><tspan>0.0</tspan> °C</text>
+                        </g>
+                    </g>
+    
+    
+                    <!-- N2O Filler-Stem Feed indicator -->
+                    <g id="N2O Filler-Stem Feed Indicator" transform="translate(190,69)">
+                        <!-- <rect x="731.5" y="117.5" width="320" height="80" fill="#0d0d0d"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace"
+                           font-size="18"
+                           letter-spacing="0.12em">
+                            <!-- Centered title -->
+                            <text x="892.5" y="150" fill="white"
+                                  text-anchor="middle">N₂O Filler-Stem Feed</text>
+                            <!-- Pressure label + green bold value -->
+                            <text x="780" y="180" fill="white">Pressure:</text>
+                            <text id="hmi-pressure-2" x="905" y="180"
+                                  fill="#ffd931" font-weight="bold"><tspan>0.00</tspan> bar</text>
+                        </g>
+                    </g>
+    
+    
+                    <!-- N2O Internal Temperature indicator: merged into N2O Supply box above. -->
+
+    
+    
+                    <!-- O2 Supply indicator -->
+                    <g id="O2 Supply Indicator">
+                        <!-- <rect x="525.5" y="580" width="300" height="80" fill="#0d0d0d"/> -->
+                        <g font-family="ui-monospace, SFMono-Regular, Menlo,
+                                        Monaco, Consolas, monospace"
+                           font-size="18"
+                           letter-spacing="0.12em">
+                            <!-- Centered title -->
+                            <text x="675" y="610" fill="white"
+                                  text-anchor="middle">O₂ Supply</text>
+                            <!-- Pressure label + green bold value -->
+                            <text x="565" y="640" fill="white">Pressure:</text>
+                            <text id="hmi-pressure-3" x="690" y="640"
+                                  fill="#ffd931" font-weight="bold"><tspan>0.00</tspan> bar</text>
+                        </g>
+                    </g>
+    
+                </g>
+                <!-- end #HMI_Indicators -->
+    
+    
+                <!-- =================================================
+                    VALVE LABELS
+                    Static text labels placed near each valve symbol.
+                    ================================================= -->
+                <g id="HMI_labels">
+    
+                    <!-- Shared font style for all valve labels -->
+                    <!-- font-family applied individually per element -->
+    
+                    <text x="93"  y="282" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-8</text>
+    
+                    <text x="210" y="282" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-9</text>
+    
+                    <text x="330" y="380" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-4</text>
+    
+                    <text x="814"  y="380" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-5</text>
+    
+                    <text x="660"  y="504" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-3</text>
+    
+                    <text x="700"  y="433" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-10</text>
+    
+                    <text x="1025"  y="431" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-7</text>
+    
+                    <text x="905" y="380" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-13</text>
+    
+                    <text x="1015" y="768" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-14</text>
+    
+                    <text x="843.25" y="768" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-6</text>
+    
+                    <text x="551" y="768" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-1</text>
+                        
+                    <text x="343" y="768" fill="#FFFFFF" font-family="ui-monospace, SFMono-Regular, Menlo,
+                        Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">V-2</text>
+    
+                    <text x="142"  y="670" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-12</text>
+    
+                    <text x="420" y="827" fill="#FFFFFF"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="14" letter-spacing="0.1em">V-11</text>
+    
+    
+                    <!-- Rotated axis labels for temperature columns -->
+    
+                    <!-- N2O liquid temp label - for BOTH bottles -->
+                    <!-- <text x="150" y="15" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace" font-size="16" text-anchor="middle">
+                        N₂O Liquid Temperature (°C)
+                    </text> -->
+    
+                    <!-- O2 gas temp label — O2 bottle axis -->
+                    <!-- <text
+                        x="210"
+                        y="590"
+                        fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo,
+                            Monaco, Consolas, monospace"
+                        font-size="16"
+                        dominant-baseline="middle"
+                        transform="rotate(-90, 210, 590)"
+                    >
+                        O₂ Gas Temperature (°C)
+                    </text> -->
+    
+                </g>
+                <!-- end #HMI_labels -->
+    
+    
+                <!-- =================================================
+                    Pressure and Temp Recorders
+                    ================================================= -->
+    
+                <!-- Pressure Recorder (N2O line, lower) -->
+                <g id="HMI_Pressure_Recorder" transform="translate(0,-7)">
+                    <circle id="Ellipse 2" cx="667" cy="696" r="19.5"
+                        stroke="white" />
+                    <path
+                        id="Vector 31"
+                        d="M658 705L674 688.5M674 688.5H664.5M674
+                           688.5V698"
+                        stroke="white"
+                        stroke-width="2"
+                    />
+                    <path
+                        id="Vector 36"
+                        d="M667 715V744"
+                        stroke="white"
+                        stroke-width="1"
+                    />
+                </g>
+    
+                <!-- Pressure Recorder 2 (N2O upper line) -->
+                <g id="HMI_pressure_recorder2" transform="translate(200, 0)">
+                    <circle id="Ellipse 2_2" cx="881" cy="301" r="19.5"
+                        stroke="white" />
+                    <path
+                        id="Vector 31_2"
+                        d="M872 310L888 293.5M888 293.5H878.5M888
+                           293.5V303"
+                        stroke="white"
+                        stroke-width="2"
+                    />
+                    <path id="Vector 38" d="M881.5 321V350" stroke="white"></path>
+                </g>
+    
+                <!-- Pressure Recorder 1 (N2O in line) -->
+                <g id="HMI_pressure_recorder1" transform="translate(-50)">
+                    <circle id="Ellipse 2_3" cx="564" cy="301" r="19.5"
+                        stroke="white" />
+                    <path
+                        id="Vector 31_3"
+                        d="M555 310L571 293.5M571 293.5H561.5M571
+                           293.5V303"
+                        stroke="white"
+                        stroke-width="2"
+                    />
+                    <path id="Vector 37" d="M564 321V350" stroke="white"></path>
+                </g>
+
+                <g id="HMI_pressure_recorder3" transform="translate(-145,388)">
+                    <circle id="Ellipse 2_3" cx="564" cy="301" r="19.5"
+                        stroke="white" />
+                    <path
+                        id="Vector 31_3"
+                        d="M555 310L571 293.5M571 293.5H561.5M571
+                           293.5V303"
+                        stroke="white"
+                        stroke-width="2"
+                    />
+                    <path id="Vector 37" d="M564 321V350" stroke="white"></path>
+                </g>
+
+                <g id="HMI_pressure_recorder4" transform="translate(-275,388)">
+                    <circle id="Ellipse 2_3" cx="564" cy="301" r="19.5"
+                        stroke="white" />
+                    <path
+                        id="Vector 31_3"
+                        d="M555 310L571 293.5M571 293.5H561.5M571
+                           293.5V303"
+                        stroke="white"
+                        stroke-width="2"
+                    />
+                    <path id="Vector 37" d="M564 321V350" stroke="white"></path>
+                </g>
+    
+                <!-- Temperature Recorder (TR symbol, N2O line) -->
+                <g id="HMI_temperature_recorder1" transform="translate(-659,-5)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <!-- Temperature Recorder -->
+                <g class="rocket-part" id="HMI_temperature_recorder2" transform="translate(290,550)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <!-- Temperature Recorder -->
+                <g class="rocket-part" id="HMI_temperature_recorder3" transform="translate(290,-58)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <g class="rocket-part" id="HMI_temperature_recorder4" transform="translate(290,60)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <g class="rocket-part" id="HMI_temperature_recorder5" transform="translate(290,175)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
+                </g>
+
+                <!-- LC Recorder -->
+                <g class="rocket-part" id="HMI_LC_recorder1" transform="translate(341,585)">
+                    <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
+                    <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
+                        fill="white" font-family="Arial, sans-serif" font-size="14">LC</text>
+                </g>
+    
+    
+                <!-- =================================================
+                    PIPE NETWORK
+                    Orange (#F79322) lines connecting all components.
+                    Arrows indicate flow direction where shown.
+                    ================================================= -->
+                <g id="HMI_pipes">
+    
+                    <!-- Vent branch 3 (N2O vent loop) -->
+                    <g id="vents3">
+                        <path
+                            id="Vector 13"
+                            d="M478 486.501C478 453.001 508.5 452.001
+                               508.5 486.501"
+                            stroke="#F79322"
+                        />
+                        <path
+                            id="Vector 14"
+                            d="M478 487V554.5"
+                            stroke="#F79322"
+                            stroke-width="2"
+                        />
+                    </g>
+    
+                    <!-- Vent branch 1 (lower vent) -->
+                    <g id="Vents1">
+                        <path id="Vector 13_3" d="M352 822.168C352 788.668 382.5 787.668 382.5 822.168" stroke="#F79322"></path>
+                        <path id="Vector 21" d="M352 822.167V885.336" stroke="#F79322" stroke-width="2"></path>
+                    </g>
+    
+                    <!-- N2O bottle manifold connection -->
+                    <path id="Vector 3" d="M140 305V352.607H255V304" stroke="#F79322" stroke-width="2"></path>
+    
+                    <!-- N2O manifold to V4 -->
+                    <path
+                        id="Vector 6"
+                        d="M209 352.607H316"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- Upper right routing: backflow to tank -->
+                    <path
+                        id="Vector 27"
+                        d="M1055.5 737H1150V577.5M945 350H950H1060M1059 350H1150V438"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- N2O bottle #1 to manifold (vertical) -->
+                    <path
+                        id="Vector 1"
+                        d="M140 176V248"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- N2O bottle #2 to manifold (vertical) -->
+                    <path
+                        id="Vector 2"
+                        d="M255 176V247"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- O2 bottle outlet pipe -->
+                    <path id="Vector 7" d="M197 560V637" stroke="#F79322" stroke-width="2"></path>
+    
+                    <!-- N2O main horizontal run (lower) -->
+                    <path
+                        id="Vector 22"
+                        d="M588 738L833 736.944"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- Fill line segment to V1 -->
+                    <path
+                        id="Vector 18"
+                        d="M429.076 738.336H541.076"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- V4 outlet pipe -->
+                    <path
+                        id="Vector 8"
+                        d="M367 351H431"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- O2 outlet to main line -->
+                    <path id="Vector 12" d="M197.5 694V738" stroke="#F79322" stroke-width="2"></path>
+    
+                    <!-- Relief branch and N2O return -->
+                    <path
+                        id="Vector 28"
+                        d="M640 553V495M620 476.844H564L564 352"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- V4 to recorder to V5 -->
+                    <path
+                        id="Vector 16"
+                        d="M430 351H806"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+
+                    <path
+                        id="Vector 16_1"
+                        d="M849 351H899"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- Flow line now: spring valve outlet toward V1 -->
+                    <line
+                        x1="196.5"
+                        y1="738.336"
+                        x2="332"
+                        y2="738.336"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- Flow arrow: V1 outlet toward V11 -->
+                    <line
+                        x1="380.076"
+                        y1="738.336"
+                        x2="429.076"
+                        y2="738.336"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- Vent exhaust to atmosphere loop -->
+                    <path id="Vector 19" d="M474.576 848.836V885.336H352" stroke="#F79322" stroke-width="2"></path>
+    
+                    <!-- V11 to lower vent branch -->
+                    <line
+                        id="Line 1"
+                        x1="475.076"
+                        y1="738.318"
+                        x2="476"
+                        y2="789.982"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- N2O main horizontal run (upper) -->
+                    <path
+                        id="Vector 17"
+                        d="M995 553.5H478.5"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- V5 vertical drop and pressure recorder branch -->
+                    <path
+                        id="Vector 20"
+                        d="M995 351L995 405.165M995
+                           554.496L995 450.5"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- V6 to V14 horizontal run -->
+                    <path
+                        id="Vector 35"
+                        d="M877 737H1006"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- Temperature recorder lead -->
+                    <path id="Vector 34" d="M450 320V350" stroke="white"></path>
+    
+                    <!-- V10 vertical drop (upper) -->
+                    <path
+                        id="Vector 39"
+                        d="M755 350V400"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                    <!-- V10 vertical drop (lower) -->
+                    <path
+                        id="Vector 40"
+                        d="M755 456V553"
+                        stroke="#F79322"
+                        stroke-width="2"
+                    />
+    
+                </g>
+                <!-- end #HMI_pipes -->
+    
+    
+                <!-- =================================================
+                    FILLER STEM
+                    Vertical line connecting tank to fill connection.
+                    Most sub-elements are commented out (legacy shapes).
+                    ================================================= -->
+                <g id="HMI_Fillerstem">
+    
+                    <!-- Vertical line: tank top to fill connector -->
+                    <line x1="1150" y1="577.5" x2="1150" y2="438" stroke="#F79322" stroke-width="2"></line>
+    
+                </g>
+                <!-- end #HMI_Fillerstem -->
+    
+    
+                <!-- =================================================
+                    TEMPERATURE GAUGES
+                    Three bar gauges: N2O bottle 1, N2O bottle 2, O2.
+                    Each gauge has a fill rect (colour) and a bar rect
+                    (white overlay that shrinks to show fill level).
+                    ================================================= -->
+                <g id="HMI_gauges">
+    
+                    <!-- Gauge: N2O Bottle #1 -->
+                    <!-- <g id="HMI_gaugesN2O-1">
+                        <g id="gauge_low">
+                            <rect
+                                id="gauge_1_fill"
+                                x="45.5" y="43.5"
+                                width="11" height="69"
+                                fill="#ffd931"
+                                stroke="black"
+                            /> -->
+                            <!-- White overlay; height shrinks via JS -->
+                            <!-- <rect
+                                id="gauge_1_bar"
+                                x="45.5" y="43.5"
+                                width="11" height="69"
+                                fill="white"
+                                stroke="black"
+                            />
+                        </g>
+                    </g>
+     -->
+                    <!-- Gauge: N2O Bottle #2 -->
+                    <!-- <g id="HMI_gauge-N2O-2">
+                        <g id="gauge_low_2">
+                            <rect
+                                id="gauge_2_fill"
+                                x="189.5" y="43.5"
+                                width="11" height="69"
+                                fill="#ffd931"
+                                stroke="black"
+                            />
+                            <rect
+                                id="gauge_2_bar"
+                                x="189.5" y="43.5"
+                                width="11" height="69"
+                                fill="white"
+                                stroke="black"
+                            />
+                        </g>
+                    </g> -->
+    
+                    <!-- Gauge: O2 Bottle -->
+                    <!-- <g id="HMI_gauges_O2">
+                        <g id="gauge_low_3">
+                            <rect
+                                id="gauge_3_fill"
+                                x="124.5" y="414.5"
+                                width="11" height="69"
+                                fill="#ffd931"
+                                stroke="black"
+                            />
+                            <rect
+                                id="gauge_3_bar"
+                                x="124.5" y="414.5"
+                                width="11" height="69"
+                                fill="white"
+                                stroke="black"
+                            />
+                        </g>
+                    </g> -->
+    
+                </g>
+                <!-- end #HMI_gauges -->
+    
+    
+                <!-- =================================================
+                    CLICKABLE VALVE OVERLAY RECTANGLES
+                    Transparent hit areas over each valve symbol.
+                    onclick calls changecolor() to toggle valve state.
+                    ================================================= -->
+                <!-- <g id="rectangle-HMI">
+    
+                    <rect id="Rectangle-HMIV12"
+                        x="163" y="630" width="67" height="73"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('ballV12')" />
+    
+                    <rect id="Rectangle-HMIV11"
+                        x="440.5" y="779.5" width="67" height="73"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('ballV11')" />
+    
+                    <rect id="Rectangle-HMIV10"
+                        x="721.5" y="391.5" width="67" height="73"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('ballV10')" />
+    
+                    <rect id="Rectangle-HMIV9"
+                        x="177.5" y="242.5" width="67" 
+                        height="73" transform="translate(45,-3)"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('ballV9')" />
+    
+                    <rect id="rectangle-HMIV8"
+                        x="106" y="240.5" width="67" height="73"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('ballV8')" />
+    
+                    <rect id="Rectangle-HMIV4"
+                        x="308.5" y="321.5" width="67" height="56"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('needleV4')" />
+    
+                    <rect id="Rectangle-HMIV1"
+                        x="530.5" y="708.5" width="67" height="56"
+                        stroke="#F79322" stroke-opacity="0.1"
+                        stroke-width="3" pointer-events="visible"
+                        onclick="changecolor('needleV1')" />
+    
+                </g> -->
+                <!-- end #rectangle-HMI -->
+    
+    
+                <!-- =================================================
+                    STATUS BAR
+                    All live values updated via statusBarUpdate().
+                    ================================================= -->
+                <g id="HMI_status_bar" transform="translate(180, 110)">
+
+                    <!-- Background band -->
+                    <rect
+                        x="0" y="847"
+                        width="900" height="80"
+                        fill="#0a0a0a"
+                    />
+
+                    <!-- Horizontal divider between the two rows -->
+                    <line x1="0" y1="887" x2="900" y2="887"
+                        stroke="#444444" stroke-width="1" />
+
+                    <!-- ============== TOP ROW: SUPPLIES ============== -->
+
+                    <!-- SECTION: N₂O SUPPLY -->
+                    <text
+                        x="16" y="867"
+                        fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" letter-spacing="0.12em"
+                        dominant-baseline="middle"
+                    >N₂O Supply:</text>
+                    <text
+                        id="sb-n2o-in"
+                        x="157" y="867"
+                        fill="#ffd931"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18"
+                        dominant-baseline="middle"
+                    >00.0 bar</text>
+
+                    <!-- Separator (top row) -->
+                    <line x1="325" y1="848" x2="325" y2="886"
+                        stroke="#444444" stroke-width="1" />
+
+                    <!-- SECTION: O₂ SUPPLY -->
+                    <text
+                        x="341" y="867"
+                        fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" letter-spacing="0.12em"
+                        dominant-baseline="middle"
+                    >O₂ Supply:</text>
+                    <text
+                        id="sb-o2"
+                        x="480" y="867"
+                        fill="#ffd931"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18"
+                        dominant-baseline="middle"
+                    >00.0 bar</text>
+
+                    <!-- ============== BOTTOM ROW: TIMER / UPDATE / DATE ============== -->
+
+                    <!-- SECTION: ROCKET FILL TIMER -->
+                    <text
+                        x="16" y="907"
+                        fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" letter-spacing="0.12em"
+                        dominant-baseline="middle"
+                    >Rocket-Fill Time:</text>
+                    <text
+                        id="sb-fill-timer"
+                        x="250" y="907"
+                        fill="#ffd931"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18"
+                        dominant-baseline="middle"
+                    >--</text>
+                    <!-- <text
+                        x="280" y="907"
+                        fill="#ffd931"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18"
+                        dominant-baseline="middle"
+                    >s</text> -->
+
+                    <!-- Separator (bottom row) -->
+                    <line x1="325" y1="888" x2="325" y2="926"
+                        stroke="#444444" stroke-width="1" />
+
+                    <!-- SECTION: LAST UPDATE -->
+                    <text x="341" y="907" fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
+                    >Last Update:</text>
+                    <text id="sb-last-update" x="491" y="907"
+                        fill="#ffd931"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" dominant-baseline="middle"
+                    >:--</text>
+
+                    <!-- Separator (bottom row) -->
+                    <line x1="620" y1="888" x2="620" y2="926"
+                        stroke="#444444" stroke-width="1" />
+
+                    <!-- SECTION: DATE -->
+                    <text x="636" y="907" fill="white"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" letter-spacing="0.12em" dominant-baseline="middle"
+                    >Date:</text>
+                    <text id="sb-date" x="716" y="907"
+                        fill="#ffd931"
+                        font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                        font-size="18" dominant-baseline="middle"
+                    >----</text>
+
+                </g>
+                <!-- end #HMI_status_bar -->
+    
+            </g>
+            <!-- end #HMI -->
+    
+    
+            <!-- =============================================================
+                SVG FILTER DEFINITIONS
+                Drop-shadow filters applied to valve needle polygon groups.
+                All filters share the same structure; only x/y/w/h differ.
+                ============================================================= -->
+            <defs>
+    
+                <!-- Shared drop-shadow primitive sequence (used in every
+                    filter below):
+                    feFlood -> feColorMatrix(alpha) -> feOffset(dy=4)
+                    feGaussianBlur(2) → feComposite(out)
+                    -> feColorMatrix(0.25 alpha) → feBlend(BackBG)
+                    -> feBlend(SourceGraphic)                          -->
+    
+                <!-- Filter: needleV1 left polygon -->
+                <filter id="filter0_d_172_821"
+                    x="538.174" y="725.946"
+                    width="29.75" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: needleV1 right polygon -->
+                <filter id="filter1_d_172_821"
+                    x="559.924" y="725.946"
+                    width="29" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: reliefValveV3 left polygon -->
+                <filter id="filter2_d_172_821"
+                    x="661.25" y="462.675"
+                    width="29.75" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: reliefValveV3 right polygon -->
+                <filter id="filter3_d_172_821"
+                    x="671.675" y="474"
+                    width="29.6506" height="29"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: needleV4 left polygon -->
+                <filter id="filter4_d_172_821"
+                    x="316.174" y="341.946"
+                    width="29.75" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: needleV4 right polygon -->
+                <filter id="filter5_d_172_821"
+                    x="337.924" y="341.946"
+                    width="29" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: solenoidsV5 left polygon -->
+                <filter id="filter6_d_172_821"
+                    x="652.25" y="340.675"
+                    width="29.75" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: solenoidsV5 right polygon -->
+                <filter id="filter7_d_172_821"
+                    x="674" y="340.675"
+                    width="29" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: solenoidsV6 left polygon -->
+                <filter id="filter8_d_172_821"
+                    x="831.25" y="728.675"
+                    width="29.75" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: solenoidsV6 right polygon -->
+                <filter id="filter9_d_172_821"
+                    x="853" y="728.675"
+                    width="29" height="29.6506"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: solenoidsV7 upper polygon -->
+                <filter id="filter10_d_172_821"
+                    x="869.744" y="406.252"
+                    width="29.6506" height="29.765"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+                <!-- Filter: solenoidsV7 lower polygon -->
+                <filter id="filter11_d_172_821"
+                    x="869.684" y="428.017"
+                    width="29.6506" height="29.015"
+                    filterUnits="userSpaceOnUse"
+                    color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                    <feColorMatrix in="SourceAlpha" type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha" />
+                    <feOffset dy="4" />
+                    <feGaussianBlur stdDeviation="2" />
+                    <feComposite in2="hardAlpha" operator="out" />
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                    <feBlend mode="normal" in2="BackgroundImageFix"
+                        result="effect1_dropShadow_172_821" />
+                    <feBlend mode="normal" in="SourceGraphic"
+                        in2="effect1_dropShadow_172_821" result="shape" />
+                </filter>
+    
+            </defs>
+    
+        </svg>
+        <!-- end SVG -->
+    
+        <!-- Instrument Legend Modal -->
+         <style>
+            #instrument-modal > div::-webkit-scrollbar { display: none; }
+        </style>
+        <div id="instrument-modal"
+            onclick="this.style.display='none'"
+            style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+                    align-items:center; justify-content:center; z-index:9999;">
+            <div onclick="event.stopPropagation()"
+                style="background:#232323; color:#e0e0e0; padding:28px 32px; border-radius:10px;
+                        max-height:80vh; overflow-y:auto; scrollbar-width: none; -ms-overflow-style: none; border:1px solid #333;
+                        box-shadow:0 8px 32px rgba(0,0,0,0.5); min-width:460px;">
+                <h3 style="margin:0 0 16px 0; color:#fff; font-size:18px;">Instrument &amp; Valve Definitions</h3>
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #444;">
+                            <th style="text-align:left; padding:6px 12px 6px 0; color:white;">Label</th>
+                            <th style="text-align:left; padding:6px 0; color:white;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-1</td><td style="padding:5px 0;">O₂ flow-control needle valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-2</td><td style="padding:5px 0;">O₂ pressure regulator</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-3</td><td style="padding:5px 0;">N₂O pressure-relief valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-4</td><td style="padding:5px 0;">N₂O flow-control needle valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-5</td><td style="padding:5px 0;">N₂O fill solenoid valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-6</td><td style="padding:5px 0;">O₂ fill solenoid valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-7</td><td style="padding:5px 0;">N₂O purge solenoid valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-8</td><td style="padding:5px 0;">N₂O cylinder-1 main valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-9</td><td style="padding:5px 0;">N₂O cylinder-2 main valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-10</td><td style="padding:5px 0;">N₂O manual purge valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-11</td><td style="padding:5px 0;">O₂ manual purge valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-12</td><td style="padding:5px 0;">O₂ cylinder main valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-13</td><td style="padding:5px 0;">N₂O backflow-prevention check (poppet) valve</td></tr>
+                        <tr style="border-bottom:2px solid #444;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f63356;">V-14</td><td style="padding:5px 0;">O₂ backflow-prevention check (poppet) valve</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-1</td><td style="padding:5px 0;">N₂O supply-temperature sensor</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-2</td><td style="padding:5px 0;">N₂O supply-pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-3</td><td style="padding:5px 0;">N₂O filler-stem pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-4</td><td style="padding:5px 0;">O₂ cylinder-pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-5</td><td style="padding:5px 0;">O₂ supply-pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-6</td><td style="padding:5px 0;">O₂ filler-stem pressure transducer</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-7</td><td style="padding:5px 0;">Temperature sensor at top of flight tank</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-8</td><td style="padding:5px 0;">Temperature sensor at middle of flight tank</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-9</td><td style="padding:5px 0;">Temperature sensor at bottom of flight tank</td></tr>
+                        <tr style="border-bottom:1px solid #2a2a3a;"><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-10</td><td style="padding:5px 0;">Temperature sensor at vent</td></tr>
+                        <tr><td style="padding:5px 12px 5px 0; font-weight:600; color:#f79322;">I-11</td><td style="padding:5px 0;">Load cell at base of rocket</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    
+        <!-- =================================================================
+            HMI JAVASCRIPT
+            Handles live data updates for pressures, temperatures, solenoids.
+            ================================================================= -->
+        <script>
+    
+            // Two-state colour for valves: red = closed, green = open
+            const colorBoolean = ["#FF0000", "#00FF4D"];
+
+            // Rocket status, set by operator via SVG button
+            // 0 = Setup & Testing, 1 = Rocket on Rail, 2 = Post-Launch
+            let rocketStatus = 0;
+            const rocketStatusLabels = ["Setup & Testing", "Rocket on Rail", "Post-Launch"];
+
+            // A constant that gives all valves closed
+            // Useful later when defining rules so I don't have to define
+            // ALL of them every time, just the ones that are open
+            const ALL_CLOSED = {
+                "needleV1": false,
+                "springValve": false,
+                "reliefValveV3": false,
+                "needleV4": false,
+                "solenoidsV5": false,
+                "solenoidsV6": false,
+                "solenoidsV7": false,
+                "ballV8": false,
+                "ballV9": false,
+                "ballV10": false,
+                "ballV11": false,
+                "ballV12": false,
+                "backflowV13": false,
+                "backflowV14": false,
+            };
+
+            // After we get a name for the mode we're in, this is the lookup table for it
+            // Key format: "mode:rocketStatus"
+            // Valve values: true = open (green), false = closed (red)
+            const valveTable = {
+                // Rules for rocketStatus = 0 (no rocket present)
+                "off:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "idle:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "fillNeutral:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "n2o:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV5": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "purge:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "armed:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "o2:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "ignition:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "ignition_o2:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+
+                // Rules for rocket status = 1
+                "idle:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "fillNeutral:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "n2o:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV5": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "purge:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "armed:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "o2:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "ignition_o2:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+
+                // Rules for rocket status = 2
+                "purge:2": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+            };
+
+            function cycleRocketStatus() {
+                const next = (rocketStatus + 1) % 3;
+                const confirmed = confirm(
+                    "Change rocket status from\n\"" +
+                    rocketStatusLabels[rocketStatus] +
+                    "\"\nto\n\"" +
+                    rocketStatusLabels[next] + "\"?"
+                );
+                if (confirmed) {
+                    rocketStatus = next;
+                    const label = document.getElementById("rocket-status-label");
+                    if (label) label.textContent = rocketStatusLabels[rocketStatus];
+                    updateRocketVisibility();
+                }
+            }
+            
+            // Need to run this function once, so it works on load, and not just on switch
+            updateRocketVisibility();
+
+            function updateRocketVisibility() {
+                const visible = (rocketStatus === 1);
+                document.querySelectorAll('.rocket-part').forEach(el => {
+                    el.setAttribute('visibility', visible ? 'visible' : 'hidden');
+                });
+            }
+    
+    
+            // ---------------------------------------------------------------
+            // changecolor(objectid)
+            // Toggles a valve element between open (green) and closed (red).
+            // Called by onclick handlers on the overlay rectangles.
+            // ---------------------------------------------------------------
+            function changecolor(objectid) {
+                const elem = document.getElementById(objectid);
+                if (elem == undefined) return;
+    
+                const fill    = elem.getAttribute("fill");
+                const isGreen = fill == colorBoolean[1];
+                const newFill = isGreen ? colorBoolean[0] : colorBoolean[1];
+    
+                elem.setAttribute("fill", newFill);
+            }
+    
+    
+            // ---------------------------------------------------------------
+            // statusBarUpdate(data)
+            // Refreshes the four status bar fields from live telemetry.
+            // ---------------------------------------------------------------
+            function statusBarUpdate(data) {
+    
+                // Rocket Fill Timer — pull from the hidden data-key input
+                // TODO: yo wtf is happening? why's it pulling from some
+                // invisible DOM element on the page
+                const timerInput = document.getElementById(
+                    "gasBottleTime-input"
+                );
+                const timerEl = document.getElementById("sb-fill-timer");
+                if (timerEl && timerInput) {
+                    timerEl.textContent = timerInput.value || "--";
+                }
+    
+                // N₂O In pressure
+                const n2oEl = document.getElementById("sb-n2o-in");
+                if (n2oEl && data?.pressure_n2o_bottle != undefined) {
+                    n2oEl.textContent =
+                        Number(data.pressure_n2o_bottle).toFixed(1) + " bar";
+                }
+    
+                // O₂ pressure
+                const o2El = document.getElementById("sb-o2");
+                if (o2El && data?.pressure_o2_tank != undefined) {
+                    o2El.textContent =
+                        Number(data.pressure_o2_tank).toFixed(1) + " bar";
+                }
+            }
+    
+            // ---------------------------------------------------------------
+            // statusBarSetDate()
+            // Writes today's date (YYYY-MM-DD) into the status bar.
+            // Called once on load and then every minute to catch midnight.
+            // ---------------------------------------------------------------
+            function statusBarSetDate() {
+                const el = document.getElementById("sb-date");
+                if (!el) return;
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm   = String(now.getMonth() + 1).padStart(2, "0");
+                const dd   = String(now.getDate()).padStart(2, "0");
+                el.textContent = yyyy + "-" + mm + "-" + dd;
+            }
+    
+            // Initialise date immediately and refresh every 60 seconds
+            statusBarSetDate();
+            setInterval(statusBarSetDate, 60000);
+
+    
+            // ---------------------------------------------------------------
+            // hmiUpdate(data)
+            // Entry point for live telemetry. Accepts a data object with
+            // transducer, thermocouple, and stateFlag fields.
+            // ---------------------------------------------------------------
+            function hmiUpdate(data) {
+
+                // State/control packet check
+                // TODO: temporary, altered this to be compatible with both sets of names
+                // see TODO comment in horizon_pendant for explanation on normaliseApiData()
+                if (data?.SYSTEM_ACTIVATE !== undefined || data?.SYS_ON !== undefined) {
+                    hmiUpdateValveStates(normalizeApiData(data));
+                    return;
+                }
+    
+                if (data?.pressure_n2o_bottle) {
+                    hmiUpdateValue("hmi-pressure-1", data.pressure_n2o_bottle);
+                }
+                if (data?.pressure_n2o_tank) {
+                    hmiUpdateValue("hmi-pressure-2", data.pressure_n2o_tank);
+                }
+                if (data?.pressure_n2o_tank) {
+                    hmiUpdateValue("hmi-pressure-3", data.pressure_o2_tank);
+                }
+    
+                if (data?.temp_pipe_n2o_gse) {
+                    hmiUpdateValue("HMI_N2O-INTTEMP", data.temp_pipe_n2o_gse);
+                }
+
+                // Flight tank thermocouples (°C) — top, middle, bottom
+                // Use !== undefined so a legitimate 0 °C reading isn't skipped
+                if (data?.temp_tank_top !== undefined) {
+                    hmiUpdateValue("HMI_TANK_TOP_TEMP", data.temp_tank_top);
+                }
+                if (data?.temp_tank_middle !== undefined) {
+                    hmiUpdateValue("HMI_TANK_MIDDLE_TEMP", data.temp_tank_middle);
+                }
+                if (data?.temp_tank_bottom !== undefined) {
+                    hmiUpdateValue("HMI_TANK_BOTTOM_TEMP", data.temp_tank_bottom);
+                }
+
+                // Vent and weight rocket
+                if (data?.temp_vent !== undefined) {
+                    hmiUpdateValue("HMI_VENT_TEMP", data.temp_vent);
+                }
+                if (data?.weight_rocket !== undefined) {
+                    hmiUpdateValue("HMI_WEIGHT", data.weight_rocket);
+                }
+    
+                // Refresh status bar with latest telemetry values
+                statusBarUpdate(data);
+
+                // Last Update — timestamp of most recent telemetry packet
+                const lastUpdateEl = document.getElementById("sb-last-update");
+                if (lastUpdateEl) {
+                    const now = new Date();
+                    const hh = String(now.getHours()).padStart(2, "0");
+                    const mm = String(now.getMinutes()).padStart(2, "0");
+                    const ss = String(now.getSeconds()).padStart(2, "0");
+                    lastUpdateEl.textContent = hh + ":" + mm + ":" + ss;
+                }
+            }
+    
+    
+            // ---------------------------------------------------------------
+            // hmiUpdateValue(id, value)
+            // Updates a text element's first child with value.toFixed(1).
+            // Also triggers gauge bar update for temperature elements.
+            // ---------------------------------------------------------------
+            function hmiUpdateValue(id, value) {
+                if (value == undefined || Number.isNaN(value)) return;
+    
+                const elem = document.getElementById(id).firstElementChild;
+                if (!elem) return;
+    
+                elem.innerHTML = value.toFixed(1);
+            }
+    
+            // ---------------------------------------------------------------
+            // hmiUpdateSolenoid(id, state)
+            // Sets a solenoid element's fill to green (true) or red (false).
+            // ---------------------------------------------------------------
+            function hmiUpdateSolenoid(id, state) {
+                if (state == undefined)        return;
+                if (typeof state !== "boolean") return;
+    
+                const solenoid = document.getElementById(id);
+                if (!solenoid) return;
+    
+                solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
+            }
+
+            // Resets to having no fill attribute, not open nor closed
+            function resetAllValves() {
+                const allValveIds = Object.keys(ALL_CLOSED);
+                allValveIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute("fill", "none");
+                });
+            }
+
+            // ---------------------------------------------------------------
+            // hmiUpdateValveStates(data)
+            // Derives the operating mode from control flags.
+            // Then look up valve states from mode + rocketStatus.
+            // ---------------------------------------------------------------
+
+            function hmiUpdateValveStates(data) {
+
+                // Note for future dev:
+                // If you want to add E-STOP functionality, just add it as a flag here
+                // and in the branching logic (if flags.xxx)
+                // then you can make rules for it in valveTable
+
+                const flags = {
+                    systemActivate:   !!data.SYSTEM_ACTIVATE,
+                    gasFillSelected:  !!data.GAS_FILL_SELECTED,
+                    ignitionSelected: !!data.IGNITION_SELECTED,
+                    ignitionFire:     !!data.IGNITION_FIRE,
+                    n2oFill:          !!data.N2O_FILL_ACTIVATE,
+                    o2Fill:           !!data.O2_FILL_ACTIVATE,
+                    manualPurge:      !!data.MANUAL_PURGE,
+                    selectorNeutral:  !!data.SELECTOR_SWITCH_NEUTRAL_POSITION,
+                };
+
+                let mode = "";
+
+                // SystemActivate gotta be on before we care about anything
+                if (flags.systemActivate) {
+                    // Everything under the "ARMED" section
+                    if (flags.ignitionSelected) {
+                        if (flags.ignitionFire && flags.o2Fill) {
+                            mode = "ignition_o2";
+                        } else if (flags.ignitionFire) {
+                            mode = "ignition";
+                        } else if (flags.o2Fill) {
+                            mode = "o2";
+                        } else {
+                            mode = "armed";
+                        }
+                    // Everything under the "FILL MODE" section
+                    } else if (flags.gasFillSelected) {
+                        if (flags.n2oFill) {
+                            mode = "n2o";
+                        } else if (flags.manualPurge) {
+                            mode = "purge";
+                        } else if (flags.selectorNeutral) {
+                            mode = "fillNeutral"
+                        }
+                    } else {
+                        mode = "idle";
+                    }
+                } else {
+                    mode = "off";
+                }
+
+                //console.log("Mode:", mode, "| Rocket status:", rocketStatusLabels[rocketStatus]);
+
+                
+
+                const key = mode + ":" + rocketStatus;
+                const valves = valveTable[key];
+
+                if (valves) {
+                    for (const [valveId, state] of Object.entries(valves)) {
+                        hmiUpdateSolenoid(valveId, state);
+                    }
+                } else {
+                    resetAllValves();
+                }
+
+                
+            }
+    
+        </script>
+    
+    </div>
+    

@@ -10,6 +10,7 @@
 const initialReconnectInterval = 200; // Initial reconnection wait time
 const maxReconnectInterval = 5000; // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20; // FPS for rendering graphs
+const metricOffline = {}; // key -> boolean
 
 // WebSocket API connection
 const ws_url = _ws != undefined ? `ws://${_ws["host"]}:${_ws["port"]}` : `ws://${window.location.host.split(":")[0]}:1887`
@@ -20,10 +21,31 @@ var connected = false;
 var then, now, fpsInterval;
 
 // Logging
+const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
 const logVerbose = false;
 const logIncomingMessages = false;
 const errors = [];
-const timeouts = {};
+
+/* Combine all timeouts into one array of objects (only for radios).
+ * This makes it easier to program sound alarms in a queue, with
+ * past rockets included just so that their functionality is (hopefully)
+ * preserved, as there used to be a data-timeout attribute.
+*/
+const timeoutsList = [
+    // This allows for customisation (note duration in ms)
+    {name:"av", duration:3000, state:4, rocket:"Legacy3"},
+    {name:"av", duration:10000, state:5, rocket:"Legacy3"},
+    {name:"gse", duration:3000, state:4, rocket:"Legacy3"},
+    {name:"gse", duration:10000, state:5, rocket:"Legacy3"},
+
+    {name:"av", duration:3000, state:4, rocket:"Atlas"},
+    {name:"av", duration:10000, state:5, rocket:"Atlas"},
+    {name:"gse", duration:3000, state:4, rocket:"Atlas"},
+    {name:"gse", duration:10000, state:5, rocket:"Atlas"},
+
+    {name:"av", duration:5000, state:4, rocket:"Horizon"},
+    {name:"gse", duration:5000, state:4, rocket:"Horizon"},
+];
 
 // Global display values
 var altitudeMax;
@@ -43,6 +65,323 @@ const timers = {
     gasTimestamp: 0,
     launchTimestamp: 0,
 };
+
+// Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
+// Note: Horizon doesn't have 2 Australis boards (which is Dual_Board_Loss)
+const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss"];
+const soundsList_losses = filenames_losses.map(src => {
+    // Create the audio object that will return upon ending
+    const audioObject = new Audio("sounds/" + src + ".mp3");
+
+    // Mute sound by default
+    audioObject.muted = true;
+
+    // Self-return after playing
+    audioObject.addEventListener('ended', () => {
+        audioObject.pause();
+        audioObject.currentTime = 0;
+    });
+
+    /* Active means whether the sound should be playing
+     * but the mute status is stored inside source
+    */
+    return { source: audioObject, active: false };
+});
+
+// Other non-alarm sounds (uncomment the below when done).
+/* TODO: Add "Rocket_Hit" to this list when the application can detect the rocket imminently
+ * about to hit someone on the head, using playOtherSound(). At this stage, though, same as Rocket_Warn
+ * 
+ * To put this sound into Combined_Sounds, add it to the end of the corresponding track/
+ * segment in the attached Audacity project (static/sounds), continuing the pattern
+ * of 0.5 seconds between each sound.
+*/
+const filenames_other = ["Apogee", "Parachute", "Rocket_Warn"];
+const soundsList_other = filenames_other.map(src => {
+    // Create the audio object that will return upon ending
+    const audioObject = new Audio("sounds/" + src + ".mp3");
+
+    // Mute sound by default
+    audioObject.muted = true;
+
+    /* This time there is no queue so no active, but keep
+     * track of how many times a sound has been looping for
+     * (if required). Can't just put this in the return
+     * statement, otherwise loopCount won't be tied to the object.
+    */
+    let returnValue = {source: audioObject, loopCount: 0};
+
+    // Loop in case required, else self-return after playing
+    audioObject.addEventListener('ended', () => {
+        if (src === "Rocket_Warn") {
+            audioObject.currentTime = 0;
+            audioObject.play();
+            returnValue.loopCount++;
+        }
+        else {
+            audioObject.pause();
+            audioObject.currentTime = 0;
+        }
+    });
+
+    return returnValue;
+});
+
+// Check if all sounds (alarms and otherwise) are unmuted
+function allUnmuted() {
+    return soundsList_losses.every(item => !item.source.muted) &&
+           soundsList_other.every(item => !item.source.muted);
+}
+
+// Call at the start and whenever a state updates
+function checkStateIndicator(elem = null) {
+    // Select rocket for below
+    let currRocket = "";
+    if (window.location.href.includes("rocket=legacy")) {
+        currRocket = "Legacy3";
+    }
+    else if (window.location.href.includes("rocket=atlas")) {
+        currRocket = "Atlas";
+    }
+    else if (window.location.href.includes("rocket=horizon")) {
+        currRocket = "Horizon";
+    }
+
+    function stateToSound(e1) {
+        let sound = "",
+            indicator = e1.attributes[0].textContent;
+
+        /* See horizon_preflight.html for sound sources. Also set the corresponding
+         * summary light for the 1st 2 states if the function exists.
+        */
+        if (indicator.includes("av.radio")) {
+            sound = "AV_Loss";
+        
+            const avOnline = e1.classList.value.includes("green");
+        
+            if (typeof diagSetSummaryOnlineBox === "function") {
+                diagSetSummaryOnlineBox("diag-summary-av", avOnline);
+            }
+        
+            if (typeof diagSetAvIndicator === "function") {
+                diagSetAvIndicator(avOnline);
+            }
+        }
+        else if (indicator.includes("gse.radio")) {
+            sound = "GSE_Loss";
+            if (typeof diagSetStatusBox === 'function') {
+                const alive = ["Vulcan ESP32", "WiFi Bridge @ GSE"].every((device) => {
+                    let ping = document.querySelector(`[data-key="${device}.ping"]`);
+                    return ping && ping.getAttribute('value') >= 0;
+                });
+
+                diagSetStatusBox("diag-summary-gse", alive && e1.classList.value.includes("green"));
+            }
+
+            // // Track summary status, unless alive has already been set false
+            // let alive = true;
+            // if ((["Vulcan ESP32", "WiFi Bridge @ GSE"].includes(deviceName)) && alive) {
+            //     // GSE: Check if the GSE radio indicator and the above pings are > 0
+            //     const gseIndicator = document.querySelector('[data-key="state.gse.radio"][data-type="state"]');
+            //     if (gseIndicator) {
+            //         alive = gseIndicator.classList.contains("green") && (ping >= 0);
+            //         diagSetStatusBox("diag-summary-gse", alive);
+            //     }
+            // }
+        }
+        else if (indicator.includes("gpsFix")) {
+            sound = "GPS_Fix_Loss";
+        }
+        // Currently moved out of scope
+        // else if (indicator.includes("dualBoard")) {
+        //     sound = "Dual_Board_Loss";
+        // }
+
+        // Should only execute with one of the above values
+        if (sound !== "") {
+            /* Can be changed, but at this stage only green is a good state,
+            * where the sound resets (otherwise continues playing). Also,
+            * elem.classList.value is the styling itself (use this so that
+            * in case the interested state/s exist elsewhere in the string)
+            */
+            updateSound(sound, !e1.classList.value.includes("green"), false);
+
+            // Check for timeouts (won't execute on a non-radio state)
+            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name))).forEach((t1) => {
+                let currElems = document.querySelectorAll(`[data-key="${"state." + t1.name + ".radio"}"]`);
+
+                currElems.forEach((c1) => {
+                    // Use functions for recalculating the expressions
+                    const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
+                    const greenState = () => !c1.classList.value.includes("green");
+                    const currSound = t1.name.toUpperCase() + "_Loss";
+
+                    if (timeoutState()) {
+                        // At a minimum, the regular sound should be playing regardless
+                        updateSound(currSound, true, false);
+
+                        setTimeout(() => {
+                            /* If the timeout is still not resolved, set the sound to
+                            * the quicker version.
+                            */
+                            if (timeoutState()) {
+                                updateSound(currSound, true, true);
+                            }
+                            else {
+                                // Set the alarm back to its normal state (if the timeout went away on time)
+                                updateSound(currSound, !greenState, false);
+                            }
+                        }, t1.duration);
+                    }
+                    else {
+                        // Same code as above, except it doesn't wait (when the state was never 'unfavourable')
+                        updateSound(currSound, !greenState, false);
+                    }
+                })
+            })
+        }
+    }
+
+    // Activate a single alarm
+    if (elem !== null) {
+        stateToSound(elem);
+    }
+    else {
+        // Check all states at the start
+        const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard"]
+        validStates.map(key => {
+            let currElems = document.querySelectorAll(`[data-key="state.${key}"]`);
+
+            // Activate any required alarms
+            currElems.forEach((c1) => {
+                stateToSound(c1);
+            })
+        });
+    }
+}
+
+// Check if the main Horizon page is selected
+function isHorizonMain() {
+    /* Before clicking on any header page, the former will be
+     * true, afterwards, it will be the latter
+    */
+    return window.location.href.endsWith("rocket=horizon") ||
+        window.location.href.endsWith("rocket=horizon#page-main");
+}
+
+// Block calls to enforce silence
+let silence = false;
+
+/* Plays alarm sounds in a queue, whose order matches the priority
+ * (in descending order).
+*/
+function playAlarmSounds() {
+    // Return if 1 second not up, yet
+    if (silence) { return; }
+    silence = true;
+
+    for (let i = 0; i < soundsList_losses.length; ++i) {
+        // Play the active sounds in succession (only if not already playing)
+        if ((soundsList_losses[i].active) && (soundsList_losses[i].source.paused)) {
+            soundsList_losses[i].source.play();
+        }
+    }
+
+    // After 1 second, allow function calls
+    setTimeout(() => {
+        silence = false;
+    }, 1000);
+}
+
+// Plays a non-alarm sound
+function playOtherSound(sound) {
+    // Look for the sound
+    const soundNumber = soundsList_other.findIndex(
+        file => file.source.src.includes(sound)
+    );
+    
+    // Not found or already playing
+    if ((soundNumber === -1) || (!soundsList_other[soundNumber].source.paused)) {
+        return;
+    }
+    
+    // Play if on the Horizon main page
+    if (isHorizonMain()){
+        soundsList_other[soundNumber].source.play();
+    }
+}
+
+function toggleMute() {
+    // Toggle mute first, then update UI
+
+    // Alarm sounds
+    for (let i = 0; i < soundsList_losses.length; ++i) {
+        soundsList_losses[i].source.muted = !soundsList_losses[i].source.muted;
+    }
+
+    // Other sounds (no source as these aren't in a queue)
+    for (let i = 0; i < soundsList_other.length; ++i) {
+        soundsList_other[i].source.muted = !soundsList_other[i].source.muted;
+    }
+
+    /* Icon represents current state.
+     * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
+     * modified by changing the colour to a Horizon-themed gradient
+    */
+    if (allUnmuted()) {
+        document.getElementById("toggleIcon").src = "img/icons/sound-unmuted.svg";
+        document.getElementById("toggleIcon").alt = "Sound unmuted";
+    }
+    else {
+        document.getElementById("toggleIcon").src = "img/icons/sound-muted.svg";
+        document.getElementById("toggleIcon").alt = "Sound muted";
+    }
+}
+
+/* Update the given sound as to if it will play in the sound
+ * queue. If long = true, the alarm will change to its extended version.
+*/
+function updateSound(sound, newValue, quicker) {
+    const soundNumber = soundsList_losses.findIndex(
+        file => file.source.src.includes(sound)
+    );
+
+    // If newValue is true, the sound should play when called
+    if (soundNumber >= 0) {
+        soundsList_losses[soundNumber].active = newValue;
+    }
+
+    /* Custom functions just for inside this one. Note that the suffix
+     * is before the file extension, not after
+    */
+    function addQuicker() {
+        // Filepath must not already contain the differentiating suffix
+        if (!soundsList_losses[soundNumber].source.src.includes("_Quicker")) {
+            soundsList_losses[soundNumber].source.src = soundsList_losses[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
+        }
+    }
+    function removeQuicker() {
+        // Remove the suffix
+        soundsList_losses[soundNumber].source.src.replaceAll("_Quicker", "");
+    }
+
+    quicker ? addQuicker() : removeQuicker();
+    try {
+        /* Don't play any sound if none are active (else that would delay any
+         * future ones by an extra second). Likewise, don't do so unless the main
+         * Horizon page is selected
+        */
+        if ((soundsList_losses.some(file => file.active)) && isHorizonMain()) {
+            playAlarmSounds();
+        }
+    } catch (error) {
+        /* Perform opposite operation, leading into an infinite loop
+         * if the original sound did not exist neither with, nor without
+         * "_Quicker"), which should not be the case here at this time
+        */
+        quicker ? removeQuicker() : addQuicker();
+    }
+}
 
 // Reconnecting code
 function scheduleReconnect() {
@@ -99,7 +438,7 @@ function updateTime() {
     // Local time
     if (timestampLocal != undefined && timestampLocal != 0) {
         sendDataToRegistry({
-            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
+            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)} s`,
         });
     }
 }
@@ -179,8 +518,8 @@ function logMessage(message, logType = "", timestamp = "") {
         logArea.removeChild(logArea.firstChild);
     }
 
-    // Scroll to bottom of log
-    logArea.scrollTop = logArea.scrollHeight;
+    // // Scroll to bottom of log
+    // logArea.scrollTop = logArea.scrollHeight;
 }
 
 document.addEventListener("visibilitychange", function () {
@@ -271,6 +610,11 @@ function API_OnMessage(event) {
         // Flag data for errors
         checkErrorConditions(apiLatest.data);
 
+        // Check if any data has gone offline
+        // This should be constant throughout runtime,
+        // But it's worth checking every packet at this stage to avoid a bug
+        checkOfflineData(apiLatest.data)
+
         // Process data for display
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
         sendDataToRegistry(apiData);
@@ -302,11 +646,25 @@ function API_OnMessage(event) {
                     rocketUpdate(apiData);
                 }
             }
-        } else if (apiData.id == 6 || apiData.id == 7) {
+        } else if (apiData.id == 55) {
             ///// ----- GSE PACKETS ----- /////
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
                 graphUpdateAuxData(apiData);
+            }
+        } else if (apiData.id == 10) {
+            ///// ----- PENDANT ----- /////
+            if (typeof updatePendantState === "function") {
+                updatePendantState(apiData);
+            }
+        } else if (apiData.id == 50) {
+            ///// ----- NETWORK DIAGNOSTICS ----- /////
+            if (typeof horizonDiagNavAlertProcessPacket === "function") {
+                horizonDiagNavAlertProcessPacket(apiData);
+            }
+            
+            if (typeof graphUpdateDiagnostics === "function") {
+                graphUpdateDiagnostics(apiData);
             }
         }
     } catch (error) {
@@ -318,7 +676,7 @@ function API_OnMessage(event) {
 function checkErrorConditions(apiData) {
     const errorConditions = [
         {
-            IDs: ["analogVoltageInput1"], // Rocket weight
+            IDs: ["weight_rocket"], // Rocket weight
             discard: {
                 min: -1,
                 max: 128,
@@ -360,10 +718,17 @@ function checkErrorConditions(apiData) {
             },
         },
         {
-            IDs: ["internalTemp"],
+            IDs: ["gyroX", "gyroY", "gyroZ"],
             discard: {
-                min: -1,
-                max: 128,
+                min: -295,
+                max: 295,
+            },
+        },
+        {
+            IDs: ["temp_vent"],
+            discard: {
+                min: -200,
+                max: 80,
             },
         },
         {
@@ -410,22 +775,50 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "thermocouple1",
-                "thermocouple2",
-                "thermocouple3",
-                "thermocouple4",
+                "temp_tank_top",
+                "temp_tank_middle",
+                "temp_tank_bottom",
             ],
             error: {
-                max: 34.5,
+                max: 30,
             },
-            errorMessage: "flag raised",
+            errorMessage: " warming",
             discard: {
                 min: -128,
                 max: 128,
             },
         },
         {
-            IDs: ["transducer1", "transducer2", "transducer3"],
+            IDs: [
+                "temp_pipe_n2o_gse",
+            ],
+            error: {
+                max: 40,
+            },
+            errorMessage: " warming",
+            discard: {
+                min: -128,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "temp_vent",
+            ],
+            error: {
+                max: 34.5,
+            },
+            discard: {
+                min: -200,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "pressure_n2o_bottle",
+                "pressure_n2o_tank",
+                "pressure_o2_tank",
+            ],
             error: {
                 max: 64.5,
             },
@@ -541,6 +934,31 @@ function checkErrorConditions(apiData) {
     });
 }
 
+// Mark devices offline and manage their display change 
+function checkOfflineData(apiData) {
+    const offlineSentinel = "offline"; // From gsedaq_metrics.py
+    function isOffline(value) {return value === offlineSentinel;}
+
+    // Top level check.
+    // Recursion will be needed if you want to impliment for other packets
+    if (apiData == null) {
+        console.warning("apiData passed as null to checkOfflineData");
+    }
+    
+    for (const [key, value] of Object.entries(apiData)) {
+        if (value == null) {
+            metricOffline[key] = true;
+        } else if (isOffline(value)) {
+            metricOffline[key] = true;
+        } else {
+            metricOffline[key] = false;
+        }
+    }
+}
+
+// May not be required
+const networkPackets = [];
+
 function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData }; // Shallow copy
@@ -551,6 +969,22 @@ function processDataForDisplay(apiData, apiId) {
     }
     if (processedData.meta == undefined) {
         processedData.meta = {};
+    }
+
+    if (apiId === 50) {
+        // Track packet counts per device and attach to processedData.
+        // All HTML rendering is handled by graphUpdateDiagnostics() in GCS_Graphs.js.
+        Object.keys(apiData).forEach(device => {
+            if (typeof apiData[device] !== 'object' || apiData[device] === null) return;
+            if (!('ping' in apiData[device])) return;
+
+            processedData[device] = {
+                ...apiData[device],
+                ping: apiData[device].ping,
+                packet_loss: (apiData[device].packet_loss * 100).toFixed(1),
+                count: apiData[device].packet_count ?? 0,
+            };
+        });
     }
 
     if (apiData?.meta) {
@@ -596,23 +1030,8 @@ function processDataForDisplay(apiData, apiId) {
                 lostPackets: processedData.meta.totalPacketCountAv - packetsAV1,
             };
             processedData.state.av = { radio: 1 };
-        } else if ([6, 7].includes(apiId)) {
-            if (apiData.meta?.totalPacketCountGse) {
-                if (packetsGSE == 0) {
-                    packetsGSEoffset = apiData.meta.totalPacketCountGse - 1;
-                }
-                processedData.meta.totalPacketCountGse =
-                    apiData.meta.totalPacketCountGse - packetsGSEoffset;
-            }
-
+        } else if ([55].includes(apiId)) {
             processedData.meta.radio = "gse";
-            processedData.meta.gse = {
-                rssi: apiData.meta.rssi,
-                snr: apiData.meta.snr,
-                packets: ++packetsGSE,
-                lostPackets:
-                    processedData.meta.totalPacketCountGse - packetsGSE,
-            };
             processedData.state.gse = { radio: 1 };
         }
     }
@@ -671,6 +1090,16 @@ function processDataForDisplay(apiData, apiId) {
             processedData.altitudeMax = altitudeMax;
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax);
         }
+
+        // Parachute sound should play if we descend below a set altitude
+        const PARACHUTE_ALTITUDE = 1200; // Ideally this would be in a place of unified truth
+        
+        // The new altitude must be below the threshold, unlike the old one
+        const prevAltitude = metresToFeet(altitudeHistory.at(-2));
+        const currAltitude = metresToFeet(altitudeHistory.at(-1));
+        if ((currAltitude < PARACHUTE_ALTITUDE) && (prevAltitude >= PARACHUTE_ALTITUDE)) {
+            playOtherSound("Parachute");
+        }
     }
 
     // Feet
@@ -685,12 +1114,61 @@ function processDataForDisplay(apiData, apiId) {
     if (apiData.GPSLongitude != undefined) {
         processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude);
     }
+    
+    /* If the rocket is within 50m of the GCS, play a warning sound.
+     * Use Pythagorean theorem, scaling up latitude and longitude, both
+     * of which are required to be present in the packet.
+     * 
+     * Requires matching the GCS coordinates to "LATITUDE": sinusoid() and/or
+     * "LONGITUDE": sinusoid() in backend/device_emulator.py (or vice versa) during
+     * testing, or else the rocket will appear to be very far from the GCS
+    */
+    if (apiData.GPSLatitude != undefined && apiData.GPSLongitude != undefined) {
+        // Scaling constants
+        const lat_kilometers = 110.87;
+        const long_kilometers = 95.48;
+
+        // (Decimal) Coordinates of the GCS
+        const lat_GCS = 31.039581;
+        const long_GCS = 103.526623;
+
+        /* Distance to GCS in km (both latitude and longitude). Use the decimal
+         * version of the coordinates as this is what the GCS coordinates are given
+         * as.
+        */
+        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2;
+        const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2;
+        const final_distance = Math.sqrt(lat_distance + long_distance);
+                
+        // Rocket_Warn sound
+        let currSound = soundsList_other[2];
+        
+        // 50m in km
+        if (final_distance <= 50/1000) {
+            // Sometimes the property might be equal to NaN, make sure no error is thrown
+            if (currSound.source.duration === currSound.source.duration) {
+                /* Volume rises in logarithmic fashion the longer the rocket stays within
+                * 50m of the GCS (within the 1st iteration), full volume otherwise.
+                */
+                currSound.source.volume = currSound.loopCount > 0
+                                    ? 1 : (currSound.source.currentTime / currSound.source.duration) ** 1.5;
+                console.log(currSound.loopCount);
+                playOtherSound("Rocket_Warn");
+            }
+        }
+        else {
+            // Stop and reset number of iterations.
+            currSound.source.pause();
+            currSound.source.currentTime = 0;
+            currSound.loopCount = 0;
+        }
+    }
 
     // Gas fill timer
-    if ([6, 7].includes(apiId) && apiData?.stateFlags) {
-        const systemActivated = apiData.stateFlags?.systemActivated;
-        const gasFillSelected = apiData.stateFlags?.gasFillSelected;
-        const n20FillActivated = apiData.stateFlags?.n20FillActivated;
+    if ([10].includes(apiId) && apiData != null) {
+        const systemActivated = apiData.SYS_ON;
+        const gasFillSelected = apiData.FILL_SELECTED;
+        const n20FillActivated = apiData.N2O_ACTIVE;
 
         if (systemActivated && gasFillSelected && n20FillActivated) {
             // Increase gas fill timer
@@ -808,8 +1286,7 @@ window.addEventListener("load", (event) => {
     document.querySelectorAll("[data-key]").forEach((elem) => {
         let key = elem.getAttribute("data-key"),
             prec = elem.getAttribute("data-precision"),
-            type = elem.getAttribute("data-type"),
-            timeout = elem.getAttribute("data-timeout");
+            type = elem.getAttribute("data-type");
 
         // Defaults
         let rego = { e: elem, t: "value" };
@@ -819,10 +1296,12 @@ window.addEventListener("load", (event) => {
         if (type != null) {
             rego.t = type;
         }
-        if (timeout != null) {
-            console.log(timeout);
-            rego.to = JSON.parse(timeout);
-        }
+
+        /* Play sound if any state indicator is already problematic
+         * (which at least in --experimental mode) will be the case).
+         * Only that no specific element is in mind at this stage.
+        */
+        checkStateIndicator();
 
         // Register element
         if (key in displayRegistry) {
@@ -833,6 +1312,24 @@ window.addEventListener("load", (event) => {
     });
 
     console.log(displayRegistry);
+});
+
+// Hotkeys for the navbar
+window.addEventListener('keydown', (event) => {
+    const styles = "h-full w-full flex flex-row items-center justify-center gap-2 whitespace-nowrap border-2 border-orange-900 px-2";
+    const buttons = document.querySelectorAll('a.' + styles.replaceAll(" ", "."));
+
+    // Only NaN would fail the test
+    if (parseInt(event.key, 10) === parseInt(event.key, 10)) {
+        // Get element by index from found elements list
+        const index = parseInt(event.key, 10) - 1;
+
+        if ((0 <= index) && (index < buttons.length)) {
+            // Click the element (ignoring default browser behaviour)
+            buttons[index].click();
+            event.preventDefault();
+        }
+    }
 });
 
 const skippedKeys = [];
@@ -868,10 +1365,14 @@ function sendDataToRegistry(apiData) {
     Object.entries(flat).forEach(([key, value]) => {
         if (key in displayRegistry) {
             for (const reg of displayRegistry[key]) {
+                if (metricOffline[key]) {
+                    displaySetOffline(reg.e);
+                    continue;  
+                }
+                displaySetOnline(reg.e); 
                 let elem = reg.e,
                     prec = reg.p,
-                    type = reg.t,
-                    timeout = reg.to;
+                    type = reg.t;
                 switch (type) {
                     case "value":
                         displaySetValue(elem, value, prec);
@@ -880,7 +1381,7 @@ function sendDataToRegistry(apiData) {
                         displaySetString(elem, value);
                         break;
                     case "state":
-                        displaySetState(elem, value, timeout);
+                        displaySetState(elem, value);
                         break;
                 }
             }
@@ -895,31 +1396,31 @@ function sendDataToRegistry(apiData) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
-        if (logVerbose)
-            console.debug(
+    if (logVerbose)
+        console.debug(
                 `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
-                "color:orange",
-                "color:white",
-            );
+            "color:orange",
+            "color:white",
+        );
 
-        // Use classes instead of IDs since IDs must be unique
-        // and some items occur on multiple pages
-        let elements = [item];
-        if (typeof item == "string") {
-            elements = document.querySelectorAll(`.${item}`);
-        }
-        if (elements && elements.length > 0) {
-            elements.forEach((elem) => {
-                // Update value
+    // Use classes instead of IDs since IDs must be unique
+    // and some items occur on multiple pages
+    let elements = [item];
+    if (typeof item == "string") {
+        elements = document.querySelectorAll(`.${item}`);
+    }
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            // Update value
                 elem.value = parseFloat(value).toFixed(precision);
 
-                // Update error state
-                if (error) {
-                    elem.classList.add("error");
-                } else {
-                    elem.classList.remove("error");
-                }
-            });
+            // Update error state
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
+            }
+        });
         }
     }
 }
@@ -948,9 +1449,7 @@ function displaySetString(item, string) {
     }
 }
 
-function displaySetState(item, value, timeout = {}) {
-    const indicatorStates = ["off", "green", "yellow", "red", "timeout", "error"];
-
+function displaySetState(item, value) {
     // Updates the state of an indicator
     if (logVerbose)
         console.debug(
@@ -964,29 +1463,23 @@ function displaySetState(item, value, timeout = {}) {
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
+
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
-
             // Convert true/false boolean values to on/error
             if (typeof value == "boolean") {
                 value = value ? 1 : 3;
             }
 
-            // Get indicator state from value
+            // Get indicator state from value (only then change the sound)
             if (value >= 0 && value < indicatorStates.length) {
                 elem.classList.add(indicatorStates[value]);
             }
 
-            if (timeout != undefined && Object.keys(timeout).length > 0) {
-                Object.entries(timeout).forEach(([ms, state]) => {
-                    clearTimeout(timeouts[[elem, ms]]);
-                    timeouts[[elem, ms]] = setTimeout(() => {
-                        displaySetState(elem, state); // timeout
-                    }, parseInt(ms));
-                });
-            }
-        });
+            // Check if sound needs to be played
+            checkStateIndicator(elem);
+        })
     }
 }
 
@@ -1007,6 +1500,20 @@ function displaySetError(item, error) {
             }
         });
     }
+}
+
+function displaySetOffline(elem) {
+    const label = elem.closest("label");
+    elem.value = "N/A"; // Has to be small
+    elem.classList.add("offline");
+    elem.classList.remove("error");
+    if (label) label.classList.add("sensor-offline");
+}
+
+function displaySetOnline(elem) {
+    const label = elem.closest("label");
+    elem.classList.remove("offline");
+    if (label) label.classList.remove("sensor-offline");
 }
 
 function displaySetActiveFlightState(item) {
@@ -1075,7 +1582,7 @@ function displayUpdateFlightState(data) {
             data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY"
         ) {
             // Preflight (not ready)
-            stateName = "Pre-flight (not ready)";
+            stateName = "Pre-flight";
             displaySetActiveFlightState("fs-state-preflight");
         } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
@@ -1089,6 +1596,9 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
+
+            // Play the apogee sound, whose file includes a parachute sound 2 seconds afterwards
+            playOtherSound("Apogee");
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";

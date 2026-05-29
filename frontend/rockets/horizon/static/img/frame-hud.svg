@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="630" height="700" viewBox="0 0 630 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top-left corner bracket -->
+  <path d="M 10 100 L 10 10 L 100 10" stroke="#ffd931" stroke-width="2" fill="none"/>
+
+  <!-- Top-right corner bracket -->
+  <path d="M 620 100 L 620 10 L 530 10" stroke="#ffd931" stroke-width="2" fill="none"/>
+
+  <!-- Bottom-left corner bracket -->
+  <path d="M 10 600 L 10 690 L 100 690" stroke="#ffd931" stroke-width="2" fill="none"/>
+
+  <!-- Bottom-right corner bracket -->
+  <path d="M 620 600 L 620 690 L 530 690" stroke="#ffd931" stroke-width="2" fill="none"/>
+
+  <!-- Bottom measurement strip -->
+  <line x1="120" y1="670" x2="510" y2="670" stroke="#f63356" stroke-width="1.5" opacity="0.9"/>
+
+  <!-- Tick marks on bottom strip (center tick slightly larger) -->
+  <g stroke="#f63356" stroke-width="1.5">
+    <line x1="150" y1="665" x2="150" y2="675" opacity="0.9"/>
+    <line x1="190" y1="667" x2="190" y2="673" opacity="0.9"/>
+    <line x1="230" y1="665" x2="230" y2="675" opacity="0.9"/>
+    <line x1="270" y1="667" x2="270" y2="673" opacity="0.9"/>
+    <line x1="315" y1="660" x2="315" y2="680" opacity="0.9"/>
+    <line x1="360" y1="667" x2="360" y2="673" opacity="0.9"/>
+    <line x1="400" y1="665" x2="400" y2="675" opacity="0.9"/>
+    <line x1="440" y1="667" x2="440" y2="673" opacity="0.9"/>
+    <line x1="480" y1="665" x2="480" y2="675" opacity="0.9"/>
+  </g>
+
+  <!-- Subtle side rail marks (mid-height only) -->
+  <g stroke="#9e193c" stroke-width="1.5" opacity="0.9">
+    <line x1="10" y1="300" x2="25" y2="300"/>
+    <line x1="10" y1="350" x2="25" y2="350"/>
+    <line x1="10" y1="400" x2="25" y2="400"/>
+    <line x1="10" y1="450" x2="25" y2="450"/>
+    <line x1="10" y1="500" x2="25" y2="500"/>
+
+    <line x1="605" y1="300" x2="620" y2="300"/>
+    <line x1="605" y1="350" x2="620" y2="350"/>
+    <line x1="605" y1="400" x2="620" y2="400"/>
+    <line x1="605" y1="450" x2="620" y2="450"/>
+    <line x1="605" y1="500" x2="620" y2="500"/>
+  </g>
+</svg>
