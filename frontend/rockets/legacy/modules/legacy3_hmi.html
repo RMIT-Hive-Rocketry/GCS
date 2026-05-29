@@ -6,7 +6,7 @@
     <div class="module-legacy justify-center items-center">
 
         <h2>GSE State HMI</h2>
-    
+
         <!-- Rocket Fill Timer: now displayed in the SVG status bar below.
             Hidden input retains the data-key binding for external updates. -->
         <input
@@ -17,8 +17,8 @@
             autocomplete="off"
             style="display:none"
         />
-    
-    
+
+
         <!-- =========================================================
             MAIN SVG DIAGRAM
             viewBox: 0 50 1650 900
@@ -31,20 +31,20 @@
             xmlns="http://www.w3.org/2000/svg"
             class="max-h-full"
         >
-    
+
             <!-- Shared font stack for all monospace labels -->
             <!-- font-family shorthand used inline on each text element -->
-    
+
             <g id="HMI">
-    
-    
+
+
                 <!-- =================================================
                     GAS BOTTLES
                     Three bottles: N2O #1, N2O #2, O2
                     Each bottle has a temperature text readout.
                     ================================================= -->
                 <g id="bottles">
-    
+
                     <!-- N2O Gas Bottle #2 (right bottle) -->
                     <path
                         id="HMI_N2OgasBottle2"
@@ -86,7 +86,7 @@
                         stroke="#F79322"
                         stroke-width="3"
                     />
-    
+
                     <!-- N2O Bottle #2 temperature readout -->
                     <text
                         id="HMI_N2O-2TEMP"
@@ -101,8 +101,8 @@
                     >
                         <tspan x="211" y="83.438">0.0</tspan>
                     </text>
-    
-    
+
+
                     <!-- N2O Gas Bottle #1 (left bottle) -->
                     <path
                         id="HMI_N2OgasBottle1"
@@ -144,7 +144,7 @@
                         stroke="#F79322"
                         stroke-width="3"
                     />
-    
+
                     <!-- N2O Bottle #1 temperature readout -->
                     <text
                         id="HMI_N2O-1TEMP"
@@ -159,8 +159,8 @@
                     >
                         <tspan x="69" y="83.438">0.0</tspan>
                     </text>
-    
-    
+
+
                     <!-- O2 Gas Bottle -->
                     <path
                         id="HMI_O2gasBottle"
@@ -202,7 +202,7 @@
                         stroke="#F79322"
                         stroke-width="3"
                     />
-    
+
                     <!-- O2 Bottle temperature readout -->
                     <text
                         id="HMI_O2TEMP"
@@ -217,11 +217,11 @@
                     >
                         <tspan x="151" y="456.438">0.0</tspan>
                     </text>
-    
+
                 </g>
                 <!-- end #bottles -->
-    
-    
+
+
                 <!-- =================================================
                     ROCKET BODY
                     Positioned at translate(1280, 20).
@@ -229,7 +229,7 @@
                     connecting pipe with "Filler Stem" label.
                     ================================================= -->
                 <g id="rocket" transform="translate(1280, 20)">
-    
+
                     <!-- Outer rocket body with stepped nozzle-style tail -->
                     <path
                         d="M150 40
@@ -253,7 +253,7 @@
                         stroke-linecap="round"
                         stroke-linejoin="round"
                     />
-    
+
                     <!-- Inner tank rect — no connecting pipe attached -->
                     <rect
                         x="140"
@@ -265,7 +265,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- Connecting pipe from inner tank to external line -->
                     <line
                         x1="140"
@@ -276,7 +276,7 @@
                         stroke-width="2"
                         stroke-linecap="round"
                     />
-    
+
                     <!-- Filler stem pipe label -->
                     <text
                         x="45"
@@ -288,17 +288,17 @@
                     >
                         Filler Stem
                     </text>
-    
+
                 </g>
                 <!-- end #rocket -->
-    
-    
+
+
                 <!-- =================================================
                     FLIGHT TANK DISPLAY
                     Shows N₂O flight tank with border and data labels.
                     ================================================= -->
                 <g id="flight-tank-display">
-    
+
                     <!-- Green border box -->
                     <rect
                         x="1270"
@@ -310,7 +310,7 @@
                         stroke="#28a745"
                         stroke-width="2"
                     />
-    
+
                     <!-- Tank labels -->
                     <g
                         font-family="Arial, sans-serif"
@@ -323,18 +323,18 @@
                         <text x="1320" y="510">Tank</text>
                         <text x="1320" y="535">00.0 kg</text>
                     </g>
-    
+
                 </g>
                 <!-- end #flight-tank-display -->
-    
-    
+
+
                 <!-- =================================================
                     VALVES
                     Needle valves, solenoids, ball valves,
                     backflow checks, spring valve.
                     ================================================= -->
                 <g id="HMI_valves">
-    
+
                     <!-- Needle Valve V1 -->
                     <g id="needleV1">
                         <g id="Polygon 9" filter="url(#filter0_d_172_821)">
@@ -361,8 +361,8 @@
                             stroke-width="3"
                         />
                     </g>
-    
-    
+
+
                     <!-- Relief Valve V3 -->
                     <g id="reliefValveV3">
                         <g id="Polygon 9_2" filter="url(#filter2_d_172_821)">
@@ -394,8 +394,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Needle Valve V4 -->
                     <g id="needleV4">
                         <g id="Polygon 9_3" filter="url(#filter4_d_172_821)">
@@ -422,8 +422,8 @@
                             stroke-width="3"
                         />
                     </g>
-    
-    
+
+
                     <!-- Solenoid Valve V5 — N2O fill, state-controlled -->
                     <g id="solenoidsV5">
                         <g id="needle">
@@ -460,8 +460,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Solenoid Valve V6 — O2 fill, state-controlled -->
                     <g id="solenoidsV6">
                         <g id="needle_2">
@@ -498,8 +498,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Solenoid Valve V7 — manual purge, normally open -->
                     <g id="solenoidsV7">
                         <g id="needle_3">
@@ -537,8 +537,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Ball Valve V8 -->
                     <g id="ballV8">
                         <path
@@ -564,8 +564,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Ball Valve V9 -->
                     <g id="ballV9">
                         <path
@@ -591,8 +591,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Ball Valve V10 -->
                     <g id="ballV10">
                         <path
@@ -618,8 +618,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Ball Valve V11 -->
                     <g id="ballV11">
                         <path
@@ -645,8 +645,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Ball Valve V12 -->
                     <g id="ballV12">
                         <path
@@ -672,8 +672,8 @@
                             stroke="white"
                         />
                     </g>
-    
-    
+
+
                     <!-- Backflow Check Valve V13 -->
                     <g id="backflowV13">
                         <g id="Group 2">
@@ -707,8 +707,8 @@
                             stroke-width="2"
                         />
                     </g>
-    
-    
+
+
                     <!-- Backflow Check Valve V14 -->
                     <g id="backflowV14">
                         <g id="Group 2_2">
@@ -742,8 +742,8 @@
                             stroke-width="2"
                         />
                     </g>
-    
-    
+
+
                     <!-- Spring-loaded check valve (no ID prefix, unnamed) -->
                     <g id="springValve">
                         <path
@@ -788,17 +788,17 @@
                             stroke="white"
                         />
                     </g>
-    
+
                 </g>
                 <!-- end #HMI_valves -->
-    
-    
+
+
                 <!-- =================================================
                     PRESSURE & TEMPERATURE INDICATORS
                     Live readout boxes at top and O2 pressure section.
                     ================================================= -->
                 <g id="HMI_Indicators">
-    
+
                     <!-- N2O In Pressure indicator -->
                     <g id="N2O In indicator" transform="translate(-90, 0)">
                         <rect
@@ -847,8 +847,8 @@
                             <tspan x="714" y="235">0.00</tspan>
                         </text>
                     </g>
-    
-    
+
+
                     <!-- N2O Out Pressure indicator -->
                     <g id="N20 Out Indicator" transform="translate(-70, 0)">
                         <rect
@@ -898,8 +898,8 @@
                             <tspan x="1157" y="235">0.00</tspan>
                         </text>
                     </g>
-    
-    
+
+
                     <!-- N2O Internal Temperature indicator -->
                     <g id="N2O Temp Indicator" transform="translate(15, 0)">
                         <rect
@@ -947,8 +947,8 @@
                             <tspan x="1230" y="238">0.0</tspan>
                         </text>
                     </g>
-    
-    
+
+
                     <!-- O2 Pressure indicator -->
                     <g id="O2 Press Indicator">
                         <rect
@@ -996,88 +996,88 @@
                             <tspan x="753" y="642">0.00</tspan>
                         </text>
                     </g>
-    
+
                 </g>
                 <!-- end #HMI_Indicators -->
-    
-    
+
+
                 <!-- =================================================
                     VALVE LABELS
                     Static text labels placed near each valve symbol.
                     ================================================= -->
                 <g id="HMI_labels">
-    
+
                     <!-- Shared font style for all valve labels -->
                     <!-- font-family applied individually per element -->
-    
+
                     <text x="22"  y="285" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-8</text>
-    
+
                     <text x="165" y="285" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-9</text>
-    
+
                     <text x="330" y="380" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-4</text>
-    
+
                     <text x="665"  y="380" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-5</text>
-    
+
                     <text x="707"  y="504" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-3</text>
-    
+
                     <text x="740"  y="433" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-10</text>
-    
+
                     <text x="915"  y="431" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-7</text>
-    
+
                     <text x="1017" y="380" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-13</text>
-    
+
                     <text x="1017" y="768" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-14</text>
-    
+
                     <text x="843.25" y="768" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-6</text>
-    
+
                     <text x="553.873" y="768" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-1</text>
-    
+
                     <text x="93"  y="655" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-12</text>
-    
+
                     <text x="420" y="827" fill="white"
                         font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace"
                         font-size="16">V-11</text>
-    
-    
+
+
                     <!-- Rotated axis labels for temperature columns -->
-    
+
                     <!-- N2O liquid temp label — left bottle axis -->
                     <text
                         x="130"
@@ -1091,7 +1091,7 @@
                     >
                         N₂O liquid temperature(°C)
                     </text>
-    
+
                     <!-- N2O liquid temp label — right bottle axis -->
                     <text
                         x="270"
@@ -1105,7 +1105,7 @@
                     >
                         N₂O liquid temperature(°C)
                     </text>
-    
+
                     <!-- O2 gas temp label — O2 bottle axis -->
                     <text
                         x="210"
@@ -1119,16 +1119,16 @@
                     >
                         O₂ Gas Temperature(°C)
                     </text>
-    
+
                 </g>
                 <!-- end #HMI_labels -->
-    
-    
+
+
                 <!-- =================================================
                     PRESSURE RECORDERS
                     Circular recorder symbols with internal arrow paths.
                     ================================================= -->
-    
+
                 <!-- Pressure Recorder (N2O line, lower) -->
                 <g id="HMI_Pressure_Recorder">
                     <circle id="Ellipse 2" cx="667" cy="696" r="19.5"
@@ -1147,7 +1147,7 @@
                         stroke-width="2"
                     />
                 </g>
-    
+
                 <!-- Pressure Recorder 2 (N2O upper line) -->
                 <g id="HMI_pressure_recorder2">
                     <circle id="Ellipse 2_2" cx="881" cy="301" r="19.5"
@@ -1165,7 +1165,7 @@
                         stroke="white"
                     />
                 </g>
-    
+
                 <!-- Pressure Recorder 1 (N2O in line) -->
                 <g id="HMI_pressure_recorder1">
                     <circle id="Ellipse 2_3" cx="564" cy="301" r="19.5"
@@ -1183,7 +1183,7 @@
                         stroke="white"
                     />
                 </g>
-    
+
                 <!-- Temperature Recorder (TR symbol, N2O line) -->
                 <g id="HMI_temperature_recorders">
                     <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5"
@@ -1212,15 +1212,15 @@
                         fill="white"
                     />
                 </g>
-    
-    
+
+
                 <!-- =================================================
                     PIPE NETWORK
                     Orange (#F79322) lines connecting all components.
                     Arrows indicate flow direction where shown.
                     ================================================= -->
                 <g id="HMI_pipes">
-    
+
                     <!-- Vent branch 3 (N2O vent loop) -->
                     <g id="vents3">
                         <path
@@ -1236,7 +1236,7 @@
                             stroke-width="2"
                         />
                     </g>
-    
+
                     <!-- Vent branch 1 (lower vent) -->
                     <g id="Vents1">
                         <path
@@ -1251,7 +1251,7 @@
                             stroke="#F79322"
                         />
                     </g>
-    
+
                     <!-- N2O bottle manifold connection -->
                     <path
                         id="Vector 3"
@@ -1259,7 +1259,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- N2O manifold to V4 -->
                     <path
                         id="Vector 6"
@@ -1267,7 +1267,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- Upper right routing: backflow to tank -->
                     <path
                         id="Vector 27"
@@ -1276,7 +1276,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- N2O bottle #1 to manifold (vertical) -->
                     <path
                         id="Vector 1"
@@ -1284,7 +1284,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- N2O bottle #2 to manifold (vertical) -->
                     <path
                         id="Vector 2"
@@ -1292,7 +1292,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- O2 bottle outlet pipe -->
                     <path
                         id="Vector 7"
@@ -1300,7 +1300,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- N2O main horizontal run (lower) -->
                     <path
                         id="Vector 22"
@@ -1308,7 +1308,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- Fill line segment to V1 -->
                     <path
                         id="Vector 18"
@@ -1316,7 +1316,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V4 outlet pipe -->
                     <path
                         id="Vector 8"
@@ -1324,7 +1324,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- O2 outlet to main line -->
                     <path
                         id="Vector 12"
@@ -1332,7 +1332,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- Relief branch and N2O return -->
                     <path
                         id="Vector 28"
@@ -1340,7 +1340,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V4 to recorder to V5 -->
                     <path
                         id="Vector 16"
@@ -1348,7 +1348,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- Flow arrow: spring valve outlet toward V1 -->
                     <path
                         id="Arrow 1"
@@ -1362,7 +1362,7 @@
                            V739.336H328.076V738.336V737.336H148.076V738.336Z"
                         fill="#F79322"
                     />
-    
+
                     <!-- Flow arrow: V1 outlet toward V11 -->
                     <path
                         id="Arrow 2"
@@ -1376,7 +1376,7 @@
                            V739.336H429.076V738.336V737.336H380.076V738.336Z"
                         fill="#F79322"
                     />
-    
+
                     <!-- Vent exhaust to atmosphere loop -->
                     <path
                         id="Vector 19"
@@ -1384,7 +1384,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V11 to lower vent branch -->
                     <line
                         id="Line 1"
@@ -1395,7 +1395,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- N2O main horizontal run (upper) -->
                     <path
                         id="Vector 17"
@@ -1403,7 +1403,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V5 vertical drop and pressure recorder branch -->
                     <path
                         id="Vector 20"
@@ -1412,7 +1412,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V6 to V14 horizontal run -->
                     <path
                         id="Vector 35"
@@ -1420,7 +1420,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- Temperature recorder lead -->
                     <path
                         id="Vector 34"
@@ -1428,7 +1428,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V10 vertical drop (upper) -->
                     <path
                         id="Vector 39"
@@ -1436,7 +1436,7 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                     <!-- V10 vertical drop (lower) -->
                     <path
                         id="Vector 40"
@@ -1444,18 +1444,18 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                 </g>
                 <!-- end #HMI_pipes -->
-    
-    
+
+
                 <!-- =================================================
                     FILLER STEM
                     Vertical line connecting tank to fill connection.
                     Most sub-elements are commented out (legacy shapes).
                     ================================================= -->
                 <g id="HMI_Fillerstem">
-    
+
                     <!-- Vertical line: tank top to fill connector -->
                     <line
                         x1="1229.5"
@@ -1465,11 +1465,11 @@
                         stroke="#F79322"
                         stroke-width="2"
                     />
-    
+
                 </g>
                 <!-- end #HMI_Fillerstem -->
-    
-    
+
+
                 <!-- =================================================
                     TEMPERATURE GAUGES
                     Three bar gauges: N2O bottle 1, N2O bottle 2, O2.
@@ -1477,7 +1477,7 @@
                     (white overlay that shrinks to show fill level).
                     ================================================= -->
                 <g id="HMI_gauges">
-    
+
                     <!-- Gauge: N2O Bottle #1 -->
                     <g id="HMI_gaugesN2O-1">
                         <g id="gauge_low">
@@ -1498,7 +1498,7 @@
                             />
                         </g>
                     </g>
-    
+
                     <!-- Gauge: N2O Bottle #2 -->
                     <g id="HMI_gauge-N2O-2">
                         <g id="gauge_low_2">
@@ -1518,7 +1518,7 @@
                             />
                         </g>
                     </g>
-    
+
                     <!-- Gauge: O2 Bottle -->
                     <g id="HMI_gauges_O2">
                         <g id="gauge_low_3">
@@ -1538,64 +1538,64 @@
                             />
                         </g>
                     </g>
-    
+
                 </g>
                 <!-- end #HMI_gauges -->
-    
-    
+
+
                 <!-- =================================================
                     CLICKABLE VALVE OVERLAY RECTANGLES
                     Transparent hit areas over each valve symbol.
                     onclick calls changecolor() to toggle valve state.
                     ================================================= -->
                 <g id="rectangle-HMI">
-    
+
                     <rect id="Rectangle-HMIV12"
                         x="113.5" y="612.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV12')" />
-    
+
                     <rect id="Rectangle-HMIV11"
                         x="440.5" y="779.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV11')" />
-    
+
                     <rect id="Rectangle-HMIV10"
                         x="761.5" y="391.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV10')" />
-    
+
                     <rect id="Rectangle-HMIV9"
                         x="177.5" y="242.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV9')" />
-    
+
                     <rect id="rectangle-HMIV8"
                         x="35.5" y="240.5" width="67" height="73"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('ballV8')" />
-    
+
                     <rect id="Rectangle-HMIV4"
                         x="308.5" y="321.5" width="67" height="56"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('needleV4')" />
-    
+
                     <rect id="Rectangle-HMIV1"
                         x="530.5" y="708.5" width="67" height="56"
                         stroke="#F79322" stroke-opacity="0.1"
                         stroke-width="3" pointer-events="visible"
                         onclick="changecolor('needleV1')" />
-    
+
                 </g>
                 <!-- end #rectangle-HMI -->
-    
-    
+
+
                 <!-- =================================================
                     STATUS BAR
                     Sits at y=847, below the diagram (lowest content ~y=827).
@@ -1604,7 +1604,7 @@
                     All live values updated via statusBarUpdate().
                     ================================================= -->
                 <g id="HMI_status_bar" transform="translate(0, 50)">
-    
+
                     <!-- Background band -->
                     <rect
                         x="0" y="847"
@@ -1613,7 +1613,7 @@
                         stroke="#F79322"
                         stroke-width="1"
                     />
-    
+
                     <!-- SECTION 1: ROCKET FILL TIMER-->
                     <text
                         x="16" y="867"
@@ -1630,11 +1630,11 @@
                         font-size="13"
                         dominant-baseline="middle"
                     >--</text>
-    
+
                     <!-- Separator 1 -->
-                    <line x1="325" y1="848" x2="325" y2="886" 
+                    <line x1="325" y1="848" x2="325" y2="886"
                         stroke="#444444" stroke-width="1" />
-    
+
                     <!-- SECTION 2: N₂O IN-->
                     <text
                         x="341" y="867"
@@ -1651,11 +1651,11 @@
                         font-size="13"
                         dominant-baseline="middle"
                     >0.00 bar</text>
-    
+
                     <!-- Separator 2 -->
                     <line x1="520" y1="848" x2="520" y2="886"
                         stroke="#444444" stroke-width="1" />
-    
+
                     <!-- SECTION 3: O₂-->
                     <text
                         x="536" y="867"
@@ -1672,24 +1672,24 @@
                         font-size="13"
                         dominant-baseline="middle"
                     >0.00 bar</text>
-    
+
                     <!-- Separator 3 -->
-                    <line x1="780" y1="848" x2="780" y2="886" 
+                    <line x1="780" y1="848" x2="780" y2="886"
                         stroke="#444444" stroke-width="1" />
-    
+
                     <!-- SECTION 4: LAST UPDATE-->
                     <text x="796" y="867" fill="#888888"
                     font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                     font-size="13" dominant-baseline="middle"
                     >Last Update:</text>
-                    <text id="sb-last-update" x="907" y="867" 
+                    <text id="sb-last-update" x="907" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="13" dominant-baseline="middle"
                     >:--</text>
 
                     <!-- Separator 4 -->
-                    <line x1="1040" y1="848" x2="1040" y2="886" 
+                    <line x1="1040" y1="848" x2="1040" y2="886"
                         stroke="#444444" stroke-width="1" />
 
                     <!-- SECTION 5: DATE -->
@@ -1697,7 +1697,7 @@
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="13" dominant-baseline="middle"
                     >Date:</text>
-                    <text id="sb-date" x="1100" y="867" 
+                    <text id="sb-date" x="1100" y="867"
                         fill="#00FF4D"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="13" dominant-baseline="middle"
@@ -1705,25 +1705,25 @@
 
                 </g>
                 <!-- end #HMI_status_bar -->
-    
+
             </g>
             <!-- end #HMI -->
-    
-    
+
+
             <!-- =============================================================
                 SVG FILTER DEFINITIONS
                 Drop-shadow filters applied to valve needle polygon groups.
                 All filters share the same structure; only x/y/w/h differ.
                 ============================================================= -->
             <defs>
-    
+
                 <!-- Shared drop-shadow primitive sequence (used in every
                     filter below):
                     feFlood -> feColorMatrix(alpha) -> feOffset(dy=4)
                     feGaussianBlur(2) → feComposite(out)
                     -> feColorMatrix(0.25 alpha) → feBlend(BackBG)
                     -> feBlend(SourceGraphic)                          -->
-    
+
                 <!-- Filter: needleV1 left polygon -->
                 <filter id="filter0_d_172_821"
                     x="538.174" y="725.946"
@@ -1744,7 +1744,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: needleV1 right polygon -->
                 <filter id="filter1_d_172_821"
                     x="559.924" y="725.946"
@@ -1765,7 +1765,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: reliefValveV3 left polygon -->
                 <filter id="filter2_d_172_821"
                     x="661.25" y="462.675"
@@ -1786,7 +1786,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: reliefValveV3 right polygon -->
                 <filter id="filter3_d_172_821"
                     x="671.675" y="474"
@@ -1807,7 +1807,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: needleV4 left polygon -->
                 <filter id="filter4_d_172_821"
                     x="316.174" y="341.946"
@@ -1828,7 +1828,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: needleV4 right polygon -->
                 <filter id="filter5_d_172_821"
                     x="337.924" y="341.946"
@@ -1849,7 +1849,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: solenoidsV5 left polygon -->
                 <filter id="filter6_d_172_821"
                     x="652.25" y="340.675"
@@ -1870,7 +1870,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: solenoidsV5 right polygon -->
                 <filter id="filter7_d_172_821"
                     x="674" y="340.675"
@@ -1891,7 +1891,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: solenoidsV6 left polygon -->
                 <filter id="filter8_d_172_821"
                     x="831.25" y="728.675"
@@ -1912,7 +1912,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: solenoidsV6 right polygon -->
                 <filter id="filter9_d_172_821"
                     x="853" y="728.675"
@@ -1933,7 +1933,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: solenoidsV7 upper polygon -->
                 <filter id="filter10_d_172_821"
                     x="869.744" y="406.252"
@@ -1954,7 +1954,7 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
                 <!-- Filter: solenoidsV7 lower polygon -->
                 <filter id="filter11_d_172_821"
                     x="869.684" y="428.017"
@@ -1975,30 +1975,30 @@
                     <feBlend mode="normal" in="SourceGraphic"
                         in2="effect1_dropShadow_172_821" result="shape" />
                 </filter>
-    
+
             </defs>
-    
+
         </svg>
         <!-- end SVG -->
-    
-    
+
+
         <!-- =================================================================
             HMI JAVASCRIPT
             Handles live data updates for pressures, temperatures, solenoids.
             ================================================================= -->
         <script>
-    
+
             // ---------------------------------------------------------------
             // Colour palettes
             // ---------------------------------------------------------------
-    
+
             // Three-state colour: red | green | yellow
             const color = ["#FF0000", "#00FF4D", "#FFF600"];
-    
+
             // Two-state colour for valves: red = closed, green = open
             const colorBoolean = ["#FF0000", "#00FF4D"];
-    
-    
+
+
             // ---------------------------------------------------------------
             // changecolor(objectid)
             // Toggles a valve element between open (green) and closed (red).
@@ -2007,15 +2007,15 @@
             function changecolor(objectid) {
                 const elem = document.getElementById(objectid);
                 if (elem == undefined) return;
-    
+
                 const fill    = elem.getAttribute("fill");
                 const isGreen = fill == colorBoolean[1];
                 const newFill = isGreen ? colorBoolean[0] : colorBoolean[1];
-    
+
                 elem.setAttribute("fill", newFill);
             }
-    
-    
+
+
             // ---------------------------------------------------------------
             // statusBarUpdate(data)
             // Refreshes the four status bar fields from live telemetry.
@@ -2027,7 +2027,7 @@
             //                        midnight via setInterval)
             // ---------------------------------------------------------------
             function statusBarUpdate(data) {
-    
+
                 // Rocket Fill Timer — pull from the hidden data-key input
                 const timerInput = document.getElementById(
                     "gasBottleTime-input"
@@ -2036,14 +2036,14 @@
                 if (timerEl && timerInput) {
                     timerEl.textContent = timerInput.value || "--";
                 }
-    
+
                 // N₂O In pressure
                 const n2oEl = document.getElementById("sb-n2o-in");
                 if (n2oEl && data?.pressure_n2o_bottle != undefined) {
                     n2oEl.textContent =
                         Number(data.pressure_n2o_bottle).toFixed(2) + " bar";
                 }
-    
+
                 // O₂ pressure
                 const o2El = document.getElementById("sb-o2");
                 if (o2El && data?.pressure_n2o_tank != undefined) {
@@ -2051,7 +2051,7 @@
                         Number(data.pressure_n2o_tank).toFixed(2) + " bar";
                 }
             }
-    
+
             // ---------------------------------------------------------------
             // statusBarSetDate()
             // Writes today's date (YYYY-MM-DD) into the status bar.
@@ -2066,19 +2066,19 @@
                 const dd   = String(now.getDate()).padStart(2, "0");
                 el.textContent = yyyy + "-" + mm + "-" + dd;
             }
-    
+
             // Initialise date immediately and refresh every 60 seconds
             statusBarSetDate();
             setInterval(statusBarSetDate, 60000);
-    
-    
+
+
             // ---------------------------------------------------------------
             // hmiUpdate(data)
             // Entry point for live telemetry. Accepts a data object with
             // transducer, thermocouple, and stateFlag fields.
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
-    
+
                 // Pressure transducers (bar)
                 if (data?.pressure_n2o_bottle) {
                     // N2O in pressure
@@ -2092,7 +2092,7 @@
                     // O2 pressure
                     hmiUpdateValue("hmi-pressure-3", data.pressure_n2o_tank);
                 }
-    
+
                 // Thermocouples (°C)
                 if (data?.temp_pipe_n2o_gse) {
                     // N2O internal temperature
@@ -2110,7 +2110,7 @@
                     // O2 bottle temperature
                     hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
                 }
-    
+
                 // Solenoid valve states (boolean flags)
                 if (data?.stateFlags) {
                     hmiUpdateSolenoid(
@@ -2127,7 +2127,7 @@
                         data.stateFlags.manualPurgeActivated
                     );
                 }
-    
+
                 // Refresh status bar with latest telemetry values
                 statusBarUpdate(data);
 
@@ -2141,8 +2141,8 @@
                     lastUpdateEl.textContent = hh + ":" + mm + ":" + ss;
                 }
             }
-    
-    
+
+
             // ---------------------------------------------------------------
             // hmiUpdateValue(id, value)
             // Updates a text element's first child with value.toFixed(1).
@@ -2150,12 +2150,12 @@
             // ---------------------------------------------------------------
             function hmiUpdateValue(id, value) {
                 if (value == undefined || Number.isNaN(value)) return;
-    
+
                 const elem = document.getElementById(id).firstElementChild;
                 if (!elem) return;
-    
+
                 elem.innerHTML = value.toFixed(1);
-    
+
                 // Gauge bar updates are only needed for bottle temperatures
                 if (id == "HMI_N2O-1TEMP") {
                     hmiUpdateTemperature("gauge_1_fill", value, "gauge_1_bar");
@@ -2165,8 +2165,8 @@
                     hmiUpdateTemperature("gauge_3_fill", value, "gauge_3_bar");
                 }
             }
-    
-    
+
+
             // ---------------------------------------------------------------
             // hmiUpdateTemperature(fillId, value, barId)
             // Sets fill colour based on temperature bands and adjusts the
@@ -2182,7 +2182,7 @@
                 const gauge    = document.getElementById(fillId);
                 const gaugeBar = document.getElementById(barId);
                 if (!gauge) return;
-    
+
                 // Colour band logic
                 if (value < 15) {
                     gauge.setAttribute("fill", color[1]);      // green
@@ -2191,12 +2191,12 @@
                 } else {
                     gauge.setAttribute("fill", color[0]);      // red
                 }
-    
+
                 // Bar height: full when cold, empty when hot
                 const MAX_HEIGHT = 69;
                 const TEMP_MAX   = 36;
                 let barHeight;
-    
+
                 if (value < 0) {
                     barHeight = MAX_HEIGHT;
                 } else if (value > TEMP_MAX) {
@@ -2204,11 +2204,11 @@
                 } else {
                     barHeight = MAX_HEIGHT - (value / TEMP_MAX) * MAX_HEIGHT;
                 }
-    
+
                 gaugeBar.setAttribute("height", barHeight);
             }
-    
-    
+
+
             // ---------------------------------------------------------------
             // hmiUpdateSolenoid(id, state)
             // Sets a solenoid element's fill to green (true) or red (false).
@@ -2216,14 +2216,13 @@
             function hmiUpdateSolenoid(id, state) {
                 if (state == undefined)        return;
                 if (typeof state !== "boolean") return;
-    
+
                 const solenoid = document.getElementById(id);
                 if (!solenoid) return;
-    
+
                 solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
             }
-    
+
         </script>
-    
+
     </div>
-    

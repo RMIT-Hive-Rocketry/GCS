@@ -559,7 +559,7 @@
 
     function processConsoleEvents(apiData) {
         // Walk inputs in predetermined order so simultaneous events
-        // log in a predictable oder
+        // log in a predictable order
         for (const [key, config] of Object.entries(CONSOLE_INPUT_CONFIG)) {
             const wasActive = consoleState.lastInputs[key] === true;
             const isActive = apiData && apiData[key] === true;

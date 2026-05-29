@@ -69,11 +69,11 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     tcp_gse_packet_count = 0
     # Used to copy across packets that need to be synced with the sevrer
     # Because this software uses the server as the official true timestamp,
-    # The frontnend will use it to interpolate lag based on that time. 
+    # The frontnend will use it to interpolate lag based on that time.
     # TCP does not come from the 'server'. It needs to know what time the server is on,
     # Then figure out how far behind it is. It has to be synced. This plots properly
     last_server_timestamp = 0
-    server_monotonic_time = 0 # Use time.monotonic difference in seconds
+    server_monotonic_time = 0  # Use time.monotonic difference in seconds
 
     try:
         context = zmq.asyncio.Context()
@@ -199,13 +199,15 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     ping_results = await network_pings.ping_manifest()
                     packet = {
                         "id": NETWORK_DIAGNOSTICS_PACKET_ID,
-                        "data": ping_results
+                        "data": ping_results,
                     }
                     try:
                         await websocket.send(json.dumps(packet))
                     except websockets.ConnectionClosedOK:
                         break
-                    next_ping_time = asyncio.get_running_loop().time() + PING_GAP_TIME_S
+                    next_ping_time = (
+                        asyncio.get_running_loop().time() + PING_GAP_TIME_S
+                    )
 
                 try:
                     # as mentioned in [labview_row_bytes_to_data_dict] this line
@@ -223,13 +225,20 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         # It resets if no clients are connected I think
                         tcp_gse_packet_count += 1
                         # See variable definition comments
-                        tcp_update_timestamp_s = time.monotonic() - server_monotonic_time + last_server_timestamp
+                        tcp_update_timestamp_s = (
+                            time.monotonic()
+                            - server_monotonic_time
+                            + last_server_timestamp
+                        )
                         output = {
                             "id": GSE_LABVIEW_TCP_PACKET_ID,
-                            "data": {"meta": {
-                                "totalPacketCountGse": tcp_gse_packet_count,
-                                "timestampS": tcp_update_timestamp_s}
-                            } | gse_data,
+                            "data": {
+                                "meta": {
+                                    "totalPacketCountGse": tcp_gse_packet_count,
+                                    "timestampS": tcp_update_timestamp_s,
+                                }
+                            }
+                            | gse_data,
                         }
                         await websocket.send(json.dumps(output))
                     except (ValueError, SyntaxError, TypeError) as e:

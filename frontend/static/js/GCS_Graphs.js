@@ -113,7 +113,7 @@ function graphCreateLine(chart) {
     if (chart.margin == undefined) {
         chart.margin = DEFAULT_MARGINS;
     }
-    
+
     /* If the 1st parameter is 0, this would throw -ve dimension errors.
      * This would happen if boundingRect gave 0-dimensions (such as in the
      * diagnostics graphs where the devices aren't hardcoded and hence).
@@ -231,7 +231,7 @@ function graphResize(chart) {
         .attr("preserveAspectRatio", "xMidYMid meet");
 
     // Recalculate graph drawing area
-    
+
     /* If the 1st parameter is 0, this would throw -ve dimension errors.
      * This would happen if boundingRect gave 0-dimensions (such as in the
      * diagnostics graphs where the devices aren't hardcoded and hence).
@@ -297,13 +297,39 @@ function graphRender(chart) {
         const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - MAX_TIME) : 0;
 
         if (chart.lastRender != now) {
-            // Limit data to graph window
-            chart.lines.forEach((line) => {
-                line.data = line.data.filter(
-                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
-                );
-            });
-            const allPoints = chart.lines.flatMap((line) => line.data);
+                    // Limit data to graph window
+        chart.lines.forEach((line) => {
+            line.data = line.data.filter(
+                (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+            );
+        });
+
+        const allPoints = chart.lines.flatMap((line) => line.data);
+
+        if (allPoints.length === 0) {
+            return;
+        }
+
+        const yMinRaw = d3.min(allPoints, (d) => d.y);
+        const yMaxRaw = d3.max(allPoints, (d) => d.y);
+
+        if (!Number.isFinite(yMinRaw) || !Number.isFinite(yMaxRaw)) {
+            return;
+        }
+
+        let yMin = yMinRaw - 1;
+        let yMax = yMaxRaw + 1;
+
+        if (chart?.limits?.yBottomMax !== undefined) {
+            yMin = Math.min(yMin, chart.limits.yBottomMax);
+        }
+
+        if (yMin === yMax) {
+            yMin -= 1;
+            yMax += 1;
+        }
+
+        if (chart.lastRender != now || chart.lastPointCount !== allPoints.length) {
 
             /* Update x and y domains (unless it's the test colour
              * graph where no scrolling is required).
@@ -311,7 +337,7 @@ function graphRender(chart) {
             if (chart !== GRAPH_TEST_COLOURS) {
                 chart.x.domain([windowStart, now]);
             }
-            
+
             chart.y.domain([
                 Math.min(
                     d3.min(allPoints, (d) => d.y) - 1,
@@ -323,8 +349,8 @@ function graphRender(chart) {
             ]); //.nice();
 
             // Update rendering of X and Y domain
-            
-            
+
+
             chart.g
                 .select("g")
                 .transition()
@@ -499,7 +525,7 @@ if (document.readyState === "loading") {
 const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
     document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
         LINE_COLOURS[index] = event.target.value;
-        
+
         // Same code as above
         for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
             graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
@@ -757,7 +783,7 @@ function diagEnsureGraph(deviceName) {
     // Add threshold background layers after graph initialises
     // Delay so the browser paints the panel before we measure its dimensions
     setTimeout(() => {
-        
+
         graphCreateLine(graph);
 
         if (!graph.g) return;
@@ -793,7 +819,7 @@ function diagEnsureGraph(deviceName) {
         line.color = "#000000";
     });
     }, 200);
-    
+
 }
 
 // ── Middle panel: update badge, graph line, and stats ────────────
@@ -938,8 +964,7 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
 function graphUpdateDiagnostics(apiData) {
     const timestamp = diagNowSeconds();
 
-    let gseWorstPing = null;
-    let lanWorstPing = null;
+
     let onlineCount = 0, totalCount = 0;
 
     Object.entries(apiData).forEach(([deviceName, deviceData]) => {
@@ -962,13 +987,7 @@ function graphUpdateDiagnostics(apiData) {
         diagEnsureGraph(deviceName);
         diagUpdateGraph(deviceName, ping, alive, timestamp);
 
-        // Summary tracking
-        if (DIAG_GSE_DEVICES.includes(deviceName) && alive) {
-            gseWorstPing =
-                gseWorstPing == null
-                    ? ping
-                    : Math.max(gseWorstPing, ping);
-        }
+
 
         if (DIAG_LAN_DEVICES.includes(deviceName) && alive) {
             lanWorstPing =
@@ -1085,7 +1104,7 @@ function diagRenderGraph(graph) {
             const visibleData = lineData.data.filter(
                 (d) => d.x >= windowStart && d.x <= now
             );
-        
+
             // Build a single continuous blue step-line segment.
             // Offline points (-1) do NOT break the line
             const normalSegments = [];
@@ -1110,52 +1129,83 @@ function diagRenderGraph(graph) {
                 x: now,
                 y: lastNormalPoint.y,
             });
-        }
-    
-        const stepLine = d3
-            .line()
-            .x((d) => graph.x(d.x))
-            .y((d) => graph.y(Math.max(1, Math.min(500, d.y))))
-            .curve(d3.curveStepAfter);
-    
-        const stepPath = graph.g.selectAll(".diag-step-line")
-            .data([displayData]);
-    
-        stepPath
-            .enter()
-            .append("path")
-            .attr("class", "diag-step-line")
-            .attr("fill", "none")
-            .attr("stroke", "#22d3ee")
-            .attr("stroke-width", 2.5)
-            .attr("stroke-opacity", 0.95)
-            .attr("stroke-linecap", "round")
-            .attr("stroke-linejoin", "round")
-            .merge(stepPath)
-            .attr("d", stepLine);
-    
-        stepPath.exit().remove();
-    
-        // Red vertical bars use ONLY disconnected ping values.
-        const disconnectedData = visibleData.filter((d) => d.y === -1);
-    
-        const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
-            .data(disconnectedData, (d) => d.x);
-    
-        disconnectBars
-            .enter()
-            .append("line")
-            .attr("class", "diag-disconnect-bar")
-            .attr("stroke", "#ef4444")
-            .attr("stroke-width", 8)
-            .attr("stroke-opacity", 0.9)
-            .attr("stroke-linecap", "butt")
-            .merge(disconnectBars)
-            .attr("x1", (d) => graph.x(d.x))
-            .attr("x2", (d) => graph.x(d.x))
-            .attr("y1", graph.y(1))
-            .attr("y2", graph.y(500));
-    
-        disconnectBars.exit().remove();
-    });            
-}
+
+            // Always extend the segment to the current render time so the
+            // line reaches the right edge of the graph.
+            if (currentSegment.length > 0) {
+            const lastPoint = currentSegment[currentSegment.length - 1];
+            if (lastPoint.x < now) {
+                currentSegment.push({ x: now, y: lastPoint.y });
+            }
+            normalSegments.push(currentSegment);
+            }
+
+            const stepLine = d3
+                .line()
+                .x((d) => graph.x(d.x))
+                .y((d) => graph.y(diagClampGraphPing(d.y)))
+                .curve(d3.curveStepAfter);
+
+            const stepPath = graph.g.selectAll(".diag-step-line")
+                .data(normalSegments);
+
+            stepPath
+                .enter()
+                .append("path")
+                .attr("class", "diag-step-line")
+                .attr("fill", "none")
+                .attr("stroke", "#22d3ee")
+                .attr("stroke-width", 2.5)
+                .attr("stroke-opacity", 0.95)
+                .attr("stroke-linecap", "round")
+                .attr("stroke-linejoin", "round")
+                .merge(stepPath)
+                .attr("d", stepLine);
+
+            stepPath.exit().remove();
+
+            // Red vertical bars use ONLY disconnected ping values.
+            const offlineSpans = [];
+
+            let offlineStart = null;
+
+            visibleData.forEach((d) => {
+                if (d.y < 1 && offlineStart === null) {
+                    offlineStart = d.x;
+                }
+
+                if (d.y >= 1 && offlineStart !== null){
+                    offlineSpans.push({
+                        start: offlineStart,
+                        end: d.x,
+                    });
+
+                    offlineStart = null;
+                }
+            });
+
+            if (offlineStart !== null) {
+                offlineSpans.push({
+                    start: offlineStart,
+                    end: now,
+                });
+            }
+
+            const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
+                .data(offlineSpans, (d) => `${d.start}-${d.end}`);
+
+            disconnectBars
+                .enter()
+                .append("rect")
+                .attr("class", "diag-disconnect-bar")
+                .attr("fill", "#ef4444")
+                .attr("fill-opacity", 1.2)
+                .merge(disconnectBars)
+                .attr("x", (d) => graph.x(d.start))
+                .attr("y", graph.y(500))
+                .attr("width", (d) => Math.max(2, graph.x(d.end) - graph.x(d.start)))
+                .attr("height", graph.y(1) - graph.y(500));
+
+            disconnectBars.exit().remove();
+        });
+    }
