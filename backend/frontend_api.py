@@ -62,7 +62,9 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     GSE_LABVIEW_TCP_PACKET_ID = 55
 
     PING_GAP_TIME_S = 2
-    next_ping_time = asyncio.get_running_loop().time()
+    next_ping_time = asyncio.get_running_loop().time() + PING_GAP_TIME_S
+    cached_ping_results: dict = {}
+    ping_task = None
     tcp_gse_task = None
     tcp_gse_packet_count = 0
     # Used to copy across packets that need to be synced with the sevrer
@@ -98,7 +100,19 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
         poller.register(pendant_sub_socket, zmq.POLLIN)
         poller.register(logging_sub_socket, zmq.POLLIN)
 
-        gse_tcp_queue: asyncio.Queue = asyncio.Queue(maxsize=1)
+        gse_tcp_queue: asyncio.Queue = asyncio.Queue(maxsize=64)
+
+        async def _network_ping_worker() -> None:
+            """Run ICMP manifest off the hot path so packet 55 is not stalled."""
+            nonlocal cached_ping_results
+            while not shutdown_event.is_set():
+                try:
+                    cached_ping_results = await network_pings.ping_manifest()
+                except Exception as e:
+                    slogger.error("ping_manifest failed: %s", e)
+                await asyncio.sleep(PING_GAP_TIME_S)
+
+        ping_task = asyncio.create_task(_network_ping_worker())
 
         async def _tcp_gse_labview_reader():
             """Pull data from LabVIEW or from LabVIEW emulator"""
@@ -194,27 +208,27 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
 
                 if asyncio.get_running_loop().time() > next_ping_time:
-                    ping_results = await network_pings.ping_manifest()
-                    packet = {
-                        "id": NETWORK_DIAGNOSTICS_PACKET_ID,
-                        "data": ping_results,
-                    }
-                    try:
-                        await websocket.send(json.dumps(packet))
-                    except websockets.ConnectionClosedOK:
-                        break
+                    if cached_ping_results:
+                        packet = {
+                            "id": NETWORK_DIAGNOSTICS_PACKET_ID,
+                            "data": cached_ping_results,
+                        }
+                        try:
+                            await websocket.send(json.dumps(packet))
+                        except websockets.ConnectionClosedOK:
+                            break
                     next_ping_time = (
                         asyncio.get_running_loop().time() + PING_GAP_TIME_S
                     )
 
-                try:
-                    # as mentioned in [labview_row_bytes_to_data_dict] this line
-                    # is assumed to be a complete tag.
-                    # otherwise the xml match will fail and throw valueerror
-                    gse_line = gse_tcp_queue.get_nowait()
-                except asyncio.QueueEmpty:
-                    pass
-                else:
+                while True:
+                    try:
+                        # as mentioned in [labview_row_bytes_to_data_dict] this line
+                        # is assumed to be a complete tag.
+                        # otherwise the xml match will fail and throw valueerror
+                        gse_line = gse_tcp_queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
                     try:
                         gse_data = GseDaqMetrics.labview_row_bytes_to_data_dict(
                             gse_line
@@ -300,6 +314,10 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     except Exception as e:
         slogger.critical(f"error with frontend api: {e}")
     finally:
+        if ping_task is not None:
+            ping_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await ping_task
         if tcp_gse_task is not None:
             tcp_gse_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):

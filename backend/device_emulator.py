@@ -751,6 +751,7 @@ def gse_server_manager(
     server.listen()
     slogger.info(f"Emulation labview server is LISTENING on {host}:{port}")
     all_threads: List[threading.Thread] = []
+    next_publish_mono = time.monotonic()
     try:
         while not service_helper.time_to_stop():
             metrics = get_sinusoid_packets_gsedaq(
@@ -763,7 +764,12 @@ def gse_server_manager(
             row_xml = GseDaqMetrics.build_xml_row(row_dict)
             GSEDAQData.publish_labview_update(row_xml.encode("utf-8") + b"\n")
 
-            time.sleep(MockPacket.TIME_INBETWEEN_PACKETS)
+            next_publish_mono += MockPacket.TIME_INBETWEEN_PACKETS
+            sleep_s = next_publish_mono - time.monotonic()
+            if sleep_s > 0:
+                time.sleep(sleep_s)
+            else:
+                next_publish_mono = time.monotonic()
 
             server.settimeout(0.0)
             while not service_helper.time_to_stop():
