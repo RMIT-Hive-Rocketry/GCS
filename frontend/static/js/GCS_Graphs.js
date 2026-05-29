@@ -1081,15 +1081,16 @@ function diagRenderGraph(graph) {
         graph.g.selectAll(".line-path").remove();
         graph.g.selectAll(".line-dot").remove();
 
-    graph.lines.forEach((lineData) => {
-        const visibleData = lineData.data.filter(
-            (d) => d.x >= windowStart && d.x <= now
-        );
-    
-        // Blue step line uses ONLY valid positive ping values.
-        const previousNormalPoint = [...lineData.data]
-        .reverse()
-        .find((d) => d.x < windowStart && d.y > 0);
+        graph.lines.forEach((lineData) => {
+            const visibleData = lineData.data.filter(
+                (d) => d.x >= windowStart && d.x <= now
+            );
+        
+            // Build a single continuous blue step-line segment.
+            // Offline points (-1) do NOT break the line
+            const normalSegments = [];
+            let currentSegment = [];
+            let lastValidY = null;
 
         const normalData = visibleData.filter((d) => d.y > 0);
 
