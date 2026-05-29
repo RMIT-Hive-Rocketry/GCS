@@ -32,7 +32,9 @@ class ConfigHorizon(Config):
 
             # HMI modules
             "horizon/modules/horizon_pendant.html",
+            "horizon/modules/horizon_gse_hmi.html",
             "horizon/modules/horizon_preflight.html",
+            "horizon/modules/horizon_graph_colours.html",
 
             # Diagnostics modules
             "horizon/modules/horizon_diagnostics_packets.html",
@@ -84,9 +86,13 @@ class ConfigHorizon(Config):
             "horizon_errorlog": [("page-main", 16, 1, 8, 3)],
             "horizon_auxiliary_gse": [("page-main", 16, 4, 8, 8)],
 
-            # HMI modules
-            "horizon_preflight": [("page-preflight", 0, 1, 24, 11)],
-            "horizon_pendant": [("page-control", 0, 1, 24, 11)],
+            # Preflight page
+            "horizon_preflight": [("page-preflight", 0, 1, 24, 6)],
+            "horizon_graph_colours": [("page-preflight", 0, 7, 24, 5)],
+
+            # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)
+            "horizon_gse_hmi": [("page-control", 0, 1, 14, 11)],
+            "horizon_pendant": [("page-control", 14, 1, 10, 11)],
 
             # Diagnostics modules
             # Content area: rows 1-10 (10 rows tall)

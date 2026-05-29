@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 // Note that all GCS calls in 0.1.0 are big-endian.
-// Little-endian will be used in futture packet revisions.
+// Little-endian will be used in future packet revisions.
 
 // --------- TEST: .extract_unsigned_bits ---------
 // ----------------------------------------

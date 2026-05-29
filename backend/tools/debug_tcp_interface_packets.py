@@ -4,7 +4,6 @@ import argparse
 import datetime
 import socket
 import sys
-from typing import Tuple
 
 
 def parse_args() -> argparse.Namespace:
@@ -14,12 +13,12 @@ def parse_args() -> argparse.Namespace:
             "Intended for debugging the middleware TcpInterface (127.0.0.1:5001)."
         )
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--host",
         default="127.0.0.1",
         help="IP address to bind to (default: 127.0.0.1)",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--port",
         type=int,
         default=5001,
@@ -48,7 +47,7 @@ def create_server(host: str, port: int) -> socket.socket:
 
 def accept_client(
     server: socket.socket,
-) -> Tuple[socket.socket, Tuple[str, int]]:
+) -> tuple[socket.socket, tuple[str, int]]:
     print("Waiting for TCP connection...")
     client_sock, addr = server.accept()
     print(f"Accepted connection from {addr[0]}:{addr[1]}")

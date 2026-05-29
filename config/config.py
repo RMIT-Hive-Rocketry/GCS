@@ -1,26 +1,25 @@
 from configparser import ConfigParser
 from functools import cache
-from typing import Dict
 import os
 
 # TODO
 # Add field validation to every single config option.
 # When get_config() loads it in, check that all fields are there and valid.
-# If the field is critical, throw a runtime error. If not, diplay a slogger warning
+# If the field is critical, throw a runtime error. If not, display a slogger warning
 # From fred, who is happy to chat with the next eager developer who finds this
 
 
-def get_default_config_path():
+def get_default_config_path() -> str:
     """
     Get absolute path based on where you're running the script.
-    This is just stupid hard code because the hardware pendant is in a seperate environment/process.
+    This is just stupid hard code because the hardware pendant is in a separate environment/process.
     Can remove this crap when you don't need pendant emulator anymore.
     """
-    CONFIG_LOCATOR_FILE = os.path.join(
+    config_locator_file = os.path.join(
         os.path.sep, "tmp", "GCS_CONFIG_LOCATION.txt"
     )
-    if os.path.exists(CONFIG_LOCATOR_FILE):
-        with open(CONFIG_LOCATOR_FILE, "r") as f:
+    if os.path.exists(config_locator_file):
+        with open(config_locator_file) as f:
             return f.read().strip()
 
     return os.path.join(os.getcwd(), "config", "config.ini")
@@ -36,12 +35,15 @@ def get_config(file_path=get_default_config_path()) -> ConfigParser:
         file_path (str): Path to the .ini configuration file.
 
     Returns:
-        dict[str, str]: A dictionary containing configuration settings.
+        dict[str, dict[str, str]]: A dictionary containing configuration settings.
     """
+    if file_path is None:
+        file_path = get_default_config_path()
+
     config = ConfigParser()
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Config file not found: {file_path}")
-    config.read(file_path)
+    _ = config.read(file_path)
 
     # TODO add range, exisitance and type checks here. Throw errors if not valid.
 

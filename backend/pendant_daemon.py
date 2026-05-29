@@ -7,16 +7,14 @@ import backend.includes_python.process_logging as slogger
 import zmq
 import os
 import time
-import backend.device_emulator as device_emulator
-import backend.includes_python.service_helper as service_helper
+from backend import device_emulator
+from backend.includes_python import service_helper
 from backend.includes_python.timers import RepeatingTimer
 from backend.includes_python.devices.control_device_manager import (
     ControlDeviceManager,
 )
 from backend.includes_python.devices.control_device import ControlDevice
-
-import config.config as config
-from typing import Type
+from config import config
 
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
@@ -32,23 +30,23 @@ FRONTEND_SOCKET_PATH = os.path.abspath(
 )
 
 
-def get_control_device():
+def get_control_device() -> ControlDevice:
     # fmt: off
     manager = ControlDeviceManager()
 
-    def hybrid_import() -> Type[ControlDevice]:
+    def hybrid_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import HybridPygamePendant
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
 
-    def rpi_import() -> Type[ControlDevice]:
+    def rpi_import() -> type[ControlDevice]:
         from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
 
     manager.add_managed_device("rpi_gpio_device",rpi_import)
 
-    def f710_import() -> Type[ControlDevice]:
+    def f710_import() -> type[ControlDevice]:
         from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
 
@@ -65,7 +63,7 @@ def get_control_device():
     # fmt: on
 
 
-def send_packet():
+def send_packet() -> None:
     context = zmq.Context()
 
     gse_packet_send_timer = RepeatingTimer(0.05)
@@ -75,15 +73,17 @@ def send_packet():
 
     controller = get_control_device()
 
+    # define sockets first to ensure they are not undefined
+    gse_push_socket = context.socket(zmq.PUSH)
+    frontend_pub_socket = context.socket(zmq.PUB)
+
     try:
-        gse_push_socket = context.socket(zmq.PUSH)
         gse_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         gse_push_socket.setsockopt(
             zmq.SNDHWM, 1
         )  # Limit send buffer to 1 message
         gse_push_socket.connect(f"ipc://{GSE_SOCKET_PATH}")
 
-        frontend_pub_socket = context.socket(zmq.PUB)
         frontend_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
         frontend_pub_socket.setsockopt(
             zmq.SNDHWM, 1
@@ -95,7 +95,7 @@ def send_packet():
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
-            pendant_state_dict = controller.get_states_dict()
+            pendant_state_dict = controller.get_state_table().get_gse_states()
             state_command = device_emulator.GCStoGSEStateCMD(
                 **pendant_state_dict
             )
@@ -153,7 +153,7 @@ def send_packet():
         slogger.debug("Cleaned up controller")
 
 
-def main():
+def main() -> None:
     device_emulator.MockPacket.initialize_settings(
         config.get_config()["emulation"]
     )

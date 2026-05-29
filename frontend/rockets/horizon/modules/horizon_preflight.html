@@ -1,11 +1,19 @@
 <!-- Preflight information -->
-<div class="module-horizon p-2">
+<div class="module-horizon">
     <!-- Sound files -->
     <h2>Overview</h2>
+
+    <!--
+        TODO: When it's time to incorporate detection of the rocket about to hit an unsafe
+        target (or within 50m of the control station), this text should be updated to say so,
+        noting that the required sound effects (Rocket_Hit and Rocket_Warn.mp3 in the sounds folder)
+        isn't like the 1st 6 that report specific device errors. In addition, a sound editor
+        should be used to appended said sound effect to the end of Combined_Sounds.mp3 (following 0.5 seconds of silence).
+    -->
     <p>
-        The above mute/unmute (default mute) icon can be used to toggle whether alarms play or not. The alarms themselves signify if something is wrong
+        The above mute/unmute (default mute) icon can be used to toggle whether sounds play or not. The 1st 6 are alarms that signify if something is wrong
         with connections to external devices (signified by a non-green indicator), and play in a queue from top to bottom priority (GSE, AV, GPS Fix,
-        Dual Board). Click the following button to hear them in succession (same order as the below table), with 0.5 sec of silence between each (including
+        Dual Board), and the last 2 are sounds for specific events. Click the following button to hear them in succession (same order as the below table), with 0.5 sec of silence between each (including
         any extended alarms):
         <audio id="combined" src="sounds/Combined_Sounds.mp3" preload="auto" controls></audio>
     </p>
@@ -41,5 +49,24 @@
             <td>Celebratory piano chord</td>
             <td>Created in MuseScore</td>
         </tr>
+        <tr>
+            <td>Parachute deployed (plays twice, 2 seconds after Apogee and when the rocket drops below 9000 ft)</td>
+            <td>Descending sine sweep</td>
+            <td>Created in Audacity</td>
+        </tr>
+        <!--
+            TODO: The following should be uncommented when it's time to
+            incorporate the respective detections.
+        -->
+        <!-- <tr>
+            <td>Rocket might land within 50m of the GCS</td>
+            <td>Horn tritone (volume is inversely proportionate to said distance, but plays at full volume on this page)</td>
+            <td>Created in MuseScore</td>
+        </tr> -->
+        <!-- <tr>
+            <td>Rocket is imminently about to hit someone on the head</td>
+            <td>Quick timpani increasing in pitch</td>
+            <td>Created in MuseScore</td>
+        </tr> -->
     </table>
 </div>

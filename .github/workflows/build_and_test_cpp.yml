@@ -274,3 +274,18 @@ jobs:
           ctest -R 'RunAllC\+\+Tests|PythonTests' --output-on-failure --verbose 2>ctest.error
           cat ctest.error
           [ -s ctest.error ] && exit 1 || exit 0
+
+  # try to cleanup artifacts after running
+  cleanup:
+    runs-on: ubuntu-latest
+    if: always() # run even on fails
+    needs: [build-cpp, test-cpp]
+    steps:
+      - name: Cleanup workflow artifacts
+        run: |
+          gh api /repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --paginate --jq '.artifacts[].id' | while read id; do
+            gh api -X DELETE /repos/${{ github.repository }}/actions/artifacts/$id
+            echo "Deleted artifact $id"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

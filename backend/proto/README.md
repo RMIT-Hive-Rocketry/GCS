@@ -6,7 +6,7 @@ Each proto definition should be the higher level representation of the data obje
 
 ## Generating files
 
-Please refference the [official proto docs](https://protobuf.dev/getting-started/cpptutorial/#compiling-protocol-buffers) which outline a generation command such as
+Please reference the [official proto docs](https://protobuf.dev/getting-started/cpptutorial/#compiling-protocol-buffers) which outline a generation command such as
 
 ```terminal
 protoc -I=$SRC_DIR --cpp_out=$DST_DIR $SRC_DIR/addressbook.proto

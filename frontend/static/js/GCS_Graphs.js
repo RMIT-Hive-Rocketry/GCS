@@ -12,10 +12,10 @@ const GRAPH_TICKS_Y = 8;
 
 // DEFINE CHARTS
 const LINE_COLOURS = [
-    "var(--color-red-500)",
-    "var(--color-green-500)",
-    "var(--color-blue-500)",
-    "white",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    // "#FFFFFF", - not required at this stage
 ];
 const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
 
@@ -61,14 +61,14 @@ const GRAPH_AUX_TRANSDUCERS = {
 const GRAPH_AUX_THERMOCOUPLES = {
     selector: "#graph-aux-thermocouples",
     ylabel: "Temperature (°C)",
-    numLines: 4,
+    numLines: 3,
     limits: {
         yBottomMax: 0,
     },
     data: [],
 };
-const GRAPH_AUX_INTERNALTEMP = {
-    selector: "#graph-aux-internaltemp",
+const GRAPH_AUX_VENTTEMP = {
+    selector: "#graph-aux-venttemp",
     ylabel: "Temperature (°C)",
     numLines: 1,
     limits: {
@@ -76,12 +76,19 @@ const GRAPH_AUX_INTERNALTEMP = {
     },
     data: [],
 };
-const GRAPH_AUX_GASBOTTLES = {
-    selector: "#graph-aux-gasbottles",
-    ylabel: "Mass (kg)",
-    numLines: 2,
+const GRAPH_AUX_SUPPLY_TEMP = {
+    selector: "#graph-aux-n2o-supply-temp",
+    ylabel: "Temperature (°C)",
+    numLines: 1,
     data: [],
 };
+
+const GRAPH_TEST_COLOURS = {
+    selector: "#graph-test-colours",
+    ylabel: "Sample metric",
+    numLines: 3,
+    data: [],
+}
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
@@ -108,8 +115,14 @@ function graphCreateLine(chart) {
     if (chart.margin == undefined) {
         chart.margin = DEFAULT_MARGINS;
     }
-    chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
-    chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
+    
+    /* If the 1st parameter is 0, this would throw -ve dimension errors.
+     * This would happen if boundingRect gave 0-dimensions (such as in the
+     * diagnostics graphs where the devices aren't hardcoded and hence).
+    */
+    chart.graphWidth = Math.abs(chart.width - chart.margin.left - chart.margin.right);
+    chart.graphHeight = Math.abs(chart.height - chart.margin.top - chart.margin.bottom);
+
     chart.x = d3.scaleLinear().range([0, chart.graphWidth]);
     chart.y = d3.scaleLinear().range([chart.graphHeight, 0]);
 
@@ -220,8 +233,14 @@ function graphResize(chart) {
         .attr("preserveAspectRatio", "xMidYMid meet");
 
     // Recalculate graph drawing area
-    chart.graphWidth = chart.width - chart.margin.left - chart.margin.right;
-    chart.graphHeight = chart.height - chart.margin.top - chart.margin.bottom;
+    
+    /* If the 1st parameter is 0, this would throw -ve dimension errors.
+     * This would happen if boundingRect gave 0-dimensions (such as in the
+     * diagnostics graphs where the devices aren't hardcoded and hence).
+    */
+    chart.graphWidth = Math.abs(chart.width - chart.margin.left - chart.margin.right);
+    chart.graphHeight = Math.abs(chart.height - chart.margin.top - chart.margin.bottom);
+
 
     // Update axes
     chart.x.range([0, chart.graphWidth]);
@@ -256,26 +275,31 @@ function graphRender(chart) {
         return;
     }
 
-    if (chart && chart?.g && chart?.x && chart?.y && chart?.lines) {
-        const allExistingPoints = chart.lines.flatMap((line) => line.data);
-        const latestPointTime = d3.max(allExistingPoints, (d) => d.x);
-    
-        // Normal telemetry graphs use API timing.
-        // Diagnostics ping graphs use Date.now()/1000, so API timing can be undefined.
-        const apiNowCandidate = timestampLocal + timestampApiConnect - timeDrift;
-        const apiNow = Number.isFinite(apiNowCandidate) ? apiNowCandidate : undefined;
-    
-        const now = Number.isFinite(latestPointTime)
-            ? Math.max(latestPointTime, apiNow ?? latestPointTime)
-            : apiNow;
-    
-        if (!Number.isFinite(now)) {
-            return;
-        }
-    
-        const windowStart = now - MAX_TIME;
-    
-        // Limit data to graph window
+    if (
+        chart &&
+        chart?.g &&
+        chart?.x &&
+        chart?.lines &&
+        typeof timestampLocal !== "undefined"
+    ) {
+        // Get timestamp of data
+        const now = Math.max(
+            d3.max(
+                chart.lines.flatMap((line) => line.data),
+                (d) => d.x,
+            ),
+            timestampLocal + timestampApiConnect - timeDrift,
+        );
+
+        /* Normally, line data is filtered to be in sync with the time,
+         * but for the test colours graph we don't need any scrolling,
+         * hence the graph should just be a static display (barring the
+         * changes in colour made by the operator).
+        */
+        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - MAX_TIME) : 0;
+
+        if (chart.lastRender != now) {
+                    // Limit data to graph window
         chart.lines.forEach((line) => {
             line.data = line.data.filter(
                 (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
@@ -308,9 +332,24 @@ function graphRender(chart) {
         }
     
         if (chart.lastRender != now || chart.lastPointCount !== allPoints.length) {
-            // Update x and y domains
-            chart.x.domain([windowStart, now]);
-            chart.y.domain([yMin, yMax]); //.nice();
+
+            /* Update x and y domains (unless it's the test colour
+             * graph where no scrolling is required).
+            */
+            if (chart !== GRAPH_TEST_COLOURS) {
+                chart.x.domain([windowStart, now]);
+            }
+            
+            chart.y.domain([
+                Math.min(
+                    d3.min(allPoints, (d) => d.y) - 1,
+                    chart?.limits?.yBottomMax != undefined
+                        ? chart?.limits?.yBottomMax
+                        : Infinity,
+                ),
+                d3.max(allPoints, (d) => d.y) + 1,
+            ]); //.nice();
+
             // Update rendering of X and Y domain
             
             
@@ -423,6 +462,7 @@ function graphRender(chart) {
         //console.log("graphRender: chart not ready", chart);
     }
 }
+}
 
 function graphRequestRender() {
     // Attempt to render all graphs
@@ -434,8 +474,10 @@ function graphRequestRender() {
 
     graphRender(GRAPH_AUX_TRANSDUCERS);
     graphRender(GRAPH_AUX_THERMOCOUPLES);
-    graphRender(GRAPH_AUX_INTERNALTEMP);
-    graphRender(GRAPH_AUX_GASBOTTLES);
+    graphRender(GRAPH_AUX_VENTTEMP);
+    graphRender(GRAPH_AUX_SUPPLY_TEMP);
+
+    graphRender(GRAPH_TEST_COLOURS);
 
     // Diagnostics ping graphs
     graphRenderDiagnostics();
@@ -476,8 +518,15 @@ function graphInit() {
     graphCreateLine(GRAPH_POS_ALT);
     graphCreateLine(GRAPH_AUX_TRANSDUCERS);
     graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
-    graphCreateLine(GRAPH_AUX_INTERNALTEMP);
-    graphCreateLine(GRAPH_AUX_GASBOTTLES);
+    graphCreateLine(GRAPH_AUX_VENTTEMP);
+    graphCreateLine(GRAPH_AUX_SUPPLY_TEMP);
+    graphCreateLine(GRAPH_TEST_COLOURS);
+
+    // Update the test colours graph
+    for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
+        graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+        graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+    }
 
     window.graphsInitialised = true;
     console.log("Graphs initialised");
@@ -488,6 +537,51 @@ if (document.readyState === "loading") {
 } else {
     graphInit();
 }
+
+// Update colours in real-time
+const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
+    document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
+        LINE_COLOURS[index] = event.target.value;
+        
+        // Same code as above
+        for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
+            graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
+            graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+        }
+
+        // Update the colours (even if no data is coming through)
+        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY,
+                            GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES,
+                            GRAPH_AUX_VENTTEMP, GRAPH_AUX_SUPPLY_TEMP, GRAPH_TEST_COLOURS];
+        graphsList.forEach((g1) => {
+            g1.lines.forEach((l1, index) => {
+                l1.color = LINE_COLOURS[index];
+            });
+        });
+
+        // Update the bottom borders (lineFour not required at this stage)
+        const lineOne = ["test1", "accelX", "gyroX", "pressure_n2o_bottle", "temp_tank_top", "temp_pipe_n2o_gse", "gasBottleWeight1", "temp_vent", "altitudeFeet", "velocity"];
+        const lineTwo = ["test2", "accelY", "gyroY", "pressure_n2o_tank", "temp_tank_middle", "gasBottleWeight2"];
+        const lineThree = ["test3", "accelZ", "gyroZ", "pressure_o2_tank", "temp_tank_bottom"];
+
+        [lineOne, lineTwo, lineThree].forEach((line, index) => {
+            line.forEach((c1) => {
+                let inputElement = document.querySelector('input[data-key="' + c1 + '"]');
+                if (inputElement != null) {
+                    inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                }
+            });
+        });
+
+        // Not tied to any graphs, but might as well also change these bottom borders
+        ["pitch", "yaw", "roll"].forEach((a1, index) => {
+            let inputElement = document.querySelector('input[class*="rocket-' + a1 + '"]');
+            if (inputElement != null) {
+                inputElement.style.borderBottomColor = LINE_COLOURS[index];
+            }
+        });
+    })
+})
 
 // Update modules
 function graphUpdateAvionics(data) {
@@ -522,55 +616,46 @@ function graphUpdatePosition(data) {
 
 function graphUpdateAuxData(data) {
     // AUXILIARY DATA MODULE GRAPHS
-    if (data?.id && data?.meta?.timestampS && data?.meta?.totalPacketCountGse) {
+
+    // TODO Based on launch configuration, some values will be "offline"
+    // Clearly label those graphs as offline instead of leaving them blank
+
+    if (data?.id) {
         const timestamp = data.meta.timestampS;
 
         // Transducers
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.transducer1);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.transducer2);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.transducer3);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.pressure_n2o_bottle);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.pressure_n2o_tank);
+        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.pressure_o2_tank);
 
-        // Thermocouples
+        // Supply Temp
+        graphAddValue(
+            GRAPH_AUX_SUPPLY_TEMP,
+            0,
+            timestamp,
+            data.temp_pipe_n2o_gse,
+        );
+
+        // Vent temperature
+        graphAddValue(GRAPH_AUX_VENTTEMP, 0, timestamp, data.temp_vent);
+
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             0,
             timestamp,
-            data.thermocouple1,
+            data.temp_tank_top,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             1,
             timestamp,
-            data.thermocouple2,
+            data.temp_tank_middle,
         );
         graphAddValue(
             GRAPH_AUX_THERMOCOUPLES,
             2,
             timestamp,
-            data.thermocouple3,
-        );
-        graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
-            3,
-            timestamp,
-            data.thermocouple4,
-        );
-
-        // Internal temperature
-        graphAddValue(GRAPH_AUX_INTERNALTEMP, 0, timestamp, data.internalTemp);
-
-        // Gas bottle weights
-        graphAddValue(
-            GRAPH_AUX_GASBOTTLES,
-            0,
-            timestamp,
-            data.gasBottleWeight1,
-        );
-        graphAddValue(
-            GRAPH_AUX_GASBOTTLES,
-            1,
-            timestamp,
-            data.gasBottleWeight2,
+            data.temp_tank_bottom,
         );
     }
 }
@@ -611,7 +696,7 @@ function diagUpdateDeviceCard(deviceName, ping, packetLoss, packetCount) {
         listEl.appendChild(card);
     }
 
-    const lossText  = packetLoss != null ? (packetLoss * 100).toFixed(1) + "%" : "--";
+    const lossText  = packetLoss != null ? packetLoss + "%" : "--";
     const pingText  = alive ? `${ping.toFixed(0)} ms` : "-- ms";
     const pktsText  = packetCount != null ? packetCount : "--";
 
@@ -1073,8 +1158,8 @@ function diagRenderGraph(graph) {
         .attr("y", top)
         .attr("height", yellowTop - top);
 
-        graph.g.selectAll(".line-path").remove();
-        graph.g.selectAll(".line-dot").remove();
+    graph.g.selectAll(".line-path").remove();
+    graph.g.selectAll(".line-dot").remove();
 
         graph.lines.forEach((lineData) => {
             const visibleData = lineData.data.filter(

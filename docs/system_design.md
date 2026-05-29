@@ -36,7 +36,7 @@ WIP
 
 see working changes on [master design Excalidraw file](https://github.com/RMIT-Competition-Rocketry/GCS/blob/main/docs/assets/master-design.excalidraw) -->
 
-## Design Philisophy
+## Design Philosophy
 
 Author: Freddy
 
@@ -44,7 +44,7 @@ April 2026
 
 ### Overall Purpose
 
-This entire sytsem was designed with the following goals and purposes in mind:
+This entire system was designed with the following goals and purposes in mind:
 
 - Reliably control avionics, GSE
 - Provide the framework and features for rocket telemetry visualisation (for the live telemetry competition).
@@ -81,7 +81,7 @@ Logging levels are hierarchical. When you set a desired logging level, you are s
 | :--- | :--- | :--- | :--- |
 | **DEBUG** | Diagnostic info for developers. Useful during the dev phase or while troubleshooting. | `Starting middleware build [cmake --build] with: ['cmake', '--build', '.', '--parallel', '8']` | **High** |
 | **INFO** | Standard event information. | `Middleware server started successfully` | **Moderate** |
-| **SUCCESS** | Same as info, but highlighted for important pass/fail events. | `GPS fix aquired` | **Low** |
+| **SUCCESS** | Same as info, but highlighted for important pass/fail events. | `GPS fix acquired` | **Low** |
 | **WARNING** | Something unexpected happened, but the system is probably still fine. | `AV Signal lost` | **Low** |
 | **ERROR** | A specific operation failed. The app is still running, but a feature is now broken. | `Missing required socket path argument` | **Very Low** |
 | **CRITICAL** | Total system failure. A system cannot continue, and something is very broken. Sometimes indicates data corruption or confirmation that the rocket has actually just exploded | `FC HAS DECIDED TO STOP BROADCASTING` | **Minimal/Zero** |
@@ -128,6 +128,12 @@ Also, try to break your system (during runtime testing) in every way. Kill proce
 <br>
 
 Although, this is not an invitation to automate the fill sequence. That one needs to be human-controlled only. That's where physical hardware safety comes in, like key interlocks, LEDs, momentary buttons and switches. Also, it's straight-up banned at IREC. I think you can imagine why this is human-controlled only. Once again, another reason to have an awesome checklist.
+
+## Data Emulation
+
+The old structure, as defined in [Lora Packet Structure Post Translation](https://rmiteduau-my.sharepoint.com/:x:/r/personal/s4003176_student_rmit_edu_au/Documents/Lora%20Packets%20Post%20Translation.xlsx?d=w52cc1d27ddb545ea99e3006f4547b509&csf=1&web=1&e=VMmh0z) was based off the old GSE/DAQ hybrid system which communicated over a different protocol and different device. It has completely changed, along with all its telemetry
+
+![emulation block diagram](assets/device_emulation_diagram.svg)
 
 ---
 

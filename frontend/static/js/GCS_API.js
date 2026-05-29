@@ -10,10 +10,10 @@
 const initialReconnectInterval = 200; // Initial reconnection wait time
 const maxReconnectInterval = 5000; // Maximum amount of time between reconnect attempts
 const graphRenderRate = 20; // FPS for rendering graphs
+const metricOffline = {}; // key -> boolean
 
-// API connection
-const api_url = window.location.host.split(":")[0];
-const ws_url = `ws://${api_url}:1887`;
+// WebSocket API connection
+const ws_url = _ws != undefined ? `ws://${_ws["host"]}:${_ws["port"]}` : `ws://${window.location.host.split(":")[0]}:1887`
 const apiSocket = new WebSocket(ws_url);
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
@@ -62,9 +62,9 @@ const timers = {
     launchTimestamp: 0,
 };
 
-// Generate the sounds (the 1st 2 can change into a quicker version if the alarm is long)
-const filenames = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
-const soundsList = filenames.map(src => {
+// Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
+const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+const soundsList_losses = filenames_losses.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
 
@@ -83,26 +83,44 @@ const soundsList = filenames.map(src => {
     return { source: audioObject, active: false };
 });
 
-// Only non-error sound, with a function to call it explicitly
-const apogee = new Audio("sounds/Apogee.mp3"); // MuseScore-generated
-apogee.muted = true; // Must also be muted by default
+// Other non-alarm sounds (uncomment the below when done).
+/* TODO: Add "Rocket_Hit" to this list when the application can detect
+ * the rocket imminently about to hit someone on the head (and Rocket_Warn
+ * for the rocket coming within 50m of the control station). To play either
+ * sound, call playOtherSound() with the respective string as the argument.
+ * 
+ * The volume of Rocket_Warn, which can be set using .volume() and accepts values
+ * in range [0.0, 1.0], should be inversely proportional to the distance to the GCS,
+ * where by my estimates, the lowest value it should be set to is 0.25. More complex
+ * logic will be required to program any loops as the other sounds in this array
+ * do not require then.
+ * 
+ * To put these sounds into Combined_Sounds, add them to the end of the corresponding
+ * track/segment in the attached Audacity project (static/sounds), continuing the pattern
+ * of 0.5 seconds between each sound.
+*/
+const filenames_other = ["Apogee", "Parachute"];
+const soundsList_other = filenames_other.map(src => {
+    // Create the audio object that will return upon ending
+    const audioObject = new Audio("sounds/" + src + ".mp3");
 
-// Return sound to the beginning (should not be required here)
-apogee.addEventListener('ended', () => {
-    apogee.pause();
-    apogee.currentTime = 0;
+    // Mute sound by default
+    audioObject.muted = true;
+
+    // Self-return after playing
+    audioObject.addEventListener('ended', () => {
+        audioObject.pause();
+        audioObject.currentTime = 0;
+    });
+
+    // This time there is no queue so no active
+    return audioObject;
 });
 
-function apogeeSound() {
-    // Make sure the main Horizon page is selected
-    if (isHorizonMain()) {
-        apogee.play();
-    }
-}
-
-// Check if all sounds are unmuted (including apogee)
+// Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
-    return soundsList.every(item => !item.source.muted) && !apogee.muted;
+    return soundsList_losses.every(item => !item.source.muted) &&
+           soundsList_other.every(item => !item.muted);
 }
 
 // Call at the start and whenever a state updates
@@ -186,7 +204,7 @@ function checkStateIndicator(elem = null) {
                     const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state]);
                     const greenState = () => !c1.classList.value.includes("green");
                     const currSound = t1.name.toUpperCase() + "_Loss";
-                    
+
                     if (timeoutState()) {
                         // At a minimum, the regular sound should be playing regardless
                         updateSound(currSound, true, false);
@@ -212,7 +230,7 @@ function checkStateIndicator(elem = null) {
             })
         }
     }
-    
+
     // Activate a single alarm
     if (elem !== null) {
         stateToSound(elem);
@@ -222,7 +240,7 @@ function checkStateIndicator(elem = null) {
         const validStates = ["av.radio", "gse.radio", "gpsFix", "dualBoard"]
         validStates.map(key => {
             let currElems = document.querySelectorAll(`[data-key="state.${key}"]`);
-        
+
             // Activate any required alarms
             currElems.forEach((c1) => {
                 stateToSound(c1);
@@ -237,25 +255,24 @@ function isHorizonMain() {
      * true, afterwards, it will be the latter
     */
     return window.location.href.endsWith("rocket=horizon") ||
-           window.location.href.endsWith("rocket=horizon#page-main");
+        window.location.href.endsWith("rocket=horizon#page-main");
 }
 
 // Block calls to enforce silence
 let silence = false;
 
-/* Plays sounds in a particular (relative) order, determined by the
- * order in which their names (rather, something close to that) appear
- * in the filenames array closer to the top.
+/* Plays alarm sounds in a queue, whose order matches the priority
+ * (in descending order).
 */
-function playSounds() {
+function playAlarmSounds() {
     // Return if 1 second not up, yet
     if (silence) { return; }
     silence = true;
 
-    for (let i = 0; i < soundsList.length; ++i) {
+    for (let i = 0; i < soundsList_losses.length; ++i) {
         // Play the active sounds in succession (only if not already playing)
-        if ((soundsList[i].active) && (soundsList[i].source.paused)) {
-            soundsList[i].source.play();
+        if ((soundsList_losses[i].active) && (soundsList_losses[i].source.paused)) {
+            soundsList_losses[i].source.play();
         }
     }
 
@@ -265,12 +282,36 @@ function playSounds() {
     }, 1000);
 }
 
+// Plays a non-alarm sound
+function playOtherSound(sound) {
+    // Look for the sound
+    const soundNumber = soundsList_other.findIndex(
+        file => file.src.includes(sound)
+    );
+    
+    // Not found or already playing
+    if ((soundNumber === -1) || (!soundsList_other[soundNumber].paused)) {
+        return;
+    }
+    
+    // Play if on the Horizon main page
+    if (isHorizonMain()){
+        soundsList_other[soundNumber].play();
+    }
+}
+
 function toggleMute() {
     // Toggle mute first, then update UI
-    for (let i = 0; i < soundsList.length; ++i) {
-        soundsList[i].source.muted = !soundsList[i].source.muted;
+
+    // Alarm sounds
+    for (let i = 0; i < soundsList_losses.length; ++i) {
+        soundsList_losses[i].source.muted = !soundsList_losses[i].source.muted;
     }
-    apogee.muted = !apogee.muted; // Don't forget apogee
+
+    // Other sounds (no source as these aren't in a queue)
+    for (let i = 0; i < soundsList_other.length; ++i) {
+        soundsList_other[i].muted = !soundsList_other[i].muted;
+    }
 
     /* Icon represents current state.
      * In addition, the icons are free to use per https://creativecommons.org/licenses/by/4.0/,
@@ -290,13 +331,13 @@ function toggleMute() {
  * queue. If long = true, the alarm will change to its extended version.
 */
 function updateSound(sound, newValue, quicker) {
-    const soundNumber = soundsList.findIndex(
+    const soundNumber = soundsList_losses.findIndex(
         file => file.source.src.includes(sound)
     );
-    
+
     // If newValue is true, the sound should play when called
     if (soundNumber >= 0) {
-        soundsList[soundNumber].active = newValue;
+        soundsList_losses[soundNumber].active = newValue;
     }
 
     /* Custom functions just for inside this one. Note that the suffix
@@ -304,13 +345,13 @@ function updateSound(sound, newValue, quicker) {
     */
     function addQuicker() {
         // Filepath must not already contain the differentiating suffix
-        if (!soundsList[soundNumber].source.src.includes("_Quicker")) {
-            soundsList[soundNumber].source.src = soundsList[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
+        if (!soundsList_losses[soundNumber].source.src.includes("_Quicker")) {
+            soundsList_losses[soundNumber].source.src = soundsList_losses[soundNumber].source.src.slice(0, -4) + "_Quicker.mp3";
         }
     }
     function removeQuicker() {
         // Remove the suffix
-        soundsList[soundNumber].source.src.replaceAll("_Quicker", "");
+        soundsList_losses[soundNumber].source.src.replaceAll("_Quicker", "");
     }
 
     quicker ? addQuicker() : removeQuicker();
@@ -319,8 +360,8 @@ function updateSound(sound, newValue, quicker) {
          * future ones by an extra second). Likewise, don't do so unless the main
          * Horizon page is selected
         */
-        if ((soundsList.some(file => file.active)) && isHorizonMain()) {
-            playSounds();
+        if ((soundsList_losses.some(file => file.active)) && isHorizonMain()) {
+            playAlarmSounds();
         }
     } catch (error) {
         /* Perform opposite operation, leading into an infinite loop
@@ -386,13 +427,13 @@ function updateTime() {
     // Local time
     if (timestampLocal != undefined && timestampLocal != 0) {
         sendDataToRegistry({
-            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`,
+            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)} s`,
         });
     }
 }
 
 // Logging code
-function logMessage(message, type = "", timestamp = "") {
+function logMessage(message, logType = "", timestamp = "") {
     // Make sure log area exists
     const logArea = document.getElementById("errorLogBox");
     if (!logArea) {
@@ -401,8 +442,7 @@ function logMessage(message, type = "", timestamp = "") {
     }
 
     // Calculate timestamp
-    if(timestamp == "")
-    {
+    if (timestamp == "") {
         let timestamp = "?";
         if (timestampLocal != undefined && timestampApiConnect != undefined) {
             timestamp =
@@ -410,43 +450,48 @@ function logMessage(message, type = "", timestamp = "") {
         }
     }
 
-
-
     // Handle different message types
-    let logName = "Notice";
-    let textColor = "text-white";
+    const messageTypes = {
+        "error": {
+            logName: "Error",
+            textColor: "text-red-400",
+            function: console.error
+        },
+        "warning": {
+            logName: "Warning",
+            textColor: "text-yellow-300",
+            function: console.warn
+        },
+        "ws": {
+            logName: "WebSocket",
+            textColor: "text-emerald-300",
+            function: console.debug
+        },
+        "debug": {
+            logName: "Debug",
+            textColor: "text-white-900",
+            function: console.debug
+        },
+        "critical": {
+            logName: "CRITICAL",
+            textColor: "text-red-crit",
+            function: console.error
+        },
+        "success": {
+            logName: "Success",
+            textColor: "text-green-300",
+            function: console.debug
+        },
+    }
 
-    if (type == "error") {
-        logName = "Error";
-        textColor = "text-red-400";
-        console.error(timestamp, message);
-
-    } else if (type == "warning") {
-        logName = "Warning";
-        textColor = "text-yellow-300";
-        console.warn(timestamp, message);
-
-    } else if (type == "ws") {
-        logName = "WebSocket";
-        textColor = "text-emerald-300";
-        console.debug(timestamp, message);
-
-    } else if (type == "debug") {
-        logName = "Debug";
-        textColor = "text-white-900";
-        console.debug(timestamp, message);
-
-    } else if (type == "critical") {
-        logName = "CRITICAL";
-        textColor = "text-red-crit";
-        console.error(timestamp, message);
-
-    } else if (type == "success") {
-        logName = "success";
-        textColor = "text-green-300";
-        console.debug(timestamp, message);
-
+    let logName, textColor;
+    if (Object.keys(messageTypes).indexOf(logType) != -1) {
+        logName = messageTypes[logType].logName;
+        textColor = messageTypes[logType].textColor;
+        messageTypes[logType].function(timestamp, message);
     } else {
+        logName = "Notice";
+        textColr = "text-white";
         console.log(timestamp, message);
     }
 
@@ -457,7 +502,7 @@ function logMessage(message, type = "", timestamp = "") {
     logArea.appendChild(line);
 
     // Limit lines
-    const maxlines = 16;
+    const maxlines = 256;
     while (logArea.children.length > maxlines) {
         logArea.removeChild(logArea.firstChild);
     }
@@ -554,6 +599,11 @@ function API_OnMessage(event) {
         // Flag data for errors
         checkErrorConditions(apiLatest.data);
 
+        // Check if any data has gone offline
+        // This should be constant throughout runtime,
+        // But it's worth checking every packet at this stage to avoid a bug
+        checkOfflineData(apiLatest.data)
+
         // Process data for display
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id);
         sendDataToRegistry(apiData);
@@ -585,7 +635,7 @@ function API_OnMessage(event) {
                     rocketUpdate(apiData);
                 }
             }
-        } else if (apiData.id == 6 || apiData.id == 7) {
+        } else if (apiData.id == 55) {
             ///// ----- GSE PACKETS ----- /////
             // Graphs
             if (typeof graphUpdateAuxData === "function") {
@@ -615,7 +665,7 @@ function API_OnMessage(event) {
 function checkErrorConditions(apiData) {
     const errorConditions = [
         {
-            IDs: ["analogVoltageInput1"], // Rocket weight
+            IDs: ["weight_rocket"], // Rocket weight
             discard: {
                 min: -1,
                 max: 128,
@@ -664,10 +714,10 @@ function checkErrorConditions(apiData) {
             },
         },
         {
-            IDs: ["internalTemp"],
+            IDs: ["temp_vent"],
             discard: {
-                min: -1,
-                max: 128,
+                min: -200,
+                max: 80,
             },
         },
         {
@@ -714,22 +764,50 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "thermocouple1",
-                "thermocouple2",
-                "thermocouple3",
-                "thermocouple4",
+                "temp_tank_top",
+                "temp_tank_middle",
+                "temp_tank_bottom",
             ],
             error: {
-                max: 34.5,
+                max: 30,
             },
-            errorMessage: "flag raised",
+            errorMessage: " warming",
             discard: {
                 min: -128,
                 max: 128,
             },
         },
         {
-            IDs: ["transducer1", "transducer2", "transducer3"],
+            IDs: [
+                "temp_pipe_n2o_gse",
+            ],
+            error: {
+                max: 40,
+            },
+            errorMessage: " warming",
+            discard: {
+                min: -128,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "temp_vent",
+            ],
+            error: {
+                max: 34.5,
+            },
+            discard: {
+                min: -200,
+                max: 128,
+            },
+        },
+        {
+            IDs: [
+                "pressure_n2o_bottle",
+                "pressure_n2o_tank",
+                "pressure_o2_tank",
+            ],
             error: {
                 max: 64.5,
             },
@@ -845,6 +923,28 @@ function checkErrorConditions(apiData) {
     });
 }
 
+// Mark devices offline and manage their display change 
+function checkOfflineData(apiData) {
+    const offlineSentinel = "offline"; // From gsedaq_metrics.py
+    function isOffline(value) {return value === offlineSentinel;}
+
+    // Top level check.
+    // Recursion will be needed if you want to impliment for other packets
+    if (apiData == null) {
+        console.warning("apiData passed as null to checkOfflineData");
+    }
+    
+    for (const [key, value] of Object.entries(apiData)) {
+        if (value == null) {
+            metricOffline[key] = true;
+        } else if (isOffline(value)) {
+            metricOffline[key] = true;
+        } else {
+            metricOffline[key] = false;
+        }
+    }
+}
+
 // May not be required
 const networkPackets = [];
 
@@ -859,136 +959,6 @@ function processDataForDisplay(apiData, apiId) {
     if (processedData.meta == undefined) {
         processedData.meta = {};
     }
-    /***
-    This was made by Michael PP1 Hive 2026 team. I had to make changes to his code
-    for customizing and seperating diagnostic page variables while it follows
-    the same logic of Michael. I just sepearted the code into pieces. 
-    - Mohammad
-     */
-    // if (apiId === 50) {
-    //     // Get the table (return early if not loaded)
-    //     let packetsTable = document.getElementById("packets");
-    //     if (packetsTable === null) {
-    //         return processedData;
-    //     }
-
-    //     // Update data if present, otherwise add it
-    //     Object.entries(apiData).forEach(([device, deviceData]) => {
-    //         let currRow = packetsTable.querySelector(`tr td div[data-key='${device}']`);
-    //         if (currRow === null) {
-    //             // Append 2 rows
-    //             let topRow = packetsTable.insertRow(-1);
-    //             let bottomRow = packetsTable.insertRow(-1);
-
-    //             topRow.innerHTML = `
-    //             <tr>
-    //                 <td class="w-full flex gap-4 justify-start items-center">
-    //                     <div
-    //                         data-key="${device}"
-    //                         data-type="state"
-    //                         class="indicator-state mx-0 green"
-    //                     ></div>
-    //                     <span class="font-bold text-hive">${device}</span>
-    //                 </td>
-    //             </tr>
-    //             `;
-
-    //             // Set state to red if no pings coming through
-    //             if ((deviceData.ping == null) || (deviceData.ping < 0)) {
-    //                 topRow.querySelector(".indicator-state")?.classList.replace("green", "red");
-    //             }
-                
-    //             bottomRow.innerHTML = `
-    //             <tr>
-    //                 <td style="border-bottom: 30px solid transparent;">
-    //                     <label>
-    //                         Packet Loss:<input
-    //                             data-key="${device}.packet_loss"
-    //                             data-precision="3"
-    //                             readonly
-    //                             autocomplete="off"
-    //                             class="text-right"
-    //                             size="4"
-    //                             value='${deviceData.packet_loss != null ? deviceData.packet_loss*100 : 0}'
-    //                         />%
-    //                     </label>
-    //                 </td>
-    //                 <td style="border-bottom: 30px solid transparent;">
-    //                     <label>
-    //                         Ping:<input
-    //                             data-key="${device}.ping"
-    //                             data-precision="0"
-    //                             readonly
-    //                             autocomplete="off"
-    //                             size="4"
-    //                             value='${deviceData.ping != null ? deviceData.ping : -1}'
-    //                         />
-    //                     </label>
-    //                 </td>
-    //             </tr>
-    //             `
-    //             // Not required at this stage
-    //             /* <td style="border-bottom: 30px solid transparent;">
-    //                     <label>
-    //                         Packets:<input
-    //                             data-key=${device}.packet_count
-    //                             data-precision="0"
-    //                             readonly
-    //                             autocomplete="off"
-    //                             class="text-right"
-    //                             size="11"
-    //                             value = 0
-    //                         />
-    //                     </label>
-    //                 </td>
-    //             */
-    //         }
-    //         else {
-    //             // Get the top row
-    //             const index = currRow.closest("tr").rowIndex;
-                
-    //             // Update the state
-    //             let topRow = packetsTable.rows[index].querySelector('td div');
-    //             topRow.classList.value = `indicator-state mx-0 ${
-    //                 ((deviceData.ping != null) && (deviceData.ping >= 0)) ? 'green' : 'red'
-    //             }`;
-
-    //             // Update the packet loss then ping
-    //             let bottomRow = packetsTable.rows[index + 1].querySelectorAll('td label input');
-    //             bottomRow[0].setAttribute('value', (deviceData.packet_loss != null) ? deviceData.packet_loss*100 : 0);
-    //             bottomRow[1].setAttribute('value', (deviceData.ping != null) ? deviceData.ping : -1);
-    //         }
-
-    //         // The below may not be required
-    //         // // Regardless, track packet count
-    //         // let index = networkPackets.findIndex(item => item.name === device);
-    //         // if (index >= 0) {
-    //         //     // If the device in question exists, update count and offset
-    //         //     networkPackets[index].count++;
-
-    //         //     // Keep offset if no value was passed in (such as at the start)
-    //         //     if (typeof device.packet_loss !== 'undefined') {
-    //         //         networkPackets[index].offset = packet_loss;
-    //         //     }
-    //         // }
-    //         // else {
-    //         //     // Create a new record and update index
-    //         //     networkPackets.push({name: device, count: 1, offset: 0});
-                
-    //         //     // index was -1, now need the last element
-    //         //     index += networkPackets.length;
-    //         // }
-
-    //         // // Calculate packet count as the total number of packets minus the % loss
-    //         // const actualPacketCount = Math.floor(networkPackets[index].count * ((100 - networkPackets[index].offset) / 100));
-    //         // let inputValue = packetsTable.querySelector(`input[data-key='${device}.packet_count']`);
-            
-    //         // // Make sure the element exists
-    //         // if (inputValue != null) {
-    //         //     inputValue.value = actualPacketCount;
-    //         // }
-    //     });
-    // }
 
     if (apiId === 50) {
         // Track packet counts per device and attach to processedData.
@@ -997,18 +967,11 @@ function processDataForDisplay(apiData, apiId) {
             if (typeof apiData[device] !== 'object' || apiData[device] === null) return;
             if (!('ping' in apiData[device])) return;
 
-            let index = networkPackets.findIndex(item => item.name === device);
-            if (index >= 0) {
-                networkPackets[index].count++;
-            } else {
-                networkPackets.push({ name: device, count: 1, offset: 0 });
-                index = networkPackets.length - 1;
-            }
-
-            // Attach packet count so graphUpdateDiagnostics() can display it
             processedData[device] = {
                 ...apiData[device],
-                packet_count: networkPackets[index].count,
+                ping: apiData[device].ping,
+                packet_loss: (apiData[device].packet_loss * 100).toFixed(1),
+                count: apiData[device].packet_count ?? 0,
             };
         });
     }
@@ -1056,23 +1019,8 @@ function processDataForDisplay(apiData, apiId) {
                 lostPackets: processedData.meta.totalPacketCountAv - packetsAV1,
             };
             processedData.state.av = { radio: 1 };
-        } else if ([6, 7].includes(apiId)) {
-            if (apiData.meta?.totalPacketCountGse) {
-                if (packetsGSE == 0) {
-                    packetsGSEoffset = apiData.meta.totalPacketCountGse - 1;
-                }
-                processedData.meta.totalPacketCountGse =
-                    apiData.meta.totalPacketCountGse - packetsGSEoffset;
-            }
-
+        } else if ([55].includes(apiId)) {
             processedData.meta.radio = "gse";
-            processedData.meta.gse = {
-                rssi: apiData.meta.rssi,
-                snr: apiData.meta.snr,
-                packets: ++packetsGSE,
-                lostPackets:
-                    processedData.meta.totalPacketCountGse - packetsGSE,
-            };
             processedData.state.gse = { radio: 1 };
         }
     }
@@ -1131,6 +1079,16 @@ function processDataForDisplay(apiData, apiId) {
             processedData.altitudeMax = altitudeMax;
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax);
         }
+
+        // Parachute sound should play if we descend below a set altitude
+        const PARACHUTE_ALTITUDE = 1200; // Ideally this would be in a place of unified truth
+        
+        // The new altitude must be below the threshold, unlike the old one
+        const prevAltitude = metresToFeet(altitudeHistory.at(-2));
+        const currAltitude = metresToFeet(altitudeHistory.at(-1));
+        if ((currAltitude < PARACHUTE_ALTITUDE) && (prevAltitude >= PARACHUTE_ALTITUDE)) {
+            playOtherSound("Parachute");
+        }
     }
 
     // Feet
@@ -1147,10 +1105,10 @@ function processDataForDisplay(apiData, apiId) {
     }
 
     // Gas fill timer
-    if ([6, 7].includes(apiId) && apiData?.stateFlags) {
-        const systemActivated = apiData.stateFlags?.systemActivated;
-        const gasFillSelected = apiData.stateFlags?.gasFillSelected;
-        const n20FillActivated = apiData.stateFlags?.n20FillActivated;
+    if ([10].includes(apiId) && apiData != null) {
+        const systemActivated = apiData.SYS_ON;
+        const gasFillSelected = apiData.FILL_SELECTED;
+        const n20FillActivated = apiData.N2O_ACTIVE;
 
         if (systemActivated && gasFillSelected && n20FillActivated) {
             // Increase gas fill timer
@@ -1296,6 +1254,24 @@ window.addEventListener("load", (event) => {
     console.log(displayRegistry);
 });
 
+// Hotkeys for the navbar
+window.addEventListener('keydown', (event) => {
+    const styles = "h-full w-full flex flex-row items-center justify-center gap-2 whitespace-nowrap border-2 border-orange-900 px-2";
+    const buttons = document.querySelectorAll('a.' + styles.replaceAll(" ", "."));
+
+    // Only NaN would fail the test
+    if (parseInt(event.key, 10) === parseInt(event.key, 10)) {
+        // Get element by index from found elements list
+        const index = parseInt(event.key, 10) - 1;
+
+        if ((0 <= index) && (index < buttons.length)) {
+            // Click the element (ignoring default browser behaviour)
+            buttons[index].click();
+            event.preventDefault();
+        }
+    }
+});
+
 const skippedKeys = [];
 function sendDataToRegistry(apiData) {
     // Don't receive data until page has loaded
@@ -1329,6 +1305,11 @@ function sendDataToRegistry(apiData) {
     Object.entries(flat).forEach(([key, value]) => {
         if (key in displayRegistry) {
             for (const reg of displayRegistry[key]) {
+                if (metricOffline[key]) {
+                    displaySetOffline(reg.e);
+                    continue;  
+                }
+                displaySetOnline(reg.e); 
                 let elem = reg.e,
                     prec = reg.p,
                     type = reg.t;
@@ -1355,31 +1336,31 @@ function sendDataToRegistry(apiData) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
-        if (logVerbose)
-            console.debug(
+    if (logVerbose)
+        console.debug(
                 `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
-                "color:orange",
-                "color:white",
-            );
+            "color:orange",
+            "color:white",
+        );
 
-        // Use classes instead of IDs since IDs must be unique
-        // and some items occur on multiple pages
-        let elements = [item];
-        if (typeof item == "string") {
-            elements = document.querySelectorAll(`.${item}`);
-        }
-        if (elements && elements.length > 0) {
-            elements.forEach((elem) => {
-                // Update value
+    // Use classes instead of IDs since IDs must be unique
+    // and some items occur on multiple pages
+    let elements = [item];
+    if (typeof item == "string") {
+        elements = document.querySelectorAll(`.${item}`);
+    }
+    if (elements && elements.length > 0) {
+        elements.forEach((elem) => {
+            // Update value
                 elem.value = parseFloat(value).toFixed(precision);
 
-                // Update error state
-                if (error) {
-                    elem.classList.add("error");
-                } else {
-                    elem.classList.remove("error");
-                }
-            });
+            // Update error state
+            if (error) {
+                elem.classList.add("error");
+            } else {
+                elem.classList.remove("error");
+            }
+        });
         }
     }
 }
@@ -1422,7 +1403,7 @@ function displaySetState(item, value) {
     if (typeof item == "string") {
         elements = document.querySelectorAll(`.${item}`);
     }
-    
+
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
             elem.classList.remove(...indicatorStates);
@@ -1459,6 +1440,20 @@ function displaySetError(item, error) {
             }
         });
     }
+}
+
+function displaySetOffline(elem) {
+    const label = elem.closest("label");
+    elem.value = "N/A"; // Has to be small
+    elem.classList.add("offline");
+    elem.classList.remove("error");
+    if (label) label.classList.add("sensor-offline");
+}
+
+function displaySetOnline(elem) {
+    const label = elem.closest("label");
+    elem.classList.remove("offline");
+    if (label) label.classList.remove("sensor-offline");
 }
 
 function displaySetActiveFlightState(item) {
@@ -1527,7 +1522,7 @@ function displayUpdateFlightState(data) {
             data.flightState == "PRE_FLIGHT_NO_FLIGHT_READY"
         ) {
             // Preflight (not ready)
-            stateName = "Pre-flight (not ready)";
+            stateName = "Pre-flight";
             displaySetActiveFlightState("fs-state-preflight");
         } else if (data.flightState == 1 || data.flightState == "LAUNCH") {
             // Launch
@@ -1541,9 +1536,9 @@ function displayUpdateFlightState(data) {
             // Apogee
             stateName = "Apogee";
             displaySetActiveFlightState("fs-state-apogee");
-            
-            // Play the apogee sound (should only be once in practice)
-            apogeeSound();
+
+            // Play the apogee sound, whose file includes a parachute sound 2 seconds afterwards
+            playOtherSound("Apogee");
         } else if (data.flightState == 4 || data.flightState == "DESCENT") {
             // Descent
             stateName = "Descent";
@@ -1561,10 +1556,6 @@ function displayUpdateFlightState(data) {
             stateName = "OH NO!";
             displaySetErrorFlightState();
             displaySetError("fs-flightstate", true);
-
-            // Just in case the apogee sound is playing, stop it upon error
-            const stopApogeeSound = new CustomEvent("ended");
-            apogee.dispatchEvent(stopApogeeSound);
         }
 
         displaySetString("fs-flightstate", stateName);
@@ -1573,8 +1564,7 @@ function displayUpdateFlightState(data) {
 
 
 
-function displaySloggerLogs(apiData)
-{
+function displaySloggerLogs(apiData) {
     apiData.forEach(log => {
         logMessage(log.message, log.level.toLowerCase(), log.timestamp);
     });

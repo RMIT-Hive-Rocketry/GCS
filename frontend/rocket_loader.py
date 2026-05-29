@@ -6,7 +6,7 @@ import importlib.util
 import sys
 
 
-class Rocket(object):
+class Rocket:
     flask_app = None
 
     def __init__(self):
@@ -189,12 +189,8 @@ class Rocket(object):
             )
 
             # Dynamically allocate grid size
-            config.CSS += "\n.grid-cols-{0} {{grid-template-columns: repeat({0}, minmax(0, 1fr));}}".format(
-                config.GRID[0]
-            )
-            config.CSS += "\n.grid-rows-{0} {{grid-template-rows: repeat({0}, minmax(0, 1fr));}}".format(
-                config.GRID[1]
-            )
+            config.CSS += f"\n.grid-cols-{config.GRID[0]} {{grid-template-columns: repeat({config.GRID[0]}, minmax(0, 1fr));}}"
+            config.CSS += f"\n.grid-rows-{config.GRID[1]} {{grid-template-rows: repeat({config.GRID[1]}, minmax(0, 1fr));}}"
 
             # For each module, check pages and positioning to generate CSS classes
             grid = set()
@@ -209,16 +205,12 @@ class Rocket(object):
                     for page in config.MODULE_PAGES[module_id]:
                         if isinstance(page, tuple):
                             # Encode position and size in grid
-                            cols = "{}-c-{}-{}".format(
-                                page[0], page[1], page[3]
-                            )
-                            rows = "{}-r-{}-{}".format(
-                                page[0], page[2], page[4]
-                            )
+                            cols = f"{page[0]}-c-{page[1]}-{page[3]}"
+                            rows = f"{page[0]}-r-{page[2]}-{page[4]}"
 
                             # Add classes to grid
-                            grid.add("#{} .{}".format(page[0], cols))
-                            grid.add("#{} .{}".format(page[0], rows))
+                            grid.add(f"#{page[0]} .{cols}")
+                            grid.add(f"#{page[0]} .{rows}")
 
                             # Add classes to module
                             class_list.add(page[0])
@@ -237,6 +229,9 @@ class Rocket(object):
                     int(grid_start) + 1,
                     grid_span,
                 )
+
+            # Wrap CSS
+            config.CSS = f"<style>{config.CSS}</style>"
 
 
 def load_rockets(flask_app):

@@ -1,21 +1,21 @@
 # Devices readme
-This readme is a basic explanation of whats going on in this folder
+This readme is a basic explanation of what's going on in this folder
 
 This folder defines various classes which read inputs from control pendants, or act as control pendants.
-It also has special things such as the state table and control device manager
+It also has special things such as `PendantState` and `ControlDeviceManager`.
 
 ## Control Device Manager
-The ControlDeviceManager manages control devices, where a control device is a class which either takes input from a physical device or emulates input and stores a state table (mentioned later).
+The `ControlDeviceManager` manages control devices, where a control device is a class which either takes input from a physical device or emulates input and stores a state table (mentioned later).
 
 it only ever stores a single instance of any control device.
 
-get_control_device() manages all config stuff so you dont have to worry
+`get_control_device()` manages all config stuff so you don't have to worry
 
 to use it all you do is:
-1) instantiate the ControlDeviceManager
+1) instantiate the `ControlDeviceManager`
 2) make a function which imports your device class at runtime and returns it
 3) register the device with its name and function you made
-4) call get_control_device() on the instance of ControlDeviceManager you made
+4) call `get_control_device()` on the instance of `ControlDeviceManager` you made
 
 ```
 manager = ControlDeviceManager()
@@ -39,10 +39,10 @@ The state table is a class which represents the state of a control device. It is
 Don't try modify it recklessly, as it is tightly coupled with device_emulator.py and our custom SRAD networking scheme.
 
 ## Pygame Device
-Pygame_Device is an ABC, where children only need to define the name of the hid device and the mapping between buttons and states.
+PygameDevice is an ABC, where children only need to define the name of the hid device and the mapping between buttons and states.
 
 ```
-class HybridPygamePendant(Pygame_Device):
+class HybridPygamePendant(PygameDevice):
     BUTTON_NAME_ID_MAP = {
         "SYS_ON": 0,
         "ESTOP": 5,

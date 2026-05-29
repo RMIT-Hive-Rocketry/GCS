@@ -103,6 +103,22 @@
         &.error {
             @apply font-bold text-red-500 outline-2 outline-red-700;
         }
+
+        &.offline {
+            @apply font-semibold text-white text-sm;
+            background-color: color-mix(in oklab, var(--color-horizon-mauve) 80%, black);
+            border-color: var(--color-horizon-pink);
+            border-bottom-color: var(--color-horizon-pink); /* overrides inline series colour */
+            box-shadow:
+                0 0 10px color-mix(in oklab, var(--color-horizon-pink) 45%, transparent),
+                inset 0 1px 0 color-mix(in oklab, var(--color-white) 12%, transparent);
+        }
+    }
+
+    label {
+        &.sensor-offline {
+            color: color-mix(in oklab, var(--color-horizon-pink) 70%, white);
+        }
     }
 
     .flex input {

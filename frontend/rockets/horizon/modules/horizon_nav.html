@@ -7,7 +7,7 @@
             href="#{{page['id']}}"
         >
             <div class="icon {{page['icon']}} w-7 h-7 bg-orange-600"></div>
-            <span>{{page['name']}}</span>
+            <span>{{ (page['name'] ~ "<br>(" ~ loop.index ~")")|safe }}</span>
         </a>
         {% endfor %}
     </div>
