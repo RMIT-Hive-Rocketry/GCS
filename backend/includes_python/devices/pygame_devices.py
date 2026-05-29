@@ -4,14 +4,15 @@ from backend.includes_python.devices.pendant_state import PendantInput
 
 class HybridPygamePendant(PygameDevice):
     BUTTON_NAME_ID_MAP = {
-        PendantInput.SYSTEM_ACTIVE: 0,
+        PendantInput.IGNITION: 0,
+        PendantInput.O2: 1,
+        PendantInput.SYSTEM_ACTIVE: 2,
+        PendantInput.PURGE: 3,
+        PendantInput.ARMED: 4,
         PendantInput.E_STOP: 5,
         PendantInput.FILL_MODE: 6,
-        PendantInput.ARMED: 4,
+        # 7
         PendantInput.N2O: 8,
-        PendantInput.PURGE: 3,
-        PendantInput.O2: 1,
-        PendantInput.IGNITION: 2,
     }
 
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
@@ -19,14 +20,23 @@ class HybridPygamePendant(PygameDevice):
 
 class ThrustmasterAirbusFlightStick(PygameDevice):
     BUTTON_NAME_ID_MAP = {
-        PendantInput.SYSTEM_ACTIVE: 16,  # thrust lever
         PendantInput.FILL_MODE: 0,  # bottom back trigger
         PendantInput.ARMED: 1,  # top back trigger
         PendantInput.O2: 2,  # spherical button
         PendantInput.IGNITION: 3,  # red button
-        PendantInput.N2O: 6,  # top left button on the right
+        # 4
         PendantInput.PURGE: 5,  # top middle button on the right
+        PendantInput.N2O: 6,  # top left button on the right
+        # 7
+        # 8
+        # 9
+        # 10
+        # 11
+        # 12
         PendantInput.E_STOP: 13,  # bottom right button on the left
+        # 14
+        # 15
+        PendantInput.SYSTEM_ACTIVE: 16,  # thrust lever
     }
 
     CONTROLLER_NAME = "Thrustmaster T.A320 Pilot"
@@ -37,14 +47,17 @@ class ThrustmasterAirbusFlightStick(PygameDevice):
 # I tried to match the buttons best I could
 class LogitechGamepadF710(PygameDevice):
     BUTTON_NAME_ID_MAP = {
-        PendantInput.SYSTEM_ACTIVE: 7,
-        PendantInput.E_STOP: 3,
-        PendantInput.FILL_MODE: 2,
-        PendantInput.IGNITION: 10,
-        PendantInput.N2O: 9,
-        PendantInput.PURGE: 4,  # spherical button
-        PendantInput.O2: 1,  # top left button on right side
         PendantInput.IGNITION: 0,  # something idk
+        PendantInput.O2: 1,  # top left button on right side
+        PendantInput.FILL_MODE: 2,
+        PendantInput.E_STOP: 3,
+        PendantInput.PURGE: 4,  # spherical button
+        # 5
+        # 6
+        PendantInput.SYSTEM_ACTIVE: 7,
+        # 8
+        PendantInput.N2O: 9,
+        PendantInput.IGNITION: 10,
     }
 
     CONTROLLER_NAME = "Logitech Gamepad F710"
