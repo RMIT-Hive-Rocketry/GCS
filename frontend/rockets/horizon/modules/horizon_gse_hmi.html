@@ -2417,6 +2417,8 @@
                     } else {
                         mode = "idle";
                     }
+                } else {
+                    mode = "off";
                 }
 
                 console.log("Mode:", mode, "| Rocket status:", rocketStatusLabels[rocketStatus]);
@@ -2427,6 +2429,14 @@
 
                 const valveTable = {
                     // Rules for rocketStatus = 0 (no rocket present)
+                    "off:0": {
+                        ...ALL_CLOSED,
+                        "needleV1": true,
+                        "needleV4": true,
+                        "solenoidsV7": true,
+                        "backflowV13": true,
+                        "backflowV14": true,
+                    },
                     "idle:0": {
                         ...ALL_CLOSED,
                         "needleV1": true,
@@ -2580,24 +2590,6 @@
                         "backflowV13": true,
                         "backflowV14": true,
                     },
-                };
-
-                // Default valve setup
-                const defaultValves = {
-                    "needleV1": true,
-                    "springValve": false,
-                    "reliefValveV3": false,
-                    "needleV4": true,
-                    "solenoidsV5": false,
-                    "solenoidsV6": false,
-                    "solenoidsV7": true,
-                    "ballV8": false,
-                    "ballV9": false,
-                    "ballV10": false,
-                    "ballV11": false,
-                    "ballV12": false,
-                    "backflowV13": true,
-                    "backflowV14": true,
                 };
 
                 const key = mode + ":" + rocketStatus;
