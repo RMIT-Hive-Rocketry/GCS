@@ -1774,13 +1774,13 @@
                         font-size="18"
                         dominant-baseline="middle"
                     >--</text>
-                    <text
+                    <!-- <text
                         x="280" y="907"
                         fill="#ffd931"
                         font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
                         font-size="18"
                         dominant-baseline="middle"
-                    >s</text>
+                    >s</text> -->
 
                     <!-- Separator (bottom row) -->
                     <line x1="325" y1="888" x2="325" y2="926"
@@ -2437,7 +2437,7 @@
             // Initialise date immediately and refresh every 60 seconds
             statusBarSetDate();
             setInterval(statusBarSetDate, 60000);
-    
+
     
             // ---------------------------------------------------------------
             // hmiUpdate(data)
@@ -2447,8 +2447,10 @@
             function hmiUpdate(data) {
 
                 // State/control packet check
-                if (data?.SYSTEM_ACTIVATE !== undefined) {
-                    hmiUpdateValveStates(data);
+                // TODO: temporary, altered this to be compatible with both sets of names
+                // see TODO comment in horizon_pendant for explanation on normaliseApiData()
+                if (data?.SYSTEM_ACTIVATE !== undefined || data?.SYS_ON !== undefined) {
+                    hmiUpdateValveStates(normalizeApiData(data));
                     return;
                 }
     
