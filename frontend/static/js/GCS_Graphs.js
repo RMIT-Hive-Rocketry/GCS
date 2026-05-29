@@ -1167,11 +1167,7 @@ function diagRenderGraph(graph) {
             );
         
             // Build a single continuous blue step-line segment.
-            // Offline points (-1) do NOT break the line — instead the line
-            // holds at the last valid ping value so it stays visible through
-            // offline (red-bar) regions. This gives the "always connected"
-            // mono effect: the red block shows the offline period while the
-            // blue line continues at the last known ping level.
+            // Offline points (-1) do NOT break the line
             const normalSegments = [];
             let currentSegment = [];
             let lastValidY = null;
