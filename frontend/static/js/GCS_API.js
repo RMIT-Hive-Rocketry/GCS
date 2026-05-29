@@ -26,7 +26,11 @@ const logVerbose = false;
 const logIncomingMessages = false;
 const errors = [];
 
-// Combine all timeouts into one array of objects (only for radios)
+/* Combine all timeouts into one array of objects (only for radios).
+ * This makes it easier to program sound alarms in a queue, with
+ * past rockets included just so that their functionality is (hopefully)
+ * preserved, as there used to be a data-timeout attribute.
+*/
 const timeoutsList = [
     // This allows for customisation (note duration in ms)
     {name:"av", duration:3000, state:4, rocket:"Legacy3"},
@@ -63,7 +67,8 @@ const timers = {
 };
 
 // Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
-const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss", "Dual_Board_Loss"];
+// Note: Horizon doesn't have 2 Australis boards (which is Dual_Board_Loss)
+const filenames_losses = ["GSE_Loss", "AV_Loss", "GPS_Fix_Loss"];
 const soundsList_losses = filenames_losses.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
@@ -84,22 +89,14 @@ const soundsList_losses = filenames_losses.map(src => {
 });
 
 // Other non-alarm sounds (uncomment the below when done).
-/* TODO: Add "Rocket_Hit" to this list when the application can detect
- * the rocket imminently about to hit someone on the head (and Rocket_Warn
- * for the rocket coming within 50m of the control station). To play either
- * sound, call playOtherSound() with the respective string as the argument.
+/* TODO: Add "Rocket_Hit" to this list when the application can detect the rocket imminently
+ * about to hit someone on the head, using playOtherSound(). At this stage, though, same as Rocket_Warn
  * 
- * The volume of Rocket_Warn, which can be set using .volume() and accepts values
- * in range [0.0, 1.0], should be inversely proportional to the distance to the GCS,
- * where by my estimates, the lowest value it should be set to is 0.25. More complex
- * logic will be required to program any loops as the other sounds in this array
- * do not require then.
- * 
- * To put these sounds into Combined_Sounds, add them to the end of the corresponding
- * track/segment in the attached Audacity project (static/sounds), continuing the pattern
+ * To put this sound into Combined_Sounds, add it to the end of the corresponding track/
+ * segment in the attached Audacity project (static/sounds), continuing the pattern
  * of 0.5 seconds between each sound.
 */
-const filenames_other = ["Apogee", "Parachute"];
+const filenames_other = ["Apogee", "Parachute", "Rocket_Warn"];
 const soundsList_other = filenames_other.map(src => {
     // Create the audio object that will return upon ending
     const audioObject = new Audio("sounds/" + src + ".mp3");
@@ -107,20 +104,33 @@ const soundsList_other = filenames_other.map(src => {
     // Mute sound by default
     audioObject.muted = true;
 
-    // Self-return after playing
+    /* This time there is no queue so no active, but keep
+     * track of how many times a sound has been looping for
+     * (if required). Can't just put this in the return
+     * statement, otherwise loopCount won't be tied to the object.
+    */
+    let returnValue = {source: audioObject, loopCount: 0};
+
+    // Loop in case required, else self-return after playing
     audioObject.addEventListener('ended', () => {
-        audioObject.pause();
-        audioObject.currentTime = 0;
+        if (src === "Rocket_Warn") {
+            audioObject.currentTime = 0;
+            audioObject.play();
+            returnValue.loopCount++;
+        }
+        else {
+            audioObject.pause();
+            audioObject.currentTime = 0;
+        }
     });
 
-    // This time there is no queue so no active
-    return audioObject;
+    return returnValue;
 });
 
 // Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
     return soundsList_losses.every(item => !item.source.muted) &&
-           soundsList_other.every(item => !item.muted);
+           soundsList_other.every(item => !item.source.muted);
 }
 
 // Call at the start and whenever a state updates
@@ -146,8 +156,15 @@ function checkStateIndicator(elem = null) {
         */
         if (indicator.includes("av.radio")) {
             sound = "AV_Loss";
-            if (typeof diagSetStatusBox === 'function') {
-                diagSetStatusBox("diag-summary-av", e1.classList.value.includes("green"));
+        
+            const avOnline = e1.classList.value.includes("green");
+        
+            if (typeof diagSetSummaryOnlineBox === "function") {
+                diagSetSummaryOnlineBox("diag-summary-av", avOnline);
+            }
+        
+            if (typeof diagSetAvIndicator === "function") {
+                diagSetAvIndicator(avOnline);
             }
         }
         else if (indicator.includes("gse.radio")) {
@@ -175,9 +192,10 @@ function checkStateIndicator(elem = null) {
         else if (indicator.includes("gpsFix")) {
             sound = "GPS_Fix_Loss";
         }
-        else if (indicator.includes("dualBoard")) {
-            sound = "Dual_Board_Loss";
-        }
+        // Currently moved out of scope
+        // else if (indicator.includes("dualBoard")) {
+        //     sound = "Dual_Board_Loss";
+        // }
 
         // Should only execute with one of the above values
         if (sound !== "") {
@@ -279,17 +297,17 @@ function playAlarmSounds() {
 function playOtherSound(sound) {
     // Look for the sound
     const soundNumber = soundsList_other.findIndex(
-        file => file.src.includes(sound)
+        file => file.source.src.includes(sound)
     );
     
     // Not found or already playing
-    if ((soundNumber === -1) || (!soundsList_other[soundNumber].paused)) {
+    if ((soundNumber === -1) || (!soundsList_other[soundNumber].source.paused)) {
         return;
     }
     
     // Play if on the Horizon main page
     if (isHorizonMain()){
-        soundsList_other[soundNumber].play();
+        soundsList_other[soundNumber].source.play();
     }
 }
 
@@ -303,7 +321,7 @@ function toggleMute() {
 
     // Other sounds (no source as these aren't in a queue)
     for (let i = 0; i < soundsList_other.length; ++i) {
-        soundsList_other[i].muted = !soundsList_other[i].muted;
+        soundsList_other[i].source.muted = !soundsList_other[i].source.muted;
     }
 
     /* Icon represents current state.
@@ -641,6 +659,10 @@ function API_OnMessage(event) {
             }
         } else if (apiData.id == 50) {
             ///// ----- NETWORK DIAGNOSTICS ----- /////
+            if (typeof horizonDiagNavAlertProcessPacket === "function") {
+                horizonDiagNavAlertProcessPacket(apiData);
+            }
+            
             if (typeof graphUpdateDiagnostics === "function") {
                 graphUpdateDiagnostics(apiData);
             }
@@ -1091,6 +1113,55 @@ function processDataForDisplay(apiData, apiId) {
     }
     if (apiData.GPSLongitude != undefined) {
         processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude);
+    }
+    
+    /* If the rocket is within 50m of the GCS, play a warning sound.
+     * Use Pythagorean theorem, scaling up latitude and longitude, both
+     * of which are required to be present in the packet.
+     * 
+     * Requires matching the GCS coordinates to "LATITUDE": sinusoid() and/or
+     * "LONGITUDE": sinusoid() in backend/device_emulator.py (or vice versa) during
+     * testing, or else the rocket will appear to be very far from the GCS
+    */
+    if (apiData.GPSLatitude != undefined && apiData.GPSLongitude != undefined) {
+        // Scaling constants
+        const lat_kilometers = 110.87;
+        const long_kilometers = 95.48;
+
+        // (Decimal) Coordinates of the GCS
+        const lat_GCS = 31.039581;
+        const long_GCS = 103.526623;
+
+        /* Distance to GCS in km (both latitude and longitude). Use the decimal
+         * version of the coordinates as this is what the GCS coordinates are given
+         * as.
+        */
+        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2;
+        const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2;
+        const final_distance = Math.sqrt(lat_distance + long_distance);
+                
+        // Rocket_Warn sound
+        let currSound = soundsList_other[2];
+        
+        // 50m in km
+        if (final_distance <= 50/1000) {
+            // Sometimes the property might be equal to NaN, make sure no error is thrown
+            if (currSound.source.duration === currSound.source.duration) {
+                /* Volume rises in logarithmic fashion the longer the rocket stays within
+                * 50m of the GCS (within the 1st iteration), full volume otherwise.
+                */
+                currSound.source.volume = currSound.loopCount > 0
+                                    ? 1 : (currSound.source.currentTime / currSound.source.duration) ** 1.5;
+                console.log(currSound.loopCount);
+                playOtherSound("Rocket_Warn");
+            }
+        }
+        else {
+            // Stop and reset number of iterations.
+            currSound.source.pause();
+            currSound.source.currentTime = 0;
+            currSound.loopCount = 0;
+        }
     }
 
     // Gas fill timer
