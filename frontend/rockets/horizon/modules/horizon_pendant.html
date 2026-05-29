@@ -417,10 +417,51 @@
         return "OFF";
     }
 
+    // TODO: TEMPORARY
+    // Okay so idk wtf is going on, my thing was receiving the new names
+    // but after merging a pendant naming refactor, the frontend is now receiving
+    // the old names??? Idek anymore, just gonna put this here to fix it
+    const NORMALIZE_KEY = {
+        // Old backend names
+        SYS_ON:                      "SYSTEM_ACTIVATE",
+        FILL_SELECTED:               "GAS_FILL_SELECTED",
+        N2O_ACTIVE:                  "N2O_FILL_ACTIVATE",
+        NEUTRAL_ACTIVE:              "SELECTOR_SWITCH_NEUTRAL_POSITION",
+        PURGE_ACTIVE:                "MANUAL_PURGE",
+        O2_MOMENT_ACTIVE:            "O2_FILL_ACTIVATE",
+        IGNITION_MOMENT_ACTIVE:      "IGNITION_FIRE",
+
+        // New names
+        SYSTEM_ACTIVATE:             "SYSTEM_ACTIVATE",
+        GAS_FILL_SELECTED:           "GAS_FILL_SELECTED",
+        N2O_FILL_ACTIVATE:           "N2O_FILL_ACTIVATE",
+        SELECTOR_SWITCH_NEUTRAL_POSITION: "SELECTOR_SWITCH_NEUTRAL_POSITION",
+        MANUAL_PURGE:                "MANUAL_PURGE",
+        O2_FILL_ACTIVATE:            "O2_FILL_ACTIVATE",
+        IGNITION_FIRE:               "IGNITION_FIRE",
+
+        // Shared
+        IGNITION_SELECTED:           "IGNITION_SELECTED",
+        ESTOP:                       "ESTOP",
+    };
+
+    function normalizeApiData(raw) {
+        const out = {};
+        for (const [key, value] of Object.entries(raw)) {
+            if (typeof value !== "boolean") continue;
+            const name = NORMALIZE_KEY[key];
+            if (name) out[name] = value;
+        }
+        return out;
+    }
+
     // vvvvv Entry Point vvvvv
     // Translates a packet ID 10 payload into the set of `pendant.hybrid.[state]`
     // layers that should be visible, then applies that to the DOM.
-    function updatePendantState(apiData) {
+    function updatePendantState(rawApiData) {
+
+        const apiData = normalizeApiData(rawApiData);
+
         const new_pendant_state = [];
 
         for (const state in apiData) {
@@ -461,7 +502,7 @@
             if (elem) {
                 elem.classList.remove("hidden");
             } else {
-                console.log(state);
+                //console.log(state);
             }
         }
     }
