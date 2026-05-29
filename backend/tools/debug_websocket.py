@@ -4,7 +4,7 @@ import websockets
 import json
 
 # only read these packets
-PACKETS_TO_DEBUG = [10]
+PACKETS_TO_DEBUG = [55]
 DEBUG_ALL_PACKETS = False
 
 

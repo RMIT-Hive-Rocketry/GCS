@@ -129,6 +129,12 @@ Also, try to break your system (during runtime testing) in every way. Kill proce
 
 Although, this is not an invitation to automate the fill sequence. That one needs to be human-controlled only. That's where physical hardware safety comes in, like key interlocks, LEDs, momentary buttons and switches. Also, it's straight-up banned at IREC. I think you can imagine why this is human-controlled only. Once again, another reason to have an awesome checklist.
 
+## Data Emulation
+
+The old structure, as defined in [Lora Packet Structure Post Translation](https://rmiteduau-my.sharepoint.com/:x:/r/personal/s4003176_student_rmit_edu_au/Documents/Lora%20Packets%20Post%20Translation.xlsx?d=w52cc1d27ddb545ea99e3006f4547b509&csf=1&web=1&e=VMmh0z) was based off the old GSE/DAQ hybrid system which communicated over a different protocol and different device. It has completely changed, along with all its telemetry
+
+![emulation block diagram](assets/device_emulation_diagram.svg)
+
 ---
 
 [Home](../README.md)
