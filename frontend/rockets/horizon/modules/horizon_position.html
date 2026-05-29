@@ -1,0 +1,83 @@
+<!-- Position module -->
+<!-- Includes altitude, gps -->
+<div class="module-horizon">
+    <h2>Position</h2>
+
+    <!-- GPS -->
+    <section class="p-0 w-full flex flex-row gap-2 justify-evenly text-sm">
+        <label>
+            Latitude:<input
+                data-key="GPSLatitude"
+                data-precision="6"
+                readonly
+                autocomplete="off"
+                size="11"
+            />deg
+        </label>
+        <label>
+            Longitude:<input
+                data-key="GPSLongitude"
+                data-precision="6"
+                readonly
+                autocomplete="off"
+                size="11"
+            />deg
+        </label>
+        <label
+            >Nav State:<input
+                data-key="navigationStatus"
+                data-type="string"
+                readonly
+                autocomplete="off"
+                size="3"
+        /></label>
+    </section>
+
+    <!-- Altitude -->
+    <section class="h-full flex flex-col grow p-0">
+        <h3>Altitude</h3>
+        <div class="grow w-full h-full">
+            <svg
+                id="graph-pos-alt"
+                class="w-full h-full"
+                width="0"
+                height="0"
+            ></svg>
+        </div>
+        <div class="flex gap-4 items-center px-2 justify-evenly text-sm">
+            <label
+                >Current Altitude:&nbsp;<input
+                    data-key="altitudeFeet"
+                    data-precision="0"
+                    readonly
+                    autocomplete="off"
+                    style="border-bottom: 2px solid #FF0000"
+                    size="10"
+                />ft&nbsp;&nbsp;<input
+                    data-key="altitude"
+                    data-precision="0"
+                    readonly
+                    autocomplete="off"
+                    size="10"
+                />m</label
+            >
+        </div>
+        <div class="flex gap-4 items-center px-2 justify-evenly font-bold">
+            <label
+                >&nbsp;&nbsp;&nbsp;&nbsp;Max Altitude:&nbsp;<input
+                    data-key="altitudeMaxFeet"
+                    data-precision="0"
+                    readonly
+                    autocomplete="off"
+                    size="10"
+                />ft&nbsp;&nbsp;<input
+                    data-key="altitudeMax"
+                    data-precision="0"
+                    readonly
+                    autocomplete="off"
+                    size="10"
+                />m</label
+            >
+        </div>
+    </section>
+</div>

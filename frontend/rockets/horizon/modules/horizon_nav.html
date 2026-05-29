@@ -1,14 +1,13 @@
-<nav
-    class="module-horizon w-full max-w-screen h-full border-t-2 border-orange-900"
->
-    <div class="h-full grid grid-cols-24 justify-items-center text-sm">
+<!-- Page navigation, sits in the centre of the header -->
+<nav class="module-horizon w-full h-full p-2 pb-1 flex-row">
+    <div class="h-full w-full grid grid-cols-{{active.PAGES|length}} gap-2 text-sm items-center">
         {% for page in active.PAGES %}
         <a
-            class="h-full col-span-1 w-full grid whitespace-nowrap place-items-center border-2 border-white border-collapse"
+            class="h-full w-full flex flex-row items-center justify-center gap-2 whitespace-nowrap border-2 border-orange-900 px-2"
             href="#{{page['id']}}"
         >
-            <div class="icon {{page['icon']}} w-10 h-10 bg-orange-600"></div>
-            <span>{{page['name']}}</span>
+            <div class="icon {{page['icon']}} w-7 h-7 bg-orange-600"></div>
+            <span>{{ (page['name'] ~ "<br>(" ~ loop.index ~")")|safe }}</span>
         </a>
         {% endfor %}
     </div>

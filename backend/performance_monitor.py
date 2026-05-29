@@ -10,6 +10,7 @@ import csv
 from backend.includes_python import service_helper
 import ctypes
 import subprocess
+from pathlib import Path
 
 START_TIME = None  # init in start
 
@@ -111,6 +112,9 @@ class GlobalSystemInfo:
     vm_rss: int  # total system ram usage
     total_mem: int  # total system ram cap
 
+    cpu_temp: float
+    mother_board_temp: float
+
 
 @dataclass
 class ProcessSystemData:
@@ -166,7 +170,7 @@ def get_process_status_linux(pid) -> ProcessSystemData:
 
 # Extract from the proc Directory the details needed meminfo
 def get_global_status_linux() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     try:
         with open("/proc/stat") as f:
             for line in f:
@@ -204,8 +208,26 @@ def get_global_status_linux() -> GlobalSystemInfo:
                         line.split()[1]
                     )  # Used Memory equals the total memory - available to get most accurate
 
-    except FileNotFoundError:
-        slogger.error("Process Not Found")
+        # scan the folders in the directory for the proper type
+
+        for folders in Path("/sys/class/thermal").glob("thermal_zone*"):
+            with open(folders.joinpath("type")) as f:
+                sensor_type = f.readline().strip()
+
+            # Cpu Temp for x86 and arm / raspberry pi i think the docs are quite inconstant
+            if sensor_type == "x86_pkg_temp" or sensor_type == "soc_thermal":
+                with open(folders.joinpath("temp")) as f:
+                    sys_info.cpu_temp = (
+                        float(f.read()) / 1000
+                    )  # divide by 1000 to go from millidegrees to celsius
+
+            # Motherboard Temp
+            if sensor_type == "acpitz":
+                with open(folders.joinpath("temp")) as f:
+                    sys_info.mother_board_temp = float(f.read()) / 1000
+
+    except FileNotFoundError as e:
+        slogger.error(f"Process Not Found {e}")
         return sys_info
 
     except Exception as e:
@@ -270,7 +292,7 @@ def get_process_status_windows(pid) -> ProcessSystemData:
 
 
 def get_global_status_windows() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     kernel32 = ctypes.WinDLL("kernel32.dll")
     idle = FileTime()
     kernel = FileTime()
@@ -327,7 +349,7 @@ def get_process_status_mac(pid) -> ProcessSystemData:
 
 
 def get_global_status_mac() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     cpu_info = HostCPULoadInfoDataT()
 
@@ -414,7 +436,7 @@ def get_global_status() -> GlobalSystemInfo:
         return get_global_status_linux()
     if platform.system() == "Darwin":
         return get_global_status_mac()
-    return GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    return GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 
 def main() -> None:
@@ -441,12 +463,12 @@ def main() -> None:
         processes_data_list = ast.literal_eval(service_list)
     except Exception:
         slogger.error(
-            "running_services argument invalid e.g. --running-services [(pid1,name1), (pid2,name2)]"
+            "running_services argument invalid e.g. --running_services [(pid1,name1), (pid2,name2)]"
         )
         return
 
     previous_sys_data = get_global_status()
-    gcs_previous_process_data = [
+    our_previous_process_data = [
         get_process_status(active_process[0])
         for active_process in processes_data_list
     ]
@@ -473,9 +495,11 @@ def main() -> None:
         "unix_time",
         "timestamp",
         "total_ram_percent",
-        "gcs_ram_percent",
+        "our_ram_percent",
         "total_cpu_percent",
-        "gcs_cpu_percent",
+        "our_cpu_percent",
+        "cpu_temp",
+        "motherboard_temp",
     ]
 
     for i in range(len(processes_data_list)):
@@ -497,12 +521,12 @@ def main() -> None:
 
         if system_data == None:
             slogger.error(
-                "Performance Monitor failed to get global system data. SHUTTING DOWN..."
+                "Performance Monitor has failed to get global system data SHUTTING DOWN."
             )
             break
         if previous_sys_data == None:
             slogger.error(
-                "Performance Monitor failed to get old global system data. SHUTTING DOWN..."
+                "Performance Monitor has failed to get old global system data SHUTTING DOWN."
             )
             break
 
@@ -526,9 +550,9 @@ def main() -> None:
         )
 
         # Global Values our services resource use
-        gcs_ram_use = 0
-        gcs_cpu_use = 0
-        gcs_sys_data: list[ProcessSystemData] = []
+        our_ram_use = 0
+        our_cpu_use = 0
+        our_sys_data: list[ProcessSystemData] = []
 
         for idx, active_process in enumerate(processes_data_list):
             # Get Memory Data For Process
@@ -537,7 +561,7 @@ def main() -> None:
             if ps is None or (
                 ps.vm_rss == 0
                 and ps.cpu_usage_time
-                == gcs_previous_process_data[idx].cpu_usage_time
+                == our_previous_process_data[idx].cpu_usage_time
             ):
                 slogger.warning(
                     f"Service {active_process[1]} Cannot Be Accessed No Longer Logging"
@@ -546,25 +570,25 @@ def main() -> None:
                 continue
 
             # Countinus Addition of ram usage percent across system
-            gcs_ram_use += +ps.vm_rss
+            our_ram_use += +ps.vm_rss
 
             ps.mem_util_percent = ps.vm_rss / system_data.total_mem
 
             # Assign Individual deltas to the processes
             ps.delta_kernel_time = (
-                ps.kernel_time - gcs_previous_process_data[idx].kernel_time
+                ps.kernel_time - our_previous_process_data[idx].kernel_time
             )
             ps.delta_user_time = (
-                ps.user_time - gcs_previous_process_data[idx].user_time
+                ps.user_time - our_previous_process_data[idx].user_time
             )
 
             ps.delta_cpu_usage_time = (
                 ps.cpu_usage_time
-                - gcs_previous_process_data[idx].cpu_usage_time
+                - our_previous_process_data[idx].cpu_usage_time
             )
 
             # Total Current CpuUse cycles added across all monitored processes
-            gcs_cpu_use += ps.delta_cpu_usage_time
+            our_cpu_use += ps.delta_cpu_usage_time
 
             # map indiviudal utilisation to each processes
             if total_time_delta != 0:
@@ -578,18 +602,18 @@ def main() -> None:
             ps.pid = active_process[0]
             ps.name = active_process[1]
 
-            gcs_sys_data.append(ps)
+            our_sys_data.append(ps)
 
         if total_time_delta != 0:
-            gcs_cpu_use_percent = (gcs_cpu_use / total_time_delta) * 100
+            our_cpu_use_percent = (our_cpu_use / total_time_delta) * 100
             system_data.cpu_usage_percent = (
                 system_data.used_time_delta / total_time_delta
             ) * 100
         else:
-            gcs_cpu_use_percent = 0
+            our_cpu_use_percent = 0
             system_data.cpu_usage_percent = 0
 
-        gcs_ram_use_percent = (gcs_ram_use / system_data.total_mem) * 100
+        our_ram_use_percent = (our_ram_use / system_data.total_mem) * 100
         total_ram_use_percent = (
             system_data.vm_rss / system_data.total_mem
         ) * 100
@@ -599,13 +623,15 @@ def main() -> None:
             round(time.time(), 3),
             str(round(time.perf_counter() - float(START_TIME), 3)),
             round(total_ram_use_percent, 3),
-            round(gcs_ram_use_percent, 7),
+            round(our_ram_use_percent, 7),
             round(system_data.cpu_usage_percent, 7),
-            round(gcs_cpu_use_percent, 7),
+            round(our_cpu_use_percent, 7),
+            round(system_data.cpu_temp, 2),
+            round(system_data.mother_board_temp, 2),
         ]
 
         # Generate dynamic string of processes and details to append onto log
-        for osd in gcs_sys_data:
+        for osd in our_sys_data:
             row.extend(
                 [
                     osd.pid,
@@ -626,15 +652,15 @@ def main() -> None:
                 f"System CPU Util: {round(system_data.cpu_usage_percent,2)}% Ram Util: {round(total_ram_use_percent,2)}%"
             )
             slogger.debug(
-                f"Program CPU Util: {round(gcs_cpu_use_percent,2)}% Ram Util: {round(gcs_ram_use_percent,2)}%"
+                f"Program CPU Util: {round(our_cpu_use_percent,2)}% Ram Util: {round(our_ram_use_percent,2)}%"
             )
             loop_start_time = time.time()
 
         # Update Old Values with current ones
         previous_sys_data = system_data
 
-        gcs_previous_process_data.clear()
-        gcs_previous_process_data = [
+        our_previous_process_data.clear()
+        our_previous_process_data = [
             get_process_status(active_process[0])
             for active_process in processes_data_list
         ]

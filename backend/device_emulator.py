@@ -1,6 +1,9 @@
 from abc import ABC
 import config.config as config
+from typing import Optional, List, Tuple
+from dataclasses import asdict
 import sys
+import socket
 import random
 import struct
 from backend.includes_python import metric
@@ -12,6 +15,7 @@ from cli.start_middleware import InterfaceType, get_interface_type
 import enum
 import math
 from backend.includes_python.metric import Metric
+from backend.includes_python.gsedaq_metrics import GseDaqMetrics
 import threading
 
 # This file can be imported or rain as an emulation service if __main__
@@ -27,6 +31,8 @@ class MockPacket(ABC):
     _INITIALISED: bool = False
 
     _write_lock = threading.Lock()
+
+    TIME_INBETWEEN_PACKETS = 0.01
 
     class _SourceDevice(enum.Enum):
         AV = enum.auto()
@@ -369,168 +375,41 @@ class AVtoGCSData3(MockPacket):
         ] + [metric.Metric.dummy_byte()] * 30
 
 
-class GSEtoGCSData1(MockPacket):
-    def __init__(
-        self,
-        RSSI: float = 0.0,
-        SNR: float = 71,
-        MANUAL_PURGED: bool = False,
-        O2_FILL_ACTIVATED: bool = False,
-        SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,
-        N2O_FILL_ACTIVATED: bool = False,
-        IGNITION_FIRED: bool = True,
-        IGNITION_SELECTED: bool = False,
-        GAS_FILL_SELECTED: bool = False,
-        SYSTEM_ACTIVATED: bool = False,
-        TRANSDUCER1: float = 0.5,
-        TRANSDUCER2: float = 1.0,
-        TRANSDUCER3: float = 1.5,
-        THERMOCOUPLE1: float = 21.23,
-        THERMOCOUPLE2: float = 32.34,
-        THERMOCOUPLE3: float = 43.45,
-        THERMOCOUPLE4: float = 54.56,
-        IGNITION_ERROR: bool = False,
-        RELAY3_ERROR: bool = False,
-        RELAY2_ERROR: bool = True,
-        RELAY1_ERROR: bool = False,
-        THERMOCOUPLE_4_ERROR: bool = False,
-        THERMOCOUPLE_3_ERROR: bool = False,
-        THERMOCOUPLE_2_ERROR: bool = True,
-        THERMOCOUPLE_1_ERROR: bool = False,
-        LOAD_CELL_4_ERROR: bool = False,
-        LOAD_CELL_3_ERROR: bool = False,
-        LOAD_CELL_2_ERROR: bool = False,
-        LOAD_CELL_1_ERROR: bool = False,
-        TRANSDUCER_4_ERROR: bool = False,
-        TRANSDUCER_3_ERROR: bool = False,
-        TRANSDUCER_2_ERROR: bool = False,
-        TRANSDUCER_1_ERROR: bool = True,
-    ):
-        super().__init__()
-        self.ID = 0x06
-        self.RSSI = RSSI
-        self.SNR = SNR
-        self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
-        self.payload_after_id_and_meta = [
-            metric.Metric.state_set_flag_s2p1(
-                MANUAL_PURGED,
-                O2_FILL_ACTIVATED,
-                SELECTOR_SWITCH_NEUTRAL_POSITION,
-                N2O_FILL_ACTIVATED,
-                IGNITION_FIRED,
-                IGNITION_SELECTED,
-                GAS_FILL_SELECTED,
-                SYSTEM_ACTIVATED,
-            ),
-            metric.Metric.transducer(TRANSDUCER1),
-            metric.Metric.transducer(TRANSDUCER2),
-            metric.Metric.transducer(TRANSDUCER3),
-            metric.Metric.thermocouple(THERMOCOUPLE1),
-            metric.Metric.thermocouple(THERMOCOUPLE2),
-            metric.Metric.thermocouple(THERMOCOUPLE3),
-            metric.Metric.thermocouple(THERMOCOUPLE4),
-            metric.Metric.error_code_gse(
-                IGNITION_ERROR,
-                RELAY3_ERROR,
-                RELAY2_ERROR,
-                RELAY1_ERROR,
-                THERMOCOUPLE_4_ERROR,
-                THERMOCOUPLE_3_ERROR,
-                THERMOCOUPLE_2_ERROR,
-                THERMOCOUPLE_1_ERROR,
-                LOAD_CELL_4_ERROR,
-                LOAD_CELL_3_ERROR,
-                LOAD_CELL_2_ERROR,
-                LOAD_CELL_1_ERROR,
-                TRANSDUCER_4_ERROR,
-                TRANSDUCER_3_ERROR,
-                TRANSDUCER_2_ERROR,
-                TRANSDUCER_1_ERROR,
-            ),
-        ]
+# A bit like the GCS class. Just used for context
+class GSEDAQData:
+    # Wake client threads periodically while waiting (shutdown, spurious wakeups).
+    GSE_POLL_S = 1.0
+    _labview_ready = threading.Condition()
+    latest_labview_data: Optional[bytes] = None
+    labview_data_version: int = 0
 
+    @classmethod
+    def publish_labview_update(cls, payload: bytes) -> None:
+        with cls._labview_ready:
+            cls.latest_labview_data = payload
+            cls.labview_data_version += 1
+            cls._labview_ready.notify_all()
 
-class GSEtoGCSData2(MockPacket):
-    def __init__(
-        self,
-        RSSI: float = 0.0,
-        SNR: float = 72,
-        MANUAL_PURGED: bool = False,
-        O2_FILL_ACTIVATED: bool = False,
-        SELECTOR_SWITCH_NEUTRAL_POSITION: bool = False,
-        N2O_FILL_ACTIVATED: bool = False,
-        IGNITION_FIRED: bool = True,
-        IGNITION_SELECTED: bool = False,
-        GAS_FILL_SELECTED: bool = False,
-        SYSTEM_ACTIVATED: bool = False,
-        INTERNAL_TEMPERATURE: float = 30.123,
-        WIND_SPEED: float = 20.123,
-        GAS_BOTTLE_WEIGHT_1: int = 2,  # Error because almost empty
-        GAS_BOTTLE_WEIGHT_2: int = 8,  # Impossible value for 6.5 ltr tank
-        ADDITIONAL_VA_1: float = 5.123,
-        ADDITIONAL_VA_2: float = 6.123,
-        ADDITIONAL_CURRENT_1: float = 14.123,
-        ADDITIONAL_CURRENT_2: float = 13.123,
-        IGNITION_ERROR: bool = False,
-        RELAY3_ERROR: bool = False,
-        RELAY2_ERROR: bool = True,
-        RELAY1_ERROR: bool = False,
-        THERMOCOUPLE_4_ERROR: bool = False,
-        THERMOCOUPLE_3_ERROR: bool = False,
-        THERMOCOUPLE_2_ERROR: bool = True,
-        THERMOCOUPLE_1_ERROR: bool = False,
-        LOAD_CELL_4_ERROR: bool = False,
-        LOAD_CELL_3_ERROR: bool = False,
-        LOAD_CELL_2_ERROR: bool = False,
-        LOAD_CELL_1_ERROR: bool = False,
-        TRANSDUCER_4_ERROR: bool = False,
-        TRANSDUCER_3_ERROR: bool = False,
-        TRANSDUCER_2_ERROR: bool = False,
-        TRANSDUCER_1_ERROR: bool = True,
-    ):
-        super().__init__()
-        self.ID = 0x07
-        self.RSSI = RSSI
-        self.SNR = SNR
-        self.ORIGIN_DEVICE = MockPacket._SourceDevice.GSE
-        self.payload_after_id_and_meta = [
-            metric.Metric.state_set_flag_s2p1(
-                MANUAL_PURGED,
-                O2_FILL_ACTIVATED,
-                SELECTOR_SWITCH_NEUTRAL_POSITION,
-                N2O_FILL_ACTIVATED,
-                IGNITION_FIRED,
-                IGNITION_SELECTED,
-                GAS_FILL_SELECTED,
-                SYSTEM_ACTIVATED,
-            ),
-            metric.Metric.internal_temp_gse(INTERNAL_TEMPERATURE),
-            metric.Metric.wind_speed_gse(WIND_SPEED),
-            metric.Metric.gas_bottle_weight(GAS_BOTTLE_WEIGHT_1),
-            metric.Metric.gas_bottle_weight(GAS_BOTTLE_WEIGHT_2),
-            metric.Metric.additional_va_input(ADDITIONAL_VA_1),
-            metric.Metric.additional_va_input(ADDITIONAL_VA_2),
-            metric.Metric.additional_current_input(ADDITIONAL_CURRENT_1),
-            metric.Metric.additional_current_input(ADDITIONAL_CURRENT_2),
-            metric.Metric.error_code_gse(
-                IGNITION_ERROR,
-                RELAY3_ERROR,
-                RELAY2_ERROR,
-                RELAY1_ERROR,
-                THERMOCOUPLE_4_ERROR,
-                THERMOCOUPLE_3_ERROR,
-                THERMOCOUPLE_2_ERROR,
-                THERMOCOUPLE_1_ERROR,
-                LOAD_CELL_4_ERROR,
-                LOAD_CELL_3_ERROR,
-                LOAD_CELL_2_ERROR,
-                LOAD_CELL_1_ERROR,
-                TRANSDUCER_4_ERROR,
-                TRANSDUCER_3_ERROR,
-                TRANSDUCER_2_ERROR,
-                TRANSDUCER_1_ERROR,
-            ),
-        ]
+    @classmethod
+    def wait_new_labview_payload(
+        cls, after_version: int
+    ) -> Optional[Tuple[bytes, int]]:
+        """Block until ``labview_data_version > after_version`` or shutdown."""
+        with cls._labview_ready:
+            while True:
+                if service_helper.time_to_stop():
+                    return None
+                if (
+                    cls.latest_labview_data is not None
+                    and cls.labview_data_version > after_version
+                ):
+                    return cls.latest_labview_data, cls.labview_data_version
+                cls._labview_ready.wait(timeout=cls.GSE_POLL_S)
+
+    @classmethod
+    def shutdown_wake_clients(cls) -> None:
+        with cls._labview_ready:
+            cls._labview_ready.notify_all()
 
 
 def sinusoid(
@@ -652,7 +531,7 @@ def corrupt_packet(
                 packet[key] = value_corrupt
 
 
-def get_sinusoid_packets(
+def get_sinusoid_packets_av(
     START_TIME: float, EXPERIMENTAL: bool, CORRUPTION: bool
 ) -> list[MockPacket]:
     """Just generate packets with sinusoidal values over time.
@@ -786,96 +665,137 @@ def get_sinusoid_packets(
 
     ARGS_AVtoGCSData3 = ARGS_AV_COMMON
 
-    ARGS_GSE_COMMON = {
-        "RSSI": sinusoid(T, min=-50, max=0, period=10, phase=0),
-        "SNR": sinusoid(T, min=0, max=10, period=10, phase=math.pi / 2),
-        "MANUAL_PURGED": changing_bool(T + 1 / 4) if EXPERIMENTAL else False,
-        "O2_FILL_ACTIVATED": (
-            changing_bool(T + 2 / 4) if EXPERIMENTAL else False
-        ),
-        "SELECTOR_SWITCH_NEUTRAL_POSITION": (
-            changing_bool(T) if EXPERIMENTAL else False
-        ),
-        "N2O_FILL_ACTIVATED": (
-            changing_bool(T + 3 / 4) if EXPERIMENTAL else False
-        ),
-        "IGNITION_FIRED": changing_bool(T + 4 / 4) if EXPERIMENTAL else False,
-        "IGNITION_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
-        "GAS_FILL_SELECTED": changing_bool(T) if EXPERIMENTAL else False,
-        "SYSTEM_ACTIVATED": changing_bool(T) if EXPERIMENTAL else False,
-        "IGNITION_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "RELAY3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "RELAY2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "RELAY1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "THERMOCOUPLE_4_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "THERMOCOUPLE_3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "THERMOCOUPLE_2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "THERMOCOUPLE_1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "LOAD_CELL_4_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "LOAD_CELL_3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "LOAD_CELL_2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "LOAD_CELL_1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "TRANSDUCER_4_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "TRANSDUCER_3_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "TRANSDUCER_2_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-        "TRANSDUCER_1_ERROR": changing_bool(T) if EXPERIMENTAL else False,
-    }
-
-    ARGS_GSEtoGCSData1 = ARGS_GSE_COMMON | {
-        "TRANSDUCER1": sinusoid(
-            T, min=1, max=30, period=10, phase=1 * 2 * math.pi / 3
-        ),
-        "TRANSDUCER2": sinusoid(
-            T, min=1, max=30, period=10, phase=2 * 2 * math.pi / 3
-        ),
-        "TRANSDUCER3": sinusoid(
-            T, min=1, max=30, period=10, phase=3 * 2 * math.pi / 3
-        ),
-        "THERMOCOUPLE1": sinusoid(
-            T, min=10, max=40, period=20, phase=1 * 2 * math.pi / 4
-        ),
-        "THERMOCOUPLE2": sinusoid(
-            T, min=10, max=40, period=20, phase=2 * 2 * math.pi / 4
-        ),
-        "THERMOCOUPLE3": sinusoid(
-            T, min=10, max=40, period=20, phase=3 * 2 * math.pi / 4
-        ),
-        "THERMOCOUPLE4": sinusoid(
-            T, min=10, max=40, period=20, phase=4 * 2 * math.pi / 4
-        ),
-    }
-
-    ARGS_GSEtoGCSData2 = ARGS_GSE_COMMON | {
-        "INTERNAL_TEMPERATURE": sinusoid(T, min=15, max=60, period=30, phase=0),
-        "WIND_SPEED": sinusoid(T, min=15, max=20, period=30, phase=0),
-        "GAS_BOTTLE_WEIGHT_1": int(
-            sinusoid(T, min=12, max=18, period=30, phase=0)
-        ),
-        "GAS_BOTTLE_WEIGHT_2": int(
-            sinusoid(T, min=12, max=18, period=30, phase=math.pi / 2)
-        ),
-        "ADDITIONAL_VA_1": sinusoid(T, min=15, max=60, period=30, phase=0),
-        "ADDITIONAL_VA_2": sinusoid(T, min=2, max=5, period=10, phase=0),
-        "ADDITIONAL_CURRENT_1": sinusoid(T, min=1, max=5, period=10, phase=0),
-        "ADDITIONAL_CURRENT_2": sinusoid(T, min=2, max=5, period=10, phase=0),
-    }
-
     # Simulate random data corruption on packet
     if CORRUPTION:
         corrupt_packet(ARGS_AVtoGCSData1)
         corrupt_packet(ARGS_AVtoGCSData2)
         corrupt_packet(ARGS_AVtoGCSData3)
-        corrupt_packet(ARGS_GSEtoGCSData1)
-        corrupt_packet(ARGS_GSEtoGCSData2)
 
     # Do not emulate GSE packets until new emulation is supported
     return [
         AVtoGCSData1(**ARGS_AVtoGCSData1),
         AVtoGCSData2(**ARGS_AVtoGCSData2),
         AVtoGCSData3(**ARGS_AVtoGCSData3),
-        # GSEtoGCSData1(**ARGS_GSEtoGCSData1),
-        # GSEtoGCSData2(**ARGS_GSEtoGCSData2),
     ]
+
+
+def get_sinusoid_packets_gsedaq(
+    START_TIME: float, EXPERIMENTAL: bool, CORRUPTION: bool
+) -> GseDaqMetrics:
+    """Generates sinusoidal packets of GSE data"""
+
+    TIME_NOW = time.monotonic()
+    T = TIME_NOW - START_TIME
+
+    values = {
+        "temp_tank_top": sinusoid(
+            T, min=-10, max=50, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "temp_tank_middle": sinusoid(
+            T, min=-20, max=40, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "temp_tank_bottom": sinusoid(
+            T, min=-30, max=30, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "temp_vent": sinusoid(
+            T, min=-90, max=25, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "temp_pipe_n2o_gse": sinusoid(
+            T, min=-20, max=20, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "pressure_n2o_bottle": sinusoid(
+            T, min=1, max=60, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "pressure_n2o_tank": sinusoid(
+            T, min=1, max=60, period=10, phase=-1 * 2 * math.pi / 4
+        ),
+        "pressure_o2_tank": sinusoid(
+            T, min=40, max=60, period=10, phase=1 * 2 * math.pi / 4
+        ),
+        "weight_rocket": sinusoid(
+            T, min=0, max=10, period=10, phase=1 * 2 * math.pi / 4
+        ),
+    }
+
+    if CORRUPTION:
+        corrupt_packet(values)
+
+    return GseDaqMetrics(**values)
+
+
+def gse_client_manager(conn, addr):
+    slogger.debug(f"Connected to new GSE/GDAQ TCP client {addr}.")
+    last_version = -1
+    try:
+        while not service_helper.time_to_stop():
+            got = GSEDAQData.wait_new_labview_payload(last_version)
+            if got is None:
+                break
+            payload, version = got
+            try:
+                conn.sendall(payload)
+            except (ConnectionResetError, BrokenPipeError, OSError):
+                break
+            last_version = version
+    finally:
+        conn.close()
+    slogger.debug(f"Closed GSE/DAQ TCP client {addr}.")
+
+
+def gse_server_manager(
+    port: int, start_time: float, experimental: bool, corruption: bool
+):
+    host = "127.0.0.1"
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((host, port))
+    server.listen()
+    slogger.info(f"Emulation labview server is LISTENING on {host}:{port}")
+    all_threads: List[threading.Thread] = []
+    next_publish_mono = time.monotonic()
+    try:
+        while not service_helper.time_to_stop():
+            metrics = get_sinusoid_packets_gsedaq(
+                start_time, experimental, corruption
+            )
+            enabled_map = GseDaqMetrics.get_gse_sensor_enabled_map()
+            row_dict = GseDaqMetrics.build_labview_row_dict(
+                asdict(metrics), enabled_map
+            )
+            row_xml = GseDaqMetrics.build_xml_row(row_dict)
+            GSEDAQData.publish_labview_update(row_xml.encode("utf-8") + b"\n")
+
+            next_publish_mono += MockPacket.TIME_INBETWEEN_PACKETS
+            sleep_s = next_publish_mono - time.monotonic()
+            if sleep_s > 0:
+                time.sleep(sleep_s)
+            else:
+                next_publish_mono = time.monotonic()
+
+            server.settimeout(0.0)
+            while not service_helper.time_to_stop():
+                try:
+                    conn, addr = server.accept()
+                except socket.timeout:
+                    break
+                except OSError:
+                    break
+
+                thread = threading.Thread(
+                    target=gse_client_manager, args=(conn, addr)
+                )
+                all_threads.append(thread)
+                thread.start()
+                slogger.debug(f"Started new TCP thread for {addr}")
+
+    finally:
+        GSEDAQData.shutdown_wake_clients()
+        try:
+            server.close()
+        except OSError:
+            pass
+
+    for t in all_threads:
+        t.join()
 
 
 def main():
@@ -904,16 +824,13 @@ def main():
 
     # Used for the sequence lock class GSE debugging
     CONFIG_LOADED = config.get_config()
-    GSE_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_gse_response_path"]
     AV_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_av_response_path"]
 
     START_TIME = time.monotonic()
-    last_time_gse_written = START_TIME
     last_time_av_written = START_TIME
     last_time_av_warned = START_TIME
-    last_time_gse_warned = START_TIME
+
     LOCK_WARNING_TIME = 5
-    TIME_INBETWEEN_PACKETS = 0.01
 
     EXPERIMENTAL = (
         experimental_cli_override
@@ -927,8 +844,18 @@ def main():
             "Experimental mode enabled. Values may appear nonsensical."
         )
 
+    # Start a thread to send the GSE information with a standalone TCP server
+    gse_server_port = int(config.get_config()["emulation"]["tcp_server_port"])
+    gse_server_manager_thread = threading.Thread(
+        target=gse_server_manager,
+        args=(gse_server_port, START_TIME, EXPERIMENTAL, CORRUPTION),
+    )
+    gse_server_manager_thread.start()
+
+    # This thread will now do the AV half duplex emulation
+
     while not service_helper.time_to_stop():
-        for packet in get_sinusoid_packets(
+        for packet in get_sinusoid_packets_av(
             START_TIME, EXPERIMENTAL, CORRUPTION
         ):
             device = packet.ORIGIN_DEVICE
@@ -940,20 +867,14 @@ def main():
                     if os.path.exists(AV_LOCK_PATH):
                         packet.write_payload()
                         last_time_av_written = time.monotonic()
-                        time.sleep(TIME_INBETWEEN_PACKETS)
-                case MockPacket._SourceDevice.GSE:
-                    if os.path.exists(GSE_LOCK_PATH):
-                        packet.write_payload()
-                        last_time_gse_written = time.monotonic()
-                        time.sleep(TIME_INBETWEEN_PACKETS)
+                        time.sleep(MockPacket.TIME_INBETWEEN_PACKETS)
                 case MockPacket._SourceDevice.GCS:
                     packet.write_payload()
-                    time.sleep(TIME_INBETWEEN_PACKETS)
+                    time.sleep(MockPacket.TIME_INBETWEEN_PACKETS)
         # Warn if locks are present for too long. Possible deadlock while in dev
 
         check_time = time.monotonic()
         AV_AWAIT_TIME = check_time - last_time_av_written
-        GSE_AWAIT_TIME = check_time - last_time_gse_written
         if (
             AV_AWAIT_TIME
         ) > LOCK_WARNING_TIME and check_time - last_time_av_warned > 3:
@@ -962,15 +883,7 @@ def main():
             )
             last_time_av_warned = check_time
 
-        # Do not emulate GSE packets until new emulation is supported
-        # if (
-        #     GSE_AWAIT_TIME
-        # ) > LOCK_WARNING_TIME and check_time - last_time_gse_warned > 3:
-        #     slogger.warning(
-        #         f"GSE emulation awaiting server sequence timing for {round(GSE_AWAIT_TIME)} seconds"
-        #     )
-        #     last_time_gse_warned = check_time
-
+    gse_server_manager_thread.join()
     slogger.debug("Emulator finished")
 
 
