@@ -4,7 +4,6 @@ Replay the following CSV files
 
 """
 
-from dataclasses import dataclass
 import os
 import csv
 import time
@@ -18,7 +17,12 @@ from backend.device_emulator import (
 )
 import backend.includes_python.process_logging as slogger
 from backend.includes_python import service_helper
-from backend.replay_system.packet_type import PacketType
+from backend.replay_system.packet import Packet, PacketType
+from backend.replay_system.blue_raven_processor import (
+    process_blue_raven,
+    get_blue_raven_path,
+)
+from backend.simulation.run_simulation import get_replay_sim_data
 import configparser
 import argparse
 
@@ -28,13 +32,6 @@ timeout_cfg = cfg["Timeout"]
 MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
 MAX_FRAME_RATE = float(timeout_cfg["max_frame_rate"])
-
-
-@dataclass
-class Packet:
-    timestamp_ms: float
-    packet_type: PacketType
-    data: dict
 
 
 def process_csv_packets(
@@ -74,25 +71,31 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
     if service_helper.time_to_stop():
         return
 
-    next_earliest_frame_time = start_time
+    next_earliest_frame_time_av1 = start_time
+    next_earliest_frame_time_av2 = start_time
     for packet in packets:
         if service_helper.time_to_stop():
             break
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
 
-        # skip frame if too soon
-        if target_time < next_earliest_frame_time:
-            continue
-
-        # current packet will be sent, therefore update the next earliest allowed frame_time
-        next_earliest_frame_time += 1 / MAX_FRAME_RATE
+        # skip frame if too soon, importantly checks data 1 and 2 separate as otherwise often end up skipping all AV2 data
+        if packet.packet_type == PacketType.AV_TO_GCS_DATA_1:
+            if target_time < next_earliest_frame_time_av1:
+                continue
+            # current packet will be sent, therefore update the next earliest allowed frame_time
+            next_earliest_frame_time_av1 += 1 / MAX_FRAME_RATE
+        if packet.packet_type == PacketType.AV_TO_GCS_DATA_2:
+            if target_time < next_earliest_frame_time_av2:
+                continue
+            # current packet will be sent, therefore update the next earliest allowed frame_time
+            next_earliest_frame_time_av2 += 1 / MAX_FRAME_RATE
 
         time_to_wait = target_time - time.time()
-
-        if time_to_wait >= 3.0:
+        max_wait_time = 3
+        if time_to_wait >= max_wait_time:
             slogger.warning(
-                f"Time until next packet: {round(time_to_wait,3)} seconds"
+                f"Time until next packet: {round(time_to_wait, max_wait_time)} seconds"
             )
         # slogger.debug(f"Time to wait: {time_to_wait} for packet: {packet.packet_type} at time: {packet.timestamp_ms}")
         if time_to_wait > 0:
@@ -134,7 +137,7 @@ def send_packet(packet: Packet) -> None:
     handle_packets(packet)
 
 
-def handle_packets(packet: Packet):
+def handle_packets(packet: Packet) -> None:
     match packet.packet_type:
         case PacketType.AV_TO_GCS_DATA_1:
             _handle_av_to_gcs_data_1(packet)
@@ -153,7 +156,7 @@ def handle_packets(packet: Packet):
         case PacketType.GCS_TO_GSE_STATE_CMD:
             _handle_gcs_to_gse_state(packet)
         case _:
-            _unknown_packet_type
+            _unknown_packet_type(packet)
 
 
 def _unknown_packet_type(packet: Packet) -> None:
@@ -167,20 +170,20 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
 
     def _gyro_capper(packet: Packet, axis: str) -> Packet:
         key = "gyro_" + axis
-        CURRENT_VALUE = float(data[key])
+        current_value = float(data[key])
 
-        ABS_THRESHOLD = 245.0
+        abs_threshold = 245.0
 
-        if CURRENT_VALUE > ABS_THRESHOLD:
+        if current_value > abs_threshold:
             slogger.error(
-                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE"
+                f"BAD {key.upper()}={current_value} ENTRY DETECTED CAPPING VALUE"
             )
-            data[key] = ABS_THRESHOLD
-        elif CURRENT_VALUE < -ABS_THRESHOLD:
+            data[key] = abs_threshold
+        elif current_value < -abs_threshold:
             slogger.error(
-                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE"
+                f"BAD {key.upper()}={current_value} ENTRY DETECTED CAPPING VALUE"
             )
-            data[key] = -ABS_THRESHOLD
+            data[key] = -abs_threshold
         return packet
 
     # Check gyro values
@@ -260,9 +263,9 @@ def _handle_av_to_gcs_data_2(packet: Packet) -> None:
         LATITUDE=float(data["GPS_latitude"]),
         LONGITUDE=float(data["GPS_longitude"]),
         QW=float(data["qw"]),
-        QX=float(data["qx"]),
-        QY=float(data["qy"]),
-        QZ=float(data["qz"]),
+        QX=float(data["qz"]),
+        QY=float(data["qx"]),
+        QZ=float(data["qy"]),
     )
     item.write_payload()
 
@@ -385,12 +388,11 @@ def validate_timeout_skip(packet: Packet, min_timeout_ms: int) -> int:
     return min_timeout_ms
 
 
-def get_mission_path():
-    base_path = os.path.join("backend", "replay_system", "mission_data")
-    return base_path
+def get_mission_path() -> os.PathLike:
+    return os.path.join("backend", "replay_system", "mission_data")
 
 
-def main():
+def main() -> None:
     # Using parser because there's too many arguments and I couldn't get sys working
     parser = argparse.ArgumentParser()
     parser.add_argument("--device-rocket", required=True)
@@ -398,6 +400,7 @@ def main():
         "--mode", choices=["simulation", "mission"], required=True
     )
     parser.add_argument("--mission", help="Check the mission directory names")
+    parser.add_argument("--blue-raven", help="Check the blue raven file path")
     parser.add_argument(
         "--simulation", choices=["TEST", "legacy", "FAIL", "DEMO"]
     )
@@ -406,28 +409,51 @@ def main():
     # mission_path = get_mission_path()
     try:
         if args.mode == "mission":
-            if not args.mission:
-                raise ValueError("No mission has been provided")
-            mission_path = os.path.join(get_mission_path(), args.mission)
-            if not os.path.exists(mission_path):
-                raise FileNotFoundError(
-                    f"No mission direction found at: {mission_path}"
+            if args.mission and args.blue_raven:
+                raise ValueError(
+                    "Do not provide --blue-raven and --mission at the same time"
                 )
-            if str(args.mission).lower() == "test":
-                raise NotImplementedError("Test has not been implemented")
-            slogger.info(f"Starting mission replay for {args.mission}")
 
-            processed_packets = process_csv_packets(
-                MIN_TIMESTAMP_MS, mission_path
-            )
+            if args.mission:
+                mission_path = os.path.join(get_mission_path(), args.mission)
+                if not os.path.exists(mission_path):
+                    raise FileNotFoundError(
+                        f"No mission direction found at: {mission_path}"
+                    )
+
+                if str(args.mission).lower() == "test":
+                    raise NotImplementedError("Test has not been implemented")
+                slogger.info(f"Starting mission replay for {args.mission}")
+
+                processed_packets = process_csv_packets(
+                    MIN_TIMESTAMP_MS, mission_path
+                )
+            elif args.blue_raven:
+                blue_raven_path = os.path.join(
+                    get_blue_raven_path(), args.blue_raven
+                )
+                if not os.path.exists(blue_raven_path):
+                    raise FileNotFoundError(
+                        f"Blue Raven file not found: {blue_raven_path}"
+                    )
+
+                if str(args.blue_raven).lower() == "test":
+                    raise NotImplementedError("Test has not been implemented")
+
+                slogger.info(
+                    f"Starting Blue Raven replay from {args.blue_raven}"
+                )
+                processed_packets = process_blue_raven(args.blue_raven)
+            else:
+                raise ValueError(
+                    "--mission requires also providing either the --mission or --blue-raven flag"
+                )
         else:
-            from backend.simulation.run_simulation import get_replay_sim_data
-
             if not args.simulation:
                 raise ValueError(
                     "No simulation was selected, required for simulation mode"
                 )
-            if args.simulation != "TEST" and args.simulation != "DEMO":
+            if args.simulation not in {"TEST", "DEMO"}:
                 raise NotImplementedError(
                     f"The simulation mode: {args.simulation} has not been implemented yet"
                 )
@@ -462,19 +488,19 @@ def main():
             replay_packets(processed_packets, valid_timeout)
             slogger.info("FINISHED SENDING PACKETS")
     except ValueError as ve:
-        slogger.error(f"Value Error in replay system: {str(ve)}")
+        slogger.error(f"Value Error in replay system: {ve!s}")
         raise
 
     except FileNotFoundError as fe:
-        slogger.error(f"File not found: {str(fe)}")
+        slogger.error(f"File not found: {fe!s}")
         raise
 
     except NotImplementedError as nie:
-        slogger.error(f"Feature has not been implemented: {str(nie)}")
+        slogger.error(f"Feature has not been implemented: {nie!s}")
         raise
 
     except Exception as e:
-        slogger.error(f"Something has gone wrong: {str(e)}")
+        slogger.error(f"Something has gone wrong: {e!s}")
         raise
 
 

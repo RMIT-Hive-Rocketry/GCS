@@ -17,6 +17,7 @@ class AuxServicePlan:
     device_path: str | None
     interface_type: InterfaceType | None
     mission: str | None
+    blue_raven: str | None
     simulation: str | None
 
 
@@ -212,6 +213,7 @@ class RuntimeLaunchConfig:
         self,
         replay_mode: str | None,
         mission_arg: str | None,
+        blue_raven_arg: str | None,
         simulation_arg: str | None,
     ) -> AuxServicePlan:
         command_name = getattr(self.command, "name", "").upper()
@@ -224,6 +226,7 @@ class RuntimeLaunchConfig:
                 device_path=self._aux_device_path,
                 interface_type=self.interface_av_type,
                 mission=None,
+                blue_raven=None,
                 simulation=None,
             )
         if command_name == "SIMULATION":
@@ -232,6 +235,7 @@ class RuntimeLaunchConfig:
                 device_path=self._aux_device_path,
                 interface_type=None,
                 mission=None,
+                blue_raven=None,
                 simulation=None,
             )
         if command_name == "REPLAY":
@@ -240,6 +244,7 @@ class RuntimeLaunchConfig:
                 device_path=self._aux_device_path,
                 interface_type=None,
                 mission=mission_arg if replay_mode == "mission" else None,
+                blue_raven=blue_raven_arg if replay_mode == "mission" else None,
                 simulation=None if replay_mode == "mission" else simulation_arg,
             )
         return AuxServicePlan(
@@ -247,5 +252,6 @@ class RuntimeLaunchConfig:
             device_path=None,
             interface_type=None,
             mission=None,
+            blue_raven=None,
             simulation=None,
         )
