@@ -2363,6 +2363,15 @@
                 solenoid.setAttribute("fill", colorBoolean[state ? 1 : 0]);
             }
 
+            // Resets to having no fill attribute, not open nor closed
+            function resetAllValves() {
+                const allValveIds = Object.keys(ALL_CLOSED);
+                allValveIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute("fill", "none");
+                });
+            }
+
             // ---------------------------------------------------------------
             // hmiUpdateValveStates(data)
             // Derives the operating mode from control flags.
@@ -2592,11 +2601,17 @@
                 };
 
                 const key = mode + ":" + rocketStatus;
-                const valves = valveTable[key] || defaultValves;
+                const valves = valveTable[key];
 
-                for (const [valveId, state] of Object.entries(valves)) {
-                    hmiUpdateSolenoid(valveId, state);
+                if (valves) {
+                    for (const [valveId, state] of Object.entries(valves)) {
+                        hmiUpdateSolenoid(valveId, state);
+                    }
+                } else {
+                    resetAllValves();
                 }
+
+                
             }
     
         </script>
