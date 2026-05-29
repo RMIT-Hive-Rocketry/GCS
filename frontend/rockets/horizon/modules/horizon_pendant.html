@@ -88,33 +88,19 @@
             <div class="pendant-phase">
                 <div class="pendant-section-label">Current Phase</div>
                 <div class="pendant-phase-value phase-off" data-pendant-phase>OFF</div>
-                <div class="pendant-phase-desc" data-pendant-desc>
-                    System idle. Awaiting activation.
-                </div>
-            </div>
-
-            <div class="pendant-progression">
-                <div class="pendant-section-label">Sequence</div>
-                <ol class="pendant-progression-list">
-                    <li data-progression="OFF" class="active">Off</li>
-                    <li data-progression="STANDBY">Standby</li>
-                    <li data-progression="FILL">Fill</li>
-                    <li data-progression="ARMED">Armed</li>
-                    <li data-progression="IGNITION">Ignition</li>
-                </ol>
             </div>
 
             <div class="pendant-inputs">
                 <div class="pendant-section-label">Inputs</div>
                 <ul class="pendant-input-list">
-                    <li data-state-check="SYSTEM_ACTIVATE"><span class="dot"></span>System activate</li>
-                    <li data-state-check="GAS_FILL_SELECTED"><span class="dot"></span>Gas fill selected</li>
-                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Selector neutral</li>
-                    <li data-state-check="N2O_FILL_ACTIVATE"><span class="dot"></span>N₂O fill active</li>
-                    <li data-state-check="MANUAL_PURGE"><span class="dot"></span>Manual purge</li>
-                    <li data-state-check="IGNITION_SELECTED"><span class="dot"></span>Ignition selected</li>
-                    <li data-state-check="O2_FILL_ACTIVATE"><span class="dot"></span>O₂ fill active</li>
-                    <li data-state-check="IGNITION_FIRE"><span class="dot"></span>Ignition fire</li>
+                    <li data-state-check="SYSTEM_ACTIVATE"><span class="dot"></span>System Active</li>
+                    <li data-state-check="GAS_FILL_SELECTED"><span class="dot"></span>Fill Mode Selected</li>
+                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Fill Selector Neutral</li>
+                    <li data-state-check="N2O_FILL_ACTIVATE"><span class="dot"></span>N₂O Fill Active</li>
+                    <li data-state-check="MANUAL_PURGE"><span class="dot"></span>Manual Purge</li>
+                    <li data-state-check="IGNITION_SELECTED"><span class="dot"></span>Armed</li>
+                    <li data-state-check="O2_FILL_ACTIVATE"><span class="dot"></span>O₂ Fill Active</li>
+                    <li data-state-check="IGNITION_FIRE"><span class="dot"></span>Ignition Fire</li>
                     <li data-state-check="ESTOP" class="estop"><span class="dot"></span>E-STOP</li>
                 </ul>
             </div>
@@ -133,10 +119,11 @@
 
     .module-pendant .pendant-layout {
         grid-template-columns: 1fr 280px;
-        grid-template-rows: 1fr auto;
+        grid-template-rows: auto 1fr;
         grid-template-areas:
             "pendant status"
             "console console";
+        row-gap: 1rem;
     }
 
     .module-pendant .pendant-visual {
@@ -150,7 +137,6 @@
 
     .module-pendant .pendant-console {
         grid-area: console;
-        min-height: 250px;
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -296,7 +282,7 @@
     }
 
     .module-pendant .pendant-phase-value {
-        font-size: 2.4rem;
+        font-size: 1.8rem;
         font-weight: bold;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         letter-spacing: 0.05em;
@@ -314,7 +300,23 @@
         color: var(--color-horizon-pink);
         text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
     }
+    .module-pendant .pendant-phase-value.phase-fill-n2o {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+    .module-pendant .pendant-phase-value.phase-fill-neutral {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+    .module-pendant .pendant-phase-value.phase-purge {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
     .module-pendant .pendant-phase-value.phase-armed {
+        color: #ff3030;
+        text-shadow: 0 0 14px #ff3030;
+    }
+    .module-pendant .pendant-phase-value.phase-armed-o2 {
         color: #ff3030;
         text-shadow: 0 0 14px #ff3030;
     }
@@ -327,41 +329,6 @@
         color: #ff3030;
         text-shadow: 0 0 14px #ff3030;
         animation: pendantPulse 0.4s infinite alternate;
-    }
-
-    .module-pendant .pendant-phase-desc {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.55);
-        font-style: italic;
-        margin-top: 6px;
-        line-height: 1.35;
-    }
-
-    /* Sequence secton */
-    .module-pendant .pendant-progression-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 0.88rem;
-    }
-
-    .module-pendant .pendant-progression-list li {
-        padding: 5px 10px;
-        border: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
-        color: rgba(255, 255, 255, 0.4);
-        background: color-mix(in oklab, var(--color-horizon-mauve) 8%, transparent);
-        transition: all 0.15s ease;
-    }
-
-    .module-pendant .pendant-progression-list li.active {
-        color: var(--color-horizon-yellow);
-        border-color: var(--color-horizon-yellow);
-        background: color-mix(in oklab, var(--color-horizon-mauve) 30%, transparent);
-        box-shadow: 0 0 6px color-mix(in oklab, var(--color-horizon-yellow) 35%, transparent);
     }
 
     /* Input dots */
@@ -419,14 +386,17 @@
 </style>
 
 <script>
-    // Mapping from a phase to its display label and description
+    // Mapping from a phase to its display label and CSS class
     const PENDANT_PHASE_INFO = {
-        OFF:      { label: "OFF",      cls: "phase-off",      desc: "System idle. Awaiting activation." },
-        STANDBY:  { label: "STANDBY",  cls: "phase-standby",  desc: "System on. No selector engaged." },
-        FILL:     { label: "FILL",     cls: "phase-fill",     desc: "Fill mode selected." },
-        ARMED:    { label: "ARMED",    cls: "phase-armed",    desc: "Ignition mode selected." },
-        IGNITION: { label: "IGNITION", cls: "phase-ignition", desc: "Ignition firing." },
-        ESTOP:    { label: "E-STOP",   cls: "phase-estop",    desc: "Emergency stop active." },
+        OFF:          { label: "OFF",                cls: "phase-off"          },
+        STANDBY:      { label: "STANDBY",            cls: "phase-standby"      },
+        FILL_NEUTRAL: { label: "FILL - NEUTRAL", cls: "phase-fill-neutral" },
+        FILL_N2O:     { label: "FILL - N₂O",    cls: "phase-fill-n2o"     },
+        PURGE:        { label: "PURGE",              cls: "phase-purge"        },
+        ARMED:        { label: "ARMED",              cls: "phase-armed"        },
+        ARMED_O2:     { label: "ARMED - O₂ FILL",   cls: "phase-armed-o2"     },
+        IGNITION:     { label: "IGNITION",           cls: "phase-ignition"     },
+        ESTOP:        { label: "E-STOP",             cls: "phase-estop"        },
     };
 
     // This is the "priority order" of phases, since multiple can be true at once
@@ -434,8 +404,15 @@
         if (!apiData) return "OFF";
         if (apiData.ESTOP)             return "ESTOP";
         if (apiData.IGNITION_FIRE)     return "IGNITION";
-        if (apiData.IGNITION_SELECTED) return "ARMED";
-        if (apiData.GAS_FILL_SELECTED) return "FILL";
+        if (apiData.IGNITION_SELECTED) {
+            if (apiData.O2_FILL_ACTIVATE) return "ARMED_O2";
+            return "ARMED";
+        }
+        if (apiData.GAS_FILL_SELECTED) {
+            if (apiData.N2O_FILL_ACTIVATE) return "FILL_N2O";
+            if (apiData.MANUAL_PURGE)      return "PURGE";
+            return "FILL_NEUTRAL";
+        }
         if (apiData.SYSTEM_ACTIVATE)   return "STANDBY";
         return "OFF";
     }
@@ -498,17 +475,6 @@
             phaseEl.textContent = info.label;
             phaseEl.className = "pendant-phase-value " + info.cls;
         }
-
-        const descEl = document.querySelector("[data-pendant-desc]");
-        if (descEl) descEl.textContent = info.desc;
-
-        // Highlight the current step in the sequence
-        document.querySelectorAll("[data-progression]").forEach((el) => {
-            el.classList.toggle(
-                "active",
-                phase !== "ESTOP" && el.dataset.progression === phase,
-            );
-        });
 
         // Update the per-input dots
         document.querySelectorAll("[data-state-check]").forEach((el) => {
