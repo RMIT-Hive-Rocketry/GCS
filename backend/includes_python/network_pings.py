@@ -29,11 +29,14 @@ with open(manifest_path, "r") as f:
 
 # Store information about each device and it's packet loss here.
 # Ring buffer of last 30 pings or so. Based on amount, not time.
-# Start with all sucesses
+# Start with all successes
 ping_sucess_buffer_size = 30
-ping_sucess_cache = {name: deque([True]*ping_sucess_buffer_size,
-                                 maxlen=ping_sucess_buffer_size)
-                     for name in default_manifest.keys()}
+ping_sucess_cache = {
+    name: deque(
+        [True] * ping_sucess_buffer_size, maxlen=ping_sucess_buffer_size
+    )
+    for name in default_manifest.keys()
+}
 
 
 async def ping_address(device: str, address: str) -> tuple[str, float, float]:
@@ -58,11 +61,17 @@ async def ping_address(device: str, address: str) -> tuple[str, float, float]:
     else:
         ping_sucess_cache[device].append(True)
 
-    return device, float(latency_ms), 1-sum(ping_sucess_cache[device])/ping_sucess_buffer_size
+    return (
+        device,
+        float(latency_ms),
+        1 - sum(ping_sucess_cache[device]) / ping_sucess_buffer_size,
+    )
 
 
 async def ping_manifest() -> dict[str, float | None]:
     ping_tasks = [ping_address(d, a) for d, a in default_manifest.items()]
     ping_results = await asyncio.gather(*ping_tasks)
 
-    return {dev: {"ping": ping, "packet_loss": pl} for dev, ping, pl in ping_results}
+    return {
+        dev: {"ping": ping, "packet_loss": pl} for dev, ping, pl in ping_results
+    }

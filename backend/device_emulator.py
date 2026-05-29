@@ -495,7 +495,7 @@ def corrupt_packet(
             if packed != None:
                 binary_str = "".join(f"{byte:08b}" for byte in packed)
                 bytes_str = bytes(
-                    int(binary_str[i: i + 8], 2)
+                    int(binary_str[i : i + 8], 2)
                     for i in range(0, len(binary_str), 8)
                 )
 
@@ -508,7 +508,7 @@ def corrupt_packet(
                     )
                 )
                 bytes_corrupt = bytes(
-                    int(binary_corrupt[i: i + 8], 2)
+                    int(binary_corrupt[i : i + 8], 2)
                     for i in range(0, len(binary_corrupt), 8)
                 )
                 byte_data = bytes(
@@ -581,16 +581,13 @@ def get_sinusoid_packets_av(
             * sinusoid(T, min=-15.9, max=15.9, period=5, phase=6 * math.pi / 3)
         ),
         "ACCEL_HIGH_X": -int(
-            1024 * sinusoid(T, min=-32, max=32, period=5,
-                            phase=2 * math.pi / 3)
+            1024 * sinusoid(T, min=-32, max=32, period=5, phase=2 * math.pi / 3)
         ),
         "ACCEL_HIGH_Y": -int(
-            1024 * sinusoid(T, min=-32, max=32, period=5,
-                            phase=4 * math.pi / 3)
+            1024 * sinusoid(T, min=-32, max=32, period=5, phase=4 * math.pi / 3)
         ),
         "ACCEL_HIGH_Z": int(
-            1024 * sinusoid(T, min=-32, max=32, period=5,
-                            phase=6 * math.pi / 3)
+            1024 * sinusoid(T, min=-32, max=32, period=5, phase=6 * math.pi / 3)
         ),
         # should be [-30,30] on output
         "GYRO_X": int(
@@ -764,9 +761,7 @@ def gse_server_manager(
                 asdict(metrics), enabled_map
             )
             row_xml = GseDaqMetrics.build_xml_row(row_dict)
-            GSEDAQData.publish_labview_update(
-                row_xml.encode("utf-8") + b"\n"
-            )
+            GSEDAQData.publish_labview_update(row_xml.encode("utf-8") + b"\n")
 
             time.sleep(MockPacket.TIME_INBETWEEN_PACKETS)
 

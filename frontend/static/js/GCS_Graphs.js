@@ -115,7 +115,7 @@ function graphCreateLine(chart) {
     if (chart.margin == undefined) {
         chart.margin = DEFAULT_MARGINS;
     }
-    
+
     /* If the 1st parameter is 0, this would throw -ve dimension errors.
      * This would happen if boundingRect gave 0-dimensions (such as in the
      * diagnostics graphs where the devices aren't hardcoded and hence).
@@ -233,7 +233,7 @@ function graphResize(chart) {
         .attr("preserveAspectRatio", "xMidYMid meet");
 
     // Recalculate graph drawing area
-    
+
     /* If the 1st parameter is 0, this would throw -ve dimension errors.
      * This would happen if boundingRect gave 0-dimensions (such as in the
      * diagnostics graphs where the devices aren't hardcoded and hence).
@@ -305,32 +305,32 @@ function graphRender(chart) {
                 (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
             );
         });
-    
+
         const allPoints = chart.lines.flatMap((line) => line.data);
-    
+
         if (allPoints.length === 0) {
             return;
         }
-    
+
         const yMinRaw = d3.min(allPoints, (d) => d.y);
         const yMaxRaw = d3.max(allPoints, (d) => d.y);
-    
+
         if (!Number.isFinite(yMinRaw) || !Number.isFinite(yMaxRaw)) {
             return;
         }
-    
+
         let yMin = yMinRaw - 1;
         let yMax = yMaxRaw + 1;
-    
+
         if (chart?.limits?.yBottomMax !== undefined) {
             yMin = Math.min(yMin, chart.limits.yBottomMax);
         }
-    
+
         if (yMin === yMax) {
             yMin -= 1;
             yMax += 1;
         }
-    
+
         if (chart.lastRender != now || chart.lastPointCount !== allPoints.length) {
 
             /* Update x and y domains (unless it's the test colour
@@ -339,7 +339,7 @@ function graphRender(chart) {
             if (chart !== GRAPH_TEST_COLOURS) {
                 chart.x.domain([windowStart, now]);
             }
-            
+
             chart.y.domain([
                 Math.min(
                     d3.min(allPoints, (d) => d.y) - 1,
@@ -351,8 +351,8 @@ function graphRender(chart) {
             ]); //.nice();
 
             // Update rendering of X and Y domain
-            
-            
+
+
             chart.g
                 .select("g")
                 .transition()
@@ -542,7 +542,7 @@ if (document.readyState === "loading") {
 const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
     document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
         LINE_COLOURS[index] = event.target.value;
-        
+
         // Same code as above
         for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
             graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
@@ -803,7 +803,7 @@ function diagEnsureGraph(deviceName) {
     // Add threshold background layers after graph initialises
     // Delay so the browser paints the panel before we measure its dimensions
     setTimeout(() => {
-        
+
         graphCreateLine(graph);
 
         if (!graph.g) return;
@@ -839,7 +839,7 @@ function diagEnsureGraph(deviceName) {
         line.color = "#000000";
     });
     }, 200);
-    
+
 }
 
 // ── Middle panel: update badge, graph line, and stats ────────────
@@ -1003,7 +1003,7 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
 function graphUpdateDiagnostics(apiData) {
     const timestamp = diagNowSeconds();
 
-    
+
     let onlineCount = 0, totalCount = 0;
     let gseOnline = true;
     let lanOnline = true;
@@ -1046,7 +1046,7 @@ function graphUpdateDiagnostics(apiData) {
         diagEnsureGraph(deviceName);
         diagUpdateGraph(deviceName, ping, alive, timestamp);
 
-        
+
 
         // if (DIAG_LAN_DEVICES.includes(deviceName) && alive) {
         //     lanWorstPing =
@@ -1165,7 +1165,7 @@ function diagRenderGraph(graph) {
             const visibleData = lineData.data.filter(
                 (d) => d.x >= windowStart && d.x <= now
             );
-        
+
             // Build a single continuous blue step-line segment.
             // Offline points (-1) do NOT break the line
             const normalSegments = [];
@@ -1232,7 +1232,7 @@ function diagRenderGraph(graph) {
                 .attr("d", stepLine);
 
             stepPath.exit().remove();
-        
+
             // Red vertical bars use ONLY disconnected ping values.
             const offlineSpans = [];
 
@@ -1276,5 +1276,5 @@ function diagRenderGraph(graph) {
                 .attr("height", graph.y(1) - graph.y(500));
 
             disconnectBars.exit().remove();
-        });            
+        });
     }
