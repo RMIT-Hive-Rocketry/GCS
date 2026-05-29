@@ -2175,6 +2175,174 @@
                 "backflowV14": false,
             };
 
+            // After we get a name for the mode we're in, this is the lookup table for it
+            // Key format: "mode:rocketStatus"
+            // Valve values: true = open (green), false = closed (red)
+            const valveTable = {
+                // Rules for rocketStatus = 0 (no rocket present)
+                "off:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "idle:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "fillNeutral:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "n2o:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV5": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "purge:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "armed:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "o2:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "ignition:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "ignition_o2:0": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+
+                // Rules for rocket status = 1
+                "idle:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "fillNeutral:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "n2o:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV5": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "purge:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "armed:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "o2:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+                "ignition_o2:1": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "springValve": true,
+                    "needleV4": true,
+                    "solenoidsV6": true,
+                    "ballV8": true,
+                    "ballV9": true,
+                    "ballV12": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+
+                // Rules for rocket status = 2
+                "purge:2": {
+                    ...ALL_CLOSED,
+                    "needleV1": true,
+                    "needleV4": true,
+                    "solenoidsV7": true,
+                    "backflowV13": true,
+                    "backflowV14": true,
+                },
+            };
+
             function cycleRocketStatus() {
                 const next = (rocketStatus + 1) % 3;
                 const confirmed = confirm(
@@ -2278,8 +2446,6 @@
             // ---------------------------------------------------------------
             function hmiUpdate(data) {
 
-                //console.log("hmiUpdate received:", JSON.stringify(data, null, 2));
-
                 // State/control packet check
                 if (data?.SYSTEM_ACTIVATE !== undefined) {
                     hmiUpdateValveStates(data);
@@ -2377,7 +2543,13 @@
             // Derives the operating mode from control flags.
             // Then look up valve states from mode + rocketStatus.
             // ---------------------------------------------------------------
+
             function hmiUpdateValveStates(data) {
+
+                // Note for future dev:
+                // If you want to add E-STOP functionality, just add it as a flag here
+                // and in the branching logic (if flags.xxx)
+                // then you can make rules for it in valveTable
 
                 const flags = {
                     systemActivate:   !!data.SYSTEM_ACTIVATE,
@@ -2421,176 +2593,9 @@
                     mode = "off";
                 }
 
-                console.log("Mode:", mode, "| Rocket status:", rocketStatusLabels[rocketStatus]);
+                //console.log("Mode:", mode, "| Rocket status:", rocketStatusLabels[rocketStatus]);
 
-                // Now we got a name for the mode we're in, this is the lookup table for it
-                // Key format: "mode:rocketStatus"
-                // Valve values: true = open (green), false = closed (red)
-
-                const valveTable = {
-                    // Rules for rocketStatus = 0 (no rocket present)
-                    "off:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "solenoidsV7": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "idle:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "fillNeutral:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "n2o:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "solenoidsV5": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "purge:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "solenoidsV7": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "armed:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "o2:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "solenoidsV6": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "ignition:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "ignition_o2:0": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "solenoidsV6": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-
-                    // Rules for rocket status = 1
-                    "idle:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "fillNeutral:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "n2o:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "solenoidsV5": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "purge:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "solenoidsV7": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "armed:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "o2:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "solenoidsV6": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                    "ignition_o2:1": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "springValve": true,
-                        "needleV4": true,
-                        "solenoidsV6": true,
-                        "ballV8": true,
-                        "ballV9": true,
-                        "ballV12": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-
-                    // Rules for rocket status = 2
-                    "purge:2": {
-                        ...ALL_CLOSED,
-                        "needleV1": true,
-                        "needleV4": true,
-                        "solenoidsV7": true,
-                        "backflowV13": true,
-                        "backflowV14": true,
-                    },
-                };
+                
 
                 const key = mode + ":" + rocketStatus;
                 const valves = valveTable[key];
