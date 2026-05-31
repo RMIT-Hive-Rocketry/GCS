@@ -1,33 +1,29 @@
-# Required for general usage
-click>=8.1.7
-pyzmq>=25.1.1
-zmq>=0.0.0
-protobuf==6.31.0
-pygame>=2.5.1
-rocketpy>=1.11.0
-pandas>=2.2.3
-gpio==1.0.0
-gpiozero==2.0.1
-# lgpio==0.2.2.0
+# Core packages
+click~=8.3.1
+flask~=3.1.3
+gpio~=1.0.0
+gpiozero~=2.0.1
 # hid==1.0.9
+# lgpio==0.2.2.0
+pandas~=3.0.2
 ping3~=5.1.5
-
-# Middleware
-websockets>=15.0.1
-
-# Frontend
-flask>=3.1
-python-dotenv
+protobuf~=6.31.0
+pygame~=2.6.1
+python-dotenv~=1.2.2
+pyzmq~=27.1.0
+rocketpy~=1.12.1
+websockets~=16.0
+zmq~=0.0.0
 
 # Development
-basedpyright
-ruff
-black
-pre-commit
-codespell
+basedpyright~=1.39.5
+ruff~=0.15.14
+black~=26.3.1
+pre-commit~=4.5.1
+codespell~=2.4.2
 
-# types
-pandas-stubs
+# Types
+pandas-stubs~=3.0.0
 typing-extensions~=4.15.0
 
 # Testing
