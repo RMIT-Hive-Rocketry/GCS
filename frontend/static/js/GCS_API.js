@@ -170,7 +170,7 @@ function checkStateIndicator(elem = null) {
         else if (indicator.includes("gse.radio")) {
             sound = "GSE_Loss";
             if (typeof diagSetStatusBox === 'function') {
-                const alive = ["Vulcan ESP32", "WiFi Bridge @ GSE"].every((device) => {
+                const alive = ["vulcan-esp32", "wifi-bridge-gse"].every((device, index) => {
                     let ping = document.querySelector(`[data-key="${device}.ping"]`);
                     return ping && ping.getAttribute('value') >= 0;
                 });
