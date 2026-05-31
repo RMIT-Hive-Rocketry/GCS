@@ -125,7 +125,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     "127.0.0.1", port
                 )
             except OSError as e:
-                slogger.error("GSE LabVIEW TCP connect failed: %s", e)
+                slogger.error(f"GSE LabVIEW TCP connect failed: {e}")
                 return
             try:
                 while not shutdown_event.is_set():
