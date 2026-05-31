@@ -1,3 +1,7 @@
 {
-  "recommendations": ["ms-pyright.pyright", "charliermarsh.ruff"]
+  "recommendations": [
+    "ms-pyright.pyright",
+    "charliermarsh.ruff",
+    "dbaeumer.vscode-eslint"
+  ]
 }
