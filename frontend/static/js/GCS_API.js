@@ -13,7 +13,8 @@ const graphRenderRate = 20; // FPS for rendering graphs
 const metricOffline = {}; // key -> boolean
 
 // WebSocket API connection
-const ws_url = _ws != undefined ? `ws://${_ws["host"]}:${_ws["port"]}` : `ws://${window.location.host.split(":")[0]}:1887`
+const ws_url = `ws://${window.location.host.split(":")[0]}:1887`
+// const ws_url = `ws://${_ws["host"]}:${_ws["port"]}`
 const apiSocket = new WebSocket(ws_url);
 var reconnectInterval = initialReconnectInterval;
 var reconnectTimeout;
@@ -33,18 +34,18 @@ const errors = [];
 */
 const timeoutsList = [
     // This allows for customisation (note duration in ms)
-    {name:"av", duration:3000, state:4, rocket:"Legacy3"},
-    {name:"av", duration:10000, state:5, rocket:"Legacy3"},
-    {name:"gse", duration:3000, state:4, rocket:"Legacy3"},
-    {name:"gse", duration:10000, state:5, rocket:"Legacy3"},
+    { name: "av", duration: 3000, state: 4, rocket: "Legacy3" },
+    { name: "av", duration: 10000, state: 5, rocket: "Legacy3" },
+    { name: "gse", duration: 3000, state: 4, rocket: "Legacy3" },
+    { name: "gse", duration: 10000, state: 5, rocket: "Legacy3" },
 
-    {name:"av", duration:3000, state:4, rocket:"Atlas"},
-    {name:"av", duration:10000, state:5, rocket:"Atlas"},
-    {name:"gse", duration:3000, state:4, rocket:"Atlas"},
-    {name:"gse", duration:10000, state:5, rocket:"Atlas"},
+    { name: "av", duration: 3000, state: 4, rocket: "Atlas" },
+    { name: "av", duration: 10000, state: 5, rocket: "Atlas" },
+    { name: "gse", duration: 3000, state: 4, rocket: "Atlas" },
+    { name: "gse", duration: 10000, state: 5, rocket: "Atlas" },
 
-    {name:"av", duration:5000, state:4, rocket:"Horizon"},
-    {name:"gse", duration:5000, state:4, rocket:"Horizon"},
+    { name: "av", duration: 5000, state: 4, rocket: "Horizon" },
+    { name: "gse", duration: 5000, state: 4, rocket: "Horizon" },
 ];
 
 // Global display values
@@ -108,7 +109,7 @@ const soundsList_other = filenames_other.map(src => {
      * track of how many times a sound has been looping for
      * (if required)
     */
-    let returnValue = {source: audioObject, loopCount: 0};
+    let returnValue = { source: audioObject, loopCount: 0 };
 
     // Loop in case required, else self-return after playing
     audioObject.addEventListener('ended', () => {
@@ -129,7 +130,7 @@ const soundsList_other = filenames_other.map(src => {
 // Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
     return soundsList_losses.every(item => !item.source.muted) &&
-           soundsList_other.every(item => !item.source.muted);
+        soundsList_other.every(item => !item.source.muted);
 }
 
 // Call at the start and whenever a state updates
@@ -305,7 +306,7 @@ function playOtherSound(sound) {
     }
 
     // Play if on the Horizon main page
-    if (isHorizonMain()){
+    if (isHorizonMain()) {
         soundsList_other[soundNumber].source.play();
     }
 }
@@ -946,7 +947,7 @@ function checkErrorConditions(apiData) {
 // Mark devices offline and manage their display change
 function checkOfflineData(apiData) {
     const offlineSentinel = "offline"; // From gsedaq_metrics.py
-    function isOffline(value) {return value === offlineSentinel;}
+    function isOffline(value) { return value === offlineSentinel; }
 
     // Top level check.
     // Recursion will be needed if you want to implement for other packets
@@ -1284,14 +1285,14 @@ function processDataForDisplay(apiData, apiId) {
         let currSound = soundsList_other[2];
 
         // 50m in km
-        if (final_distance <= 50/1000) {
+        if (final_distance <= 50 / 1000) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
             if (currSound.source.duration === currSound.source.duration) {
                 /* Volume rises in logarithmic fashion the longer the rocket stays within
                 * 50m of the GCS (within the 1st iteration), full volume otherwise.
                 */
                 currSound.source.volume = currSound.loopCount > 0
-                                    ? 1 : (currSound.source.currentTime / currSound.source.duration) ** 1.5;
+                    ? 1 : (currSound.source.currentTime / currSound.source.duration) ** 1.5;
                 console.log(currSound.loopCount);
                 playOtherSound("Rocket_Warn");
             }
@@ -1536,31 +1537,31 @@ function sendDataToRegistry(apiData) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value != undefined && !Number.isNaN(value)) {
-    if (logVerbose)
-        console.debug(
+        if (logVerbose)
+            console.debug(
                 `new value %c${item}%c ${parseFloat(value).toFixed(precision)}`,
-            "color:orange",
-            "color:white",
-        );
+                "color:orange",
+                "color:white",
+            );
 
-    // Use classes instead of IDs since IDs must be unique
-    // and some items occur on multiple pages
-    let elements = [item];
-    if (typeof item == "string") {
-        elements = document.querySelectorAll(`.${item}`);
-    }
-    if (elements && elements.length > 0) {
-        elements.forEach((elem) => {
-            // Update value
+        // Use classes instead of IDs since IDs must be unique
+        // and some items occur on multiple pages
+        let elements = [item];
+        if (typeof item == "string") {
+            elements = document.querySelectorAll(`.${item}`);
+        }
+        if (elements && elements.length > 0) {
+            elements.forEach((elem) => {
+                // Update value
                 elem.value = parseFloat(value).toFixed(precision);
 
-            // Update error state
-            if (error) {
-                elem.classList.add("error");
-            } else {
-                elem.classList.remove("error");
-            }
-        });
+                // Update error state
+                if (error) {
+                    elem.classList.add("error");
+                } else {
+                    elem.classList.remove("error");
+                }
+            });
         }
     }
 }
