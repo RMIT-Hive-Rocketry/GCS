@@ -35,9 +35,10 @@ def start_frontend_webserver(
         ]
 
         logger.debug(f"Starting {service_name} module with: {frontend_command}")
-        logger.debug(
-            f"{service_name} listening on ws://{ws_host}:{ws_port} for packets"
-        )
+
+        # I've commented this out since the ws_host IP isn't accurate to what the host is
+        # Since the config is almost always 0.0.0.0 for the host, but the clients need a specific IP
+        # logger.debug(f"{service_name} listening on ws://{ws_host}:{ws_port} for packets")
 
         # Start frontend subprocess
         frontend_process = process.LoggedSubProcess(
