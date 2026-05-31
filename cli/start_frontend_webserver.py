@@ -1,6 +1,7 @@
 import logging
 from cli import process
 from config import config
+import sys
 
 
 class IgnoreWebMessagesFilter(logging.Filter):
@@ -22,6 +23,9 @@ def start_frontend_webserver(
         ws_port = frontend_config.get("ws_port")
 
         frontend_command = [
+            sys.executable,
+            "-u",
+            "-m",
             "flask",
             "-A",
             "frontend.server",
@@ -35,12 +39,16 @@ def start_frontend_webserver(
             f"{service_name} listening on ws://{ws_host}:{ws_port} for packets"
         )
 
+        # Start frontend subprocess
         frontend_process = process.LoggedSubProcess(
             frontend_command, name=service_name, parse_output=False
         )
         frontend_process._parent_logger.addFilter(IgnoreWebMessagesFilter())
         frontend_process.start()
-        performance_logging.AddNewProcess(frontend_process)
+
+        # Add frontend subprocess to performance_logging
+        if performance_logging is not None:
+            performance_logging.AddNewProcess(frontend_process)
 
     except Exception as e:
         logger.error(f"An error occurred while starting {service_name}: {e}")
