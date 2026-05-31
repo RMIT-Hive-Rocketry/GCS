@@ -11,8 +11,10 @@ class IgnoreWebMessagesFilter(logging.Filter):
         return "GET" not in record.getMessage()
 
 
-def start_frontend_webserver(logger: logging.Logger, performance_logging:process.RunningProcess):
-    SERVICE_NAME = "frontend_webserver"
+def start_frontend_webserver(
+    logger: logging.Logger, performance_logging: process.RunningProcess = None
+) -> None:
+    service_name = "frontend_webserver"
     try:
         frontend_config = config.get_config()["frontend"]
         http_host = frontend_config.get("http_host")

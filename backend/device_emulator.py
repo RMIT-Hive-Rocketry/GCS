@@ -745,7 +745,7 @@ def gse_client_manager(conn, addr):
 def gse_server_manager(
     port: int, start_time: float, experimental: bool, corruption: bool
 ):
-    host = "127.0.0.1"
+    host = "0.0.0.0"
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
     server.listen()
