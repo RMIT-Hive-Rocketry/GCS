@@ -10,13 +10,13 @@ class ConfigAtlas(Config):
     def __init__(self):
         super().__init__()
 
-        self.ROCKET_NAME = "Atlas"
-        self.LOGO = "atlas/static/img/atlas-name.png"
-        self.STYLESHEETS = ["atlas/static/css/atlas.css"]
-        self.GRID = (12, 13)
+        self.ROCKET_NAME: str = "Atlas"
+        self.LOGO: str = "atlas/static/img/atlas-name.png"
+        self.STYLESHEETS: list = ["atlas/static/css/atlas.css"]
+        self.GRID: tuple = (12, 13)
 
         # Load Atlas modules
-        self.MODULES = [
+        self.MODULES: list = [
             "atlas/modules/atlas_avionics.html",
             "atlas/modules/atlas_errorlog.html",
             "atlas/modules/atlas_header.html",
@@ -28,12 +28,16 @@ class ConfigAtlas(Config):
         ]
 
         # Define pages for Atlas
-        self.PAGES = [
-            {"name": "Main Interface", "icon": "icon-rocket", "id": "page-main"},
+        self.PAGES: list = [
+            {
+                "name": "Main Interface",
+                "icon": "icon-rocket",
+                "id": "page-main",
+            },
         ]
 
         # Module positioning on each page
-        self.MODULE_PAGES = {
+        self.MODULE_PAGES: dict = {
             "atlas_avionics": [("page-main", 0, 1, 4, 7)],
             "atlas_header": [("page-main", 0, 0, 12, 1)],
             "atlas_indicators": [("page-main", 8, 1, 4, 2)],
