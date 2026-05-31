@@ -47,10 +47,8 @@ def create_app() -> Flask:
     )
 
     # Configure paths for static and rocket files
-    DIR_STATIC = os_path.join(os_path.dirname(__file__), "static")
-    assert os_path.isdir(DIR_STATIC)
-    DIR_ROCKETS = os_path.join(os_path.dirname(__file__), "rockets")
-    assert os_path.isdir(DIR_ROCKETS)
+    dir_static = os_path.join(os_path.dirname(__file__), "static")
+    dir_rockets = os_path.join(os_path.dirname(__file__), "rockets")
 
     # Load rocket assets and configurations from /rockets dir
     app.config["rockets"] = load_rockets(app)
@@ -92,7 +90,7 @@ def create_app() -> Flask:
 
         # Check for config override via URL parameter
         rocket = request.args.get("rocket", "default")
-        if rocket != None:
+        if rocket is not None:
             for r in app.config.get("rockets"):
                 if r.name == rocket:
                     active = r.configs[0]
@@ -115,11 +113,11 @@ def create_app() -> Flask:
     @app.route("/<path:filename>")
     def serve_html(filename) -> Response:
         # Make sure rocket assets are loaded from a different directory
-        file_directory = DIR_STATIC
+        file_directory = dir_static
         if filename.startswith(
             tuple([r.name for r in app.config.get("rockets")])
         ):
-            file_directory = DIR_ROCKETS
+            file_directory = dir_rockets
 
         # Set filepath
         filepath = os_path.join(file_directory, filename)
