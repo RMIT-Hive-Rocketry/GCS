@@ -1,6 +1,6 @@
 import asyncio
 from collections import deque
-import config.config as config
+from config.config import get_config
 import backend.includes_python.process_logging as slogger
 import os
 import json
@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 # It needs to be unified as per GCS-2026#50.
 dev_mode = bool(os.environ.get("GCS_DEV_MODE", False))
 default_manifest: dict = None
-cfg = config.get_config()
+cfg = get_config()
 manifest_path = (
     cfg.get("tcp", "path_json_network_device_test", fallback=None)
     if not dev_mode

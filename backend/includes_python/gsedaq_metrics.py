@@ -2,7 +2,7 @@ import ast
 import re
 
 import backend.includes_python.process_logging as slogger
-import config.config as config
+from config.config import get_config
 from typing import List, Any, Dict
 from dataclasses import dataclass
 from functools import cache
@@ -91,11 +91,11 @@ class GseDaqMetrics:
     @cache
     def get_gse_sensor_enabled_map() -> Dict[str, bool]:
         """Maps metric field name -> whether that sensor is enabled in ``config.ini``."""
-        the_config = config.get_config()
+        cfg = get_config()
         enabled: Dict[str, bool] = {}
-        for config_name in the_config["gse_sensors"]:
+        for config_name in cfg["gse_sensors"]:
             if config_name.endswith("_enabled"):
                 metric_name = config_name.replace("_enabled", "")
-                raw = the_config["gse_sensors"][config_name]
+                raw = cfg["gse_sensors"][config_name]
                 enabled[metric_name] = _parse_ini_bool(raw)
         return enabled

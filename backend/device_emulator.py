@@ -1,5 +1,5 @@
 from abc import ABC
-import config.config as config
+from config.config import get_config
 from typing import Optional, List, Tuple
 from dataclasses import asdict
 import sys
@@ -810,11 +810,12 @@ def main():
         slogger.error("Failed to find device names in arguments for emulator")
         raise
 
+    cfg = get_config()
     experimental_cli_override = "--experimental" in sys.argv
     corruption_cli_override = "--corruption" in sys.argv
 
     MockPacket.initialize_settings(
-        config.get_config()["emulation"],
+        cfg["emulation"],
         FAKE_DEVICE_NAME=FAKE_DEVICE_NAME,
         INTERFACE_TYPE=INTERFACE_TYPE,
     )
@@ -823,8 +824,7 @@ def main():
     # They are not received by the GCS
 
     # Used for the sequence lock class GSE debugging
-    CONFIG_LOADED = config.get_config()
-    AV_LOCK_PATH = CONFIG_LOADED["locks"]["lock_file_av_response_path"]
+    AV_LOCK_PATH = cfg["locks"]["lock_file_av_response_path"]
 
     START_TIME = time.monotonic()
     last_time_av_written = START_TIME
@@ -834,7 +834,7 @@ def main():
 
     EXPERIMENTAL = (
         experimental_cli_override
-        or CONFIG_LOADED["emulation"]["experimental"].lower() == "true"
+        or cfg["emulation"]["experimental"].lower() == "true"
     )
 
     CORRUPTION = corruption_cli_override
@@ -845,7 +845,7 @@ def main():
         )
 
     # Start a thread to send the GSE information with a standalone TCP server
-    gse_server_port = int(config.get_config()["emulation"]["tcp_server_port"])
+    gse_server_port = int(cfg["emulation"]["tcp_server_port"])
     gse_server_manager_thread = threading.Thread(
         target=gse_server_manager,
         args=(gse_server_port, START_TIME, EXPERIMENTAL, CORRUPTION),
