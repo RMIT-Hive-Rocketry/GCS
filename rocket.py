@@ -372,14 +372,16 @@ def start_services(
         start_docker_container(logger)
 
     # 0.2 Interrupt further process loading if --frontend-only is being used
-    if frontend_only is not None and frontend_only == True:
-        start_frontend_webserver(logger)
+    if frontend_only is not None and frontend_only:
+        start_frontend_webserver(logger, None)
         return
 
     # 1 Build C++ middleware
     if not nobuild:
         try:
-            start_middleware_build(logger, CMakeBuildModes.DEBUG)
+            start_middleware_build(
+                logger=logger, build_flag=CMakeBuildModes.DEBUG
+            )
         except Exception as e:
             logger.error(
                 f"Failed to build middleware: {e}\nPropogating fatal error"
@@ -424,12 +426,12 @@ def start_services(
     )
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
-            logger,
-            RunningProcesses,
-            aux_service_plan.device_path,
-            aux_service_plan.interface_type,
+            logger=logger,
+            device=aux_service_plan.device_path,
+            interface_type=aux_service_plan.interface_type,
             experimental=experimental,
             corruption=corruption,
+            performance_logging=RunningProcesses,
         )
     elif aux_service_plan.service == "simulator":
         start_simulator(logger, aux_service_plan.device_path)
@@ -445,9 +447,9 @@ def start_services(
     # 5. Start the event viewer
     start_event_viewer(
         logger=logger,
-        performance_logging=RunningProcesses,
         socket_path="gcs_rocket",
         file_logging_enabled=logpkt,
+        performance_logging=RunningProcesses,
     )
 
     # 5. Start the pendent emulator
@@ -457,17 +459,27 @@ def start_services(
             == "true"
         )
         if launch_pendant_daemon:
-            start_pendant_daemon(logger, RunningProcesses)
+            start_pendant_daemon(
+                logger=logger, performance_logging=RunningProcesses
+            )
         else:
-            start_pendant_emulator(logger, RunningProcesses)
+            start_pendant_emulator(
+                logger=logger, performance_logging=RunningProcesses
+            )
 
     # 6. Start the websocket / frontend API
     # This should be able to run even without the frontend enabled, so it can be run on other devices
-    start_frontend_api(logger, RunningProcesses, "gcs_rocket")
+    start_frontend_api(
+        logger=logger,
+        sub_socket_path="gcs_rocket",
+        performance_logging=RunningProcesses,
+    )
 
     # 7. Start the frontend web server
     if frontend:
-        start_frontend_webserver(logger, RunningProcesses)
+        start_frontend_webserver(
+            logger=logger, performance_logging=RunningProcesses
+        )
 
     # 8. Start performance monitor after all other services have started
     start_performance_monitor(

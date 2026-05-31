@@ -52,4 +52,5 @@ ignore = [
 	# overkill
 	"ANN204",
 	"E501",
+	"PLR0913",
 ]

@@ -12,7 +12,7 @@ class IgnoreWebMessagesFilter(logging.Filter):
 
 
 def start_frontend_webserver(
-    logger: logging.Logger, performance_logging: process.RunningProcess
+    logger: logging.Logger, performance_logging: process.RunningProcess = None
 ) -> None:
     service_name = "frontend_webserver"
     try:

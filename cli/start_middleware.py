@@ -180,8 +180,8 @@ def build_middleware_argv(
 
 def start_middleware(
     logger: logging.Logger,
-    performance_logging: process.RunningProcess,
     config: MiddlewareConfig,
+    performance_logging: process.RunningProcess = None,
 ) -> None:
 
     service_name = "server"  # Formally the middleware_server
@@ -213,7 +213,8 @@ def start_middleware(
         )
         middleware_process.register_callback(middleware_started_callback)
         middleware_process.start()
-        performance_logging.AddNewProcess(middleware_process)
+        if performance_logging is not None:
+            performance_logging.AddNewProcess(middleware_process)
 
         finished = False
         while not finished:
