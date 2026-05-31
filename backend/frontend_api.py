@@ -6,7 +6,7 @@ import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
 import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
-from config import config
+from config.config import get_config
 from google.protobuf.json_format import MessageToDict
 import signal
 import asyncio
@@ -56,13 +56,19 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
         os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
     )
 
-    PENDANT_PACKET_ID = 10
-    SLOGGER_PACKET_ID = 40
-    NETWORK_DIAGNOSTICS_PACKET_ID = 50
-    GSE_LABVIEW_TCP_PACKET_ID = 55
+    cfg = get_config()
+    cfg_frontend_api = cfg["frontend_api"]
+    pendant_packet_id = int(cfg_frontend_api["pendant_packet_id"])
+    slogger_packet_id = int(cfg_frontend_api["slogger_packet_id"])
+    network_diagnostics_packet_id = int(
+        cfg_frontend_api["network_diagnostics_packet_id"]
+    )
+    gse_labview_tcp_packet_id = int(
+        cfg_frontend_api["gse_labview_tcp_packet_id"]
+    )
+    ping_interval_s = float(cfg_frontend_api["ping_interval_s"])
 
-    PING_GAP_TIME_S = 2
-    next_ping_time = asyncio.get_running_loop().time() + PING_GAP_TIME_S
+    next_ping_time = asyncio.get_running_loop().time() + ping_interval_s
     cached_ping_results: dict = {}
     ping_task = None
     tcp_gse_task = None
@@ -110,13 +116,14 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     cached_ping_results = await network_pings.ping_manifest()
                 except Exception as e:
                     slogger.error("ping_manifest failed: %s", e)
-                await asyncio.sleep(PING_GAP_TIME_S)
+                await asyncio.sleep(ping_interval_s)
 
         ping_task = asyncio.create_task(_network_ping_worker())
 
         async def _tcp_gse_labview_reader():
             """Pull data from LabVIEW or from LabVIEW emulator"""
-            port = int(config.get_config()["emulation"]["tcp_server_port"])
+            cfg = get_config()
+            port = int(cfg["emulation"]["tcp_server_port"])
             writer = None
             try:
                 reader, writer = await asyncio.open_connection(
@@ -170,7 +177,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
                     packet = {
-                        "id": PENDANT_PACKET_ID,
+                        "id": pendant_packet_id,
                         "data": pendant_state_dict,
                     }
                     try:
@@ -210,7 +217,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                 if asyncio.get_running_loop().time() > next_ping_time:
                     if cached_ping_results:
                         packet = {
-                            "id": NETWORK_DIAGNOSTICS_PACKET_ID,
+                            "id": network_diagnostics_packet_id,
                             "data": cached_ping_results,
                         }
                         try:
@@ -218,7 +225,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         except websockets.ConnectionClosedOK:
                             break
                     next_ping_time = (
-                        asyncio.get_running_loop().time() + PING_GAP_TIME_S
+                        asyncio.get_running_loop().time() + ping_interval_s
                     )
 
                 while True:
@@ -243,7 +250,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                             + last_server_timestamp
                         )
                         output = {
-                            "id": GSE_LABVIEW_TCP_PACKET_ID,
+                            "id": gse_labview_tcp_packet_id,
                             "data": {
                                 "meta": {
                                     "totalPacketCountGse": tcp_gse_packet_count,
@@ -282,7 +289,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
 
                     if log_dicts:
                         output = {
-                            "id": SLOGGER_PACKET_ID,
+                            "id": slogger_packet_id,
                             "data": {"slogger": log_dicts},
                         }
 
@@ -492,9 +499,9 @@ def main() -> None:
     global WEBSOCKET_HOST, WEBSOCKET_PORT, IPC_ADDRESS
 
     # get_newest_messages()
-    frontend_config = config.get_config()["frontend"]
-    WEBSOCKET_HOST = frontend_config.get("ws_host")  # "0.0.0.0"
-    WEBSOCKET_PORT = frontend_config.get("ws_port")  # 1887
+    cfg = get_config()
+    WEBSOCKET_HOST = cfg["frontend"]["ws_host"]  # "0.0.0.0"
+    WEBSOCKET_PORT = cfg["frontend"]["ws_port"]  # 1887
 
     if "--socket-path" in sys.argv:
         socket_path = sys.argv[sys.argv.index("--socket-path") + 1]
@@ -503,9 +510,7 @@ def main() -> None:
         slogger.error("Missing required --socket-path argument")
         sys.exit(1)
 
-    device_emulator.MockPacket.initialize_settings(
-        config.get_config()["emulation"]
-    )
+    device_emulator.MockPacket.initialize_settings(cfg["emulation"])
 
     try:
         asyncio.run(amain())

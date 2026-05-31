@@ -474,15 +474,15 @@ def main() -> None:
     ]
 
     # Get Config File and genurate location for the new performance logging log files
-    config = get_config()
-    log_dir_path = config["performance_monitor"]["performance_log_dir"].strip()
+    cfg = get_config()
+    log_dir_path = cfg["performance_monitor"]["performance_log_dir"].strip()
     sampling_interval = float(
-        config["performance_monitor"]["performance_sampling_interval"].strip()
+        cfg["performance_monitor"]["performance_sampling_interval"].strip()
     )
 
     # Keep Track of loops to show logs to cli
     cli_log_threshold = int(
-        config["performance_monitor"]["performance_cli_log_interval"].strip()
+        cfg["performance_monitor"]["performance_cli_log_interval"].strip()
     )
 
     log_filename = f"performance_{time.strftime('%Y%m%d_%H%M%S')}.csv"

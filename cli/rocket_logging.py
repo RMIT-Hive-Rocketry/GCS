@@ -209,16 +209,16 @@ def initialise(start_time=None) -> logging.Logger:
         )
         logger.handlers.clear()
 
-    config = get_config()
-    log_level = config["logging"]["level"].strip()
-    log_level_front = config["logging"]["level_front"].strip()
+    cfg = get_config()
+    log_level = cfg["logging"]["level"].strip()
+    log_level_front = cfg["logging"]["level_front"].strip()
     detailed_prefix_str = (
-        config["logging"].get("detailed_logging_prefix", "true").strip().lower()
+        cfg["logging"].get("detailed_logging_prefix", "true").strip().lower()
     )
     DETAILED_LOGGING_PREFIX = detailed_prefix_str == "true"
 
     # Get log file path from config or use default
-    log_dir_path = config["logging"]["cli_log_dir"].strip()
+    log_dir_path = cfg["logging"]["cli_log_dir"].strip()
     log_filename = f"cli_{time.strftime('%Y%m%d_%H%M%S')}.log"
     log_file_path = os.path.join(log_dir_path, log_filename)
 
