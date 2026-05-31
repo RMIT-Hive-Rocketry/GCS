@@ -13,18 +13,6 @@ from os import path as os_path
 import backend.includes_python.process_logging as slogger
 from config import config
 
-# pyright: reportUnusedFunction=false
-
-"""
-class SubprocessLogHandler(logging.Handler):
-    def emit(self, record):
-        msg = self.format(record)
-        level = record.levelname.upper()
-        if hasattr(slogger, level.lower()):
-            getattr(slogger, level.lower())(msg)
-        else:
-            slogger.info(msg)  # fallback
-"""
 
 valid_file_extensions = (
     ".css",
@@ -60,22 +48,6 @@ def create_app() -> Flask:
         "host": frontend_config.get("ws_host"),
         "port": frontend_config.get("ws_port"),
     }
-
-    """
-    Logging
-    """
-    """
-    # Custom logging
-    if slogger != None:
-        handler = SubprocessLogHandler()
-        formatter = logging.Formatter('%(message)s')  # Keep raw message for slogger
-        handler.setFormatter(formatter)
-
-        app.logger.handlers.clear()
-        app.logger.propagate = False
-        app.logger.addHandler(handler)
-        app.logger.setLevel(logging.DEBUG)
-    """
 
     """
     Page rendering

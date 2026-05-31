@@ -9,13 +9,13 @@ class ConfigLegacy3(Config):
     def __init__(self):
         super().__init__()
 
-        self.ROCKET_NAME = "Legacy III"
-        self.LOGO = "legacy/static/img/logo-legacy3.svg"
-        self.STYLESHEETS = ["legacy/static/css/legacy3.css"]
-        self.GRID = (12, 13)
+        self.ROCKET_NAME: str = "Legacy III"
+        self.LOGO: str = "legacy/static/img/logo-legacy3.svg"
+        self.STYLESHEETS: list = ["legacy/static/css/legacy3.css"]
+        self.GRID: tuple = (12, 13)
 
         # Load legacy modules
-        self.MODULES = [
+        self.MODULES: list = [
             "legacy/modules/legacy3_auxiliary_gse.html",
             "legacy/modules/legacy3_avionics_position.html",
             "legacy/modules/legacy3_avionics.html",
@@ -34,7 +34,7 @@ class ConfigLegacy3(Config):
         ]
 
         # Define pages for Legacy III
-        self.PAGES = [
+        self.PAGES: list = [
             {
                 "name": "Main Interface",
                 "icon": "icon-rocket",
@@ -64,7 +64,7 @@ class ConfigLegacy3(Config):
         ]
 
         # Define module placements on each page
-        self.MODULE_PAGES = {
+        self.MODULE_PAGES: dict = {
             "legacy3_auxiliary_gse": [
                 ("page-main", 8, 1, 4, 7),
                 ("page-live-launchpad", 8, 1, 4, 7),

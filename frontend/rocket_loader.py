@@ -22,10 +22,10 @@ class Rocket:
         # Layout configurations
         self.configs = []
 
-    def set_flask_app(self, _flask_app):
+    def set_flask_app(self, _flask_app) -> None:
         self.flask_app = _flask_app
 
-    def load_from_module(self, _module):
+    def load_from_module(self, _module) -> None:
         # Import rocket as a python package
         package_name = _module.split("/")[-1]
         spec = importlib.util.spec_from_file_location(
@@ -45,7 +45,7 @@ class Rocket:
         # Generate layouts
         self.generate_config_layouts()
 
-    def load_configs(self):
+    def load_configs(self) -> None:
         # Load all config classes from module
         for name, obj in getmembers(self.package, isclass):
             if (
@@ -67,8 +67,12 @@ class Rocket:
         # Print loaded configs
         self.print_rocket_configs()
 
-    def validate_config(self, _config):
+    def validate_config(self, _config) -> None:
         # Validate rocket configuration
+        grid_tuple_len = 2
+        grid_size_range = (1, 64)
+        position_tuple_len = 5
+
         # Test that required variables are defined
         assert isinstance(
             _config.ROCKET_NAME, str
@@ -84,13 +88,15 @@ class Rocket:
 
         # Test that GRID is a valid size
         assert (
-            len(_config.GRID) == 2
+            len(_config.GRID) == grid_tuple_len
         ), "GRID must be a tuple containing two values"
         assert (
-            _config.GRID[0] >= 1 and _config.GRID[0] <= 64
+            _config.GRID[0] >= grid_size_range[0]
+            and _config.GRID[0] <= grid_size_range[1]
         ), "GRID must have between 1 and 64 columns (inclusive)"
         assert (
-            _config.GRID[1] >= 1 and _config.GRID[1] <= 64
+            _config.GRID[1] >= grid_size_range[0]
+            and _config.GRID[1] <= grid_size_range[1]
         ), "GRID must have between 1 and 64 rows (inclusive)"
 
         # Test that MODULES exist
@@ -118,7 +124,9 @@ class Rocket:
             # Test position format
             for pos in _config.MODULE_PAGES[key]:
                 assert isinstance(pos, tuple), "Module position must be a tuple"
-                assert len(pos) == 5, "Module position tuple must be length 5"
+                assert (
+                    len(pos) == position_tuple_len
+                ), "Module position tuple must be length 5"
                 assert isinstance(pos[0], str)
                 assert isinstance(pos[1], int)
                 assert isinstance(pos[2], int)
@@ -146,7 +154,7 @@ class Rocket:
                     n["id"] for n in _config.PAGES
                 ], "Module page not found"
 
-    def print_rocket_configs(self):
+    def print_rocket_configs(self) -> None:
         # Print out loaded rocket information from configs
         print(
             f"Loaded 'rockets/{self.name}' with {len(self.configs)} config(s):"
@@ -154,7 +162,7 @@ class Rocket:
         for c in self.configs:
             self.print_config(c)
 
-    def print_config(self, _config):
+    def print_config(self, _config) -> None:
         # Print a single configuration
         print(
             f"  {type(_config).__name__}() \
@@ -164,7 +172,7 @@ class Rocket:
                 \n   - Modules: {len(_config.MODULES)}"
         )
 
-    def generate_blueprint(self):
+    def generate_blueprint(self) -> None:
         # Generate a flask blueprint for loading assets
         self.blueprint = Blueprint(
             self.name,
@@ -177,7 +185,7 @@ class Rocket:
         # Register blueprint with flask
         self.flask_app.register_blueprint(self.blueprint)
 
-    def generate_config_layouts(self):
+    def generate_config_layouts(self) -> None:
         # Parse config and pre-generate modular layout information for CSS
         for config in self.configs:
             # Generate CSS selectors for pages
@@ -234,7 +242,7 @@ class Rocket:
             config.CSS = f"<style>{config.CSS}</style>"
 
 
-def load_rockets(flask_app):
+def load_rockets(flask_app) -> list:
     # Load the frontend directory
     frontend_dir = os_path.dirname(__file__)
     if frontend_dir not in sys.path:
@@ -255,15 +263,6 @@ def load_rockets(flask_app):
         rocket.load_from_module(module)
         rocket.generate_blueprint()
 
-        """
-        # Add rule to flask app
-        flask_app.add_url_rule(
-            f"/{rocket.name}/<path:filename>",
-            endpoint=f"{rocket.name}_static",
-            view_func=rocket.blueprint.send_static_file,
-        )
-        """
-
         # Append loaded rocket to list
         rockets.append(rocket)
 
@@ -271,7 +270,7 @@ def load_rockets(flask_app):
     return rockets
 
 
-def get_rocket_modules(_dir):
+def get_rocket_modules(_dir) -> list:
     # Find all rocket modules in directory
     rocket_modules = [
         f.path

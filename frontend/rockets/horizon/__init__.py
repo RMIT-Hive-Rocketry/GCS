@@ -9,13 +9,13 @@ class ConfigHorizon(Config):
     def __init__(self):
         super().__init__()
 
-        self.ROCKET_NAME = "Horizon"
-        self.LOGO = "horizon/static/img/logo-horizon-gradient.png"
-        self.STYLESHEETS = ["horizon/static/css/horizon.css"]
-        self.GRID = (24, 12)
+        self.ROCKET_NAME: str = "Horizon"
+        self.LOGO: str = "horizon/static/img/logo-horizon-gradient.png"
+        self.STYLESHEETS: list = ["horizon/static/css/horizon.css"]
+        self.GRID: tuple = (24, 12)
 
         # Load Horizon modules
-        self.MODULES = [
+        self.MODULES: list = [
             # Header / nav (including sounds)
             "horizon/modules/horizon_logos.html",
             "horizon/modules/horizon_nav.html",
@@ -41,7 +41,7 @@ class ConfigHorizon(Config):
         ]
 
         # Define pages for Horizon
-        self.PAGES = [
+        self.PAGES: list = [
             {"name": "Overview", "icon": "icon-rocket", "id": "page-main"},
             {
                 "name": "Pre-flight",
@@ -59,7 +59,7 @@ class ConfigHorizon(Config):
         # Module positioning on each page
         # Header row (y=0): logos 0-5, mute/unmute icon 6-11, nav 12-17, radio 18-23.
         # Overview content area is now 24 cols x 11 rows (y = 1..11).
-        self.MODULE_PAGES = {
+        self.MODULE_PAGES: dict = {
             # Header / nav (including sounds)
             "horizon_logos": [
                 ("page-main", 0, 0, 8, 1),
