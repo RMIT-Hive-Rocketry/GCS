@@ -6,15 +6,15 @@
  * Does not use the global sound system.
  *
  * Rules:
- * - ping >= 1 means online
- * - ping < 1 means offline
+ * - ping >= 0 means online
+ * - ping < 0 means offline
  * - first packet stores state silently
  * - state changes create a log entry
  * - state changes pulse the Diagnostics nav tab for a few seconds
  */
 
 (function () {
-    const previousDeviceStates = {};
+    const previous_ping = {};
     const MAX_LOG_ENTRIES = 40;
 
     function isHorizonRocket() {
@@ -29,6 +29,7 @@
     }
 
     function pulseDiagnosticsNav() {
+        // Updates graphs?
         const navLink = getDiagnosticsNavLink();
 
         if (!navLink) {
@@ -57,7 +58,7 @@
         });
     }
 
-    function addDiagnosticLogEntry(deviceName, alive) {
+    function addDiagnosticLogEntry(device_id, alive) {
         const logList = document.getElementById("diag-transition-log-list");
 
         if (!logList) {
@@ -79,7 +80,7 @@
 
         const device = document.createElement("span");
         device.className = "diag-transition-log-device";
-        device.textContent = deviceName;
+        device.textContent = device_id;
 
         const state = document.createElement("span");
         state.className = "diag-transition-log-state";
@@ -97,30 +98,6 @@
         }
     }
 
-    function processDevice(deviceName, ping) {
-        const alive = ping >= 1;
-        const previousAlive = previousDeviceStates[deviceName];
-
-        // First time seeing this device: store state silently.
-        if (previousAlive === undefined) {
-            previousDeviceStates[deviceName] = alive;
-            return false;
-        }
-
-        // No state change: keep quiet.
-        if (previousAlive === alive) {
-            previousDeviceStates[deviceName] = alive;
-            return false;
-        }
-
-        // State changed.
-        previousDeviceStates[deviceName] = alive;
-
-        addDiagnosticLogEntry(deviceName, alive);
-
-        return true;
-    }
-
     function processPacket(apiData) {
         if (!isHorizonRocket()) {
             return;
@@ -130,35 +107,40 @@
             return;
         }
 
-        let hasAnyTransition = false;
+        // Variable for tracking whether to visually ping the UI (when receiving ping from devices)
+        // This *might* end up being removed if it's not useful/too distracting
+        let ping_ui = false;
 
-        Object.entries(apiData).forEach(([deviceName, deviceData]) => {
-            if (deviceName === "id" || deviceName === "state" || deviceName === "meta") {
+        Object.entries(apiData).forEach(([device_id, device_data]) => {
+            // Validate device_id
+            if (device_id === "id" || device_id === "state" || device_id === "meta") {
                 return;
             }
 
-            if (typeof deviceData !== "object" || deviceData === null) {
+            // Validate device_data
+            if (typeof device_data !== "object"
+                || device_data === null) {
                 return;
             }
 
-            if (!("ping" in deviceData)) {
-                return;
-            }
+            // Get ping from device
+            if (device_data?.ping) {
+                // Ping UI on device (re)connection
+                if (device_data.connected && previous_ping[device_id] !== undefined && !previous_ping[device_id].connected) {
+                    ping_ui = true;
+                }
 
-            const ping = Number(deviceData.ping ?? -1);
+                // Track previous ping for comparisons
+                previous_ping[device_id] = device_data;
 
-            if (!Number.isFinite(ping)) {
-                return;
-            }
-
-            const changed = processDevice(deviceName, ping);
-
-            if (changed) {
-                hasAnyTransition = true;
+                // Log connection state - NEEDS REFACTOR
+                // addDiagnosticLogEntry(device_id, is_connected);
             }
         });
 
-        if (hasAnyTransition) {
+        // console.log(previous_ping);
+
+        if (ping_ui) {
             pulseDiagnosticsNav();
         }
     }

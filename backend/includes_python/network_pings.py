@@ -73,5 +73,6 @@ async def ping_manifest() -> dict[str, float | None]:
     ping_results = await asyncio.gather(*ping_tasks)
 
     return {
-        dev: {"ping": ping, "packet_loss": pl} for dev, ping, pl in ping_results
+        dev: {"ping": ping, "packet_loss": pl, "connected": ping >= 0}
+        for dev, ping, pl in ping_results
     }
