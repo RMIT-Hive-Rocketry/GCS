@@ -11,8 +11,6 @@ from config import config
 from backend.device_emulator import (
     AVtoGCSData1,
     AVtoGCSData2,
-    GSEtoGCSData1,
-    GSEtoGCSData2,
     MockPacket,
 )
 import backend.includes_python.process_logging as slogger
