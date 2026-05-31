@@ -2,9 +2,10 @@ import asyncio
 from typing import Never
 import websockets
 import json
+from config import config
 
 # only read these packets
-PACKETS_TO_DEBUG = [55]
+PACKETS_TO_DEBUG = [50]
 DEBUG_ALL_PACKETS = False
 
 
@@ -34,5 +35,8 @@ async def pretty_print_json(uri: str) -> Never:
 
 
 if __name__ == "__main__":
-    uri = "ws://localhost:1887"
+    frontend_config = config.get_config()["frontend"]
+    ws_host = frontend_config.get("ws_host")
+    ws_port = frontend_config.get("ws_port")
+    uri = f"ws://{ws_host}:{ws_port}"
     asyncio.run(pretty_print_json(uri))
