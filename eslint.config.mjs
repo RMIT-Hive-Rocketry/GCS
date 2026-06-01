@@ -6,9 +6,11 @@ import markdown from '@eslint/markdown'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import globals from 'globals'
 
+const ignores = ['node_modules', '**/tailwind.css', 'frontend/static/js/libraries']
+
 export default antfu(
   {
-    ignores: ['node_modules'],
+    ignores: ignores,
     gitignore: true,
     stylistic: {
       indent: 4,
@@ -16,7 +18,7 @@ export default antfu(
   },
   [
     {
-      ignores: ['node_modules'],
+      ignores: ignores,
       rules: {
         'style/indent': ['error', 4],
       },
