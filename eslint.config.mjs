@@ -6,11 +6,25 @@ import markdown from '@eslint/markdown'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import globals from 'globals'
 
-export default antfu([
-  { ignores: ['node_modules'] },
-  { files: ['**/*.{js,mjs,cjs}'], plugins: { js }, extends: ['js/recommended'], languageOptions: { globals: globals.browser } },
-  { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
-  { files: ['**/*.md'], plugins: { markdown }, language: 'markdown/gfm', extends: ['markdown/recommended'] },
-  { files: ['**/*.css'], plugins: { css }, language: 'css/css', extends: ['css/recommended'] },
-  eslintConfigPrettier,
-])
+export default antfu(
+  {
+    ignores: ['node_modules'],
+    gitignore: true,
+    stylistic: {
+      indent: 4,
+    },
+  },
+  [
+    {
+      ignores: ['node_modules'],
+      rules: {
+        'style/indent': ['error', 4],
+      },
+    },
+    { files: ['**/*.{js,mjs,cjs}'], plugins: { js }, extends: ['js/recommended'], languageOptions: { globals: globals.browser } },
+    { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
+    { files: ['**/*.md'], plugins: { markdown }, language: 'markdown/gfm', extends: ['markdown/recommended'] },
+    { files: ['**/*.css'], plugins: { css }, language: 'css/css', extends: ['css/recommended'] },
+    eslintConfigPrettier,
+  ]
+)
