@@ -13,137 +13,135 @@
  * - state changes pulse the Diagnostics nav tab for a few seconds
  */
 
-(function () {
-    const previous_ping = {}
-    const MAX_LOG_ENTRIES = 40
+const previous_ping = {}
+const MAX_LOG_ENTRIES = 40
 
-    function isHorizonRocket() {
-        return (
-            document.body.classList.contains('horizon')
-            || window.location.href.includes('rocket=horizon')
-        )
+function isHorizonRocket() {
+    return (
+        document.body.classList.contains('horizon')
+        || window.location.href.includes('rocket=horizon')
+    )
+}
+
+function getDiagnosticsNavLink() {
+    return document.querySelector('nav a[href=\'#page-diagnostics\']')
+}
+
+function pulseDiagnosticsNav() {
+    // Updates graphs?
+    const navLink = getDiagnosticsNavLink()
+
+    if (!navLink) {
+        return
     }
 
-    function getDiagnosticsNavLink() {
-        return document.querySelector('nav a[href=\'#page-diagnostics\']')
-    }
+    navLink.classList.remove('horizon-diag-nav-alert-pulse')
 
-    function pulseDiagnosticsNav() {
-        // Updates graphs?
-        const navLink = getDiagnosticsNavLink()
+    // Force browser to restart the animation even if it just ran.
+    void navLink.offsetWidth
 
-        if (!navLink) {
-            return
-        }
+    navLink.classList.add('horizon-diag-nav-alert-pulse')
 
+    window.clearTimeout(navLink._horizonDiagPulseTimeout)
+
+    navLink._horizonDiagPulseTimeout = window.setTimeout(() => {
         navLink.classList.remove('horizon-diag-nav-alert-pulse')
+    }, 5200)
+}
 
-        // Force browser to restart the animation even if it just ran.
-        void navLink.offsetWidth
+function formatLogTime() {
+    return new Date().toLocaleTimeString('en-AU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    })
+}
 
-        navLink.classList.add('horizon-diag-nav-alert-pulse')
+function addDiagnosticLogEntry(device_id, alive) {
+    const logList = document.getElementById('diag-transition-log-list')
 
-        window.clearTimeout(navLink._horizonDiagPulseTimeout)
-
-        navLink._horizonDiagPulseTimeout = window.setTimeout(() => {
-            navLink.classList.remove('horizon-diag-nav-alert-pulse')
-        }, 5200)
+    if (!logList) {
+        return
     }
 
-    function formatLogTime() {
-        return new Date().toLocaleTimeString('en-AU', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        })
+    const emptyMessage = document.getElementById('diag-transition-log-empty')
+
+    if (emptyMessage) {
+        emptyMessage.remove()
     }
 
-    function addDiagnosticLogEntry(device_id, alive) {
-        const logList = document.getElementById('diag-transition-log-list')
+    const entry = document.createElement('div')
+    entry.className = `diag-transition-log-entry ${alive ? 'online' : 'offline'}`
 
-        if (!logList) {
+    const time = document.createElement('span')
+    time.className = 'diag-transition-log-time'
+    time.textContent = formatLogTime()
+
+    const device = document.createElement('span')
+    device.className = 'diag-transition-log-device'
+    device.textContent = device_id
+
+    const state = document.createElement('span')
+    state.className = 'diag-transition-log-state'
+    state.textContent = alive ? 'ONLINE' : 'OFFLINE'
+
+    entry.appendChild(time)
+    entry.appendChild(device)
+    entry.appendChild(state)
+
+    // Latest first.
+    logList.prepend(entry)
+
+    while (logList.children.length > MAX_LOG_ENTRIES) {
+        logList.removeChild(logList.lastChild)
+    }
+}
+
+function processPacket(apiData) {
+    if (!isHorizonRocket()) {
+        return
+    }
+
+    if (!apiData || apiData.id !== 50) {
+        return
+    }
+
+    // Variable for tracking whether to visually ping the UI (when receiving ping from devices)
+    // This *might* end up being removed if it's not useful/too distracting
+    let ping_ui = false
+
+    Object.entries(apiData).forEach(([device_id, device_data]) => {
+        // Validate device_id
+        if (device_id === 'id' || device_id === 'state' || device_id === 'meta') {
             return
         }
 
-        const emptyMessage = document.getElementById('diag-transition-log-empty')
-
-        if (emptyMessage) {
-            emptyMessage.remove()
-        }
-
-        const entry = document.createElement('div')
-        entry.className = `diag-transition-log-entry ${alive ? 'online' : 'offline'}`
-
-        const time = document.createElement('span')
-        time.className = 'diag-transition-log-time'
-        time.textContent = formatLogTime()
-
-        const device = document.createElement('span')
-        device.className = 'diag-transition-log-device'
-        device.textContent = device_id
-
-        const state = document.createElement('span')
-        state.className = 'diag-transition-log-state'
-        state.textContent = alive ? 'ONLINE' : 'OFFLINE'
-
-        entry.appendChild(time)
-        entry.appendChild(device)
-        entry.appendChild(state)
-
-        // Latest first.
-        logList.prepend(entry)
-
-        while (logList.children.length > MAX_LOG_ENTRIES) {
-            logList.removeChild(logList.lastChild)
-        }
-    }
-
-    function processPacket(apiData) {
-        if (!isHorizonRocket()) {
+        // Validate device_data
+        if (typeof device_data !== 'object'
+            || device_data === null) {
             return
         }
 
-        if (!apiData || apiData.id !== 50) {
-            return
+        // Get ping from device
+        if (device_data?.ping) {
+            // Ping UI on device (re)connection
+            if (device_data.connected && previous_ping[device_id] !== undefined && !previous_ping[device_id].connected) {
+                ping_ui = true
+            }
+
+            // Track previous ping for comparisons
+            previous_ping[device_id] = device_data
+
+            // Log connection state - NEEDS REFACTOR
+            // addDiagnosticLogEntry(device_id, is_connected);
         }
+    })
 
-        // Variable for tracking whether to visually ping the UI (when receiving ping from devices)
-        // This *might* end up being removed if it's not useful/too distracting
-        let ping_ui = false
+    // console.log(previous_ping);
 
-        Object.entries(apiData).forEach(([device_id, device_data]) => {
-            // Validate device_id
-            if (device_id === 'id' || device_id === 'state' || device_id === 'meta') {
-                return
-            }
-
-            // Validate device_data
-            if (typeof device_data !== 'object'
-                || device_data === null) {
-                return
-            }
-
-            // Get ping from device
-            if (device_data?.ping) {
-                // Ping UI on device (re)connection
-                if (device_data.connected && previous_ping[device_id] !== undefined && !previous_ping[device_id].connected) {
-                    ping_ui = true
-                }
-
-                // Track previous ping for comparisons
-                previous_ping[device_id] = device_data
-
-                // Log connection state - NEEDS REFACTOR
-                // addDiagnosticLogEntry(device_id, is_connected);
-            }
-        })
-
-        // console.log(previous_ping);
-
-        if (ping_ui) {
-            pulseDiagnosticsNav()
-        }
+    if (ping_ui) {
+        pulseDiagnosticsNav()
     }
+}
 
-    window.horizonDiagNavAlertProcessPacket = processPacket
-})()
+export { addDiagnosticLogEntry, processPacket }

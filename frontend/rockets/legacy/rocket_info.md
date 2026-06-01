@@ -1,6 +1,6 @@
 # Legacy v3
 
-![](./static/img/logo-legacy3.svg)
+![Legacy logo](./static/img/logo-legacy3.svg)
 
 ## Description
 

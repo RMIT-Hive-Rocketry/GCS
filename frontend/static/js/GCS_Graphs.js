@@ -6,6 +6,10 @@
  * Functions and constants should be prefixed with "graph_"
  */
 
+/* global d3 */
+
+import { metresToFeet, timestamp } from '/js/GCS_API.js'
+
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
 const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
 const GRAPH_TICKS_Y = 8;
@@ -90,7 +94,6 @@ const GRAPH_TEST_COLOURS = {
     data: [],
 }
 
-const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
 
 // Create and initialise line graphs
@@ -112,7 +115,7 @@ function graphCreateLine(chart) {
         .attr("preserveAspectRatio", "xMidYMid meet");
 
     // Update graph margins and axes
-    if (chart.margin == undefined) {
+    if (chart.margin === undefined) {
         chart.margin = DEFAULT_MARGINS;
     }
 
@@ -190,7 +193,7 @@ function graphCreateLine(chart) {
 
     // ResizeObserver (for dynamic graph resizing)
     const resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
+        for (const entry of entries) {
             const { width, height } = entry.contentRect;
             chart.width = width;
             chart.height = height;
@@ -201,13 +204,15 @@ function graphCreateLine(chart) {
 }
 
 // Render static graph from CSV
-function graphFromCSVStatic(csvData, chart) {
+// eslint-disable-next-line no-unused-vars
+function _graphFromCSVStatic(csvData, chart) {
     chart.data = csvData;
     graphRender(chart);
 }
 
 // Simulate graph from CSV by progressively loading data
-function graphFromCSVSimulated(csvData, chart) {
+// eslint-disable-next-line no-unused-vars
+function _graphFromCSVSimulated(csvData, chart) {
     // Initialise loop
     let index = 0;
 
@@ -280,7 +285,7 @@ function graphRender(chart) {
         chart?.g &&
         chart?.x &&
         chart?.lines &&
-        typeof timestampLocal !== "undefined"
+        typeof timestamp.local !== "undefined"
     ) {
         // Get timestamp of data
         const now = Math.max(
@@ -288,7 +293,7 @@ function graphRender(chart) {
                 chart.lines.flatMap((line) => line.data),
                 (d) => d.x,
             ),
-            timestampLocal + timestampApiConnect - timeDrift,
+            timestamp.local + timestamp.apiConnect - timestamp.drift,
         );
 
         /* Normally, line data is filtered to be in sync with the time,
@@ -298,7 +303,7 @@ function graphRender(chart) {
         */
         const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - MAX_TIME) : 0;
 
-        if (chart.lastRender != now) {
+        if (chart.lastRender !== now) {
             // Limit data to graph window
             chart.lines.forEach((line) => {
                 line.data = line.data.filter(
@@ -319,6 +324,8 @@ function graphRender(chart) {
                 return;
             }
 
+            // Seemingly unused code, since yMin and yMax aren't used for anything
+            /*
             let yMin = yMinRaw - 1;
             let yMax = yMaxRaw + 1;
 
@@ -330,8 +337,9 @@ function graphRender(chart) {
                 yMin -= 1;
                 yMax += 1;
             }
+            */
 
-            if (chart.lastRender != now || chart.lastPointCount !== allPoints.length) {
+            if (chart.lastRender !== now || chart.lastPointCount !== allPoints.length) {
 
                 /* Update x and y domains (unless it's the test colour
                  * graph where no scrolling is required).
@@ -343,16 +351,14 @@ function graphRender(chart) {
                 chart.y.domain([
                     Math.min(
                         d3.min(allPoints, (d) => d.y) - 1,
-                        chart?.limits?.yBottomMax != undefined
+                        chart?.limits?.yBottomMax !== undefined
                             ? chart?.limits?.yBottomMax
                             : Infinity,
                     ),
                     d3.max(allPoints, (d) => d.y) + 1,
-                ]); //.nice();
+                ]); // .nice();
 
                 // Update rendering of X and Y domain
-
-
                 chart.g
                     .select("g")
                     .transition()
@@ -435,7 +441,7 @@ function graphRender(chart) {
                         .line()
                         .x((d) => chart.x(d.x))
                         .y((d) => chart.y(d.y))
-                        .defined((d, i, data) => {
+                        .defined((d) => {
                             return d.prev || d.next;
                         });
 
@@ -459,7 +465,7 @@ function graphRender(chart) {
                 chart.lastPointCount = allPoints.length;
             }
         } else {
-            //console.log("graphRender: chart not ready", chart);
+            // console.log("graphRender: chart not ready", chart);
         }
     }
 }
@@ -488,13 +494,16 @@ function graphAddValue(graph, line, timestamp, value) {
     // To make sure things are all valid and don't go out of order
 
     // Make sure graph is valid and has lines defined
-    if (!graph?.lines || line < 0 || line >= graph.lines.length) return;
+    if (!graph?.lines || line < 0 || line >= graph.lines.length)
+        return;
 
     // Ensure timestamp is a valid number
-    if (timestamp == undefined || isNaN(timestamp) || timestamp < 0) return;
+    if (timestamp === undefined || Number.isNaN(timestamp) || timestamp < 0)
+        return;
 
     // Ensure value is a number
-    if (value == undefined || isNaN(value)) return;
+    if (value === undefined || Number.isNaN(value))
+        return;
 
     // Add data to graph (sorted in chronological order)
     const data = graph.lines[line].data;
@@ -507,7 +516,7 @@ function graphAddValue(graph, line, timestamp, value) {
     }
     data.splice(index, 0, point);
 
-    //graph.lines[line].data.push({ x: timestamp, y: value});
+    // graph.lines[line].data.push({ x: timestamp, y: value});
 }
 
 function graphInit() {
@@ -523,7 +532,7 @@ function graphInit() {
     graphCreateLine(GRAPH_TEST_COLOURS);
 
     // Update the test colours graph
-    for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
+    for (let i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
         graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
         graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
     }
@@ -539,20 +548,18 @@ if (document.readyState === "loading") {
 }
 
 // Update colours in real-time
-const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
-    document.getElementById("colour" + c1)?.addEventListener('input', (event) => {
+["One", "Two", "Three", "Four"].forEach((c1, index) => {
+    document.getElementById(`colour${c1}`)?.addEventListener('input', (event) => {
         LINE_COLOURS[index] = event.target.value;
 
         // Same code as above
-        for (i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
+        for (let i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
             graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
             graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
         }
 
         // Update the colours (even if no data is coming through)
-        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY,
-            GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES,
-            GRAPH_AUX_VENTTEMP, GRAPH_AUX_SUPPLY_TEMP, GRAPH_TEST_COLOURS];
+        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY, GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES, GRAPH_AUX_VENTTEMP, GRAPH_AUX_SUPPLY_TEMP, GRAPH_TEST_COLOURS];
         graphsList.forEach((g1) => {
             g1.lines.forEach((l1, index) => {
                 l1.color = LINE_COLOURS[index];
@@ -566,7 +573,7 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
 
         [lineOne, lineTwo, lineThree].forEach((line, index) => {
             line.forEach((c1) => {
-                let inputElement = document.querySelector('input[data-key="' + c1 + '"]');
+                const inputElement = document.querySelector(`input[data-key="${c1}"]`);
                 if (inputElement != null) {
                     inputElement.style.borderBottomColor = LINE_COLOURS[index];
                 }
@@ -575,7 +582,7 @@ const colours = ["One", "Two", "Three", "Four"].forEach((c1, index) => {
 
         // Not tied to any graphs, but might as well also change these bottom borders
         ["pitch", "yaw", "roll"].forEach((a1, index) => {
-            let inputElement = document.querySelector('input[class*="rocket-' + a1 + '"]');
+            const inputElement = document.querySelector(`input[class*="rocket-${a1}"]`);
             if (inputElement != null) {
                 inputElement.style.borderBottomColor = LINE_COLOURS[index];
             }
@@ -685,7 +692,8 @@ function diagSafeId(d_id) {
 function diagUpdateDeviceCard(d_id, d_data) {
     const safeId = diagSafeId(d_id);
     const listEl = document.getElementById("diag-device-list");
-    if (!listEl) return;
+    if (!listEl)
+        return;
 
     let card = document.getElementById(`diag-card-${safeId}`);
     if (!card) {
@@ -695,9 +703,9 @@ function diagUpdateDeviceCard(d_id, d_data) {
         listEl.appendChild(card);
     }
 
-    const lossText = d_data.packet_loss != null ? d_data.packet_loss + "%" : "--";
+    const lossText = d_data.packet_loss != null ? `${d_data.packet_loss}%` : "--";
     const pingText = d_data.connected ? `${d_data.ping.toPrecision(3)} ms` : "-- ms";
-    const pktsText = d_data.packet_count != null ? d_data.packet_count : "--";
+    const pktsText = d_data.packet_count ?? "--";
 
     card.style.background =
         d_data.connected
@@ -748,15 +756,18 @@ function diagUpdateDeviceCard(d_id, d_data) {
 // ── Middle panel: create a graph card if it doesn't exist ────────
 function diagEnsureGraph(d_id) {
     // Check if graph exists
-    if (diagGraphs[d_id]) return;
+    if (diagGraphs[d_id])
+        return;
 
     //
     const container = document.getElementById("diag-graphs-container");
-    if (!container) return;
+    if (!container)
+        return;
 
     const safeId = diagSafeId(d_id);
     const svgId = `diag-graph-${safeId}`;
-    if (document.getElementById(svgId)) return;
+    if (document.getElementById(svgId))
+        return;
 
     const panel = document.createElement("div");
     panel.id = `diag-panel-${safeId}`;
@@ -807,7 +818,8 @@ function diagEnsureGraph(d_id) {
 
         graphCreateLine(graph);
 
-        if (!graph.g) return;
+        if (!graph.g)
+            return;
 
         // Remove existing layers if re-created
         graph.g.selectAll(".diag-threshold-layer").remove();
@@ -889,7 +901,8 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
         // Ping 0 is a special graph marker, so it is also excluded from stats.
         if (d_data.connected) {
             graph.pingValues.push(d_data.ping);
-            if (graph.pingValues.length > 300) graph.pingValues.shift();
+            if (graph.pingValues.length > 300)
+                graph.pingValues.shift();
         }
 
         const statsEl = document.getElementById(`diag-stats-${safeId}`);
@@ -922,7 +935,8 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
 // ── Right panel: flip a status box green/red ─────────────────────
 function diagSetStatusBox(id, pingValue) {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el)
+        return;
 
     // No data / offline
     if (pingValue == null || pingValue < 0) {
@@ -960,7 +974,8 @@ function diagSetStatusBox(id, pingValue) {
 
 function diagSetSummaryOnlineBox(id, online) {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el)
+        return;
 
     el.textContent = online ? "GOOD" : "DOWN";
     el.style.backgroundColor = online ? "#4ade80" : "#ef4444";
@@ -970,7 +985,8 @@ function diagSetSummaryOnlineBox(id, online) {
 
 function diagSetAvIndicator(online) {
     const el = document.getElementById("diag-av-indicator");
-    if (!el) return;
+    if (!el)
+        return;
 
     el.style.background = online ? "#4ade80" : "#ef4444";
     el.style.boxShadow = online
@@ -1004,34 +1020,30 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
 function graphUpdateDiagnostics(apiData) {
     const timestamp = diagNowSeconds();
 
-
-    let onlineCount = 0, totalCount = 0;
+    let onlineCount = 0; let totalCount = 0;
     let gseOnline = true;
     let lanOnline = true;
     let hasGseDevice = false;
     let hasLanDevice = false;
 
     Object.entries(apiData).forEach(([d_id, d_data]) => {
-        if (d_id === "id" || d_id === "state" || d_id === "meta") return;
-        if (typeof d_data !== "object" || d_data === null) return;
+        if (d_id === "id" || d_id === "state" || d_id === "meta")
+            return;
+        if (typeof d_data !== "object" || d_data === null)
+            return;
 
-        if (d_data.ping == undefined) {
+        if (d_data.ping === undefined) {
             d_data.ping = -1;
             d_data.connected = false;
         }
 
-        const packetLoss = d_data?.packet_loss ?? null;
-        const packet_count = d_data?.packet_count ?? null;
-
-        const isGseDevice = DIAG_GSE_DEVICES.includes(d_id);
-
-        if (isGseDevice) {
+        if (DIAG_GSE_DEVICES.includes(d_id)) {
             hasGseDevice = true;
 
             if (!d_data.connected) {
                 gseOnline = false;
             }
-        } else {
+        } else if (DIAG_LAN_DEVICES.includes(d_id)) {
             hasLanDevice = true;
 
             if (!d_data.connected) {
@@ -1040,13 +1052,14 @@ function graphUpdateDiagnostics(apiData) {
         }
 
         totalCount++;
-        if (d_data.connected) onlineCount++;
+        if (d_data.connected)
+            onlineCount++;
 
         // Left panel
         diagUpdateDeviceCard(d_id, d_data);
 
         // Middle panel
-        if (diagGraphs[d_id] == undefined) {
+        if (diagGraphs[d_id] === undefined) {
             diagEnsureGraph(d_id);
         }
         diagUpdateGraph(d_id, d_data, timestamp);
@@ -1092,15 +1105,18 @@ function graphRenderDiagnostics() {
 }
 
 function diagRenderGraph(graph) {
-    if (!graph || !graph.g || !graph.x || !graph.y || !graph.lines) return;
+    if (!graph || !graph.g || !graph.x || !graph.y || !graph.lines)
+        return;
 
     const allPoints = graph.lines.flatMap((line) => line.data);
-    if (allPoints.length === 0) return;
+    if (allPoints.length === 0)
+        return;
 
     const renderNow = diagNowSeconds();
     const now = renderNow - DIAG_RENDER_LATENCY_SECONDS;
 
-    if (!Number.isFinite(now)) return;
+    if (!Number.isFinite(now))
+        return;
 
     const windowStart = now - MAX_TIME;
 
@@ -1119,9 +1135,7 @@ function diagRenderGraph(graph) {
         .duration(0)
         .call(d3.axisBottom(graph.x).tickFormat((d) => `${Math.round(d)}`));
 
-    graph.g.select("g").selectAll(".tick text")
-        .attr("fill", "white")
-        .attr("font-size", "9px");
+    graph.g.select("g").selectAll(".tick text").attr("fill", "white").attr("font-size", "9px");
 
     graph.yAxis
         .transition()
@@ -1172,7 +1186,7 @@ function diagRenderGraph(graph) {
         // Build a single continuous blue step-line segment.
         // Offline points (-1) do NOT break the line
         const normalSegments = [];
-        let currentSegment = [];
+        const currentSegment = [];
         let lastValidY = null;
 
         // Look for the most recent valid (online) point before the window
@@ -1282,3 +1296,5 @@ function diagRenderGraph(graph) {
         disconnectBars.exit().remove();
     });
 }
+
+export { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition }

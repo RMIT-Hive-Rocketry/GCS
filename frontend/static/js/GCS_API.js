@@ -6,6 +6,12 @@
  * Functions and constants should be prefixed with "api_"
  */
 
+/* global hmiUpdate, rocketUpdate, updatePendantState */
+
+import { processPacket } from '/js/GCS_DiagnosticsNavAlert.js';
+import { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/GCS_Graphs.js';
+
+
 // Constants
 const initialReconnectInterval = 200 // Initial reconnection wait time
 const maxReconnectInterval = 5000 // Maximum amount of time between reconnect attempts
@@ -19,7 +25,7 @@ const apiSocket = new WebSocket(ws_url)
 let reconnectInterval = initialReconnectInterval
 let reconnectTimeout
 let connected = false
-let then, now, fpsInterval
+let then, fpsInterval
 
 // Logging
 const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
@@ -53,13 +59,13 @@ let altitudeMax
 const altitudeHistory = []
 let packetsAV1 = 0
 let packetsAV1offset = 0
-const packetsGSE = 0
-const packetsGSEoffset = 0
-let timestampLocalLoad = Date.now() // Timestamp upon page load (refreshed with API to keep time-alignment)
-let timestampLocal = 0 // Local timekeeping (for page to keep updating even if API stops sending signals)
-let timestampApi = 0 // Timestamp sent by the API
-let timestampApiConnect // First API timestamp sent upon connection with API
-let timeDrift
+const timestamp = {
+    localLoad: Date.now(), // Timestamp upon page load (refreshed with API to keep time-alignment)
+    local: 0, // Local timekeeping (for page to keep updating even if API stops sending signals)
+    api: 0, // Timestamp sent by the API
+    apiConnect: undefined, // First API timestamp sent upon connection with API
+    drift: undefined, // Time desync calculation
+}
 const timers = {
     gasFillTimer: 0,
     gasFillTimerTotal: 0,
@@ -125,7 +131,7 @@ const soundsList_other = filenames_other.map((src) => {
         }
     })
 
-    return returnValue
+    return returnValue;
 })
 
 // Check if all sounds (alarms and otherwise) are unmuted
@@ -159,25 +165,18 @@ function checkStateIndicator(elem = null) {
             sound = 'AV_Loss'
 
             const avOnline = e1.classList.value.includes('green')
-
-            if (typeof diagSetSummaryOnlineBox === 'function') {
-                diagSetSummaryOnlineBox('diag-summary-av', avOnline)
-            }
-
-            if (typeof diagSetAvIndicator === 'function') {
-                diagSetAvIndicator(avOnline)
-            }
+            diagSetSummaryOnlineBox('diag-summary-av', avOnline)
+            diagSetAvIndicator(avOnline);
         }
         else if (indicator.includes('gse.radio')) {
             sound = 'GSE_Loss'
-            if (typeof diagSetStatusBox === 'function') {
-                const alive = ['vulcan-esp32', 'wifi-bridge-gse'].every((device, index) => {
-                    const ping = document.querySelector(`[data-key="${device}.ping"]`)
-                    return ping && ping.getAttribute('value') >= 0
-                })
 
-                diagSetStatusBox('diag-summary-gse', alive && e1.classList.value.includes('green'))
-            }
+            const alive = ['vulcan-esp32', 'wifi-bridge-gse'].every((device) => {
+                const ping = document.querySelector(`[data-key="${device}.ping"]`)
+                return ping && ping.getAttribute('value') >= 0
+            })
+
+            diagSetStatusBox('diag-summary-gse', alive && e1.classList.value.includes('green'))
 
             // // Track summary status, unless alive has already been set false
             // let alive = true;
@@ -250,7 +249,7 @@ function checkStateIndicator(elem = null) {
     else {
         // Check all states at the start
         const validStates = ['av.radio', 'gse.radio', 'gpsFix', 'dualBoard']
-        validStates.map((key) => {
+        validStates.foeEach((key) => {
             const currElems = document.querySelectorAll(`[data-key="state.${key}"]`)
 
             // Activate any required alarms
@@ -376,7 +375,7 @@ function updateSound(sound, newValue, quicker) {
             playAlarmSounds()
         }
     }
-    catch (error) {
+    catch {
         /* Perform opposite operation, leading into an infinite loop
              * if the original sound did not exist neither with, nor without
              * "_Quicker"), which should not be the case here at this time
@@ -412,12 +411,10 @@ function animate(newtime) {
         then = now - (elapsed % fpsInterval)
 
         // Rerender graphs
-        if (typeof graphRequestRender === 'function') {
-            graphRequestRender()
-        }
+        graphRequestRender()
 
         // Increment time (so if we stop getting packets, time moves forward)
-        timestampLocal = (Date.now() - timestampLocalLoad) / 1000
+        timestamp.local = (Date.now() - timestamp.localLoad) / 1000
         updateTime()
     }
 
@@ -429,18 +426,18 @@ startAnimating()
 function updateTime() {
     /// SYSTEM TIME
     // Rocket launch timer
-    if (timestampApi != 0 && timers?.launchTimestamp != undefined) {
+    if (timestamp.api !== 0 && timers?.launchTimestamp !== undefined) {
         let launchTime = 0
-        if (timers.launchTimestamp != 0) {
-            launchTime = timestampApi - timers.launchTimestamp
+        if (timers.launchTimestamp !== 0) {
+            launchTime = timestamp.api - timers.launchTimestamp
         }
         sendDataToRegistry({ launchTime: `T+${launchTime.toFixed(1)}` })
     }
 
     // Local time
-    if (timestampLocal != undefined && timestampLocal != 0) {
+    if (timestamp.local !== undefined && timestamp.local !== 0) {
         sendDataToRegistry({
-            localTime: `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)} s`,
+            localTime: `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)} s`,
         })
     }
 }
@@ -455,12 +452,11 @@ function logMessage(message, logType = '', timestamp = '') {
     }
 
     // Calculate timestamp
-    if (timestamp == '') {
-        let timestamp = '?'
-        if (timestampLocal != undefined && timestampApiConnect != undefined) {
-            timestamp
-                = `${(timestampLocal + timestampApiConnect - timeDrift).toFixed(1)}s`
-        }
+    if (timestamp.local !== undefined && timestamp.apiConnect !== undefined) {
+        timestamp
+            = `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)}s`
+    } else {
+        timestamp = '?';
     }
 
     // Handle different message types
@@ -505,7 +501,7 @@ function logMessage(message, logType = '', timestamp = '') {
     }
     else {
         logName = 'Notice'
-        textColr = 'text-white'
+        textColor = 'text-white'
         console.log(timestamp, message)
     }
 
@@ -532,7 +528,7 @@ document.addEventListener('visibilitychange', () => {
     }
     else {
         // Attempt reconnecting again
-        if (connected == false) {
+        if (connected === false) {
             scheduleReconnect()
         }
     }
@@ -545,9 +541,9 @@ function API_socketConnect() {
     // Socket connected
     apiSocket.onopen = () => {
         connected = true
-        timestampApiConnect = undefined
+        timestamp.apiConnect = undefined
         if (logVerbose)
-            console.log(`Successfully connected to server at: - ${api_url}`)
+            console.log(`Successfully connected to websocket at: - ${ws_url}`)
         logMessage('Successfully connected', 'ws')
         clearTimeout(reconnectTimeout)
         reconnectInterval = initialReconnectInterval
@@ -559,14 +555,14 @@ function API_socketConnect() {
     // Socket error
     apiSocket.onerror = (error) => {
         connected = false
-        timestampApiConnect = undefined
+        timestamp.apiConnect = undefined
         logMessage(`Websocket error: ${error}`, 'ws')
     }
 
     // Socket closed
     apiSocket.onclose = () => {
         connected = false
-        timestampApiConnect = undefined
+        timestamp.apiConnect = undefined
 
         // Log on browser console
         console.warn(
@@ -605,7 +601,7 @@ function API_OnMessage(event) {
         apiLatest = JSON.parse(event.data)
 
         // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
-        if (apiLatest.id == 40) {
+        if (apiLatest.id === 40) {
             /// // ----- sLogger PACKETS ----- /////
             displaySloggerLogs(apiLatest.data.slogger)
             return
@@ -629,50 +625,37 @@ function API_OnMessage(event) {
         }
 
         // Handle different packet types
-        if (apiData.id == 3 || apiData.id == 4) {
+        if (apiData.id === 3 || apiData.id === 4) {
             /// // ----- AVIONICS PACKETS ----- /////
             // Display values
-            if (typeof displayUpdateFlightState === 'function') {
-                displayUpdateFlightState(apiData)
-            }
+            displayUpdateFlightState(apiData)
 
             // Graphs
-            if (typeof graphUpdateAvionics === 'function') {
-                graphUpdateAvionics(apiData)
-            }
-            if (typeof graphUpdatePosition === 'function') {
-                graphUpdatePosition(apiData)
-            }
+            graphUpdateAvionics(apiData)
+            graphUpdatePosition(apiData)
 
             // Rocket visualisation
-            if (apiData.id == 4) {
+            if (apiData.id === 4) {
                 if (typeof rocketUpdate === 'function') {
                     rocketUpdate(apiData)
                 }
             }
         }
-        else if (apiData.id == 55) {
-            /// // ----- GSE PACKETS ----- /////
-            // Graphs
-            if (typeof graphUpdateAuxData === 'function') {
-                graphUpdateAuxData(apiData)
-            }
-        }
-        else if (apiData.id == 10) {
+        else if (apiData.id === 10) {
             /// // ----- PENDANT ----- /////
             if (typeof updatePendantState === 'function') {
                 updatePendantState(apiData)
             }
         }
-        else if (apiData.id == 50) {
+        else if (apiData.id === 50) {
             /// // ----- NETWORK DIAGNOSTICS ----- /////
-            if (typeof horizonDiagNavAlertProcessPacket === 'function') {
-                horizonDiagNavAlertProcessPacket(apiData)
-            }
-
-            if (typeof graphUpdateDiagnostics === 'function') {
-                graphUpdateDiagnostics(apiData)
-            }
+            processPacket(apiData)
+            graphUpdateDiagnostics(apiData)
+        }
+        else if (apiData.id === 55) {
+            /// // ----- GSE PACKETS ----- /////
+            // Graphs
+            graphUpdateAuxData(apiData)
         }
     }
     catch (error) {
@@ -840,7 +823,7 @@ function checkErrorConditions(apiData) {
 
     // Get error flags from the API and use as overrides
     const errorOverrides = []
-    if (apiData.errorFlags != undefined) {
+    if (apiData.errorFlags !== undefined) {
         Object.entries(apiData.errorFlags).forEach(([key, value]) => {
             if (value === true) {
                 errorOverrides.push(key)
@@ -855,11 +838,11 @@ function checkErrorConditions(apiData) {
             // Make sure the ID is defined within the current packet
             if (
                 Object.keys(apiData).includes(id)
-                && apiData[id] != undefined
+                && apiData[id] !== undefined
             ) {
                 const apiDataValue = apiData[id]
                 const apiDataType = typeof apiDataValue
-                if (apiDataValue != undefined) {
+                if (apiDataValue !== undefined) {
                     // Define error key
                     const errorKey = `${id}Error`
                     let isError = false
@@ -867,7 +850,7 @@ function checkErrorConditions(apiData) {
                     let isDiscard = false
 
                     // Check error ranges if the value is a number
-                    if (apiDataType == 'number') {
+                    if (apiDataType === 'number') {
                         // Check against error ranges
                         if (errorCondition?.error) {
                             if (
@@ -900,7 +883,7 @@ function checkErrorConditions(apiData) {
                             }
                         }
                     }
-                    else if (apiDataType == 'string') {
+                    else if (apiDataType === 'string') {
                         // Check strings against whitelist
                         if (
                             errorCondition?.accept
@@ -918,7 +901,7 @@ function checkErrorConditions(apiData) {
                             `Discarded ${id} (${apiData[id]})`,
                             'warning',
                         )
-                        apiData[id] = apiDataType == 'number' ? null : '' // Flag invalid value
+                        apiData[id] = apiDataType === 'number' ? null : '' // Flag invalid value
                     }
 
                     if (!isDiscard || isErrorApi) {
@@ -967,18 +950,15 @@ function checkOfflineData(apiData) {
     }
 }
 
-// May not be required
-const networkPackets = []
-
 function processDataForDisplay(apiData, apiId) {
     // Process data from the API for display
     const processedData = { ...apiData } // Shallow copy
     processedData.id = apiId
 
-    if (processedData.state == undefined) {
+    if (processedData.state === undefined) {
         processedData.state = {}
     }
-    if (processedData.meta == undefined) {
+    if (processedData.meta === undefined) {
         processedData.meta = {}
     }
 
@@ -1003,34 +983,34 @@ function processDataForDisplay(apiData, apiId) {
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
         if (apiData.meta?.timestampS) {
-            if (timestampApi) {
-                timestampApi = Math.max(timestampApi, apiData.meta.timestampS)
+            if (timestamp.api) {
+                timestamp.api = Math.max(timestamp.api, apiData.meta.timestampS)
             }
             else {
-                timestampApi = apiData.meta.timestampS
+                timestamp.api = apiData.meta.timestampS
             }
 
-            if (timestampApiConnect == undefined) {
-                timestampApiConnect = timestampApi
-                timestampLocalLoad = Date.now()
+            if (timestamp.apiConnect === undefined) {
+                timestamp.apiConnect = timestamp.api
+                timestamp.localLoad = Date.now()
             }
             else {
                 // Code to synchronise local time with GSE time if it gets too far behind
-                timeDrift
-                    = timestampLocal - (timestampApi - timestampApiConnect)
+                timestamp.drift
+                    = timestamp.local - (timestamp.api - timestamp.apiConnect)
 
                 // Time drift
-                // timeDrift > 0 means LOCAL is ahead of GSE
-                // timeDrift < 0 means GSE is ahead of LOCAL
+                // timestamp.drift > 0 means LOCAL is ahead of GSE
+                // timestamp.drift < 0 means GSE is ahead of LOCAL
                 // Ideally there's no time drift at all, but if there is it's used to update the time
-                // console.log(timeDrift);
+                // console.log(timestamp.drift);
             }
         }
 
         // Packets
         if ([3, 4, 5].includes(apiId)) {
             if (apiData.meta?.totalPacketCountAv) {
-                if (packetsAV1 == 0) {
+                if (packetsAV1 === 0) {
                     packetsAV1offset = apiData.meta.totalPacketCountAv - 1
                 }
                 processedData.meta.totalPacketCountAv
@@ -1054,19 +1034,19 @@ function processDataForDisplay(apiData, apiId) {
 
     // Acceleration
     // Determine whether to use low or high precision values
-    if (apiData.accelLowX != undefined && apiData.accelHighX != undefined) {
+    if (apiData.accelLowX !== undefined && apiData.accelHighX !== undefined) {
         processedData.accelX
             = Math.abs(apiData.accelHighX) < 17
                 ? apiData.accelLowX
                 : apiData.accelHighX
     }
-    if (apiData.accelLowY != undefined && apiData.accelHighY != undefined) {
+    if (apiData.accelLowY !== undefined && apiData.accelHighY !== undefined) {
         processedData.accelY
             = Math.abs(apiData.accelHighY) < 17
                 ? apiData.accelLowY
                 : apiData.accelHighY
     }
-    if (apiData.accelLowZ != undefined && apiData.accelHighZ != undefined) {
+    if (apiData.accelLowZ !== undefined && apiData.accelHighZ !== undefined) {
         processedData.accelZ
             = Math.abs(apiData.accelHighZ) < 17
                 ? apiData.accelLowZ
@@ -1075,7 +1055,7 @@ function processDataForDisplay(apiData, apiId) {
 
     // Altitude
     // Track previous altitudes
-    if (apiData.altitude != undefined) {
+    if (apiData.altitude !== undefined) {
         processedData.altitudeFeet = metresToFeet(apiData.altitude)
 
         altitudeHistory.push(apiData.altitude)
@@ -1093,7 +1073,7 @@ function processDataForDisplay(apiData, apiId) {
             // Calculate max altitude
             if (altitudeDeviation <= altitudeThreshold) {
                 if (
-                    altitudeMax == undefined
+                    altitudeMax === undefined
                     || apiData.altitude > altitudeMax
                 ) {
                     altitudeMax = apiData.altitude
@@ -1103,7 +1083,7 @@ function processDataForDisplay(apiData, apiId) {
                 logMessage(`Discard max altitude (${altitudeMax})`, 'warning')
             }
         }
-        if (altitudeMax != undefined && altitudeMax > 0) {
+        if (altitudeMax !== undefined && altitudeMax > 0) {
             processedData.altitudeMax = altitudeMax
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax)
         }
@@ -1120,15 +1100,15 @@ function processDataForDisplay(apiData, apiId) {
     }
 
     // Feet
-    if (apiData.velocity != undefined) {
+    if (apiData.velocity !== undefined) {
         processedData.velocityFeet = metresToFeet(apiData.velocity)
     }
 
     // GPS position
-    if (apiData.GPSLatitude != undefined) {
+    if (apiData.GPSLatitude !== undefined) {
         processedData.GPSLatitude = gpsToDecimal(apiData.GPSLatitude)
     }
-    if (apiData.GPSLongitude != undefined) {
+    if (apiData.GPSLongitude !== undefined) {
         processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude)
     }
 
@@ -1140,7 +1120,7 @@ function processDataForDisplay(apiData, apiId) {
        * "LONGITUDE": sinusoid() in backend/device_emulator.py (or vice versa) during
        * testing, or else the rocket will appear to be very far from the GCS
       */
-    if (apiData.GPSLatitude != undefined && apiData.GPSLongitude != undefined) {
+    if (apiData.GPSLatitude !== undefined && apiData.GPSLongitude !== undefined) {
         // Scaling constants
         const lat_kilometers = 110.87
         const long_kilometers = 95.48
@@ -1163,7 +1143,7 @@ function processDataForDisplay(apiData, apiId) {
         // 50m in km
         if (final_distance <= 50 / 1000) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
-            if (currSound.source.duration === currSound.source.duration) {
+            if (!Number.isNaN(currSound.source.duration)) {
                 /* Volume rises in logarithmic fashion the longer the rocket stays within
                         * 50m of the GCS (within the 1st iteration), full volume otherwise.
                         */
@@ -1190,13 +1170,13 @@ function processDataForDisplay(apiData, apiId) {
 
         if (systemActivated && gasFillSelected && n20FillActivated) {
             // Increase gas fill timer
-            if (timers.gasTimestamp == 0) {
-                timers.gasTimestamp = timestampApi
+            if (timers.gasTimestamp === 0) {
+                timers.gasTimestamp = timestamp.api
             }
             timers.gasFillTimer
-                = timers.gasTimestamp == 0
+                = timers.gasTimestamp === 0
                     ? 0
-                    : timestampApi - timers.gasTimestamp
+                    : timestamp.api - timers.gasTimestamp
         }
         else {
             timers.gasTimestamp = 0
@@ -1204,14 +1184,14 @@ function processDataForDisplay(apiData, apiId) {
             timers.gasFillTimer = 0
         }
 
-        if (timers.gasFillTimer != undefined && timers.gasFillTimer != 0) {
+        if (timers.gasFillTimer !== undefined && timers.gasFillTimer !== 0) {
             processedData.gasBottleTime = `${(timers.gasFillTimerTotal + timers.gasFillTimer).toFixed(2)}s`
         }
     }
 
     // State flags
     // GPS fix (navigation state)
-    if (apiData.navigationStatus != undefined) {
+    if (apiData.navigationStatus !== undefined) {
         if (['NF'].includes(apiData.navigationStatus)) {
             processedData.state.gpsFix = 3 // Red
         }
@@ -1225,9 +1205,9 @@ function processDataForDisplay(apiData, apiId) {
         }
     }
 
-    if (apiData.stateFlags != undefined) {
+    if (apiData.stateFlags !== undefined) {
         // Dual board connectivity
-        if (apiData.stateFlags.dualBoardConnectivityStateFlag != undefined) {
+        if (apiData.stateFlags.dualBoardConnectivityStateFlag !== undefined) {
             processedData.state.dualBoard = apiData.stateFlags
                 .dualBoardConnectivityStateFlag
                 ? 1
@@ -1262,20 +1242,21 @@ function processDataForDisplay(apiData, apiId) {
 
 // UNIT CONVERSION FUNCTIONS
 function metresToFeet(metres) {
-    if (metres == undefined || isNaN(metres))
+    if (metres === undefined || Number.isNaN(metres))
         return undefined
     return metres * 3.28084
 }
 
+
 function feetToMetres(feet) {
-    if (feet == undefined || isNaN(feet))
+    if (feet === undefined || Number.isNaN(feet))
         return undefined
     return feet / 3.28084
 }
 
 function gpsToDecimal(gps) {
     // Converts the compressed GPS value into a decimal degrees coordinate
-    if (gps == undefined || isNaN(gps) || gps == 0)
+    if (gps === undefined || Number.isNaN(gps) || gps === 0)
         return 0
 
     // Split string into parts
@@ -1289,7 +1270,7 @@ function gpsToDecimal(gps) {
     const degrees = Number.parseInt(intPart / 100)
     const minutes = Number.parseInt(intPart % 100)
     let seconds = 0
-    if (decPart != undefined) {
+    if (decPart !== undefined) {
         seconds = Number.parseFloat(`${decPart.slice(0, 2)}.${decPart.slice(2)}`)
     }
 
@@ -1306,7 +1287,7 @@ function gpsToDecimal(gps) {
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
 // Register elements to listen for API updates
 const displayRegistry = {}
-window.addEventListener('load', (event) => {
+window.addEventListener('load', () => {
     document.querySelectorAll('[data-key]').forEach((elem) => {
         const key = elem.getAttribute('data-key')
         const prec = elem.getAttribute('data-precision')
@@ -1345,7 +1326,7 @@ window.addEventListener('keydown', (event) => {
     const buttons = document.querySelectorAll(`a.${styles.replaceAll(' ', '.')}`)
 
     // Only NaN would fail the test
-    if (Number.parseInt(event.key, 10) === Number.parseInt(event.key, 10)) {
+    if (!Number.isNaN(Number.parseInt(event.key, 10))) {
         // Get element by index from found elements list
         const index = Number.parseInt(event.key, 10) - 1
 
@@ -1367,7 +1348,7 @@ function sendDataToRegistry(apiData) {
     // Flatten API data so that keys are in format a.b
     const flat = {}
     function flatten(prefix, obj) {
-        if (prefix != '') {
+        if (prefix !== '') {
             prefix = `${prefix}.`
         }
         if (obj == null) {
@@ -1422,7 +1403,7 @@ function sendDataToRegistry(apiData) {
 
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
-    if (value != undefined && !Number.isNaN(value)) {
+    if (value !== undefined && !Number.isNaN(value)) {
         if (logVerbose) {
             console.debug(
                 `new value %c${item}%c ${Number.parseFloat(value).toFixed(precision)}`,
@@ -1456,7 +1437,7 @@ function displaySetValue(item, value, precision = 2, error = false) {
 
 function displaySetString(item, string) {
     // Updates the string in a display item
-    if (string != undefined) {
+    if (string !== undefined) {
         if (logVerbose) {
             console.debug(
                 `new string %c${item}%c ${string}`,
@@ -1582,15 +1563,15 @@ function displaySetActiveFlightState(item) {
     }
 
     // Launch timer
-    if (item == 'fs-state-preflight') {
+    if (item === 'fs-state-preflight') {
         timers.launchTimestamp = 0
     }
     else {
         if (
-            timers.launchTimestamp == undefined
-            || timers.launchTimestamp == 0
+            timers.launchTimestamp === undefined
+            || timers.launchTimestamp === 0
         ) {
-            timers.launchTimestamp = timestampApi
+            timers.launchTimestamp = timestamp.api
         }
     }
 }
@@ -1614,24 +1595,24 @@ function displayUpdateFlightState(data) {
 
         let stateName = ''
         if (
-            data.flightState == 0
-            || data.flightState == 'PRE_FLIGHT_NO_FLIGHT_READY'
+            data.flightState === 0
+            || data.flightState === 'PRE_FLIGHT_NO_FLIGHT_READY'
         ) {
             // Preflight (not ready)
             stateName = 'Pre-flight'
             displaySetActiveFlightState('fs-state-preflight')
         }
-        else if (data.flightState == 1 || data.flightState == 'LAUNCH') {
+        else if (data.flightState === 1 || data.flightState === 'LAUNCH') {
             // Launch
             stateName = 'Launch'
             displaySetActiveFlightState('fs-state-launch')
         }
-        else if (data.flightState == 2 || data.flightState == 'COAST') {
+        else if (data.flightState === 2 || data.flightState === 'COAST') {
             // Coast
             stateName = 'Coast'
             displaySetActiveFlightState('fs-state-coast')
         }
-        else if (data.flightState == 3 || data.flightState == 'APOGEE') {
+        else if (data.flightState === 3 || data.flightState === 'APOGEE') {
             // Apogee
             stateName = 'Apogee'
             displaySetActiveFlightState('fs-state-apogee')
@@ -1639,20 +1620,20 @@ function displayUpdateFlightState(data) {
             // Play the apogee sound, whose file includes a parachute sound 2 seconds afterwards
             playOtherSound('Apogee')
         }
-        else if (data.flightState == 4 || data.flightState == 'DESCENT') {
+        else if (data.flightState === 4 || data.flightState === 'DESCENT') {
             // Descent
             stateName = 'Descent'
             displaySetActiveFlightState('fs-state-descent')
         }
-        else if (data.flightState == 5 || data.flightState == 'LANDED') {
+        else if (data.flightState === 5 || data.flightState === 'LANDED') {
             // Landed successfully
             stateName = 'Landed'
             displaySetActiveFlightState('fs-state-landed')
         }
         else if (
-            data.flightState == 6
-            || data.flightState == 7
-            || data.flightState == 'OH_NO'
+            data.flightState === 6
+            || data.flightState === 7
+            || data.flightState === 'OH_NO'
         ) {
             // Oh no oh no what the oh no :(
             stateName = 'OH NO!'
@@ -1669,3 +1650,5 @@ function displaySloggerLogs(apiData) {
         logMessage(log.message, log.level.toLowerCase(), log.timestamp)
     })
 }
+
+export { displaySetValue, feetToMetres, metresToFeet, timestamp, toggleMute }

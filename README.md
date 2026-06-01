@@ -1,9 +1,9 @@
-<img height=200px src="docs/assets/graphical-banner.png">
+<img height=200px src="docs/assets/graphical-banner.png" alt="Soteria banner">
 
 <p>
-    <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem">
+    <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem" alt="Hive badge">
     <img alt="Static Badge" src="https://img.shields.io/badge/status-in_development-black">
-    <img src="https://github.com/RMIT-Competition-Rocketry/GCS-2026/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem">
+    <img src="https://github.com/RMIT-Competition-Rocketry/GCS-2026/actions/workflows/build_and_test_cpp.yml/badge.svg" height="20rem" alt="Build and test CPP badge">
     <!-- <img src="https://img.shields.io/github/v/release/RMIT-Competition-Rocketry/GCS?label=version" height="20rem"> -->
 </p>
 
@@ -14,11 +14,11 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
 
 <p align="center">
-  <img src="docs/assets/serp2launchSetup.jpg" height="200px"/>
-  <img src="docs/assets/serp2launch.jpg" height="200px">
+  <img src="docs/assets/serp2launchSetup.jpg" height="200px" alt="Serpentine launch setup"/>
+  <img src="docs/assets/serp2launch.jpg" height="200px" alt="Serpentine launch">
 </p>
 <p align="center">
-  <img src="docs/assets/irec2025stand.jpeg" height="250px"/>
+  <img src="docs/assets/irec2025stand.jpeg" height="250px" alt="Stand at IREC 2025"/>
 </p>
 
 © 2026 RMIT Competition Rocketry - Licensed under the MIT License
@@ -44,7 +44,6 @@ Before working with this repository, please read [Contributing](CONTRIBUTING.md)
 
 - [Brainstorming](notes/brainstorming.md)
 - [Data](notes/data.md) -->
-
 
 ## Description
 
@@ -134,13 +133,12 @@ Ground Control Software Team
     </tr>
 </table>
 
-
 Special thanks
 
 - [Jonathan Chandler](https://www.linkedin.com/in/jonathan-chandler-03474b1ba/)
-    - 2025 GCS Lead. The all-knowing being of ground control and operations
+  - 2025 GCS Lead. The all-knowing being of ground control and operations
 - [Matthew Ricci](https://www.linkedin.com/in/matthewricci-embedded/)
-    - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
+  - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
 
 And to all those at RMIT Hive!
 
@@ -149,14 +147,14 @@ And to all those at RMIT Hive!
 This project was built using the following tools, languages and systems.
 
 - Radio commuincation:
-    - [LoRa](https://en.wikipedia.org/wiki/LoRa) with both COTS and SRAD hardware
+  - [LoRa](https://en.wikipedia.org/wiki/LoRa) with both COTS and SRAD hardware
 - Multithreaded data ingestion server
-    - Written in C++
-    - Built with [ZeroMQ](https://zeromq.org/) for IPC communication
-    - IPC Data serialisation with [Google's Protocol Buffers](https://protobuf.dev/)
+  - Written in C++
+  - Built with [ZeroMQ](https://zeromq.org/) for IPC communication
+  - IPC Data serialisation with [Google's Protocol Buffers](https://protobuf.dev/)
 - Multithreaded CLI based process manager
-    - Written in Python
-    - Includes a device emulator for internal system tests that attaches from the hardware layer to create a fake unix device file at `/dev/`
+  - Written in Python
+  - Includes a device emulator for internal system tests that attaches from the hardware layer to create a fake unix device file at `/dev/`
 
 **Cool fact**: Our GCS runs at less than 1% CPU utilization on a Raspberry Pi 5 during regular use.
 

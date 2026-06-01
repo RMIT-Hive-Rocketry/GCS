@@ -3,7 +3,7 @@
 This is for if you have a different version of protobuf installed
 globally than what's required and dont want to override it.
 
-# Build protobuf and protoc
+## Build protobuf and protoc
 
 You will need to do this once.
 
@@ -13,13 +13,13 @@ You will need to do this once.
 4. Run `mkdir -p build_protoc && cd build_protoc && cmake .. -Dprotobuf_BUILD_TESTS=OFF && cmake --build .` to build `protoc`.
 5. Run `cd .. && cmake -S . -B build -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=install && cmake --build build --target install` to build `protobuf`.
 
-# Setup protoc alias
+## Setup protoc alias
 
 You will need to do this whenever you need to use `protoc`.
 
 Run `alias protoc="$(pwd)/third_party/protobuf/build_protoc/protoc"`
 
-# Modify CMake build script
+## Modify CMake build script
 
 You will need to do this once.
 
@@ -29,6 +29,7 @@ Make the following changes to `CMakeLists.txt` in the root directory.
 > The code might not match exactly if it has been modified since this was written.
 
 Remove the protobuf dependency lines:
+
 ```cmake
 # line ~56
 fetch_git_dependency(abseil "absl" "https://github.com/abseil/abseil-cpp.git" "20250127.1")
@@ -57,6 +58,7 @@ message(STATUS "utf8_range library found at:     ${UTF8_RANGE_LIBRARY}")
 message(STATUS "utf8_range include dir found at: ${UTF8_RANGE_INCLUDE_DIR}")
 
 ```
+
 Add built protobuf.
 
 ```cmake
@@ -84,9 +86,10 @@ Replace `UTF8_RANGE_LIBRARY` with built protobuf.
 +    utf8_range::utf8_range
 ```
 
-# Finally
+## Finally
 
 Finally run the build to check its all working.
+
 ```bash
 source ./.venv/bin/activate && rocket dev --interface test --nopendant
 ```

@@ -1,6 +1,6 @@
 # Replay system
 
-### Amber's philosophy
+## Amber's philosophy
 
 I've had a couple of people ask me to explain the vision behind the replay system, what it's for and roughly how it works.
 
