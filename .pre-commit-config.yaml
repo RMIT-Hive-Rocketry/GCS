@@ -25,11 +25,11 @@ repos:
                     "--exclude-file=package-lock.json", #, ['-w'] # uncomment to autofix
                 ]
 
-    - repo: https://github.com/pre-commit/mirrors-eslint
-      rev: v10.4.1
+    - repo: local
       hooks:
           - id: eslint
             name: eslint
             entry: npx eslint
+            language: system
             types: [javascript]
             #args: ["--fix"] # uncomment to autofix
