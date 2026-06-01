@@ -14,136 +14,136 @@
  */
 
 (function () {
-    const previous_ping = {};
-    const MAX_LOG_ENTRIES = 40;
+    const previous_ping = {}
+    const MAX_LOG_ENTRIES = 40
 
     function isHorizonRocket() {
         return (
-            document.body.classList.contains("horizon") ||
-            window.location.href.includes("rocket=horizon")
-        );
+            document.body.classList.contains('horizon')
+            || window.location.href.includes('rocket=horizon')
+        )
     }
 
     function getDiagnosticsNavLink() {
-        return document.querySelector("nav a[href='#page-diagnostics']");
+        return document.querySelector('nav a[href=\'#page-diagnostics\']')
     }
 
     function pulseDiagnosticsNav() {
         // Updates graphs?
-        const navLink = getDiagnosticsNavLink();
+        const navLink = getDiagnosticsNavLink()
 
         if (!navLink) {
-            return;
+            return
         }
 
-        navLink.classList.remove("horizon-diag-nav-alert-pulse");
+        navLink.classList.remove('horizon-diag-nav-alert-pulse')
 
         // Force browser to restart the animation even if it just ran.
-        void navLink.offsetWidth;
+        void navLink.offsetWidth
 
-        navLink.classList.add("horizon-diag-nav-alert-pulse");
+        navLink.classList.add('horizon-diag-nav-alert-pulse')
 
-        window.clearTimeout(navLink._horizonDiagPulseTimeout);
+        window.clearTimeout(navLink._horizonDiagPulseTimeout)
 
         navLink._horizonDiagPulseTimeout = window.setTimeout(() => {
-            navLink.classList.remove("horizon-diag-nav-alert-pulse");
-        }, 5200);
+            navLink.classList.remove('horizon-diag-nav-alert-pulse')
+        }, 5200)
     }
 
     function formatLogTime() {
-        return new Date().toLocaleTimeString("en-AU", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
+        return new Date().toLocaleTimeString('en-AU', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        })
     }
 
     function addDiagnosticLogEntry(device_id, alive) {
-        const logList = document.getElementById("diag-transition-log-list");
+        const logList = document.getElementById('diag-transition-log-list')
 
         if (!logList) {
-            return;
+            return
         }
 
-        const emptyMessage = document.getElementById("diag-transition-log-empty");
+        const emptyMessage = document.getElementById('diag-transition-log-empty')
 
         if (emptyMessage) {
-            emptyMessage.remove();
+            emptyMessage.remove()
         }
 
-        const entry = document.createElement("div");
-        entry.className = `diag-transition-log-entry ${alive ? "online" : "offline"}`;
+        const entry = document.createElement('div')
+        entry.className = `diag-transition-log-entry ${alive ? 'online' : 'offline'}`
 
-        const time = document.createElement("span");
-        time.className = "diag-transition-log-time";
-        time.textContent = formatLogTime();
+        const time = document.createElement('span')
+        time.className = 'diag-transition-log-time'
+        time.textContent = formatLogTime()
 
-        const device = document.createElement("span");
-        device.className = "diag-transition-log-device";
-        device.textContent = device_id;
+        const device = document.createElement('span')
+        device.className = 'diag-transition-log-device'
+        device.textContent = device_id
 
-        const state = document.createElement("span");
-        state.className = "diag-transition-log-state";
-        state.textContent = alive ? "ONLINE" : "OFFLINE";
+        const state = document.createElement('span')
+        state.className = 'diag-transition-log-state'
+        state.textContent = alive ? 'ONLINE' : 'OFFLINE'
 
-        entry.appendChild(time);
-        entry.appendChild(device);
-        entry.appendChild(state);
+        entry.appendChild(time)
+        entry.appendChild(device)
+        entry.appendChild(state)
 
         // Latest first.
-        logList.prepend(entry);
+        logList.prepend(entry)
 
         while (logList.children.length > MAX_LOG_ENTRIES) {
-            logList.removeChild(logList.lastChild);
+            logList.removeChild(logList.lastChild)
         }
     }
 
     function processPacket(apiData) {
         if (!isHorizonRocket()) {
-            return;
+            return
         }
 
         if (!apiData || apiData.id !== 50) {
-            return;
+            return
         }
 
         // Variable for tracking whether to visually ping the UI (when receiving ping from devices)
         // This *might* end up being removed if it's not useful/too distracting
-        let ping_ui = false;
+        let ping_ui = false
 
         Object.entries(apiData).forEach(([device_id, device_data]) => {
             // Validate device_id
-            if (device_id === "id" || device_id === "state" || device_id === "meta") {
-                return;
+            if (device_id === 'id' || device_id === 'state' || device_id === 'meta') {
+                return
             }
 
             // Validate device_data
-            if (typeof device_data !== "object"
+            if (typeof device_data !== 'object'
                 || device_data === null) {
-                return;
+                return
             }
 
             // Get ping from device
             if (device_data?.ping) {
                 // Ping UI on device (re)connection
                 if (device_data.connected && previous_ping[device_id] !== undefined && !previous_ping[device_id].connected) {
-                    ping_ui = true;
+                    ping_ui = true
                 }
 
                 // Track previous ping for comparisons
-                previous_ping[device_id] = device_data;
+                previous_ping[device_id] = device_data
 
                 // Log connection state - NEEDS REFACTOR
                 // addDiagnosticLogEntry(device_id, is_connected);
             }
-        });
+        })
 
         // console.log(previous_ping);
 
         if (ping_ui) {
-            pulseDiagnosticsNav();
+            pulseDiagnosticsNav()
         }
     }
 
-    window.horizonDiagNavAlertProcessPacket = processPacket;
-})();
+    window.horizonDiagNavAlertProcessPacket = processPacket
+})()

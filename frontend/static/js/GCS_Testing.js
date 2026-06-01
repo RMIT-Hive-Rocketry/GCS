@@ -10,12 +10,12 @@
 function testing_updateAllDisplayValues() {
     verboseLogging = true;
 
-    /*TESTING_DISPLAY_STATES.forEach((item, i) => {
+    /* TESTING_DISPLAY_STATES.forEach((item, i) => {
         displaySetState(item, i);
     });
     TESTING_DISPLAY_ITEMS.forEach((item, i) => {
         displaySetValue(item, i);
-    });*/
+    }); */
 
     verboseLogging = false;
 }
@@ -147,7 +147,6 @@ const TESTING_API = [
             },
             pressure_n2o_bottle: 1.0717549,
             pressure_n2o_tank: 23.961843,
-            pressure_n2o_tank: 21.466402,
             temp_pipe_n2o_gse: 28.156767,
             thermocouple2: 10.335935,
             thermocouple3: 21.843233,
