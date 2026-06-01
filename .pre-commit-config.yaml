@@ -21,7 +21,9 @@ repos:
       rev: v2.2.6
       hooks:
           - id: codespell
-            args: ["--exclude-file=package-lock.json"] #['-w'] # uncomment to autofix
+            args: [
+                    "--exclude-file=package-lock.json", #, ['-w'] # uncomment to autofix
+                ]
 
     - repo: https://github.com/pre-commit/mirrors-eslint
       rev: v10.4.1
@@ -30,4 +32,4 @@ repos:
             name: eslint
             entry: npx eslint
             types: [javascript]
-            args: []
+            #args: ["--fix"] # uncomment to autofix
