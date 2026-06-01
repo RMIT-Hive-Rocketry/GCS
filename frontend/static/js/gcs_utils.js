@@ -1,4 +1,4 @@
-/* 
+/*
 Utility code and functions for use by the GCS
 */
 const logVerbose = false;

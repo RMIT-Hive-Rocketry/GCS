@@ -787,4 +787,3 @@ function sendDataToRegistry(apiData) {
 }
 
 export { diagSetAvIndicator, diagSetSummaryOnlineBox, displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, toggleMute, updateMetricOffline };
-
