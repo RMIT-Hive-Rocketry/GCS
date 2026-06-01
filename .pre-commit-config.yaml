@@ -5,20 +5,29 @@ default_language_version:
 
 # run locally with `pre-commit run --all-files`
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
-    hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v3.2.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: check-yaml
 
--   repo: https://github.com/psf/black
-    rev: 22.10.0
-    hooks:
-    -   id: black
+    - repo: https://github.com/psf/black
+      rev: 22.10.0
+      hooks:
+          - id: black
 
--   repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
-    hooks:
-    -   id: codespell
-        # args: ['-w'] # uncomment to autofix
+    - repo: https://github.com/codespell-project/codespell
+      rev: v2.2.6
+      hooks:
+          - id: codespell
+            args: ["--exclude-file=package-lock.json"] #['-w'] # uncomment to autofix
+
+    - repo: https://github.com/pre-commit/mirrors-eslint
+      rev: v10.4.1
+      hooks:
+          - id: eslint
+            name: eslint
+            entry: npx eslint
+            types: [javascript]
+            args: []
