@@ -337,7 +337,8 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "Frontend Dev [EXPERIMENTAL]",

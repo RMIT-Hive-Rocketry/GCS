@@ -19,12 +19,12 @@
             3DOF Rocket Visualisation
         </p>
         <div class="flex flex-row gap-4 justify-center text-center text-horizon-yellow z-10">
-            <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch text-right" style="border-bottom: 2px solid #FF0000"
-                    size="6" />°</span>
-            <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw text-right" style="border-bottom: 2px solid #00FF00"
-                    size="6" />°</span>
-            <span>Roll:<input readonly autocomplete="off" class="rocket-roll text-right" style="border-bottom: 2px solid #0000FF"
-                    size="6" />°</span>
+            <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch text-right"
+                    style="border-bottom: 2px solid #FF0000" size="6" />°</span>
+            <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw text-right"
+                    style="border-bottom: 2px solid #00FF00" size="6" />°</span>
+            <span>Roll:<input readonly autocomplete="off" class="rocket-roll text-right"
+                    style="border-bottom: 2px solid #0000FF" size="6" />°</span>
         </div>
 
         <!-- Viewer -->
@@ -46,7 +46,7 @@
 
         import * as THREE from "/static/js/libraries/three.module.min.js";
         import { GLTFLoader } from "/static/js/libraries/loaders/GLTFLoader.js";
-        import { displaySetValue } from "/static/js/GCS_API.js";
+        import { displaySetValue } from "/static/js/gcs_display.js";
 
         const containerID = "rocketContainerHorizon";
         const canvasID = "rocketCanvasHorizon";
