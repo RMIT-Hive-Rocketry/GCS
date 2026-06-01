@@ -8,7 +8,8 @@
 
 /* global d3 */
 
-import { metresToFeet, timestamp } from '/js/GCS_API.js'
+import { diagSetAvIndicator, diagSetSummaryOnlineBox } from '/js/gcs_display.js'
+import { metresToFeet, timestamp} from '/js/gcs_utils.js'
 
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
 const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
@@ -622,8 +623,9 @@ function graphUpdateAuxData(data) {
     // TODO Based on launch configuration, some values will be "offline"
     // Clearly label those graphs as offline instead of leaving them blank
 
-    if (data?.id) {
+    if (data?.id && data?.meta?.timestampS) {
         const timestamp = data.meta.timestampS;
+        // console.log(timestamp);
 
         // Transducers
         graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.pressure_n2o_bottle);
@@ -661,16 +663,21 @@ function graphUpdateAuxData(data) {
         );
     }
 }
+
+
+
+// ── Main entry point: called by GCS_API.js when packet 50 arrives ─
+const diagGraphs = {}; // d_id → graph object (with pingValues[])
+const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
+const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
+const DIAG_RENDER_LATENCY_SECONDS = 1.8;
+
+
 // ================================================================
 // DIAGNOSTICS — Full redesign
 // Manages: device list cards, ping graphs, status boxes, bottom bar
 // Called by GCS_API.js when packet ID 50 arrives
 // ================================================================
-
-const diagGraphs = {}; // d_id → graph object (with pingValues[])
-const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
-const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
-const DIAG_RENDER_LATENCY_SECONDS = 1.8;
 function diagNowSeconds() {
     return performance.now() / 1000;
 }
@@ -744,6 +751,31 @@ function diagUpdateDeviceCard(d_id, d_data) {
         </div>
     `;
 }
+
+
+// ── Bottom bar: update summary counts ────────────────────────────
+function diagUpdateBottomBar(totalDevices, onlineCount) {
+    const offlineCount = totalDevices - onlineCount;
+    const allOnline = offlineCount === 0 && totalDevices > 0;
+
+    const elAll = document.getElementById("diag-bottom-all-online");
+    const elOffline = document.getElementById("diag-bottom-offline");
+    const elOnline = document.getElementById("diag-bottom-online");
+
+    if (elAll) {
+        elAll.textContent = allOnline ? "Yes" : "No";
+        elAll.style.background = allOnline ? "#16a34a" : "#dc2626";
+    }
+    if (elOffline) {
+        elOffline.textContent = offlineCount;
+        elOffline.style.background = offlineCount > 0 ? "#dc2626" : "#16a34a";
+    }
+    if (elOnline) {
+        elOnline.textContent = onlineCount;
+        elOnline.style.background = onlineCount > 0 ? "#16a34a" : "rgba(255,255,255,0.1)";
+    }
+}
+
 
 // ── Middle panel: create a graph card if it doesn't exist ────────
 function diagEnsureGraph(d_id) {
@@ -924,93 +956,8 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
     }
 }
 
-// ── Right panel: flip a status box green/red ─────────────────────
-function diagSetStatusBox(id, pingValue) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    // No data / offline
-    if (pingValue == null || pingValue < 0) {
-        el.textContent = "DOWN";
-        el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-        el.style.borderColor = "var(--color-red-800,#991b1b)";
-        el.style.color = "white";
-        return;
-    }
-
-    // Green
-    if (pingValue <= 100) {
-        el.textContent = "GOOD";
-        el.style.backgroundColor = "var(--color-green-400,#4ade80)";
-        el.style.borderColor = "var(--color-green-700,#15803d)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Yellow
-    if (pingValue <= 200) {
-        el.textContent = "WARN";
-        el.style.backgroundColor = "var(--color-yellow-400,#facc15)";
-        el.style.borderColor = "var(--color-yellow-700,#a16207)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Red
-    el.textContent = "BAD";
-    el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-    el.style.borderColor = "var(--color-red-800,#991b1b)";
-    el.style.color = "white";
-}
-
-function diagSetSummaryOnlineBox(id, online) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    el.textContent = online ? "GOOD" : "DOWN";
-    el.style.backgroundColor = online ? "#4ade80" : "#ef4444";
-    el.style.borderColor = online ? "#15803d" : "#991b1b";
-    el.style.color = online ? "black" : "white";
-}
-
-function diagSetAvIndicator(online) {
-    const el = document.getElementById("diag-av-indicator");
-    if (!el)
-        return;
-
-    el.style.background = online ? "#4ade80" : "#ef4444";
-    el.style.boxShadow = online
-        ? "0 0 6px #4ade80"
-        : "0 0 6px #ef4444";
-}
-// ── Bottom bar: update summary counts ────────────────────────────
-function diagUpdateBottomBar(totalDevices, onlineCount) {
-    const offlineCount = totalDevices - onlineCount;
-    const allOnline = offlineCount === 0 && totalDevices > 0;
-
-    const elAll = document.getElementById("diag-bottom-all-online");
-    const elOffline = document.getElementById("diag-bottom-offline");
-    const elOnline = document.getElementById("diag-bottom-online");
-
-    if (elAll) {
-        elAll.textContent = allOnline ? "Yes" : "No";
-        elAll.style.background = allOnline ? "#16a34a" : "#dc2626";
-    }
-    if (elOffline) {
-        elOffline.textContent = offlineCount;
-        elOffline.style.background = offlineCount > 0 ? "#dc2626" : "#16a34a";
-    }
-    if (elOnline) {
-        elOnline.textContent = onlineCount;
-        elOnline.style.background = onlineCount > 0 ? "#16a34a" : "rgba(255,255,255,0.1)";
-    }
-}
-
-// ── Main entry point: called by GCS_API.js when packet 50 arrives ─
 function graphUpdateDiagnostics(apiData) {
-    const timestamp = diagNowSeconds();
+    const current_timestamp = diagNowSeconds();
 
     let onlineCount = 0; let totalCount = 0;
     let gseOnline = true;
@@ -1054,7 +1001,7 @@ function graphUpdateDiagnostics(apiData) {
         if (diagGraphs[d_id] === undefined) {
             diagEnsureGraph(d_id);
         }
-        diagUpdateGraph(d_id, d_data, timestamp);
+        diagUpdateGraph(d_id, d_data, current_timestamp);
 
         // if (DIAG_LAN_DEVICES.includes(d_id) && alive) {
         //     lanWorstPing =
@@ -1090,201 +1037,197 @@ function graphUpdateDiagnostics(apiData) {
 // Renders all diagnostics ping graphs every animation frame
 function graphRenderDiagnostics() {
     Object.values(diagGraphs).forEach((graph) => {
-        diagRenderGraph(graph);
-    });
-}
+        if (!graph || !graph.g || !graph.x || !graph.y || !graph.lines)
+            return;
 
-function diagRenderGraph(graph) {
-    if (!graph || !graph.g || !graph.x || !graph.y || !graph.lines)
-        return;
+        const allPoints = graph.lines.flatMap((line) => line.data);
+        if (allPoints.length === 0)
+            return;
 
-    const allPoints = graph.lines.flatMap((line) => line.data);
-    if (allPoints.length === 0)
-        return;
+        const renderNow = diagNowSeconds();
+        const now = renderNow - DIAG_RENDER_LATENCY_SECONDS;
 
-    const renderNow = diagNowSeconds();
-    const now = renderNow - DIAG_RENDER_LATENCY_SECONDS;
+        if (!Number.isFinite(now))
+            return;
 
-    if (!Number.isFinite(now))
-        return;
+        const windowStart = now - MAX_TIME;
 
-    const windowStart = now - MAX_TIME;
+        graph.lines.forEach((line) => {
+            line.data = line.data.filter(
+                (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+            );
+        });
 
-    graph.lines.forEach((line) => {
-        line.data = line.data.filter(
-            (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
-        );
-    });
+        graph.x.domain([windowStart, now]);
+        graph.y.domain([0, 500]);
 
-    graph.x.domain([windowStart, now]);
-    graph.y.domain([0, 500]);
+        graph.g
+            .select("g")
+            .transition()
+            .duration(0)
+            .call(d3.axisBottom(graph.x).tickFormat((d) => `${Math.round(d)}`));
 
-    graph.g
-        .select("g")
-        .transition()
-        .duration(0)
-        .call(d3.axisBottom(graph.x).tickFormat((d) => `${Math.round(d)}`));
+        graph.g.select("g").selectAll(".tick text").attr("fill", "white").attr("font-size", "9px");
 
-    graph.g.select("g").selectAll(".tick text").attr("fill", "white").attr("font-size", "9px");
+        graph.yAxis
+            .transition()
+            .duration(0)
+            .call(
+                d3.axisLeft(graph.y)
+                    .tickValues([0, 100, 200, 300, 400, 500])
+                    .tickFormat((d) => `${d}`)
+            );
 
-    graph.yAxis
-        .transition()
-        .duration(0)
-        .call(
-            d3.axisLeft(graph.y)
-                .tickValues([0, 100, 200, 300, 400, 500])
-                .tickFormat((d) => `${d}`)
-        );
+        graph.yAxis.selectAll(".tick text")
+            .attr("fill", "white")
+            .attr("font-size", "9px");
 
-    graph.yAxis.selectAll(".tick text")
-        .attr("fill", "white")
-        .attr("font-size", "9px");
+        const greenTop = graph.y(100);
+        const yellowTop = graph.y(200);
+        const bottom = graph.y(0);
+        const top = graph.y(500);
 
-    const greenTop = graph.y(100);
-    const yellowTop = graph.y(200);
-    const bottom = graph.y(0);
-    const top = graph.y(500);
+        const layers = graph.g.selectAll(".diag-threshold-layer");
 
-    const layers = graph.g.selectAll(".diag-threshold-layer");
+        d3.select(layers.nodes()[0])
+            .attr("x", 0)
+            .attr("width", graph.graphWidth)
+            .attr("y", greenTop)
+            .attr("height", bottom - greenTop);
 
-    d3.select(layers.nodes()[0])
-        .attr("x", 0)
-        .attr("width", graph.graphWidth)
-        .attr("y", greenTop)
-        .attr("height", bottom - greenTop);
+        d3.select(layers.nodes()[1])
+            .attr("x", 0)
+            .attr("width", graph.graphWidth)
+            .attr("y", yellowTop)
+            .attr("height", greenTop - yellowTop);
 
-    d3.select(layers.nodes()[1])
-        .attr("x", 0)
-        .attr("width", graph.graphWidth)
-        .attr("y", yellowTop)
-        .attr("height", greenTop - yellowTop);
-
-    d3.select(layers.nodes()[2])
-        .attr("x", 0)
-        .attr("width", graph.graphWidth)
-        .attr("y", top)
-        .attr("height", yellowTop - top);
+        d3.select(layers.nodes()[2])
+            .attr("x", 0)
+            .attr("width", graph.graphWidth)
+            .attr("y", top)
+            .attr("height", yellowTop - top);
 
         graph.g.selectAll(".line-path").remove();
         graph.g.selectAll(".line-dot").remove();
 
-    graph.lines.forEach((lineData) => {
-        const visibleData = lineData.data.filter(
-            (d) => d.x >= windowStart && d.x <= now
-        );
+        graph.lines.forEach((lineData) => {
+            const visibleData = lineData.data.filter(
+                (d) => d.x >= windowStart && d.x <= now
+            );
 
-        // Build a single continuous blue step-line segment.
-        // Offline points (-1) do NOT break the line
-        const normalSegments = [];
-        const currentSegment = [];
-        let lastValidY = null;
+            // Build a single continuous blue step-line segment.
+            // Offline points (-1) do NOT break the line
+            const normalSegments = [];
+            const currentSegment = [];
+            let lastValidY = null;
 
-        // Look for the most recent valid (online) point before the window
-        // so we can seed lastValidY and start the line at the window edge.
-        const lastOnlineBeforeWindow = [...lineData.data]
-            .reverse()
-            .find((d) => d.x < windowStart && d.y >= 0);
+            // Look for the most recent valid (online) point before the window
+            // so we can seed lastValidY and start the line at the window edge.
+            const lastOnlineBeforeWindow = [...lineData.data]
+                .reverse()
+                .find((d) => d.x < windowStart && d.y >= 0);
 
-        if (lastOnlineBeforeWindow) {
-            lastValidY = lastOnlineBeforeWindow.y;
-            currentSegment.push({ x: windowStart, y: lastValidY });
-        }
+            if (lastOnlineBeforeWindow) {
+                lastValidY = lastOnlineBeforeWindow.y;
+                currentSegment.push({ x: windowStart, y: lastValidY });
+            }
 
-        visibleData.forEach((d) => {
-            if (d.y >= 0) {
-                // Normal online point — update last known valid ping.
-                lastValidY = d.y;
-                currentSegment.push(d);
-            } else {
-                // Offline point — hold the last valid ping so the line
-                // stays visible through the red offline block.
-                if (lastValidY !== null) {
-                    currentSegment.push({ x: d.x, y: lastValidY });
+            visibleData.forEach((d) => {
+                if (d.y >= 0) {
+                    // Normal online point — update last known valid ping.
+                    lastValidY = d.y;
+                    currentSegment.push(d);
+                } else {
+                    // Offline point — hold the last valid ping so the line
+                    // stays visible through the red offline block.
+                    if (lastValidY !== null) {
+                        currentSegment.push({ x: d.x, y: lastValidY });
+                    }
+                    // If we have never seen a valid ping yet there is nothing
+                    // to draw, so we simply skip until the first online point.
                 }
-                // If we have never seen a valid ping yet there is nothing
-                // to draw, so we simply skip until the first online point.
-            }
-        });
+            });
 
-        // Always extend the segment to the current render time so the
-        // line reaches the right edge of the graph.
-        if (currentSegment.length > 0) {
-            const lastPoint = currentSegment[currentSegment.length - 1];
-            if (lastPoint.x < now) {
-                currentSegment.push({ x: now, y: lastPoint.y });
-            }
-            normalSegments.push(currentSegment);
-        }
-
-        const stepLine = d3
-            .line()
-            .x((d) => graph.x(d.x))
-            .y((d) => graph.y(diagClampGraphPing(d.y)))
-            .curve(d3.curveStepAfter);
-
-        const stepPath = graph.g.selectAll(".diag-step-line")
-            .data(normalSegments);
-
-        stepPath
-            .enter()
-            .append("path")
-            .attr("class", "diag-step-line")
-            .attr("fill", "none")
-            .attr("stroke", "#22d3ee")
-            .attr("stroke-width", 2.5)
-            .attr("stroke-opacity", 0.95)
-            .attr("stroke-linecap", "round")
-            .attr("stroke-linejoin", "round")
-            .merge(stepPath)
-            .attr("d", stepLine);
-
-        stepPath.exit().remove();
-
-        // Red vertical bars use ONLY disconnected ping values.
-        const offlineSpans = [];
-
-        let offlineStart = null;
-
-        visibleData.forEach((d) => {
-            // THIS CODE NEEDS TO BE UPDATED WITH .CONNECTED NOT PING
-            if (d.y < 0 && offlineStart === null) {
-                offlineStart = d.x;
+            // Always extend the segment to the current render time so the
+            // line reaches the right edge of the graph.
+            if (currentSegment.length > 0) {
+                const lastPoint = currentSegment[currentSegment.length - 1];
+                if (lastPoint.x < now) {
+                    currentSegment.push({ x: now, y: lastPoint.y });
+                }
+                normalSegments.push(currentSegment);
             }
 
-            if (d.y >= 0 && offlineStart !== null) {
+            const stepLine = d3
+                .line()
+                .x((d) => graph.x(d.x))
+                .y((d) => graph.y(diagClampGraphPing(d.y)))
+                .curve(d3.curveStepAfter);
+
+            const stepPath = graph.g.selectAll(".diag-step-line")
+                .data(normalSegments);
+
+            stepPath
+                .enter()
+                .append("path")
+                .attr("class", "diag-step-line")
+                .attr("fill", "none")
+                .attr("stroke", "#22d3ee")
+                .attr("stroke-width", 2.5)
+                .attr("stroke-opacity", 0.95)
+                .attr("stroke-linecap", "round")
+                .attr("stroke-linejoin", "round")
+                .merge(stepPath)
+                .attr("d", stepLine);
+
+            stepPath.exit().remove();
+
+            // Red vertical bars use ONLY disconnected ping values.
+            const offlineSpans = [];
+
+            let offlineStart = null;
+
+            visibleData.forEach((d) => {
+                // THIS CODE NEEDS TO BE UPDATED WITH .CONNECTED NOT PING
+                if (d.y < 0 && offlineStart === null) {
+                    offlineStart = d.x;
+                }
+
+                if (d.y >= 0 && offlineStart !== null) {
+                    offlineSpans.push({
+                        start: offlineStart,
+                        end: d.x,
+                    });
+
+                    offlineStart = null;
+                }
+            });
+
+            if (offlineStart !== null) {
                 offlineSpans.push({
                     start: offlineStart,
-                    end: d.x,
+                    end: now,
                 });
-
-                offlineStart = null;
             }
+
+            const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
+                .data(offlineSpans, (d) => `${d.start}-${d.end}`);
+
+            disconnectBars
+                .enter()
+                .append("rect")
+                .attr("class", "diag-disconnect-bar")
+                .attr("fill", "#ef4444")
+                .attr("fill-opacity", 1.2)
+                .merge(disconnectBars)
+                .attr("x", (d) => graph.x(d.start))
+                .attr("y", graph.y(500))
+                .attr("width", (d) => Math.max(2, graph.x(d.end) - graph.x(d.start)))
+                .attr("height", graph.y(1) - graph.y(500));
+
+            disconnectBars.exit().remove();
         });
-
-        if (offlineStart !== null) {
-            offlineSpans.push({
-                start: offlineStart,
-                end: now,
-            });
-        }
-
-        const disconnectBars = graph.g.selectAll(".diag-disconnect-bar")
-            .data(offlineSpans, (d) => `${d.start}-${d.end}`);
-
-        disconnectBars
-            .enter()
-            .append("rect")
-            .attr("class", "diag-disconnect-bar")
-            .attr("fill", "#ef4444")
-            .attr("fill-opacity", 1.2)
-            .merge(disconnectBars)
-            .attr("x", (d) => graph.x(d.start))
-            .attr("y", graph.y(500))
-            .attr("width", (d) => Math.max(2, graph.x(d.end) - graph.x(d.start)))
-            .attr("height", graph.y(1) - graph.y(500));
-
-        disconnectBars.exit().remove();
     });
 }
 
-export { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition }
+export { graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition }
