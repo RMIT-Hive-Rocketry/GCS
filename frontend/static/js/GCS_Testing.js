@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /**
  * GCS Testing
  *
@@ -6,36 +7,8 @@
  * Functions and constants should be prefixed with "testing_"
  */
 
-/// DISPLAY
-function testing_updateAllDisplayValues() {
-    verboseLogging = true;
+import { API_OnMessage } from './GCS_API'
 
-    /* TESTING_DISPLAY_STATES.forEach((item, i) => {
-        displaySetState(item, i);
-    });
-    TESTING_DISPLAY_ITEMS.forEach((item, i) => {
-        displaySetValue(item, i);
-    }); */
-
-    verboseLogging = false;
-}
-
-/// API
-function testing_mockApi() {
-    verboseLogging = true;
-
-    TESTING_API.forEach((mockPacket) => {
-        API_OnMessage({ data: JSON.stringify(mockPacket) });
-    });
-
-    verboseLogging = false;
-}
-
-/// GRAPHS
-
-/// ROCKET
-
-// TEST DATA
 const TESTING_API = [
     {
         id: 3,
@@ -220,3 +193,26 @@ const TESTING_API = [
         },
     },
 ];
+
+/// DISPLAY
+function _testing_updateAllDisplayValues() {
+    /* TESTING_DISPLAY_STATES.forEach((item, i) => {
+        displaySetState(item, i);
+    });
+    TESTING_DISPLAY_ITEMS.forEach((item, i) => {
+        displaySetValue(item, i);
+    }); */
+}
+
+/// API
+function _testing_mockApi() {
+    TESTING_API.forEach((mockPacket) => {
+        API_OnMessage({ data: JSON.stringify(mockPacket) });
+    });
+}
+
+/// GRAPHS
+
+/// ROCKET
+
+// TEST DATA

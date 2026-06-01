@@ -1,9 +1,8 @@
-
 # Development notes
 
 See [usage](./usage.md)
 
-### Debugging in dev mode
+## Debugging in dev mode
 
 See launch options in `.vscode/` for pre-conifgured debug setups. Note that the cli option will start the ENTIRE system in dev mode and attach a python debugger to all processes except the pendant emulator. Other launch options may require manual injection or manual monitoring depending on what the subsystem is. If you're starting the server by itself, you'll need to specify it's command arguments and read the ZeroMQ socket
 
@@ -31,7 +30,6 @@ For example:
 ```
 
 Would be the first release, as it's the first internal test. If the code changes in White Cliffs, you would go to `0.1.0-dev.2+whitecliffs` and then next field test in Serpentine would probably be `0.2.0-dev.1+serpentine`
-
 
 ## Writing a subprocess
 
@@ -73,7 +71,6 @@ while True:
         break
 cleanup_code()
 ```
-
 
 ## Writing a Payload Reader
 

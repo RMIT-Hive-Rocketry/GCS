@@ -1,6 +1,6 @@
 # Atlas v1
 
-![](./static/img/logo-atlas.png)
+![Atlas logo](./static/img/logo-atlas.png)
 
 ## Description
 

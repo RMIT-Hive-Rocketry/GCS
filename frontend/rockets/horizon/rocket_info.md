@@ -1,6 +1,6 @@
 # Horizon
 
-![](./static/img/logo-horizon.png)
+![Horizon logo](./static/img/logo-horizon.png)
 
 ## Description
 
