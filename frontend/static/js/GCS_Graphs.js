@@ -9,7 +9,7 @@
 /* global d3 */
 
 import { diagSetAvIndicator, diagSetSummaryOnlineBox } from '/js/gcs_display.js'
-import { metresToFeet, timestamp} from '/js/gcs_utils.js'
+import { metresToFeet, timestamp } from '/js/gcs_utils.js'
 
 const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
 const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
@@ -666,7 +666,7 @@ function graphUpdateAuxData(data) {
 
 
 
-// ── Main entry point: called by GCS_API.js when packet 50 arrives ─
+// ── Main entry point: called by gcs_api.js when packet 50 arrives ─
 const diagGraphs = {}; // d_id → graph object (with pingValues[])
 const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
 const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
@@ -676,7 +676,7 @@ const DIAG_RENDER_LATENCY_SECONDS = 1.8;
 // ================================================================
 // DIAGNOSTICS — Full redesign
 // Manages: device list cards, ping graphs, status boxes, bottom bar
-// Called by GCS_API.js when packet ID 50 arrives
+// Called by gcs_api.js when packet ID 50 arrives
 // ================================================================
 function diagNowSeconds() {
     return performance.now() / 1000;

@@ -8,23 +8,17 @@
 
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
-// Constants
 import { processPacket } from '/js/GCS_DiagnosticsNavAlert.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, updateMetricOffline } from '/js/gcs_display.js';
 import { graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/GCS_Graphs.js';
-import { gpsToDecimal, logIncomingMessages, logMessage, logVerbose, metresToFeet, timers, timestamp } from '/js/gcs_utils.js';
+import { gpsToDecimal, logMessage, metresToFeet, timers, timestamp } from '/js/gcs_utils.js';
 
-const initialReconnectInterval = 1000 // Initial reconnection wait time
-const maxReconnectInterval = 5000 // Maximum amount of time between reconnect attempts
-const graphRenderRate = 20 // FPS for rendering graphs
+// const ws_url = `ws://${_ws["host"]}:${_ws["port"]}`
+
+const graph_render_rate = 20 // FPS for rendering graphs
+
 
 // WebSocket API connection
-const ws_url = `ws://${window.location.host.split(':')[0]}:1887`
-// const ws_url = `ws://${_ws["host"]}:${_ws["port"]}`
-const apiSocket = new WebSocket(ws_url)
-let reconnectInterval = initialReconnectInterval
-let reconnectTimeout
-let connected = false
 let then, fpsInterval
 
 // Logging
@@ -36,20 +30,9 @@ const altitudeHistory = []
 let packetsAV1 = 0
 let packetsAV1offset = 0
 
-// Reconnecting code
-function scheduleReconnect() {
-    reconnectTimeout = setTimeout(() => {
-        API_socketConnect()
-        reconnectInterval = Math.min(
-            reconnectInterval * 2,
-            maxReconnectInterval,
-        )
-    }, reconnectInterval)
-}
-
 // Animation/timing code
 function startAnimating() {
-    fpsInterval = 1000 / graphRenderRate
+    fpsInterval = 1000 / graph_render_rate
     then = window.performance.now()
     animate()
 }
@@ -94,86 +77,12 @@ function updateTime() {
     }
 }
 
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        // Clear timeouts when tabbed away from
-        clearTimeout(reconnectTimeout)
-    }
-    else {
-        // Attempt reconnecting again
-        if (connected === false) {
-            scheduleReconnect()
-        }
-    }
-})
-
-function API_socketConnect() {
-    // Log connecting and readystate
-    logMessage(`Connecting to ${ws_url} (${apiSocket.readyState})`, 'ws')
-
-    // Socket connected
-    apiSocket.onopen = () => {
-        connected = true
-        timestamp.apiConnect = undefined
-        if (logVerbose)
-            console.log(`Successfully connected to websocket at: - ${ws_url}`)
-        logMessage('Successfully connected', 'ws')
-        clearTimeout(reconnectTimeout)
-        reconnectInterval = initialReconnectInterval
-    }
-
-    // Socket received message
-    apiSocket.onmessage = API_OnMessage
-
-    // Socket error
-    apiSocket.onerror = (error) => {
-        connected = false
-        timestamp.apiConnect = undefined
-        logMessage(`Websocket error: ${error}`, 'ws')
-    }
-
-    // Socket closed
-    apiSocket.onclose = () => {
-        connected = false
-        timestamp.apiConnect = undefined
-
-        // Log on browser console
-        console.warn(
-            'Socket closed',
-            {
-                wasClean: event.wasClean,
-                code: event.code,
-                reason: event.reason,
-            },
-            'Attempting to reconnect automatically',
-        )
-
-        // Log on page
-        logMessage('Connection lost error, attempting to reconnect', 'ws')
-
-        // Attempt reconnecting
-        scheduleReconnect()
-    }
-
-    // Monitor readystate every 10 seconds
-    setInterval(() => {
-        if (apiSocket)
-            console.info('WebSocket readyState:', apiSocket.readyState)
-    }, 10000)
-}
-API_socketConnect()
-
-// Handle incoming data through the API socket
-function API_OnMessage(event) {
-    connected = true;
-
-    if (logIncomingMessages)
-        console.log('Message from server:', event.data)
-
+// Handle incoming messages through the API
+function API_OnMessage(event_data) {
     let apiLatest, apiData
     try {
         // Handle incoming data
-        apiLatest = JSON.parse(event.data)
+        apiLatest = JSON.parse(event_data)
 
         // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
         if (apiLatest.id === 40) {
@@ -191,7 +100,7 @@ function API_OnMessage(event) {
         checkOfflineData(apiLatest.data)
 
         // Process data for display
-        console.log(apiLatest.data, apiLatest.id);
+        // console.log(apiLatest.data, apiLatest.id);
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id)
         sendDataToRegistry(apiData)
 
@@ -945,3 +854,5 @@ function processDataForDisplay(apiData, apiId) {
     // Return processed data
     return processedData
 }
+
+export { API_OnMessage };
