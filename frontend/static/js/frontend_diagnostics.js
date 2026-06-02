@@ -13,7 +13,7 @@
  * - state changes pulse the Diagnostics nav tab for a few seconds
  */
 
-import { Config as cfg } from '/js/gcs_config.js';
+import { Config as cfg } from '/js/frontend_config.js';
 
 const previous_ping = {}
 

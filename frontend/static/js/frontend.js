@@ -9,7 +9,7 @@ All other functionality is implemented in different files and imported into this
 // classes      =   PascalCase
 
 /// IMPORTS
-import { WebSocketClient } from '/js/gcs_websocketclient.js'
+import { WebSocketClient } from '/js/frontend_websocketclient.js'
 
 /// START WEBSOCKET
 WebSocketClient.connect();

@@ -4,10 +4,10 @@
  * Keeps track of all the websocket connection handling
  */
 
-import { API_OnMessage } from '/js/gcs_api.js';
-import { Config as cfg } from '/js/gcs_config.js';
-import { timestamp } from '/js/gcs_display.js';
-import { logMessage } from '/js/gcs_utils.js';
+import { API_OnMessage } from '/js/frontend_api.js';
+import { Config as cfg } from '/js/frontend_config.js';
+import { timestamp } from '/js/frontend_display.js';
+import { logMessage } from '/js/frontend_utils.js';
 
 class WebSocketClient {
     // Keep track of websocket client state
