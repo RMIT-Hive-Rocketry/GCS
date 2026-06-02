@@ -7,7 +7,7 @@
  * Functions and constants should be prefixed with "testing_"
  */
 
-import { API_OnMessage } from '/js/GCS_API.js'
+import { API_OnMessage } from '/js/gcs_api.js'
 
 const TESTING_API = [
     {
