@@ -8,6 +8,7 @@
 
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
+import { Config as cfg } from '/js/frontend_config.js';
 import { processPacket } from '/js/frontend_diagnostics.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
 import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
@@ -71,13 +72,13 @@ function API_OnMessage(event_data) {
                 }
             }
         }
-        else if (apiData.id === 10) {
+        else if (apiData.id === cfg.api.packet_id.pendant) {
             /// // ----- PENDANT ----- /////
             if (typeof updatePendantState === 'function') {
                 updatePendantState(apiData)
             }
         }
-        else if (apiData.id === 50) {
+        else if (apiData.id === cfg.api.packet_id.diagnostics) {
             /// // ----- NETWORK DIAGNOSTICS ----- /////
             processPacket(apiData)
             graphUpdateDiagnostics(apiData)
@@ -95,162 +96,6 @@ function API_OnMessage(event_data) {
 
 // Check data for error conditions
 function checkErrorConditions(apiData) {
-    const errorConditions = [
-        {
-            IDs: ['weight_rocket'], // Rocket weight
-            discard: {
-                min: -1,
-                max: 128,
-            },
-        },
-        {
-            IDs: [
-                'accelLowX',
-                'accelLowY',
-                'accelLowZ',
-                'accelHighX',
-                'accelHighY',
-                'accelHighZ',
-            ],
-            discard: {
-                min: -32,
-                max: 32,
-            },
-        },
-        {
-            IDs: ['altitude'],
-            discard: {
-                min: -128,
-                max: 8192,
-            },
-        },
-        {
-            IDs: ['velocity'],
-            discard: {
-                min: -128,
-                max: 1024,
-            },
-        },
-        {
-            IDs: ['GPSLatitude', 'GPSLongitude'],
-            discard: {
-                min: -18000,
-                max: 18000,
-            },
-        },
-        {
-            IDs: ['gyroX', 'gyroY', 'gyroZ'],
-            discard: {
-                min: -295,
-                max: 295,
-            },
-        },
-        {
-            IDs: ['temp_vent'],
-            discard: {
-                min: -200,
-                max: 80,
-            },
-        },
-        {
-            IDs: ['mach_speed'],
-            discard: {
-                min: -1,
-                max: 16,
-            },
-        },
-        {
-            IDs: ['qw', 'qx', 'qy', 'qz'],
-            discard: {
-                min: -1,
-                max: 1,
-            },
-        },
-        {
-            IDs: ['navigationStatus'],
-            accept: ['NF', 'DR', 'G2', 'G3', 'D2', 'D3', 'RK', 'TT'],
-        },
-        {
-            IDs: ['flightState'],
-            accept: [
-                'PRE_FLIGHT_NO_FLIGHT_READY',
-                'LAUNCH',
-                'COAST',
-                'APOGEE',
-                'DESCENT',
-                'LANDED',
-                'OH_NO',
-            ],
-        },
-        {
-            IDs: ['gasBottleWeight1', 'gasBottleWeight2'],
-            error: {
-                min: 15.1,
-                max: 19,
-            },
-            errorMessage: 'out of range',
-            discard: {
-                min: -1,
-                max: 128,
-            },
-        },
-        {
-            IDs: [
-                'temp_tank_top',
-                'temp_tank_middle',
-                'temp_tank_bottom',
-            ],
-            error: {
-                max: 30,
-            },
-            errorMessage: ' warming',
-            discard: {
-                min: -128,
-                max: 128,
-            },
-        },
-        {
-            IDs: [
-                'temp_pipe_n2o_gse',
-            ],
-            error: {
-                max: 40,
-            },
-            errorMessage: ' warming',
-            discard: {
-                min: -128,
-                max: 128,
-            },
-        },
-        {
-            IDs: [
-                'temp_vent',
-            ],
-            error: {
-                max: 34.5,
-            },
-            discard: {
-                min: -200,
-                max: 128,
-            },
-        },
-        {
-            IDs: [
-                'pressure_n2o_bottle',
-                'pressure_n2o_tank',
-                'pressure_o2_tank',
-            ],
-            error: {
-                max: 64.5,
-            },
-            errorMessage: 'flag raised',
-            discard: {
-                min: -1,
-                max: 128,
-            },
-        },
-    ]
-
     // Get error flags from the API and use as overrides
     const errorOverrides = []
     if (apiData.errorFlags !== undefined) {
@@ -262,9 +107,9 @@ function checkErrorConditions(apiData) {
     }
 
     // Iterate over all error conditions
-    errorConditions.forEach((errorCondition) => {
+    cfg.api.error_conditions.forEach((errorCondition) => {
         // Error conditions may apply equivalently to multiple data IDs
-        errorCondition.IDs.forEach((id) => {
+        errorCondition.ids.forEach((id) => {
             // Make sure the ID is defined within the current packet
             if (
                 Object.keys(apiData).includes(id)
@@ -339,7 +184,7 @@ function checkErrorConditions(apiData) {
                         if (isError && !errors.includes(errorKey)) {
                             // If error, log error and raise flag
                             logMessage(
-                                `${errorKey} ${errorCondition.errorMessage}`,
+                                `${errorKey} ${errorCondition.error_message}`,
                                 'error',
                             )
                             errors.push(errorKey)
@@ -392,7 +237,7 @@ function processDataForDisplay(apiData, apiId) {
         processedData.meta = {}
     }
 
-    if (apiId === 50) {
+    if (apiId === cfg.api.packet_id.diagnostics) {
         // Track packet counts per device and attach to processedData.
         // All HTML rendering is handled by graphUpdateDiagnostics() in frontend_graphs.js.
         Object.keys(apiData).forEach((device) => {
@@ -498,12 +343,10 @@ function processDataForDisplay(apiData, apiId) {
         }
 
         // Parachute sound should play if we descend below a set altitude
-        const PARACHUTE_ALTITUDE = 1200 // Ideally this would be in a place of unified truth
-
         // The new altitude must be below the threshold, unlike the old one
         const prevAltitude = metresToFeet(altitudeHistory.at(-2))
         const currAltitude = metresToFeet(altitudeHistory.at(-1))
-        if ((currAltitude < PARACHUTE_ALTITUDE) && (prevAltitude >= PARACHUTE_ALTITUDE)) {
+        if ((currAltitude < cfg.sounds.parachute_altitude) && (prevAltitude >= cfg.sounds.parachute_altitude)) {
             playOtherSound('Parachute')
         }
     }
