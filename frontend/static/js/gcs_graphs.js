@@ -8,12 +8,9 @@
 
 /* global d3 */
 
-import { diagSetAvIndicator, diagSetSummaryOnlineBox } from '/js/gcs_display.js'
-import { metresToFeet, timestamp } from '/js/gcs_utils.js'
-
-const MAX_TIME = 20; // Seconds of graph shown, TODO: load config
-const GRAPH_GAP_SIZE = 4; // Max time between data points where line is drawn
-const GRAPH_TICKS_Y = 8;
+import { Config as cfg } from '/js/gcs_config.js'
+import { diagSetAvIndicator, diagSetSummaryOnlineBox, timestamp } from '/js/gcs_display.js'
+import { metresToFeet } from '/js/gcs_utils.js'
 
 // DEFINE CHARTS
 const LINE_COLOURS = [
@@ -167,7 +164,7 @@ function graphCreateLine(chart) {
         .call(
             d3
                 .axisLeft(chart.y)
-                .ticks(GRAPH_TICKS_Y)
+                .ticks(cfg.graphs.y_ticks)
                 .tickFormat((d) => (Number.isInteger(d) ? d : "")),
         )
         .selectAll(".domain")
@@ -263,7 +260,7 @@ function graphResize(chart) {
     chart.yAxis.call(
         d3
             .axisLeft(chart.y)
-            .ticks(GRAPH_TICKS_Y)
+            .ticks(cfg.graphs.y_ticks)
             .tickFormat((d) => (Number.isInteger(d) ? d : "")),
     );
     chart.yAxisLabel.attr(
@@ -302,13 +299,13 @@ function graphRender(chart) {
          * hence the graph should just be a static display (barring the
          * changes in colour made by the operator).
         */
-        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - MAX_TIME) : 0;
+        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - cfg.graphs.max_time) : 0;
 
         if (chart.lastRender !== now) {
             // Limit data to graph window
             chart.lines.forEach((line) => {
                 line.data = line.data.filter(
-                    (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+                    (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
                 );
             });
 
@@ -375,7 +372,7 @@ function graphRender(chart) {
                     .call(
                         d3
                             .axisLeft(chart.y)
-                            .ticks(GRAPH_TICKS_Y)
+                            .ticks(cfg.graphs.y_ticks)
                             .tickFormat((d) => (Number.isInteger(d) ? d : "")),
                     );
 
@@ -402,8 +399,8 @@ function graphRender(chart) {
                     // Line rendering logic is a bit messy oops
                     // If two points are close together, we draw a line between them.
                     lineData.data.forEach((d, i, data) => {
-                        d.prev = Math.abs(d.x - data[i - 1]?.x) <= GRAPH_GAP_SIZE;
-                        d.next = Math.abs(d.x - data[i + 1]?.x) <= GRAPH_GAP_SIZE;
+                        d.prev = Math.abs(d.x - data[i - 1]?.x) <= cfg.graphs.max_gap_size;
+                        d.next = Math.abs(d.x - data[i + 1]?.x) <= cfg.graphs.max_gap_size;
 
                         // If they're not close, we draw a point
                         if (d.x >= windowStart && d.x <= now) {
@@ -1060,11 +1057,11 @@ function graphRenderDiagnostics() {
         if (!Number.isFinite(now))
             return;
 
-        const windowStart = now - MAX_TIME;
+        const windowStart = now - cfg.graphs.max_time;
 
         graph.lines.forEach((line) => {
             line.data = line.data.filter(
-                (d) => d.x >= windowStart - GRAPH_GAP_SIZE,
+                (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
             );
         });
 

@@ -4,11 +4,29 @@
  * Responsible for updating the webpage based on the API
  */
 
-/* global timestamp, timers */
-import { logMessage, logVerbose } from '/js/gcs_utils.js'
+import { Config as cfg } from '/js/gcs_config.js';
+import { graphRequestRender } from '/js/gcs_graphs.js'
+import { logMessage } from '/js/gcs_utils.js'
 
 const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
 const metricOffline = {} // key -> boolean
+const graph_render_rate = 20 // FPS for rendering graphs
+
+let then, fpsInterval
+
+const timestamp = {
+    localLoad: Date.now(), // Timestamp upon page load (refreshed with API to keep time-alignment)
+    local: 0, // Local timekeeping (for page to keep updating even if API stops sending signals)
+    api: 0, // Timestamp sent by the API
+    apiConnect: undefined, // First API timestamp sent upon connection with API
+    drift: undefined, // Time desync calculation
+}
+const timers = {
+    gasFillTimer: 0,
+    gasFillTimerTotal: 0,
+    gasTimestamp: 0,
+    launchTimestamp: 0,
+}
 
 /* Combine all timeouts into one array of objects (only for radios).
  * This makes it easier to program sound alarms in a queue, with
@@ -32,12 +50,84 @@ const timeoutsList = [
 ]
 
 
+function updateTimestamp(new_timestamp) {
+    if (timestamp.api) {
+        timestamp.api = Math.max(timestamp.api, new_timestamp)
+    }
+    else {
+        timestamp.api = new_timestamp
+    }
+
+    if (timestamp.apiConnect === undefined) {
+        timestamp.apiConnect = timestamp.api
+        timestamp.localLoad = Date.now()
+    }
+    else {
+        // Code to synchronise local time with GSE time if it gets too far behind
+        timestamp.drift
+            = timestamp.local - (timestamp.api - timestamp.apiConnect)
+
+        // Time drift
+        // timestamp.drift > 0 means LOCAL is ahead of GSE
+        // timestamp.drift < 0 means GSE is ahead of LOCAL
+        // Ideally there's no time drift at all, but if there is it's used to update the time
+        // console.log(timestamp.drift);
+    }
+}
+
 function updateMetricOffline(key, is_offline) {
     metricOffline[key] = is_offline;
 }
 
 function getMetricOffline(key) {
     return metricOffline[key];
+}
+
+// Animation/timing code
+function startAnimating() {
+    fpsInterval = 1000 / graph_render_rate
+    then = window.performance.now()
+    animate()
+}
+function animate(newtime) {
+    // Calculate time since last loop
+    const now = newtime
+    const elapsed = now - then
+
+    // Rerender if enough time has elapsed
+    if (elapsed > fpsInterval) {
+        then = now - (elapsed % fpsInterval)
+
+        // Rerender graphs
+        graphRequestRender()
+
+        // Increment time (so if we stop getting packets, time moves forward)
+        timestamp.local = (Date.now() - timestamp.localLoad) / 1000
+        updateTime()
+    }
+
+    // Request next animation frame
+    requestAnimationFrame(animate)
+}
+startAnimating()
+
+function updateTime() {
+    /// SYSTEM TIME
+    // Rocket launch timer
+    if (timestamp.api !== 0 && timers?.launchTimestamp !== undefined) {
+        let launchTime = 0
+        if (timers.launchTimestamp !== 0) {
+            launchTime = timestamp.api - timers.launchTimestamp
+        }
+        sendDataToRegistry({ launchTime: `T+${launchTime.toFixed(1)}` })
+    }
+
+    // Local time
+    if (timestamp.local !== undefined && timestamp.local !== 0) {
+        sendDataToRegistry({
+            localTime: `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)} s`,
+        })
+    }
 }
 
 // Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
@@ -476,7 +566,7 @@ function updateSound(sound, newValue, quicker) {
 function displaySetValue(item, value, precision = 2, error = false) {
     // Updates a floating point value for a display item
     if (value !== undefined && !Number.isNaN(value)) {
-        if (logVerbose) {
+        if (cfg.logging.verbose) {
             console.debug(
                 `new value %c${item}%c ${Number.parseFloat(value).toFixed(precision)}`,
                 'color:orange',
@@ -510,7 +600,7 @@ function displaySetValue(item, value, precision = 2, error = false) {
 function displaySetString(item, string) {
     // Updates the string in a display item
     if (string !== undefined) {
-        if (logVerbose) {
+        if (cfg.logging.verbose) {
             console.debug(
                 `new string %c${item}%c ${string}`,
                 'color:orange',
@@ -534,7 +624,7 @@ function displaySetString(item, string) {
 
 function displaySetState(item, value) {
     // Updates the state of an indicator
-    if (logVerbose) {
+    if (cfg.logging.verbose) {
         console.debug(
             `new state %c${item}%c ${value}`,
             'color:orange',
@@ -786,4 +876,4 @@ function sendDataToRegistry(apiData) {
     })
 }
 
-export { diagSetAvIndicator, diagSetSummaryOnlineBox, displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, toggleMute, updateMetricOffline };
+export { diagSetAvIndicator, diagSetSummaryOnlineBox, displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };

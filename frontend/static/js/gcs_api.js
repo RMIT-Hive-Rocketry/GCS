@@ -9,17 +9,9 @@
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
 import { processPacket } from '/js/GCS_DiagnosticsNavAlert.js';
-import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, updateMetricOffline } from '/js/gcs_display.js';
-import { graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/GCS_Graphs.js';
-import { gpsToDecimal, logMessage, metresToFeet, timers, timestamp } from '/js/gcs_utils.js';
-
-// const ws_url = `ws://${_ws["host"]}:${_ws["port"]}`
-
-const graph_render_rate = 20 // FPS for rendering graphs
-
-
-// WebSocket API connection
-let then, fpsInterval
+import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/gcs_display.js';
+import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/gcs_graphs.js';
+import { gpsToDecimal, logMessage, metresToFeet } from '/js/gcs_utils.js';
 
 // Logging
 const errors = []
@@ -29,53 +21,6 @@ let altitudeMax
 const altitudeHistory = []
 let packetsAV1 = 0
 let packetsAV1offset = 0
-
-// Animation/timing code
-function startAnimating() {
-    fpsInterval = 1000 / graph_render_rate
-    then = window.performance.now()
-    animate()
-}
-function animate(newtime) {
-    // Calculate time since last loop
-    const now = newtime
-    const elapsed = now - then
-
-    // Rerender if enough time has elapsed
-    if (elapsed > fpsInterval) {
-        then = now - (elapsed % fpsInterval)
-
-        // Rerender graphs
-        graphRequestRender()
-
-        // Increment time (so if we stop getting packets, time moves forward)
-        timestamp.local = (Date.now() - timestamp.localLoad) / 1000
-        updateTime()
-    }
-
-    // Request next animation frame
-    requestAnimationFrame(animate)
-}
-startAnimating()
-
-function updateTime() {
-    /// SYSTEM TIME
-    // Rocket launch timer
-    if (timestamp.api !== 0 && timers?.launchTimestamp !== undefined) {
-        let launchTime = 0
-        if (timers.launchTimestamp !== 0) {
-            launchTime = timestamp.api - timers.launchTimestamp
-        }
-        sendDataToRegistry({ launchTime: `T+${launchTime.toFixed(1)}` })
-    }
-
-    // Local time
-    if (timestamp.local !== undefined && timestamp.local !== 0) {
-        sendDataToRegistry({
-            localTime: `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)} s`,
-        })
-    }
-}
 
 // Handle incoming messages through the API
 function API_OnMessage(event_data) {
@@ -449,7 +394,7 @@ function processDataForDisplay(apiData, apiId) {
 
     if (apiId === 50) {
         // Track packet counts per device and attach to processedData.
-        // All HTML rendering is handled by graphUpdateDiagnostics() in GCS_Graphs.js.
+        // All HTML rendering is handled by graphUpdateDiagnostics() in gcs_graphs.js.
         Object.keys(apiData).forEach((device) => {
             if (typeof apiData[device] !== 'object' || apiData[device] === null)
                 return
@@ -468,28 +413,7 @@ function processDataForDisplay(apiData, apiId) {
     if (apiData?.meta) {
         // Timestamp, synchronization and connection
         if (apiData.meta?.timestampS) {
-            if (timestamp.api) {
-                timestamp.api = Math.max(timestamp.api, apiData.meta.timestampS)
-            }
-            else {
-                timestamp.api = apiData.meta.timestampS
-            }
-
-            if (timestamp.apiConnect === undefined) {
-                timestamp.apiConnect = timestamp.api
-                timestamp.localLoad = Date.now()
-            }
-            else {
-                // Code to synchronise local time with GSE time if it gets too far behind
-                timestamp.drift
-                    = timestamp.local - (timestamp.api - timestamp.apiConnect)
-
-                // Time drift
-                // timestamp.drift > 0 means LOCAL is ahead of GSE
-                // timestamp.drift < 0 means GSE is ahead of LOCAL
-                // Ideally there's no time drift at all, but if there is it's used to update the time
-                // console.log(timestamp.drift);
-            }
+            updateTimestamp(apiData.meta?.timestampS)
         }
 
         // Packets

@@ -13,8 +13,9 @@
  * - state changes pulse the Diagnostics nav tab for a few seconds
  */
 
+import { Config as cfg } from '/js/gcs_config.js';
+
 const previous_ping = {}
-const MAX_LOG_ENTRIES = 40
 
 function isHorizonRocket() {
     return (
@@ -92,7 +93,7 @@ function addDiagnosticLogEntry(device_id, alive) {
     // Latest first.
     logList.prepend(entry)
 
-    while (logList.children.length > MAX_LOG_ENTRIES) {
+    while (logList.children.length > cfg.logging.max_size_diagnostics) {
         logList.removeChild(logList.lastChild)
     }
 }

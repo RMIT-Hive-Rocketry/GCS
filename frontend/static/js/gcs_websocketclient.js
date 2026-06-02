@@ -5,26 +5,21 @@
  */
 
 import { API_OnMessage } from '/js/gcs_api.js';
-import { logMessage, logVerbose, timestamp } from '/js/gcs_utils.js';
+import { Config as cfg } from '/js/gcs_config.js';
+import { timestamp } from '/js/gcs_display.js';
+import { logMessage } from '/js/gcs_utils.js';
 
 class WebSocketClient {
-    // Constants
-    static ws_url = `ws://${window.location.host.split(':')[0]}:1887`
-    static max_reconnect_interval = 5000 // Maximum amount of time between reconnect attempts
-    static initial_reconnect_interval = 100 // Initial reconnection wait time
-    static log_messages = false; // Whether to log messages received from the websocket
-
     // Keep track of websocket client state
     static is_connected = false;
-    static api_socket = new WebSocket(this.ws_url);
-    static reconnect_interval = this.initial_reconnect_interval;
+    static api_socket = new WebSocket(cfg.ws.url);
+    static reconnect_interval = cfg.ws.initial_reconnect_interval;
     static reconnect_timeout
 
     // Functions for connecting
     static connect() {
         // Log connecting and readystate
-        logMessage(`Connecting to ${this.ws_url} (${this.api_socket.readyState})`, 'ws')
-
+        logMessage(`Connecting to ${cfg.ws.url} (${this.api_socket.readyState})`, 'ws')
 
         // Socket connected
         this.api_socket.onopen = () => {
@@ -33,14 +28,14 @@ class WebSocketClient {
             timestamp.apiConnect = undefined;
 
             // Log connection
-            if (logVerbose) {
-                console.log(`Successfully connected to websocket at: - ${WebSocketClient.ws_url}`)
+            if (cfg.logging.verbose) {
+                console.log(`Successfully connected to websocket at: - ${cfg.ws.url}`)
             }
             logMessage('Successfully connected', 'ws')
 
             // Reset connection timeouts
             clearTimeout(this.reconnect_timeout)
-            this.reconnect_interval = this.initial_reconnect_interval
+            this.reconnect_interval = cfg.ws.initial_reconnect_interval
         }
 
 
@@ -50,7 +45,7 @@ class WebSocketClient {
             this.is_connected = true;
 
             // Log message
-            if (this.log_messages) {
+            if (cfg.logging.websocket) {
                 console.log('Received message data', event.data);
             }
 
@@ -109,7 +104,7 @@ class WebSocketClient {
             this.connect()
             this.reconnect_interval = Math.min(
                 this.reconnect_interval * 2,
-                this.max_reconnect_interval,
+                cfg.ws.max_reconnect_interval,
             )
         }, this.reconnect_interval)
     }
