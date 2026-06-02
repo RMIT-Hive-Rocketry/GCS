@@ -4,9 +4,9 @@
  * Responsible for updating the webpage based on the API
  */
 
-import { Config as cfg } from '/js/gcs_config.js';
-import { graphRequestRender } from '/js/gcs_graphs.js'
-import { logMessage } from '/js/gcs_utils.js'
+import { Config as cfg } from '/js/frontend_config.js';
+import { graphRequestRender } from '/js/frontend_graphs.js'
+import { logMessage } from '/js/frontend_utils.js'
 
 const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
 const metricOffline = {} // key -> boolean

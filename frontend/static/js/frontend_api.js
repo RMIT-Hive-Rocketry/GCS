@@ -8,10 +8,10 @@
 
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
-import { processPacket } from '/js/GCS_DiagnosticsNavAlert.js';
-import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/gcs_display.js';
-import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/gcs_graphs.js';
-import { gpsToDecimal, logMessage, metresToFeet } from '/js/gcs_utils.js';
+import { processPacket } from '/js/frontend_diagnostics.js';
+import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
+import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
+import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
 
 // Logging
 const errors = []
@@ -394,7 +394,7 @@ function processDataForDisplay(apiData, apiId) {
 
     if (apiId === 50) {
         // Track packet counts per device and attach to processedData.
-        // All HTML rendering is handled by graphUpdateDiagnostics() in gcs_graphs.js.
+        // All HTML rendering is handled by graphUpdateDiagnostics() in frontend_graphs.js.
         Object.keys(apiData).forEach((device) => {
             if (typeof apiData[device] !== 'object' || apiData[device] === null)
                 return
