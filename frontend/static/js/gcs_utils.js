@@ -1,21 +1,6 @@
 /*
 Utility code and functions for use by the GCS
 */
-const logVerbose = false;
-const logIncomingMessages = false;
-const timestamp = {
-    localLoad: Date.now(), // Timestamp upon page load (refreshed with API to keep time-alignment)
-    local: 0, // Local timekeeping (for page to keep updating even if API stops sending signals)
-    api: 0, // Timestamp sent by the API
-    apiConnect: undefined, // First API timestamp sent upon connection with API
-    drift: undefined, // Time desync calculation
-}
-const timers = {
-    gasFillTimer: 0,
-    gasFillTimerTotal: 0,
-    gasTimestamp: 0,
-    launchTimestamp: 0,
-}
 
 // Logging code
 function logMessage(message, logType = '', timestamp = '') {
@@ -135,4 +120,4 @@ function gpsToDecimal(gps) {
     return sign * (degrees + minutes / 60 + seconds / 3600)
 }
 
-export { feetToMetres, gpsToDecimal, logIncomingMessages, logMessage, logVerbose, metresToFeet, timers, timestamp };
+export { feetToMetres, gpsToDecimal, logMessage, metresToFeet };

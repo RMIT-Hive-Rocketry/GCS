@@ -11,12 +11,8 @@ All other functionality is implemented in different files and imported into this
 /// IMPORTS
 import { WebSocketClient } from '/js/gcs_websocketclient.js'
 
-/// CONFIGURATION
-
-
 /// START WEBSOCKET
 WebSocketClient.connect();
-
 
 /// EVENT LISTENERS
 document.addEventListener('visibilitychange', () => {
