@@ -113,6 +113,10 @@ const soundsList_other = filenames_other.map(src => {
 
     // Loop in case required, else self-return after playing
     audioObject.addEventListener('ended', () => {
+        
+        /* Also needs to include Rocket_Hit when this event (the rocket
+         * about to hit someone on the head) can be separately detected).
+        */
         if (src === "Rocket_Warn") {
             audioObject.currentTime = 0;
             audioObject.play();
@@ -305,8 +309,11 @@ function playOtherSound(sound) {
         return;
     }
     
-    // Play if on the Horizon main page
-    if (isHorizonMain()){
+    /* Play if on the Horizon main page (safety sounds exempt from the rule).
+     * Also needs to include Rocket_Hit when this event (the rocket about to
+     * hit someone on the head) can be separately detected.
+    */
+    if (isHorizonMain() || (sound === "Rocket_Warn")){
         soundsList_other[soundNumber].source.play();
     }
 }
@@ -1133,7 +1140,8 @@ function processDataForDisplay(apiData, apiId) {
      * 
      * Requires matching the GCS coordinates to "LATITUDE": sinusoid() and/or
      * "LONGITUDE": sinusoid() in backend/device_emulator.py (or vice versa) during
-     * testing, or else the rocket will appear to be very far from the GCS
+     * testing, or else the rocket will appear to be very far from the GCS. Change
+     * the min, max and period attributes to experiment with different cases.
     */
     if (apiData.GPSLatitude != undefined && apiData.GPSLongitude != undefined) {
         // Scaling constants
@@ -1151,7 +1159,6 @@ function processDataForDisplay(apiData, apiId) {
         const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2;
         const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2;
         const final_distance = Math.sqrt(lat_distance + long_distance);
-        console.error(final_distance);
                 
         // Rocket_Warn sound
         let currSound = soundsList_other[2];
@@ -1161,7 +1168,7 @@ function processDataForDisplay(apiData, apiId) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
             if (currSound.source.duration === currSound.source.duration) {
                 /* Volume rises in logarithmic fashion the longer the rocket stays within
-                * 50m of the GCS (within the 1st iteration), full volume otherwise.
+                 * 50m of the GCS (within the 1st iteration), full volume otherwise.
                 */
                 currSound.source.volume = currSound.loopCount > 0
                                     ? 1 : (currSound.source.currentTime / currSound.source.duration) ** 1.5;
