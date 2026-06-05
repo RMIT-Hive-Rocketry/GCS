@@ -1,4 +1,0 @@
-cd /mnt/c/Users/miuro/Documents/GCS-2026-FRONTEND-PP1
-source .venv/bin/activate
-dos2unix rocket.py
-rocket dev --interface test --nopendant --frontend
