@@ -1,12 +1,13 @@
 from backend.includes_python.devices.pygame_device import PygameDevice
 from backend.includes_python.devices.pendant_state import PendantInput
+from collections.abc import Mapping
 
 
 # This is the mapping of the orange controller
 # We need to formalise this into a wiring diagram
 # so that future hybrid pendants will match it
 class HybridPygamePendant(PygameDevice):
-    BUTTON_NAME_ID_MAP = {
+    BUTTON_NAME_ID_MAP: Mapping[PendantInput, int] = {
         PendantInput.IGNITION: 0,
         PendantInput.O2: 1,
         PendantInput.SYSTEM_ACTIVE: 2,
@@ -25,7 +26,7 @@ class HybridPygamePendant(PygameDevice):
 
 
 class ThrustmasterAirbusFlightStick(PygameDevice):
-    BUTTON_NAME_ID_MAP = {
+    BUTTON_NAME_ID_MAP: Mapping[PendantInput, int] = {
         PendantInput.FILL_MODE: 0,  # bottom back trigger
         PendantInput.ARMED: 1,  # top back trigger
         PendantInput.O2: 2,  # spherical button
@@ -52,7 +53,7 @@ class ThrustmasterAirbusFlightStick(PygameDevice):
 # sorry it doesn't have all the cool toggle logic :/
 # I tried to match the buttons best I could
 class LogitechGamepadF710(PygameDevice):
-    BUTTON_NAME_ID_MAP = {
+    BUTTON_NAME_ID_MAP: Mapping[PendantInput, int] = {
         PendantInput.IGNITION: 0,  # something idk
         PendantInput.O2: 1,  # top left button on right side
         PendantInput.FILL_MODE: 2,
