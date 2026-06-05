@@ -54,6 +54,12 @@ class GSEState(StrEnum):
     O2 = "O2_MOMENT_ACTIVE"
     IGNITION = "IGNITION_MOMENT_ACTIVE"
 
+    # spare/function buttons
+    F9 = "F9"
+    F10 = "F10"
+    F11 = "F11"
+    F12 = "F12"
+
 
 class PendantState:
     """
@@ -65,11 +71,9 @@ class PendantState:
     FALLBACK_PENDANT_STATES_DICT: dict[PendantInput, bool] = dict.fromkeys(
         PendantInput, False
     )
-
     FALLBACK_GSE_STATES_DICT: dict[GSEState, bool] = dict.fromkeys(
         GSEState, False
     )
-
     FALLBACK_GSE_STATES_DICT_SYS_ON: dict[GSEState, bool] = dict.fromkeys(
         GSEState, False
     )
@@ -149,7 +153,31 @@ class PendantState:
                 required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.ARMED, PendantInput.IGNITION),
                 required_false: (PendantInput.E_STOP,),
                 nonsense_to_be_true: (PendantInput.FILL_MODE, PendantInput.N2O, PendantInput.PURGE)
-            }
+            },
+
+            GSEState.F9: {
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.F9),
+                required_false: (),
+                nonsense_to_be_true: ()
+            },
+
+            GSEState.F10: {
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.F10),
+                required_false: (),
+                nonsense_to_be_true: ()
+            },
+
+            GSEState.F11: {
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.F11),
+                required_false: (),
+                nonsense_to_be_true: ()
+            },
+
+            GSEState.F12: {
+                required_true: (PendantInput.SYSTEM_ACTIVE, PendantInput.F12),
+                required_false: (),
+                nonsense_to_be_true: ()
+            },
         }
         # fmt: on
 
@@ -179,7 +207,6 @@ class PendantState:
                         slogger.critical(
                             f"Impossible Condition detected for {state}: {nonsense}. This indicates a hardware issue with the pendant, please halt operations."
                         )
-
                         return self.FALLBACK_GSE_STATES_DICT_SYS_ON
 
             gse_state_dict[state] = state_is_true

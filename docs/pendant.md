@@ -9,7 +9,7 @@
 
 ## Wiring
 
-The current iteration of the control pendant uses an ARC-666 Arcade Controller board, which converts the switch signals into USB-HID signals for a computer to easily understand. 
+The current iteration of the control pendant uses an ARC-666 Arcade Controller board, which converts the switch signals into USB-HID signals for a computer to easily understand.
 
 The pendant should be wired up following the below diagram:
 

@@ -44,14 +44,18 @@ PygameDevice is an ABC, where children only need to define the name of the hid d
 ```
 class HybridPygamePendant(PygameDevice):
     BUTTON_NAME_ID_MAP = {
-        "SYS_ON": 0,
-        "ESTOP": 5,
-        "FILL_SELECTED": 6,
-        "IGNITION_SELECTED": 4,
-        "N2O_ACTIVE": 8,
-        "PURGE_ACTIVE": 3,
-        "O2_MOMENT_ACTIVE": 1,
-        "IGNITION_MOMENT_ACTIVE": 2,
+        PendantInput.IGNITION: 0,
+        PendantInput.O2: 1,
+        PendantInput.SYSTEM_ACTIVE: 2,
+        PendantInput.PURGE: 3,
+        PendantInput.ARMED: 4,
+        PendantInput.E_STOP: 5,
+        PendantInput.FILL_MODE: 6,
+        PendantInput.F9: 7,
+        PendantInput.N2O: 8,
+        PendantInput.F10: 9,
+        PendantInput.F11: 10,
+        PendantInput.F12: 11,
     }
 
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
