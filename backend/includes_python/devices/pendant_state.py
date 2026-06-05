@@ -24,6 +24,13 @@ class PendantInput(StrEnum):
     O2 = "O2"
     IGNITION = "IGNITION"
 
+    # spare/function buttons, for rebindable inputs
+    # currently not used
+    F9 = "F9"
+    F10 = "F10"
+    F11 = "F11"
+    F12 = "F12"
+
 
 class GSEState(StrEnum):
     """

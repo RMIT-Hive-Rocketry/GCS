@@ -2,6 +2,9 @@ from backend.includes_python.devices.pygame_device import PygameDevice
 from backend.includes_python.devices.pendant_state import PendantInput
 
 
+# This is the mapping of the orange controller
+# We need to formalise this into a wiring diagram
+# so that future hybrid pendants will match it
 class HybridPygamePendant(PygameDevice):
     BUTTON_NAME_ID_MAP = {
         PendantInput.IGNITION: 0,
@@ -11,8 +14,11 @@ class HybridPygamePendant(PygameDevice):
         PendantInput.ARMED: 4,
         PendantInput.E_STOP: 5,
         PendantInput.FILL_MODE: 6,
-        # 7
+        PendantInput.F9: 7,
         PendantInput.N2O: 8,
+        PendantInput.F10: 9,
+        PendantInput.F11: 10,
+        PendantInput.F12: 11,
     }
 
     CONTROLLER_NAME = "DragonRise Inc. Generic USB Joystick"
@@ -28,10 +34,10 @@ class ThrustmasterAirbusFlightStick(PygameDevice):
         PendantInput.PURGE: 5,  # top middle button on the right
         PendantInput.N2O: 6,  # top left button on the right
         # 7
-        # 8
-        # 9
-        # 10
-        # 11
+        PendantInput.F9: 8,
+        PendantInput.F10: 9,
+        PendantInput.F11: 10,
+        PendantInput.F12: 11,
         # 12
         PendantInput.E_STOP: 13,  # bottom right button on the left
         # 14
