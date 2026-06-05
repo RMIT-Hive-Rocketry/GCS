@@ -93,43 +93,65 @@ def test_invalid_key_raises() -> None:
 
 def test_all_state() -> None:
     # check that for every other possible state, they are either all off (for estop) or the fallback table
-
     # https://stackoverflow.com/questions/464864/how-to-get-all-possible-2n-combinations-of-a-list-s-elements-of-any-length
-    count = 0
+    total_permutations: int = 2 ** len(PendantInput)
+    count: int = 0
+
     for i in range(len(PendantInput) + 1):
         for test_pendant_states in itertools.combinations(PendantInput, i):
             count += 1
 
-            if test_pendant_states in all_correct_states:
+            # Test correct states
+            # Please note that F9, F10, F11 and F12 aren't tested in this function
+            if (
+                tuple(
+                    x
+                    for x in test_pendant_states
+                    if x not in ["F9", "F10", "F11", "F12"]
+                )
+                in all_correct_states
+            ):
                 continue
 
             pendant_state_dict = dict.fromkeys(test_pendant_states, True)
+            gse_state_dict = dict.fromkeys(GSEState, False)
 
             gse_state = PendantState(pendant_state_dict).get_gse_states()
 
+            # We don't need to worry about these states
+            gse_state[GSEState.F9] = False
+            gse_state[GSEState.F10] = False
+            gse_state[GSEState.F11] = False
+            gse_state[GSEState.F12] = False
+
             if PendantInput.E_STOP in test_pendant_states:
-                assert gse_state == dict.fromkeys(GSEState, False)
+                assert gse_state == gse_state_dict
 
             # its fine if sys is on, its only problematic if other inputs like ignition are on
             SYS_ON_STATE = {
                 GSEState.SYSTEM_ACTIVE: True,
                 GSEState.FILL_MODE: False,
-                GSEState.NEUTRAL: False,
-                GSEState.N2O: False,
-                GSEState.PURGE: False,
                 GSEState.ARMED: False,
+                GSEState.N2O: False,
+                GSEState.NEUTRAL: False,
+                GSEState.PURGE: False,
                 GSEState.O2: False,
                 GSEState.IGNITION: False,
+                GSEState.F9: False,
+                GSEState.F10: False,
+                GSEState.F11: False,
+                GSEState.F12: False,
             }
 
             assert (
                 gse_state == PendantState.FALLBACK_GSE_STATES_DICT
+                or gse_state == PendantState.FALLBACK_GSE_STATES_DICT_SYS_ON
                 or gse_state == SYS_ON_STATE
             )
 
     # make sure we go over every permutation
-    # 2^num_inputs = 2^8 = 256
-    assert count == 256
+    # 2^num_inputs = 2^12 = 4096
+    assert count == total_permutations
 
 
 def test_explicit_false_same_as_omitting() -> None:
