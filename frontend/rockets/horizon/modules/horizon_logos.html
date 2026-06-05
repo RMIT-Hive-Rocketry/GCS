@@ -1,35 +1,19 @@
 <!-- Logos and project/launch information module -->
-<div class="module-horizon flex-row p-2 pb-0 justify-start items-center gap-4">
-    <img
-        src="/img/logo-rmit.svg"
-        width="163"
-        height="58"
-        class="max-h-16 h-full w-auto py-2 px-1"
-    />
-    <a
-        href="/"
-        title="Back to rocket selection"
+<div class="module-horizon flex-row p-2 pb-0 justify-evenly items-center gap-4">
+    <img src="/img/logo-rmit.svg" width="163" height="58" class="max-h-16 h-full w-auto py-2 px-1" />
+    <a href="/" title="Back to rocket selection"
         style="border-radius: 8px; padding: 4px; transition: background 150ms ease; cursor: pointer;"
-        onmouseover="this.style.background='rgba(255,255,255,0.15)'"
-        onmouseout="this.style.background='transparent'"
-    >
-        <img
-            src="/img/logo-hive.256.png"
-            width="256"
-            height="256"
-            class="max-h-14 w-auto h-full"
-        />
+        onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
+        <img src="/img/logo-hive.256.png" width="256" height="256" class="max-h-14 w-auto h-full" />
     </a>
-    <img
-        src="/horizon/static/img/logo-horizon-gradient.png"
-        width="1630"
-        height="287"
-        class="max-h-14 w-auto h-full py-2 px-2"
-    />
+    <img src="/horizon/static/img/logo-horizon-gradient.png" width="1630" height="287"
+        class="max-h-14 w-auto h-full py-2 px-2" />
 
     <!-- Sounds module -->
     <!-- Icon represents current state (see GCS_API.js for attribution) -->
-    <button id="toggleButton" type="button" onclick=toggleMute()>
-        <img id="toggleIcon" src="img/icons/sound-muted.svg" alt="Sound muted">
+    <button id="toggleButton" type="button" onclick="toggleMute()">
+        <img id="toggleIcon" width="40" height="40" src="img/icons/sound-muted.svg" alt="Sound muted">
     </button>
+
+    <p class="text-white text-center text-lg font-bold">KR4MFM</p>
 </div>
