@@ -515,6 +515,7 @@ function toggleMute() {
         document.getElementById('toggleIcon').alt = 'Sound muted'
     }
 }
+window.toggleMute = toggleMute;
 
 /* Update the given sound as to if it will play in the sound
  * queue. If long = true, the alarm will change to its extended version.
