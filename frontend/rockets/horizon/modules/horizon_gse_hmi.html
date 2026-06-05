@@ -289,8 +289,8 @@
                     Contains outer body, inner tank rect, and
                     connecting pipe with "Filler Stem" label.
                     ================================================= -->
-                <g id="rocket" class="rocket-part" transform="translate(1300, 20)">
-
+                <g id="rocket" transform="translate(1300, 20)">
+    
                     <!-- Outer rocket body with stepped nozzle-style tail -->
                     <path
                         d="M150 40
@@ -313,6 +313,7 @@
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
+                        class="rocket-part"
                     />
 
                     <!-- Inner tank rect — no connecting pipe attached -->
@@ -326,6 +327,7 @@
                         stroke="white"
                         stroke-width="2"
                         transform="translate(0,0)"
+                        class="rocket-part"
                     />
 
                     <!-- 2nd Inner tank rect -->
@@ -339,6 +341,7 @@
                         stroke="white"
                         stroke-width="2"
                         transform="translate(0,0)"
+                        class="rocket-part"
                     />
 
                     <!-- Inner Inner tank rect -->
@@ -352,6 +355,7 @@
                         stroke="#3e98c1"
                         stroke-width="2"
                         transform="translate(0,0)"
+                        class="rocket-part"
                     />
 
                     <!-- Inside Inner Inner tank rect, TODO: make dynamic maybe somehow -->
@@ -365,6 +369,7 @@
                         stroke="#3e98c1"
                         stroke-width="2"
                         transform="translate(0,0)"
+                        class="rocket-part"
                     />
 
                     <!-- Filler stem pipe lines -->
@@ -397,6 +402,7 @@
                         text-anchor="middle"
                         letter-spacing="0.12em"
                         transform="rotate(-90)"
+                        class="rocket-part"
                     >
                         Flight Tank
                     </text>
@@ -411,6 +417,7 @@
                         text-anchor="middle"
                         letter-spacing="0.12em"
                         transform="rotate(-90)"
+                        class="rocket-part"
                     >
                         Combustion Chamber
                     </text>
@@ -423,8 +430,8 @@
                     FLIGHT TANK MASS
                     Shows N₂O flight tank with border and data labels.
                     ================================================= -->
-                <g id="flight-tank-display" class="rocket-part" transform="translate(0,300)">
-
+                <g id="flight-tank-display" transform="translate(0,300)">
+    
                     <!-- Green border box and black background -->
                     <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
 
@@ -451,8 +458,8 @@
                 <!-- =================================================
                     N2O VENT TEMPERATURE SECTION
                     ================================================= -->
-                <g id="flight-tank-display" class="rocket-part" transform="translate(-200,220)">
-
+                <g id="flight-tank-display" transform="translate(-200,220)">
+    
                     <!-- Green border box and black background -->
                     <!-- <rect id="Rectangle 16" x="1230" y="445" width="150" height="130" fill="black" stroke="#00FF4D" stroke-width="3"></rect> -->
 
@@ -474,7 +481,7 @@
 
                     <!-- vent temp line -->
                     <!-- <line x1="1580" y1="573" x2="1653" y2="573" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line> -->
-                    <line x1="1653" y1="588" x2="1653" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
+                    <line class="rocket-part" x1="1653" y1="588" x2="1653" y2="270" stroke="#3e98c1" stroke-width="2" stroke-linecap="round"></line>
                     <line x1="1650" y1="588" x2="1650" y2="650" stroke="white" stroke-width="1"></line>
                     <line x1="1620" y1="635" x2="1650" y2="635" stroke="white" stroke-width="1"></line>
                 </g>
@@ -591,9 +598,9 @@
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-8</text>
                     <text class="rocket-part" x="1360" y="510" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-9</text>
-                    <text class="rocket-part" x="1365" y="890" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    <text x="1365" y="890" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-10</text>
-                    <text class="rocket-part" x="1475" y="910" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
+                    <text x="1475" y="910" fill="white" font-family="ui-monospace, SFMono-Regular, Menlo,
                             Monaco, Consolas, monospace" font-size="14" letter-spacing="0.1em">I-11</text>
 
 
@@ -1326,7 +1333,7 @@
                 </g>
 
                 <!-- Temperature Recorder -->
-                <g class="rocket-part" id="HMI_temperature_recorder2" transform="translate(290,550)">
+                <g id="HMI_temperature_recorder2" transform="translate(290,550)">
                     <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
                     <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
                         fill="white" font-family="Arial, sans-serif" font-size="14">TR</text>
@@ -1352,7 +1359,7 @@
                 </g>
 
                 <!-- LC Recorder -->
-                <g class="rocket-part" id="HMI_LC_recorder1" transform="translate(341,585)">
+                <g id="HMI_LC_recorder1" transform="translate(341,585)">
                     <circle id="Ellipse 2_4" cx="1109" cy="305" r="19.5" stroke="white" />
                     <text x="1109" y="306" text-anchor="middle" dominant-baseline="middle"
                         fill="white" font-family="Arial, sans-serif" font-size="14">LC</text>
