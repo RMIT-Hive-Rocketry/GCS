@@ -1,10 +1,24 @@
-# Control Pendant Emulator
+# Control Pendant
 
-Reference schematic
+
+## Reference Schematics
 
 ![pendant_schematic](assets/pendant_schematic.png)
 
-## Keyboard Mapping
+![pendant_schematic_2](assets/pendant-face-panel-graphical-reference.png)
+
+## Wiring
+
+The current iteration of the control pendant uses an ARC-666 Arcade Controller board, which converts the switch signals into USB-HID signals for a computer to easily understand. 
+
+The pendant should be wired up following the below diagram:
+
+![pendant_wiring](assets/pendant-wiring-arcade-usb-controller.png)
+
+Please note that F9, F10, F11 and F12 do NOT refer to keys on the keyboard, they're simply spare utility inputs that can be used for various purposes. Not every pendant includes controls for them.
+
+## Pendant Emulator
+### Keyboard Mapping
 
 > [!WARNING]
 > This emulator always assumes that the physical translations for mechanical inputs are as follows:

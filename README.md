@@ -29,7 +29,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
 - [Setup](docs/setup.md)
 - [Usage](docs/usage.md)
-- [Pendant Emulator Quick Reference](docs/pendant_emulator.md)
+- [Control Pendant Reference](docs/pendant.md)
 - [System Design & features](docs/system_design.md)
 - [Development](docs/development.md)
 - [Frontend](docs/frontend.md)
