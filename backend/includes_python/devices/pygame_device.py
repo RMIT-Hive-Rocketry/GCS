@@ -99,14 +99,13 @@ class PygameDevice(ControlDevice):
         # this should only be called when these are junk (controller disconnected, startup etc)
         # self.is_connected = False
         # self.joystick = None
-        found_names = ""
+        found_names: list = []
 
         for i in range(pygame.joystick.get_count()):
             jstk = pygame.joystick.Joystick(i)
             jstk.init()
-            found_names += jstk.get_name()
-            found_names += ", "
-            if jstk.get_name() == self.CONTROLLER_NAME:
+            found_names.append(jstk.get_name())
+            if jstk.get_name().lower() == self.CONTROLLER_NAME.lower():
                 self.is_connected = True
                 self.joystick = jstk
                 self.joystick_id = jstk.get_instance_id()
@@ -123,7 +122,7 @@ class PygameDevice(ControlDevice):
                     + self.CONTROLLER_NAME
                     + "'"
                     + " found controllers '"
-                    + found_names
+                    + ", ".join(found_names)
                     + "'"
                 )
             return
@@ -151,7 +150,7 @@ class PygameDevice(ControlDevice):
                 self.joystick = None
                 self.is_connected = False
                 self.joystick_id = 0
-                slogger.error("Pendnat Disconnected")
+                slogger.error("Pendant Disconnected")
 
         if self.is_connected and self.joystick is not None:
             for btn_name, btn_id in self.BUTTON_NAME_ID_MAP.items():
