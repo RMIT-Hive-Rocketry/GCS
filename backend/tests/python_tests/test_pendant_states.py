@@ -128,7 +128,7 @@ def test_all_state() -> None:
                 assert gse_state == gse_state_dict
 
             # its fine if sys is on, its only problematic if other inputs like ignition are on
-            SYS_ON_STATE = {
+            sys_on_state = {
                 GSEState.SYSTEM_ACTIVE: True,
                 GSEState.FILL_MODE: False,
                 GSEState.ARMED: False,
@@ -143,10 +143,10 @@ def test_all_state() -> None:
                 GSEState.F12: False,
             }
 
-            assert (
-                gse_state == PendantState.FALLBACK_GSE_STATES_DICT
-                or gse_state == PendantState.FALLBACK_GSE_STATES_DICT_SYS_ON
-                or gse_state == SYS_ON_STATE
+            assert gse_state in (
+                PendantState.FALLBACK_GSE_STATES_DICT,
+                PendantState.FALLBACK_GSE_STATES_DICT_SYS_ON,
+                sys_on_state,
             )
 
     # make sure we go over every permutation

@@ -61,7 +61,7 @@ class GSEState(StrEnum):
     F12 = "F12"
 
 
-class PendantState:
+class PendantState:  # noqa: PLW1641
     """
     Stores state of the pendant
     Has methods which return a Dict suitable for conversion to a GSE packet
