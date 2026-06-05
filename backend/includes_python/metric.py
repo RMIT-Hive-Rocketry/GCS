@@ -400,79 +400,102 @@ class Metric:
 
     @staticmethod
     def state_set_flag_s2p1(
-        manual_purge: bool,
-        o2_fill_activate: bool,
-        selector_switch_neutral_position: bool,
-        n2o_fill_activate: bool,
-        ignition_fire: bool,  # https://youtu.be/Vmm_Kq1EN8k?si=GEpc8AoEhRgRrFRI
+        sys_on: bool,
+        fill_selected: bool,
         ignition_selected: bool,
-        gas_fill_selected: bool,
-        system_activate: bool,
+        n2o_active: bool,
+        neutral_active: bool,
+        purge_active: bool,
+        o2_moment_active: bool,
+        ignition_moment_active: bool,  # https://youtu.be/Vmm_Kq1EN8k?si=GEpc8AoEhRgRrFRI
+        f9: bool,
+        f10: bool,
+        f11: bool,
+        f12: bool,
     ) -> bytes:
         """_summary_
 
         Args:
-            manual_purge: 0 = no, 1 = yes
-            o2_fill_activate: 0 = no, 1 = yes
-            selector_switch_neutral_position: 0 = no, 1 = yes
-            n2o_fill_activate: 0 = no, 1 = yes
-            ignition_fire: 0 = no, 1 = yes
+            sys_on: 0 = disable, 1 = enabled
+            fill_selected: 0 = no, 1 = yes
             ignition_selected: 0 = no, 1 = yes
-            gas_fill_selected: 0 = no, 1 = yes
-            system_activate: 0 = disable, 1 = enabled
+            n2o_active: 0 = no, 1 = yes
+            neutral_active: 0 = no, 1 = yes
+            purge_active: 0 = no, 1 = yes
+            o2_moment_active: 0 = no, 1 = yes
+            ignition_moment_active: 0 = no, 1 = yes
+            f9 (bool): 0 = no, 1 = yes
+            f10 (bool): 0 = no, 1 = yes
+            f11 (bool): 0 = no, 1 = yes
+            f12 (bool): 0 = no, 1 = yes
+
+        Currently ignores the f9, f10, f11 and f12 inputs
+        We don't want to send those to the GSE since that'll confuse it
 
         Returns:
             bytes: _description_
         """
 
         result = 0
-        result = (result << 1) | manual_purge
-        result = (result << 1) | o2_fill_activate
-        result = (result << 1) | selector_switch_neutral_position
-        result = (result << 1) | n2o_fill_activate
-        result = (result << 1) | ignition_fire
+        result = (result << 1) | purge_active
+        result = (result << 1) | o2_moment_active
+        result = (result << 1) | neutral_active
+        result = (result << 1) | n2o_active
+        result = (result << 1) | ignition_moment_active
         result = (result << 1) | ignition_selected
-        result = (result << 1) | gas_fill_selected
-        result = (result << 1) | system_activate
+        result = (result << 1) | fill_selected
+        result = (result << 1) | sys_on
 
         return Metric._int_to_byte_unsigned(result)
 
     @staticmethod
     def state_set_flag_inverted_s2p2(
-        manual_purge: bool,
-        o2_fill_activate: bool,
-        selector_switch_neutral_position: bool,
-        n2o_fill_activate: bool,
-        ignition_fire: bool,  # https://youtu.be/Vmm_Kq1EN8k?si=GEpc8AoEhRgRrFRI
+        sys_on: bool,
+        fill_selected: bool,
         ignition_selected: bool,
-        gas_fill_selected: bool,
-        system_activate: bool,
+        n2o_active: bool,
+        neutral_active: bool,
+        purge_active: bool,
+        o2_moment_active: bool,
+        ignition_moment_active: bool,  # https://youtu.be/Vmm_Kq1EN8k?si=GEpc8AoEhRgRrFRI
+        f9: bool,
+        f10: bool,
+        f11: bool,
+        f12: bool,
     ) -> bytes:
         """_summary_
 
         Args:
-            manual_purge (bool): 0 = no, 1 = yes
-            o2_fill_activate (bool): 0 = no, 1 = yes
-            selector_switch_neutral_position (bool): 0 = no, 1 = yes
-            n2o_fill_activate (bool): 0 = no, 1 = yes
-            ignition_fire (bool): 0 = no, 1 = yes
+            sys_on (bool): 0 = disable, 1 = enabled
+            fill_selected (bool): 0 = no, 1 = yes
             ignition_selected (bool): 0 = no, 1 = yes
-            gas_fill_selected (bool): 0 = no, 1 = yes
-            system_activate (bool): 0 = disable, 1 = enabled
+            n2o_active (bool): 0 = no, 1 = yes
+            neutral_active (bool): 0 = no, 1 = yes
+            purge_active (bool): 0 = no, 1 = yes
+            o2_moment_active (bool): 0 = no, 1 = yes
+            ignition_moment_active (bool): 0 = no, 1 = yes
+            f9 (bool): 0 = no, 1 = yes
+            f10 (bool): 0 = no, 1 = yes
+            f11 (bool): 0 = no, 1 = yes
+            f12 (bool): 0 = no, 1 = yes
 
         Returns:
             bytes: _description_
         """
 
         result = Metric.state_set_flag_s2p1(
-            manual_purge,
-            o2_fill_activate,
-            selector_switch_neutral_position,
-            n2o_fill_activate,
-            ignition_fire,
+            sys_on,
+            fill_selected,
             ignition_selected,
-            gas_fill_selected,
-            system_activate,
+            n2o_active,
+            neutral_active,
+            purge_active,
+            o2_moment_active,
+            ignition_moment_active,
+            f9,
+            f10,
+            f11,
+            f12,
         )
 
         return Metric._invert_byte(result)
