@@ -5,7 +5,6 @@ EXEC_NAME="rocket"
 PROTOBUF_VERSION="30.1"
 PROTOBUF_MAJOR_VERSION="30"
 PYTHON_VERSION="3.11"
-BATCH_FILE="rocket.bat"
 
 # collect opts
 AUTO_YES=0 # for CI
@@ -230,10 +229,5 @@ if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "darwin"* ]]; then
         install_symlink
     fi
 fi
-
-# Windows setup
-# if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
-#     # nothing here, will leave check for future needs
-# fi
 
 echo "Setup completed"

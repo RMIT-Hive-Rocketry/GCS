@@ -23,15 +23,20 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
 © 2026 RMIT Competition Rocketry - Licensed under the MIT License
 
-## Contents
+## Documentation
 
-### Documentation
+### Contributing
+
+Before working with this repository, please read [Contributing](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests. You can find the [AI policy](CONTRIBUTING.md#ai-policy) here.
+
+### Table of Contents
 
 - [Setup](docs/setup.md)
 - [Usage](docs/usage.md)
-- [Control Pendant Reference](docs/pendant.md)
+- [Pendant Emulator Quick Reference](docs/pendant_emulator.md)
 - [System Design & features](docs/system_design.md)
 - [Development](docs/development.md)
+- [Tutorials](docs/tutorials.md)
 - [Frontend](docs/frontend.md)
 - [Glossary](docs/glossary.md)
 
@@ -42,7 +47,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
 ## Description
 
-The GCS, known as SOTERIA, is HIVE's computer control system for GSE control, avionics communication, and data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. All OSI layers in our networking stack above the physical protocol are SRAD for use with our Australis (avionics) ecosystem. The software converts raw serial input from physical radio interfaces into human-readable output for efficient system monitoring by the GCS operator and visualisations for observers. We use a WebSocket and a protocol buffer based IPC API to communicate with our GCS services. Our web frontend is fully SRAD aside from industry-standard libraries. The GCS operator can see if any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO call quickly. Spectators and other team members have access to several different views detailing all telemetry from both the GSE and avionics systems
+The GCS, known as SOTERIA, is Hive's computer control system for GSE control, avionics communication, and data visualisation. The core of the GCS is a single computer running SRAD software with SRAD LoRa radio hardware peripherals. All OSI layers in our networking stack above the physical protocol are SRAD for use with our Australis (avionics) ecosystem. The software converts raw serial input from physical radio interfaces into human-readable output for efficient system monitoring by the GCS operator and visualisations for observers. We use a WebSocket and a protocol buffer based IPC API to communicate with our GCS services. Our web frontend is fully SRAD aside from industry-standard libraries. The GCS operator can see if any system is performing sub-optimally via alert and warning readouts, so they can make an informed GO/NO-GO call quickly. Spectators and other team members have access to several different views detailing all telemetry from both the GSE and avionics systems
 
 ## Credit
 
@@ -60,16 +65,16 @@ Ground Control Software Team
         <td>2026</td>
     </tr>
     <tr>
-        <td>GC software lead & backend software engineer</td>
+        <td>GCS software lead & backend software engineer</td>
         <td>2025</td>
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
-        <td>GC lead & senior software engineer</td>
+        <td>GCS IREC 2026 lead & senior software engineer</td>
         <td>2026</td>
     </tr>
     <tr>
-        <td>GC frontend lead & software engineer</td>
+        <td>GCS frontend lead & software developer</td>
         <td>2025</td>
     </tr>
     <tr>
@@ -78,37 +83,52 @@ Ground Control Software Team
         <td>2026</td>
     </tr>
     <tr>
-    <td>GC simulation integration</td>
+    <td>GCS simulation integration</td>
         <td>2025</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/xavier-egan-a5b3b027a/">Xavier Egan</a> (<code>XavierEgan</code>)</td>
-        <td>GC software & firmware developer</td>
+        <td>GCS AURC 2026 lead & software developer</td>
         <td>2026</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/twhlynch/">Tom Lynch</a> (<code>twhlynch</code>)</td>
-        <td>GC software developer</td>
+        <td>GCS software developer</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>Joseph Di Giulio (<code>WhiteNoisex</code>)</td>
+        <td>GCS software engineer & refactoring</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>Zachary Everett (<code>zachever</code>)</td>
+        <td>GCS software</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>Kelly Wan Wing Kai (<code>kelly2504</code>)</td>
+        <td>GCS web designer</td>
         <td>2026</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/caspar-oneill/">Caspar O'Neill</a> (<code>s3899921</code>)</td>
-        <td>GC frontend API engineer</td>
+        <td>GCS frontend API engineer</td>
         <td>2025</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/anuk-jayasundara-ab440b1aa/">Anuk Jayasundara</a> (<code>SaviruA</code>)</td>
-        <td>GC 6DOF rocket visualisation</td>
+        <td>GCS 6DOF rocket visualisation</td>
         <td>2025</td>
     </tr>
     <tr>
         <td>Jonathan Do (<code>J88error</code>)</td>
-        <td>GC frontend UI/UX design</td>
+        <td>GCS frontend UI/UX design</td>
         <td>2025</td>
     </tr>
     <tr>
         <td>Nathan La (<code>s4003562</code>)</td>
-        <td>GC data visualisation</td>
+        <td>GCS data visualisation</td>
         <td>2025</td>
     </tr>
 </table>
@@ -120,7 +140,7 @@ Special thanks
 - [Matthew Ricci](https://www.linkedin.com/in/matthewricci-embedded/)
   - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
 
-And to all those at RMIT HIVE!
+And to all those at RMIT Hive!
 
 ## Software Development Components
 
@@ -161,6 +181,6 @@ notice and license in all copies or substantial portions of the Software.
 
 Attribution must be clearly displayed in any redistributed or derivative works.
 
-Please credit: **RMIT Competition Rocketry** and the **HIVE GCS Software Team**.
+Please credit: **RMIT Competition Rocketry** and the **Hive GCS Software Team**.
 
 See the [LICENSE](LICENSE) file for full terms.

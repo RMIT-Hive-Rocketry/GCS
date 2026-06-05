@@ -14,44 +14,8 @@ from pathlib import Path
 
 START_TIME = None  # init in start
 
-# Windows Integration
-if platform.system() == "Windows":
-    from ctypes import wintypes
-
-    class FileTime(ctypes.Structure):
-        _fields_ = [
-            ("dwLowDateTime", ctypes.c_uint32),
-            ("dwHighDateTime", ctypes.c_uint32),
-        ]
-
-    class MemoryStatusEx(ctypes.Structure):
-        _fields_ = [
-            ("dwLength", ctypes.c_ulong),
-            ("dwMemoryLoad", ctypes.c_ulong),
-            ("ullTotalPhys", ctypes.c_ulonglong),
-            ("ullAvailPhys", ctypes.c_ulonglong),
-            ("ullTotalPageFile", ctypes.c_ulonglong),
-            ("ullAvailPageFile", ctypes.c_ulonglong),
-            ("ullTotalVirtual", ctypes.c_ulonglong),
-            ("ullAvailVirtual", ctypes.c_ulonglong),
-            ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
-        ]
-
-    class ProcessMemoryCounters(ctypes.Structure):
-        _fields_ = [
-            ("cb", wintypes.DWORD),
-            ("PageFaultCount", wintypes.DWORD),
-            ("PeakWorkingSetSize", ctypes.c_size_t),
-            ("WorkingSetSize", ctypes.c_size_t),
-            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
-            ("PagefileUsage", ctypes.c_size_t),
-            ("PeakPagefileUsage", ctypes.c_size_t),
-        ]
-
-elif platform.system() == "Darwin":
+# Max integration
+if platform.system() == "Darwin":
     from ctypes import c_uint
 
     libc = ctypes.CDLL("libc.dylib")
@@ -91,7 +55,7 @@ elif platform.system() == "Linux":
     pass
 else:
     slogger.error(
-        "Performance Monitor Is not Supported On this OS please use Linux Or Windows !"
+        "Performance monitor is not supported on this OS, please use Linux or Mac!"
     )
     sys.exit("Invalid OS")
 
@@ -238,88 +202,6 @@ def get_global_status_linux() -> GlobalSystemInfo:
 
 
 # Extract from the proc Directory the details needed
-def get_process_status_windows(pid) -> ProcessSystemData:
-
-    psapi = ctypes.WinDLL("psapi.dll")
-    kernel32 = ctypes.WinDLL("kernel32.dll")
-
-    process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
-    process_query_limited_information = 0x1000
-    # PROCESS_VM_READ = 0x0010 Might Need In future
-
-    # Get process of kernel info with perms and for a specific PID
-    handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
-
-    if not handle:
-        slogger.error("Invalid Hook")
-        return process_data
-
-    creation = FileTime()
-    exit_time = FileTime()
-    kernel = FileTime()
-    user = FileTime()
-
-    kernel32.GetProcessTimes(
-        handle,
-        ctypes.byref(creation),
-        ctypes.byref(exit_time),
-        ctypes.byref(kernel),
-        ctypes.byref(user),
-    )
-
-    process_data.user_time = filetime_to_int(user)
-    process_data.kernel_time = filetime_to_int(kernel)
-    process_data.cpu_usage_time = (
-        process_data.user_time + process_data.kernel_time
-    )
-
-    # Memory Segment
-
-    if not handle:
-        slogger.error("Could not open process")
-        return process_data
-
-    counters = ProcessMemoryCounters()
-    counters.cb = ctypes.sizeof(ProcessMemoryCounters)
-
-    psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb)
-
-    kernel32.CloseHandle(handle)
-    process_data.vm_rss = counters.WorkingSetSize
-
-    return process_data
-
-
-def get_global_status_windows() -> GlobalSystemInfo:
-    sys_info = GlobalSystemInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    kernel32 = ctypes.WinDLL("kernel32.dll")
-    idle = FileTime()
-    kernel = FileTime()
-    user = FileTime()
-
-    kernel32.GetSystemTimes(
-        ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)
-    )
-
-    # Convert Propritary Windows file time to seconds
-    sys_info.idle_time = filetime_to_int(idle)
-    sys_info.kernel_time = filetime_to_int(kernel)
-    sys_info.user_time = filetime_to_int(user)
-    sys_info.used_time = sys_info.user_time + sys_info.kernel_time
-
-    x = MemoryStatusEx()
-    x.dwLength = ctypes.sizeof(MemoryStatusEx)
-
-    ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(x))
-
-    sys_info.total_mem = x.ullTotalPhys
-    sys_info.vm_rss = x.ullTotalPhys - x.ullAvailPhys
-
-    return sys_info
-
-
-# Extract from the proc Directory the details needed
 def get_process_status_mac(pid) -> ProcessSystemData:
     process_data = ProcessSystemData(pid, "", 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
@@ -420,8 +302,6 @@ def get_global_status_mac() -> GlobalSystemInfo:
 
 
 def get_process_status(pid) -> ProcessSystemData:
-    if platform.system() == "Windows":
-        return get_process_status_windows(pid)
     if platform.system() == "Linux":
         return get_process_status_linux(pid)
     if platform.system() == "Darwin":
@@ -430,8 +310,6 @@ def get_process_status(pid) -> ProcessSystemData:
 
 
 def get_global_status() -> GlobalSystemInfo:
-    if platform.system() == "Windows":
-        return get_global_status_windows()
     if platform.system() == "Linux":
         return get_global_status_linux()
     if platform.system() == "Darwin":
