@@ -15,71 +15,44 @@
 
     <div class="pendant-layout flex-1 grid gap-6 p-5 min-h-0 min-w-0">
         <!-- Visual pendant stack -->
-        <div
-            class="hybridcontrolpendant pendant-visual flex justify-center items-center min-h-0 min-w-0"
-        >
+        <div class="hybridcontrolpendant pendant-visual flex justify-center items-center min-h-0 min-w-0">
             <div class="pendant-stack">
                 <img src="/img/pendant/hybrid-off.png" alt="Pendant base" />
-                <img
-                    src="/img/pendant/hybrid-system-active.png"
-                    data-key="pendant.hybrid.SYSTEM_ACTIVATE"
-                    class="hidden"
-                    alt="System active"
-                />
-                <img
+                <img src="/img/pendant/hybrid-system-active.png" data-key="pendant.hybrid.SYSTEM_ACTIVATE"
+                    class="hidden" alt="System active" />
+                <!--<img
                     src="/img/pendant/hybrid-standby.png"
                     data-key="pendant.hybrid.STANDBY"
                     class="hidden"
                     alt="Standby"
-                />
-                <img
-                    src="/img/pendant/hybrid-fill.png"
-                    data-key="pendant.hybrid.GAS_FILL_SELECTED"
-                    class="hidden"
-                    alt="Fill mode"
-                />
-                <img
-                    src="/img/pendant/hybrid-fill-N2O.png"
-                    data-key="pendant.hybrid.N2O_FILL_ACTIVATE"
-                    class="hidden"
-                    alt="N2O fill"
-                />
-                <img
+                />-->
+                <img src="/img/pendant/hybrid-fill.png" data-key="pendant.hybrid.GAS_FILL_SELECTED" class="hidden"
+                    alt="Fill mode" />
+                <img src="/img/pendant/hybrid-fill-N2O.png" data-key="pendant.hybrid.N2O_FILL_ACTIVATE" class="hidden"
+                    alt="N2O fill" />
+                <!--<img
                     src="/img/pendant/hybrid-fill-neutral.png"
                     data-key="pendant.hybrid.SELECTOR_SWITCH_NEUTRAL_POSITION"
                     class="hidden"
                     alt="Fill neutral"
-                />
-                <img
-                    src="/img/pendant/hybrid-fill-purge.png"
-                    data-key="pendant.hybrid.MANUAL_PURGE"
-                    class="hidden"
-                    alt="Purge"
-                />
-                <img
-                    src="/img/pendant/hybrid-armed.png"
-                    data-key="pendant.hybrid.IGNITION_SELECTED"
-                    class="hidden"
-                    alt="Armed"
-                />
-                <img
-                    src="/img/pendant/hybrid-armed-O2.png"
-                    data-key="pendant.hybrid.O2_FILL_ACTIVATE"
-                    class="hidden"
-                    alt="Armed O2"
-                />
-                <img
-                    src="/img/pendant/hybrid-armed-ignition.png"
-                    data-key="pendant.hybrid.IGNITION_FIRE"
-                    class="hidden"
-                    alt="Armed ignition"
-                />
-                <img
-                    src="/img/pendant/hybrid-estop.png"
-                    data-key="pendant.hybrid.ESTOP"
-                    class="hidden"
-                    alt="E-stop"
-                />
+                />-->
+                <img src="/img/pendant/hybrid-fill-purge.png" data-key="pendant.hybrid.MANUAL_PURGE" class="hidden"
+                    alt="Purge" />
+                <img src="/img/pendant/hybrid-armed.png" data-key="pendant.hybrid.IGNITION_SELECTED" class="hidden"
+                    alt="Armed" />
+                <img src="/img/pendant/hybrid-armed-O2.png" data-key="pendant.hybrid.O2_FILL_ACTIVATE" class="hidden"
+                    alt="Armed O2" />
+                <img src="/img/pendant/hybrid-armed-ignition.png" data-key="pendant.hybrid.IGNITION_FIRE" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f9.png" data-key="pendant.hybrid.F9" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f10.png" data-key="pendant.hybrid.F10" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f11.png" data-key="pendant.hybrid.F11" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f12.png" data-key="pendant.hybrid.F12" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-estop.png" data-key="pendant.hybrid.E_STOP" class="hidden" alt="E-stop" />
             </div>
         </div>
 
@@ -95,13 +68,14 @@
                 <ul class="pendant-input-list">
                     <li data-state-check="SYSTEM_ACTIVATE"><span class="dot"></span>System Active</li>
                     <li data-state-check="GAS_FILL_SELECTED"><span class="dot"></span>Fill Mode Selected</li>
-                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Fill Selector Neutral</li>
+                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Fill Selector
+                        Neutral</li>
                     <li data-state-check="N2O_FILL_ACTIVATE"><span class="dot"></span>N₂O Fill Active</li>
                     <li data-state-check="MANUAL_PURGE"><span class="dot"></span>Manual Purge</li>
                     <li data-state-check="IGNITION_SELECTED"><span class="dot"></span>Armed</li>
                     <li data-state-check="O2_FILL_ACTIVATE"><span class="dot"></span>O₂ Fill Active</li>
                     <li data-state-check="IGNITION_FIRE"><span class="dot"></span>Ignition Fire</li>
-                    <li data-state-check="ESTOP" class="estop"><span class="dot"></span>E-STOP</li>
+                    <li data-state-check="E_STOP" class="estop"><span class="dot"></span>E-STOP</li>
                 </ul>
             </div>
         </aside>
@@ -232,6 +206,7 @@
                 "status"
                 "console";
         }
+
         .module-pendant .pendant-status {
             max-height: 40%;
         }
@@ -296,35 +271,43 @@
         color: var(--color-horizon-mauve);
         text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
     }
+
     .module-pendant .pendant-phase-value.phase-fill {
         color: var(--color-horizon-pink);
         text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
     }
+
     .module-pendant .pendant-phase-value.phase-fill-n2o {
         color: var(--color-horizon-pink);
         text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
     }
+
     .module-pendant .pendant-phase-value.phase-fill-neutral {
         color: var(--color-horizon-pink);
         text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
     }
+
     .module-pendant .pendant-phase-value.phase-purge {
         color: var(--color-horizon-pink);
         text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
     }
+
     .module-pendant .pendant-phase-value.phase-armed {
         color: #ff3030;
         text-shadow: 0 0 14px #ff3030;
     }
+
     .module-pendant .pendant-phase-value.phase-armed-o2 {
         color: #ff3030;
         text-shadow: 0 0 14px #ff3030;
     }
+
     .module-pendant .pendant-phase-value.phase-ignition {
         color: var(--color-horizon-yellow);
         text-shadow: 0 0 14px color-mix(in oklab, var(--color-horizon-yellow) 50%, transparent);
         animation: pendantPulse 0.6s infinite alternate;
     }
+
     .module-pendant .pendant-phase-value.phase-estop {
         color: #ff3030;
         text-shadow: 0 0 14px #ff3030;
@@ -380,40 +363,45 @@
     }
 
     @keyframes pendantPulse {
-        from { opacity: 0.7; }
-        to   { opacity: 1; }
+        from {
+            opacity: 0.7;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 </style>
 
 <script>
     // Mapping from a phase to its display label and CSS class
     const PENDANT_PHASE_INFO = {
-        OFF:          { label: "OFF",                cls: "phase-off"          },
-        STANDBY:      { label: "STANDBY",            cls: "phase-standby"      },
+        OFF: { label: "OFF", cls: "phase-off" },
+        STANDBY: { label: "STANDBY", cls: "phase-standby" },
         FILL_NEUTRAL: { label: "FILL - NEUTRAL", cls: "phase-fill-neutral" },
-        FILL_N2O:     { label: "FILL - N₂O",    cls: "phase-fill-n2o"     },
-        PURGE:        { label: "PURGE",              cls: "phase-purge"        },
-        ARMED:        { label: "ARMED",              cls: "phase-armed"        },
-        ARMED_O2:     { label: "ARMED - O₂ FILL",   cls: "phase-armed-o2"     },
-        IGNITION:     { label: "IGNITION",           cls: "phase-ignition"     },
-        ESTOP:        { label: "E-STOP",             cls: "phase-estop"        },
+        FILL_N2O: { label: "FILL - N₂O", cls: "phase-fill-n2o" },
+        PURGE: { label: "PURGE", cls: "phase-purge" },
+        ARMED: { label: "ARMED", cls: "phase-armed" },
+        ARMED_O2: { label: "ARMED - O₂ FILL", cls: "phase-armed-o2" },
+        IGNITION: { label: "IGNITION", cls: "phase-ignition" },
+        E_STOP: { label: "E-STOP", cls: "phase-estop" },
     };
 
     // This is the "priority order" of phases, since multiple can be true at once
     function derivePendantPhase(apiData) {
         if (!apiData) return "OFF";
-        if (apiData.ESTOP)             return "ESTOP";
-        if (apiData.IGNITION_FIRE)     return "IGNITION";
+        if (apiData.E_STOP) return "E_STOP";
+        if (apiData.IGNITION_FIRE) return "IGNITION";
         if (apiData.IGNITION_SELECTED) {
             if (apiData.O2_FILL_ACTIVATE) return "ARMED_O2";
             return "ARMED";
         }
         if (apiData.GAS_FILL_SELECTED) {
             if (apiData.N2O_FILL_ACTIVATE) return "FILL_N2O";
-            if (apiData.MANUAL_PURGE)      return "PURGE";
+            if (apiData.MANUAL_PURGE) return "PURGE";
             return "FILL_NEUTRAL";
         }
-        if (apiData.SYSTEM_ACTIVATE)   return "STANDBY";
+        if (apiData.SYSTEM_ACTIVATE) return "STANDBY";
         return "OFF";
     }
 
@@ -423,26 +411,32 @@
     // the old names??? Idek anymore, just gonna put this here to fix it
     const NORMALIZE_KEY = {
         // Old backend names
-        SYS_ON:                      "SYSTEM_ACTIVATE",
-        FILL_SELECTED:               "GAS_FILL_SELECTED",
-        N2O_ACTIVE:                  "N2O_FILL_ACTIVATE",
-        NEUTRAL_ACTIVE:              "SELECTOR_SWITCH_NEUTRAL_POSITION",
-        PURGE_ACTIVE:                "MANUAL_PURGE",
-        O2_MOMENT_ACTIVE:            "O2_FILL_ACTIVATE",
-        IGNITION_MOMENT_ACTIVE:      "IGNITION_FIRE",
+        SYS_ON: "SYSTEM_ACTIVATE",
+        FILL_SELECTED: "GAS_FILL_SELECTED",
+        N2O_ACTIVE: "N2O_FILL_ACTIVATE",
+        NEUTRAL_ACTIVE: "SELECTOR_SWITCH_NEUTRAL_POSITION",
+        PURGE_ACTIVE: "MANUAL_PURGE",
+        O2_MOMENT_ACTIVE: "O2_FILL_ACTIVATE",
+        IGNITION_MOMENT_ACTIVE: "IGNITION_FIRE",
 
         // New names
-        SYSTEM_ACTIVATE:             "SYSTEM_ACTIVATE",
-        GAS_FILL_SELECTED:           "GAS_FILL_SELECTED",
-        N2O_FILL_ACTIVATE:           "N2O_FILL_ACTIVATE",
+        SYSTEM_ACTIVATE: "SYSTEM_ACTIVATE",
+        GAS_FILL_SELECTED: "GAS_FILL_SELECTED",
+        N2O_FILL_ACTIVATE: "N2O_FILL_ACTIVATE",
         SELECTOR_SWITCH_NEUTRAL_POSITION: "SELECTOR_SWITCH_NEUTRAL_POSITION",
-        MANUAL_PURGE:                "MANUAL_PURGE",
-        O2_FILL_ACTIVATE:            "O2_FILL_ACTIVATE",
-        IGNITION_FIRE:               "IGNITION_FIRE",
+        MANUAL_PURGE: "MANUAL_PURGE",
+        O2_FILL_ACTIVATE: "O2_FILL_ACTIVATE",
+        IGNITION_FIRE: "IGNITION_FIRE",
+
+        F9: "F9",
+        F10: "F10",
+        F11: "F11",
+        F12: "F12",
 
         // Shared
-        IGNITION_SELECTED:           "IGNITION_SELECTED",
-        ESTOP:                       "ESTOP",
+        IGNITION_SELECTED: "IGNITION_SELECTED",
+        E_STOP: "E_STOP",
+        ESTOP: "E_STOP",
     };
 
     function normalizeApiData(raw) {
@@ -471,16 +465,6 @@
             ) {
                 new_pendant_state.push(`pendant.hybrid.${state}`);
             }
-        }
-
-        // Derived state, not sent directly,
-        // its when system is on but neither fill or ignition is selected
-        if (
-            apiData.SYSTEM_ACTIVATE === true &&
-            apiData.GAS_FILL_SELECTED !== true &&
-            apiData.IGNITION_SELECTED !== true
-        ) {
-            new_pendant_state.push("pendant.hybrid.STANDBY");
         }
 
         togglePendant(new_pendant_state);
@@ -537,15 +521,15 @@
     // Iteration order here also controls the order multiple
     // simultaneous events get logged in.
     const CONSOLE_INPUT_CONFIG = {
-        ESTOP:                            { label: "E-STOP ENGAGED",   type: "marker", critical: true },
-        SYSTEM_ACTIVATE:                  { label: "SYSTEM ACTIVE",    type: "marker" },
-        GAS_FILL_SELECTED:                { label: "ENTER FILL MODE",  type: "marker" },
-        IGNITION_SELECTED:                { label: "ENTER ARMED MODE", type: "marker" },
+        E_STOP: { label: "E-STOP ENGAGED", type: "marker", critical: true },
+        SYSTEM_ACTIVATE: { label: "SYSTEM ACTIVE", type: "marker" },
+        GAS_FILL_SELECTED: { label: "ENTER FILL MODE", type: "marker" },
+        IGNITION_SELECTED: { label: "ENTER ARMED MODE", type: "marker" },
         SELECTOR_SWITCH_NEUTRAL_POSITION: { label: "SELECTOR NEUTRAL", type: "marker" },
-        N2O_FILL_ACTIVATE:                { label: "N₂O FILL",         type: "timed"  },
-        MANUAL_PURGE:                     { label: "PURGE",            type: "timed"  },
-        O2_FILL_ACTIVATE:                 { label: "O₂ FILL",          type: "timed"  },
-        IGNITION_FIRE:                    { label: "IGNITION",         type: "timed"  },
+        N2O_FILL_ACTIVATE: { label: "N₂O FILL", type: "timed" },
+        MANUAL_PURGE: { label: "PURGE", type: "timed" },
+        O2_FILL_ACTIVATE: { label: "O₂ FILL", type: "timed" },
+        IGNITION_FIRE: { label: "IGNITION", type: "timed" },
     };
 
     // Internal state for the console
@@ -573,7 +557,7 @@
                 } else {
                     startTimedLine(key, config);
                 }
-            // If an input just turned off, stop the timer
+                // If an input just turned off, stop the timer
             } else if (wasActive && !isActive) {
                 if (config.type === "timed") {
                     freezeTimedLine(key);

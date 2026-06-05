@@ -224,7 +224,7 @@ class PendantState:  # noqa: PLW1641
     def __str__(self):
         gse_states = self.get_gse_states()
         key_col_width = max([len(key) for key, _ in gse_states.items()])
-        print(key_col_width)
+        # print(key_col_width)
 
         output = "\033[1mPendant States: \033[0m\n"
         output += "".join(
