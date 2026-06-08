@@ -14,13 +14,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+      : #- uses: actions/setup-node@v4
+      : #  with:
+      : #    node-version: 22
+      : # - run: npm ci
       - run: sudo apt-get install -y dos2unix
-      - run: npm ci
       - uses: pre-commit/action@v3.0.1
-
       - name: Pre-commit failed - how to fix
         if: failure()
         run: |

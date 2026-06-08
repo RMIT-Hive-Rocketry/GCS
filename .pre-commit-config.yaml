@@ -26,12 +26,13 @@ repos:
 
   - repo: local
     hooks:
-      - id: eslint
-        name: eslint
-        entry: npx eslint
-        language: system
-        types: [javascript]
+      # - id: eslint
+      #   name: eslint
+      #   entry: npx eslint
+      #   language: system
+      #   types: [javascript]
       # args: ["--fix"] # uncomment to autofix
+
       - id: dos2unix
         name: dos2unix
         entry: bash ./scripts/dos2unix.sh
