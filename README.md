@@ -112,6 +112,29 @@ Ground Control Software Team
         <td>2026</td>
     </tr>
     <tr>
+        <td><a href="https://www.linkedin.com/in/marven-wijesiriwardena-252254389/">
+        Marven Wijesiriwardena</a>
+        (<code>MarvenW</code>)
+        </td>
+        <td>GCS UI/UX dev</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+    <td><a href="https://www.linkedin.com/in/michael-iurovetski-5742632a1/">
+        Michael Iurovetski</a>
+        (<code>Iurovet</code>)
+        </td>
+        <td>GCS UX and sound effects designer</td>
+        <td>2026</td>
+    </tr>
+    <tr>
+        <td>Mohammad Ullah
+        (<code>mov360</code>)
+        </td>
+        <td>GCS QA & Software Engineer (Frontend)</td>
+        <td>2026</td>
+    </tr>
+    <tr>
         <td><a href="https://www.linkedin.com/in/caspar-oneill/">Caspar O'Neill</a> (<code>s3899921</code>)</td>
         <td>GCS frontend API engineer</td>
         <td>2025</td>
