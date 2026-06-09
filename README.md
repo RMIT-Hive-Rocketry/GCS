@@ -158,10 +158,14 @@ Ground Control Software Team
 
 Special thanks
 
+- [The DiSTI Corporation](https://www.disti.com/)
+    - For access to GL Studio to accompany the GCS
+- Aleksei Eaves
+    - For 2026 flight computer firmware development
 - [Jonathan Chandler](https://www.linkedin.com/in/jonathan-chandler-03474b1ba/)
-  - 2025 GCS Lead. The all-knowing being of ground control and operations
+    - 2025 GCS Lead. The all-knowing being of ground control and operations
 - [Matthew Ricci](https://www.linkedin.com/in/matthewricci-embedded/)
-  - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
+    - Flight computer [avionics firmware](https://github.com/RMIT-Competition-Rocketry/Australis-Avionics-firmware) lead.
 
 And to all those at RMIT Hive!
 
