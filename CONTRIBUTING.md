@@ -1,7 +1,7 @@
 # Contributing
 
 > [!WARNING]
-> Contributions are only accepted by eligible Hive members. That is any student who has been enrolled at RMIT University with in the past 12 months.
+> Contributions are only accepted by eligible Hive members. That is any student who has been enrolled at RMIT University within the past 12 months.
 
 ## General contribution guidelines
 
