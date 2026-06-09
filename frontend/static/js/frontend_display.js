@@ -336,7 +336,7 @@ function checkStateIndicator(elem = null) {
         let sound = ''
         const indicator = e1.attributes[0].textContent
 
-        /* See horizon_preflight.html for sound sources. Also set the corresponding
+        /* See horizon_settings_audio.html for sound sources. Also set the corresponding
              * summary light for the 1st 2 states if the function exists.
             */
         if (indicator.includes('av.radio')) {

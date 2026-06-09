@@ -31,13 +31,14 @@ class ConfigHorizon(Config):
             # HMI modules
             "horizon/modules/horizon_pendant.html",
             "horizon/modules/horizon_gse_hmi.html",
-            "horizon/modules/horizon_preflight.html",
-            "horizon/modules/horizon_graph_colours.html",
             # Diagnostics modules
             "horizon/modules/horizon_diagnostics_packets.html",
             "horizon/modules/horizon_diagnostics_graphs.html",
             "horizon/modules/horizon_diagnostics_summary.html",
             # "horizon/modules/horizon_diagnostics_bottom.html",
+            # Settings page
+            "horizon/modules/horizon_settings_audio.html",
+            "horizon/modules/horizon_settings_graph_colours.html",
         ]
 
         # Define pages for Horizon
@@ -77,9 +78,11 @@ class ConfigHorizon(Config):
             "horizon_timeline": [("page-main", 8, 9, 8, 3)],
             "horizon_errorlog": [("page-main", 16, 1, 8, 3)],
             "horizon_auxiliary_gse": [("page-main", 16, 4, 8, 8)],
-            # Preflight page
-            "horizon_preflight": [("page-preflight", 0, 1, 24, 5)],
-            "horizon_graph_colours": [("page-preflight", 0, 7, 24, 5)],
+            # Settings page
+            "horizon_settings_audio": [("page-preflight", 0, 1, 12, 11)],
+            "horizon_settings_graph_colours": [
+                ("page-preflight", 12, 1, 12, 11)
+            ],
             # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)
             "horizon_gse_hmi": [("page-control", 0, 1, 14, 11)],
             "horizon_pendant": [("page-control", 14, 1, 10, 11)],
