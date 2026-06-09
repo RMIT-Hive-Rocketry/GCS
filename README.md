@@ -172,6 +172,10 @@ This project was built using the following tools, languages and systems.
 | --- | --- | --- |
 | ![GUI interface](docs/assets/frontend-example.png) | ![HMI page](docs/assets/hmi-example.png) | ![CLI interface](docs/assets/cli.png) |
 
+## Conference Appearances
+
+[PyCon AU 2026](https://2026.pycon.org.au/schedule/9KBBEQ/), August 2026
+
 ## License and Attribution
 
 This project is licensed under the MIT License.
