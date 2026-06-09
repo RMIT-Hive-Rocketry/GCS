@@ -160,17 +160,17 @@ This project was built using the following tools, languages and systems.
 
 ## Screenshots
 
-![GUI interface](docs/assets/frontend-example.png)
+### 2026
 
-> Web interface (main view)
+| Rocket selection screen | Main view | Pre-flight view |
+| --- | --- | --- |
+| <img width="1920" height="1080" alt="Screenshot 2026-06-09 at 11-35-57 ROCKET SELECTOR - RMIT High Velocity" src="https://github.com/user-attachments/assets/ac3f7848-796f-4d68-b25f-364a808c3dd2" /> | <img width="1920" height="1080" alt="Screenshot 2026-06-09 at 11-36-51 Horizon - RMIT High Velocity" src="https://github.com/user-attachments/assets/d5e2f2ed-e746-413f-aa18-db44d27f5195" /> | <img width="1920" height="1080" alt="Screenshot 2026-06-09 at 11-37-11 Horizon - RMIT High Velocity" src="https://github.com/user-attachments/assets/b909149e-3015-4c2c-b2e4-de97f4a01b26" />
 
-![HMI page](docs/assets/hmi-example.png)
+### 2025
 
-> Custom GSE HMI page
-
-![CLI interface](docs/assets/cli.png)
-
-> CLI (nobody but me looks at this)
+| Web interface (main view) | Custom GSE HMI page | CLI |
+| --- | --- | --- |
+| ![GUI interface](docs/assets/frontend-example.png) | ![HMI page](docs/assets/hmi-example.png) | ![CLI interface](docs/assets/cli.png) |
 
 ## License and Attribution
 
