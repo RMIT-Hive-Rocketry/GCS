@@ -1,17 +1,17 @@
 {
-    "name": "gcs-2026",
+    "name": "gcs",
     "type": "commonjs",
     "version": "1.0.0",
     "description": "<img height=200px src=\"docs/assets/graphical-banner.png\">",
     "author": "",
     "license": "ISC",
-    "homepage": "https://github.com/RMIT-HIVE-Rocketry/GCS-2026#readme",
+    "homepage": "https://github.com/RMIT-HIVE-Rocketry/GCS#readme",
     "repository": {
         "type": "git",
-        "url": "git+https://@github.com/RMIT-HIVE-Rocketry/GCS-2026.git"
+        "url": "git+https://@github.com/RMIT-HIVE-Rocketry/GCS.git"
     },
     "bugs": {
-        "url": "https://github.com/RMIT-HIVE-Rocketry/GCS-2026/issues"
+        "url": "https://github.com/RMIT-HIVE-Rocketry/GCS/issues"
     },
     "main": "index.js",
     "directories": {
