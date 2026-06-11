@@ -43,10 +43,10 @@ repos:
     hooks:
       - id: trufflehog
         entry: trufflehog git file://. --since-commit HEAD --only-verified --fail
-        stages: [commit, push]
+        stages: [pre-commit, pre-push]
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.18.4
     hooks:
       - id: gitleaks
-        stages: [commit]
+        stages: [pre-commit]
