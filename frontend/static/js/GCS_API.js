@@ -91,7 +91,7 @@ const soundsList_losses = filenames_losses.map(src => {
 // Other non-alarm sounds (uncomment the below when done).
 /* TODO: Add "Rocket_Hit" to this list when the application can detect the rocket imminently
  * about to hit someone on the head, using playOtherSound(). At this stage, though, same as Rocket_Warn
- * 
+ *
  * To put this sound into Combined_Sounds, add it to the end of the corresponding track/
  * segment in the attached Audacity project (static/sounds), continuing the pattern
  * of 0.5 seconds between each sound.
@@ -113,7 +113,7 @@ const soundsList_other = filenames_other.map(src => {
 
     // Loop in case required, else self-return after playing
     audioObject.addEventListener('ended', () => {
-        
+
         /* Also needs to include Rocket_Hit when this event (the rocket
          * about to hit someone on the head) can be separately detected).
         */
@@ -160,13 +160,13 @@ function checkStateIndicator(elem = null) {
         */
         if (indicator.includes("av.radio")) {
             sound = "AV_Loss";
-        
+
             const avOnline = e1.classList.value.includes("green");
-        
+
             if (typeof diagSetSummaryOnlineBox === "function") {
                 diagSetSummaryOnlineBox("diag-summary-av", avOnline);
             }
-        
+
             if (typeof diagSetAvIndicator === "function") {
                 diagSetAvIndicator(avOnline);
             }
@@ -303,12 +303,12 @@ function playOtherSound(sound) {
     const soundNumber = soundsList_other.findIndex(
         file => file.source.src.includes(sound)
     );
-    
+
     // Not found or already playing
     if ((soundNumber === -1) || (!soundsList_other[soundNumber].source.paused)) {
         return;
     }
-    
+
     /* Play if on the Horizon main page (safety sounds exempt from the rule).
      * Also needs to include Rocket_Hit when this event (the rocket about to
      * hit someone on the head) can be separately detected.
@@ -669,7 +669,7 @@ function API_OnMessage(event) {
             if (typeof horizonDiagNavAlertProcessPacket === "function") {
                 horizonDiagNavAlertProcessPacket(apiData);
             }
-            
+
             if (typeof graphUpdateDiagnostics === "function") {
                 graphUpdateDiagnostics(apiData);
             }
@@ -941,17 +941,17 @@ function checkErrorConditions(apiData) {
     });
 }
 
-// Mark devices offline and manage their display change 
+// Mark devices offline and manage their display change
 function checkOfflineData(apiData) {
     const offlineSentinel = "offline"; // From gsedaq_metrics.py
     function isOffline(value) {return value === offlineSentinel;}
 
     // Top level check.
-    // Recursion will be needed if you want to impliment for other packets
+    // Recursion will be needed if you want to implement for other packets
     if (apiData == null) {
         console.warning("apiData passed as null to checkOfflineData");
     }
-    
+
     for (const [key, value] of Object.entries(apiData)) {
         if (value == null) {
             metricOffline[key] = true;
@@ -1112,7 +1112,7 @@ function processDataForDisplay(apiData, apiId) {
 
         // Parachute sound should play if we descend below a set altitude
         const PARACHUTE_ALTITUDE = 1200; // Ideally this would be in a place of unified truth
-        
+
         // The new altitude must be below the threshold, unlike the old one
         const prevAltitude = metresToFeet(altitudeHistory.at(-2));
         const currAltitude = metresToFeet(altitudeHistory.at(-1));
@@ -1133,11 +1133,11 @@ function processDataForDisplay(apiData, apiId) {
     if (apiData.GPSLongitude != undefined) {
         processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude);
     }
-    
+
     /* If the rocket is within 50m of the GCS, play a warning sound.
      * Use Pythagorean theorem, scaling up latitude and longitude, both
      * of which are required to be present in the packet.
-     * 
+     *
      * Requires matching the GCS coordinates to "LATITUDE": sinusoid() and/or
      * "LONGITUDE": sinusoid() in backend/device_emulator.py (or vice versa) during
      * testing, or else the rocket will appear to be very far from the GCS. Change
@@ -1159,10 +1159,10 @@ function processDataForDisplay(apiData, apiId) {
         const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2;
         const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2;
         const final_distance = Math.sqrt(lat_distance + long_distance);
-                
+
         // Rocket_Warn sound
         let currSound = soundsList_other[2];
-        
+
         // 50m in km
         if (final_distance <= 50/1000) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
@@ -1387,9 +1387,9 @@ function sendDataToRegistry(apiData) {
             for (const reg of displayRegistry[key]) {
                 if (metricOffline[key]) {
                     displaySetOffline(reg.e);
-                    continue;  
+                    continue;
                 }
-                displaySetOnline(reg.e); 
+                displaySetOnline(reg.e);
                 let elem = reg.e,
                     prec = reg.p,
                     type = reg.t;
