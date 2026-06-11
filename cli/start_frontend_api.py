@@ -17,11 +17,11 @@ def start_frontend_api(
             "-u",
             os.path.join("backend", "frontend_api.py"),
             "--socket-path",
-            SUB_SOCKET_PATH,
+            sub_socket_path,
         ]
 
         logger.debug(
-            f"Starting {SERVICE_NAME} module with: {API_SERVICE_COMMAND}"
+            f"Starting {service_name} module with: {api_service_command}"
         )
 
         # Set PYTHONPATH to the project root to ensure imports work correctly.
@@ -31,7 +31,7 @@ def start_frontend_api(
         )
 
         api_process = process.LoggedSubProcess(
-            API_SERVICE_COMMAND, name=SERVICE_NAME, env=env, parse_output=True
+            api_service_command, name=service_name, env=env, parse_output=True
         )
         api_process.start()
         if performance_logging is not None:
@@ -39,6 +39,6 @@ def start_frontend_api(
 
     except Exception as e:
         logger.error(
-            f"An error occurred while starting the rocket {SERVICE_NAME} {e}"
+            f"An error occurred while starting the rocket {service_name} {e}"
         )
         return None, None

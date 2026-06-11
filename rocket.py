@@ -28,19 +28,20 @@ from cli.start_replay_system import (
     SimulationType,
 )
 from cli.start_pendant_daemon import start_pendant_daemon
-from cli.start_dummy_service import start_dummy_service
+from cli.runtime_launch_config import RuntimeLaunchConfig
+
 
 logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
 )
-running_services: bool = False  # To help close the cli automatically
+RUNNING_SERVICES: bool = False  # To help close the cli automatically
 
 IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
 RunningProcesses = process.RunningProcess()
 
-APP_START_TIME = None  # Start Time Of application initialised within main before logging starts
+APP_START_TIME = None  # Start Time Of application initialized within main before logging starts
 
 
 class Command(enum.Enum):
@@ -277,19 +278,22 @@ def _validate_interface_options(
     if interface_gse is not None:
         interface_gse = interface_gse.strip().lower()
 
-    if interface_gse is not None and interface_av is not None:
-        if (
+    if (
+        interface_gse is not None
+        and interface_av is not None
+        and (
             "test" in interface_av
             or "test" in interface_gse
             and interface_av != interface_gse
-        ):
-            raise NotImplementedError(
-                "Device emulator does not support split emulation interfaces yet"
-            )
+        )
+    ):
+        raise NotImplementedError(
+            "Device emulator does not support split emulation interfaces yet"
+        )
 
 
 def _validate_mutually_exclusive_options(
-    gse_only: Optional[bool], frontend_only: Optional[bool]
+    gse_only: bool, frontend_only: bool
 ) -> None:
     """
     Validate mutual exclusivity of --gse-only and --frontend-only.
@@ -311,6 +315,7 @@ def start_services(
     nopendant: bool = False,
     gse_only: bool = False,
     frontend: bool = False,
+    frontend_only: bool = False,
     replay_mode: str | None = None,
     mission_arg: str | None = None,
     blue_raven_arg: str | None = None,
@@ -341,8 +346,8 @@ def start_services(
         NotImplementedError: _description_
         ValueError: _description_
     """
-    global running_services
-    running_services = True
+    global RUNNING_SERVICES, APP_START_TIME
+    RUNNING_SERVICES = True
 
     print_splash()
 
@@ -594,7 +599,7 @@ def replay(
             raise click.UsageError(
                 "--mission or --blue-raven is required to run a specified mission"
             )
-        elif mission == "TEST":
+        if mission == "TEST":
             raise NotImplementedError(f"{mission} has not been implemented yet")
 
         logger.info(f"Using mission data:{mission}")
@@ -710,7 +715,7 @@ def main() -> None:
         cli.main(args=sys.argv[1:], standalone_mode=False)
 
         # After CLI setup is done, start waiting (not busy waiting please)
-        if running_services:
+        if RUNNING_SERVICES:
             while True:
                 # Keep program alive, but it doesn't need to do anything
                 time.sleep(1)

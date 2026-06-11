@@ -42,7 +42,7 @@ def start_frontend_webserver(
 
         # Start frontend subprocess
         frontend_process = process.LoggedSubProcess(
-            FRONTEND_COMMAND, name=SERVICE_NAME, parse_output=False
+            frontend_command, name=service_name, parse_output=False
         )
         frontend_process._parent_logger.addFilter(IgnoreWebMessagesFilter())
         frontend_process.start()
@@ -52,5 +52,5 @@ def start_frontend_webserver(
             performance_logging.AddNewProcess(frontend_process)
 
     except Exception as e:
-        logger.error(f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {service_name}: {e}")
         return None, None

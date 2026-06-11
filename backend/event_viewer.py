@@ -4,6 +4,7 @@ import zmq
 import os
 import csv
 from abc import ABC, abstractmethod
+from typing import Optional
 import sys
 from google.protobuf.message import Message as PbMessage
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb

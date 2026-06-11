@@ -6,6 +6,7 @@ import os
 import re
 import zmq
 from datetime import datetime
+from typing import Optional
 from backend.includes_python import service_helper
 
 # Capture application start time (initialized in rocket.py)
