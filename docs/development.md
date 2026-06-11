@@ -138,6 +138,31 @@ For debug, so far we've only opened temporary `/tmp/gcs_rocket_pub.sock` and `/t
 
 TODO ^
 
+## Pushing changes to the GCS repository from GCS-2026
+The following steps will help you merge all the new changes from GCS-2026 (or GCS-dev) into GCS, including all the code changes, credits updates, new screenshots and other relevant updates.
+
+### Get the remote URL for the GCS-2026 repo: 
+
+1. `cd GCS-2026`
+2. `git remote -v`
+3. `cd ..`
+
+This will show you the remote URLs for the repository. We're interested in the 'fetch' remote, but they'll likely be the same.
+
+### Clone into the GCS repo:
+
+1. Change to local GCS repo: `cd GCS`
+2. Make sure main is updated: `git checkout main`
+3. Pull any changes: `git pull`
+4. Create a remote with `git remote add GCS-2026-remote <remote-url>`
+5. Fetch files from the remote: `git fetch GCS-2026-remote`
+6. Create a new branch from the remote: `git checkout -b merge-2026-changes GCS-2026-remote/main`
+7. Make any other changes you need to make
+8. Run pre-commit: `pre-commit run --all-files`
+9. Push as a regular new branch: `git push -u origin merge-2026-changes`
+
+You're now ready to make a PR!
+
 ---
 
 [Home](../README.md)
