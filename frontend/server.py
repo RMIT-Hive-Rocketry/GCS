@@ -14,7 +14,6 @@ import backend.includes_python.process_logging as slogger
 from config import config
 
 
-
 valid_file_extensions = (
     ".css",
     ".js",  # CSS, JavaScript

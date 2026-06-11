@@ -11,18 +11,19 @@ logger = logging.getLogger("rocket")
 
 
 class ProcessData:
-    def __init__(self, PID:int, Name:str):
-        self.PID:int = PID
-        self.Name:str = Name
+    def __init__(self, PID: int, Name: str):
+        self.PID: int = PID
+        self.Name: str = Name
 
     def GetPID(self):
         return self.PID
-    
+
     def GetName(self):
         return self.Name
-    
+
     def GetCombined(self):
         return (self.PID, self.Name)
+
 
 class RunningProcess:
     def __init__(self):
@@ -30,20 +31,21 @@ class RunningProcess:
 
     def GetProcessInfo(self, id):
         for process in self.runningProcesses:
-            if(process.GetPID() == id):
+            if process.GetPID() == id:
                 return process
         slogger.error("Couldnt find PID for Proccess")
         return
 
     def GetAllProcessInfo(self) -> list[ProcessData]:
         return self.runningProcesses
-    
 
     def AddNewProcessManual(self, PID, Name):
         self.runningProcesses.append(ProcessData(PID, Name))
 
     def AddNewProcess(self, loggedSubProcess):
-        self.runningProcesses.append(ProcessData(loggedSubProcess._process.pid, loggedSubProcess._name))
+        self.runningProcesses.append(
+            ProcessData(loggedSubProcess._process.pid, loggedSubProcess._name)
+        )
 
 
 class LoggedSubProcess:
@@ -223,17 +225,18 @@ class LoggedSubProcess:
                     self._logger_adapter.error(
                         _format(stream_name, f"LEVEL_UNDEF:{stripped_line}")
                     )
-                    
+
                 else:
-                    
+
                     if stream_name == "STDERR":
-                        if(stripped_line.startswith("* Running on")):
+                        if stripped_line.startswith("* Running on"):
                             self._logger_adapter.secret(
-                                _format(stream_name, stripped_line))
+                                _format(stream_name, stripped_line)
+                            )
                         else:
                             self._logger_adapter.error(
                                 _format(stream_name, stripped_line)
-                        )
+                            )
                     else:
                         self._logger_adapter.debug(
                             _format(stream_name, stripped_line)
@@ -243,9 +246,7 @@ class LoggedSubProcess:
             case "INFO":
                 self._logger_adapter.info(_format(stream_name, stripped_line))
             case "SECRET":
-                self._logger_adapter.secret(
-                    _format(stream_name, stripped_line)
-                )
+                self._logger_adapter.secret(_format(stream_name, stripped_line))
             case "SUCCESS":
                 self._logger_adapter.success(
                     _format(stream_name, stripped_line)

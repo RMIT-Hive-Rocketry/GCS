@@ -51,7 +51,10 @@ class Rocket:
             if (
                 name.startswith("Config")
                 and obj.__module__ == self.package.__name__
-                and (obj.__name__ == "Config" or obj.__bases__[0].__name__ == "Config")
+                and (
+                    obj.__name__ == "Config"
+                    or obj.__bases__[0].__name__ == "Config"
+                )
             ):
                 # Instantiate and validate rocket config
                 rocket_config = obj()  # object.__new__(obj)
@@ -71,9 +74,13 @@ class Rocket:
         position_tuple_len = 5
 
         # Test that required variables are defined
-        assert isinstance(_config.ROCKET_NAME, str), "ROCKET_NAME not defined correctly"
+        assert isinstance(
+            _config.ROCKET_NAME, str
+        ), "ROCKET_NAME not defined correctly"
         assert isinstance(_config.GRID, tuple), "GRID not defined correctly"
-        assert isinstance(_config.MODULES, list), "MODULES not defined correctly"
+        assert isinstance(
+            _config.MODULES, list
+        ), "MODULES not defined correctly"
         assert isinstance(_config.PAGES, list), "PAGES not defined correctly"
         assert isinstance(
             _config.MODULE_PAGES, dict
@@ -125,19 +132,33 @@ class Rocket:
                 assert isinstance(pos[2], int)
                 assert isinstance(pos[3], int)
                 assert isinstance(pos[4], int)
-                assert pos[1] >= 0 and pos[1] < _config.GRID[0], "Module x out of bounds"
-                assert pos[2] >= 0 and pos[2] < _config.GRID[1], "Module y out of bounds"
-                assert pos[3] > 0 and pos[3] <= _config.GRID[0], "Module width invalid"
-                assert pos[4] > 0 and pos[4] <= _config.GRID[1], "Module height invalid"
-                assert pos[1] + pos[3] <= _config.GRID[0], "Module width out of bounds"
-                assert pos[2] + pos[4] <= _config.GRID[1], "Module height out of bounds"
+                assert (
+                    pos[1] >= 0 and pos[1] < _config.GRID[0]
+                ), "Module x out of bounds"
+                assert (
+                    pos[2] >= 0 and pos[2] < _config.GRID[1]
+                ), "Module y out of bounds"
+                assert (
+                    pos[3] > 0 and pos[3] <= _config.GRID[0]
+                ), "Module width invalid"
+                assert (
+                    pos[4] > 0 and pos[4] <= _config.GRID[1]
+                ), "Module height invalid"
+                assert (
+                    pos[1] + pos[3] <= _config.GRID[0]
+                ), "Module width out of bounds"
+                assert (
+                    pos[2] + pos[4] <= _config.GRID[1]
+                ), "Module height out of bounds"
                 assert pos[0] in [
                     n["id"] for n in _config.PAGES
                 ], "Module page not found"
 
     def print_rocket_configs(self) -> None:
         # Print out loaded rocket information from configs
-        print(f"Loaded 'rockets/{self.name}' with {len(self.configs)} config(s):")
+        print(
+            f"Loaded 'rockets/{self.name}' with {len(self.configs)} config(s):"
+        )
         for c in self.configs:
             self.print_config(c)
 
@@ -169,7 +190,9 @@ class Rocket:
         for config in self.configs:
             # Generate CSS selectors for pages
             config.CSS = (
-                ", ".join(["#{0} .{0}".format(page["id"]) for page in config.PAGES])
+                ", ".join(
+                    ["#{0} .{0}".format(page["id"]) for page in config.PAGES]
+                )
                 + " {display: flex;}"
             )
 

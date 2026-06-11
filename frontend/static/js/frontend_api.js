@@ -239,7 +239,7 @@ function processDataForDisplay(apiData, apiId) {
     /***
     This was made by Michael PP1 Hive 2026 team. I had to make changes to his code
     for customizing and seperating diagnostic page variables while it follows
-    the same logic of Michael. I just sepearted the code into pieces. 
+    the same logic of Michael. I just sepearted the code into pieces.
     - Mohammad
      */
     // if (apiId === 50) {
@@ -274,7 +274,7 @@ function processDataForDisplay(apiData, apiId) {
     //             if ((deviceData.ping == null) || (deviceData.ping < 0)) {
     //                 topRow.querySelector(".indicator-state")?.classList.replace("green", "red");
     //             }
-                
+
     //             bottomRow.innerHTML = `
     //             <tr>
     //                 <td style="border-bottom: 30px solid transparent;">
@@ -323,7 +323,7 @@ function processDataForDisplay(apiData, apiId) {
     //         else {
     //             // Get the top row
     //             const index = currRow.closest("tr").rowIndex;
-                
+
     //             // Update the state
     //             let topRow = packetsTable.rows[index].querySelector('td div');
     //             topRow.classList.value = `indicator-state mx-0 ${
@@ -351,7 +351,7 @@ function processDataForDisplay(apiData, apiId) {
     //         // else {
     //         //     // Create a new record and update index
     //         //     networkPackets.push({name: device, count: 1, offset: 0});
-                
+
     //         //     // index was -1, now need the last element
     //         //     index += networkPackets.length;
     //         // }
@@ -359,7 +359,7 @@ function processDataForDisplay(apiData, apiId) {
     //         // // Calculate packet count as the total number of packets minus the % loss
     //         // const actualPacketCount = Math.floor(networkPackets[index].count * ((100 - networkPackets[index].offset) / 100));
     //         // let inputValue = packetsTable.querySelector(`input[data-key='${device}.packet_count']`);
-            
+
     //         // // Make sure the element exists
     //         // if (inputValue != null) {
     //         //     inputValue.value = actualPacketCount;

@@ -1,6 +1,6 @@
 ### Tutorial for dummy service
 
-Can be found on 
+Can be found on
 [dummy_service_link](../backend/dummy_service.py)
 
 Service is started through

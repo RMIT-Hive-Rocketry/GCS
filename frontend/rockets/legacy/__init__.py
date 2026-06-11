@@ -45,9 +45,21 @@ class ConfigLegacy3(Config):
                 "icon": "icon-video-camera",
                 "id": "page-live-launchpad",
             },
-            {"name": "Rocket", "icon": "icon-video-camera", "id": "page-live-rocket"},
-            {"name": "Both feeds", "icon": "icon-video-camera", "id": "page-live-all"},
-            {"name": "Single Operator", "icon": "icon-gamepad", "id": "page-ops"},
+            {
+                "name": "Rocket",
+                "icon": "icon-video-camera",
+                "id": "page-live-rocket",
+            },
+            {
+                "name": "Both feeds",
+                "icon": "icon-video-camera",
+                "id": "page-live-all",
+            },
+            {
+                "name": "Single Operator",
+                "icon": "icon-gamepad",
+                "id": "page-ops",
+            },
             {"name": "GSE State", "icon": "icon-sitemap", "id": "page-hmi"},
         ]
 

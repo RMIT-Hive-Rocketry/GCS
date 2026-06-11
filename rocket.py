@@ -29,6 +29,7 @@ from cli.start_replay_system import (
 )
 from cli.start_pendant_daemon import start_pendant_daemon
 from cli.start_dummy_service import start_dummy_service
+
 logger: logging.Logger = None
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
@@ -39,7 +40,8 @@ IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
 RunningProcesses = process.RunningProcess()
 
-APP_START_TIME = None # Start Time Of application initilised within main before logging starts
+APP_START_TIME = None  # Start Time Of application initilised within main before logging starts
+
 
 class Command(enum.Enum):
     """Command enums to help start services"""
@@ -397,13 +399,16 @@ def start_services(
 
     # 3. Run C++ middleware (always gse + av argv; single = same type/path for both)
     try:
-        start_middleware(logger=logger, performance_logging=RunningProcesses, config=launch_config.middleware_config)
+        start_middleware(
+            logger=logger,
+            performance_logging=RunningProcesses,
+            config=launch_config.middleware_config,
+        )
     except Exception as e:
         logger.error(
             f"Failed to start middleware: {e}\nPropogating fatal error"
         )
         raise
-
 
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
@@ -412,7 +417,7 @@ def start_services(
         replay_mode=replay_mode,
         mission_arg=mission_arg,
         simulation_arg=simulation_arg,
-        blue_raven_arg=blue_raven_arg
+        blue_raven_arg=blue_raven_arg,
     )
     if aux_service_plan.service == "emulator":
         start_fake_serial_device_emulator(
@@ -431,7 +436,7 @@ def start_services(
             aux_service_plan.device_path,
             mission=aux_service_plan.mission,
             blue_raven=aux_service_plan.blue_raven,
-            simulation=aux_service_plan.simulation
+            simulation=aux_service_plan.simulation,
         )
 
     # 5. Start the event viewer
@@ -577,7 +582,9 @@ def simulation(docker, nobuild, logpkt) -> None:
 
 @click.command()
 @cli_decorator_factory(DecoratorSelector.REPLAY)
-def replay(docker, nobuild, logpkt, mode, mission, blue_raven, simulation) -> None:
+def replay(
+    docker, nobuild, logpkt, mode, mission, blue_raven, simulation
+) -> None:
     """Start software in simulation mode"""
     if not mode:
         raise click.UsageError("--mode is required for the replay engine")
@@ -588,8 +595,7 @@ def replay(docker, nobuild, logpkt, mode, mission, blue_raven, simulation) -> No
                 "--mission or --blue-raven is required to run a specified mission"
             )
         elif mission == "TEST":
-            raise NotImplementedError(
-                f"{mission} has not been implemented yet")
+            raise NotImplementedError(f"{mission} has not been implemented yet")
 
         logger.info(f"Using mission data:{mission}")
 

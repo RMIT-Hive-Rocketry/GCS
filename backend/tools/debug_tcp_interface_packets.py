@@ -66,7 +66,8 @@ def main() -> int:
         server = create_server(args.host, args.port)
     except OSError as e:
         print(
-            f"Failed to bind to {args.host}:{args.port}: {e}", file=sys.stderr)
+            f"Failed to bind to {args.host}:{args.port}: {e}", file=sys.stderr
+        )
         return 1
 
     try:

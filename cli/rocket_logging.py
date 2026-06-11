@@ -128,8 +128,7 @@ class LogsLoopback(logging.Handler):
         self.frontend_push_socket.bind(f"ipc://{frontend_socket_path}")
 
         # Regex pattern to match ANSI escape sequences
-        self.ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
-
+        self.ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
     @override
     def emit(self, record) -> None:
@@ -137,15 +136,17 @@ class LogsLoopback(logging.Handler):
             # if stop signal given close socket and clean up handler
             self.frontend_push_socket.close()
 
-        if(record.levelname =="SECRET"):
+        if record.levelname == "SECRET":
             return
-        
+
         # Append new log
         try:
             # filter out ANSI from chars put in earlier in stream
             raw_message = record.getMessage()
-            clean_message = self.ANSI_ESCAPE.sub('', raw_message)
-            timestamp = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
+            clean_message = self.ANSI_ESCAPE.sub("", raw_message)
+            timestamp = datetime.fromtimestamp(record.created).strftime(
+                "%H:%M:%S"
+            )
             log_entry = [timestamp, record.levelname, clean_message]
 
             self.buffer.append(log_entry)
@@ -163,13 +164,6 @@ class LogsLoopback(logging.Handler):
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # Safety catch for unexpected exceptions however logging this will cause issues maybe a cascade cause log will cause more errors
-
-
-
-                
-
-
-
 
 
 def create_handler(
@@ -264,6 +258,7 @@ def adapter_success(self, message, *args, **kwargs) -> None:
 
 def adapter_secret(self, message, *args, **kwargs) -> None:
     self.log(SECRET_LEVEL_NUM, message, *args, **kwargs)
+
 
 logging.LoggerAdapter.success = adapter_success
 logging.LoggerAdapter.secret = adapter_secret

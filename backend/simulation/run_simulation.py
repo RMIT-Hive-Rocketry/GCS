@@ -201,7 +201,8 @@ def run_emulator(flight_data: pd.DataFrame, DEVICE_NAME: str):
     """
     # Initialise mockpacket
     MockPacket.initialize_settings(
-        config.get_config()['emulation'], FAKE_DEVICE_NAME=DEVICE_NAME)
+        config.get_config()["emulation"], FAKE_DEVICE_NAME=DEVICE_NAME
+    )
 
     flight_data = post_process_simulation_data(flight_data)
 

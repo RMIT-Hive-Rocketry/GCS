@@ -31,6 +31,7 @@ MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
 MAX_FRAME_RATE = float(timeout_cfg["max_frame_rate"])
 
+
 def process_csv_packets(
     min_timestamp_ms: int, mission_path: str
 ) -> list[Packet]:
@@ -408,15 +409,17 @@ def main():
     try:
         if args.mode == "mission":
             if args.mission and args.blue_raven:
-                raise ValueError("Do not provide --blue-raven and --mission at the same time")
-            
+                raise ValueError(
+                    "Do not provide --blue-raven and --mission at the same time"
+                )
+
             if args.mission:
                 mission_path = os.path.join(get_mission_path(), args.mission)
                 if not os.path.exists(mission_path):
                     raise FileNotFoundError(
                         f"No mission direction found at: {mission_path}"
                     )
-                
+
                 if str(args.mission).lower() == "test":
                     raise NotImplementedError("Test has not been implemented")
                 slogger.info(f"Starting mission replay for {args.mission}")
@@ -425,17 +428,25 @@ def main():
                     MIN_TIMESTAMP_MS, mission_path
                 )
             elif args.blue_raven:
-                blue_raven_path = os.path.join(get_blue_raven_path(), args.blue_raven)
+                blue_raven_path = os.path.join(
+                    get_blue_raven_path(), args.blue_raven
+                )
                 if not os.path.exists(blue_raven_path):
-                    raise FileNotFoundError(f"Blue Raven file not found: {blue_raven_path}")
-                
+                    raise FileNotFoundError(
+                        f"Blue Raven file not found: {blue_raven_path}"
+                    )
+
                 if str(args.blue_raven).lower() == "test":
                     raise NotImplementedError("Test has not been implemented")
-                
-                slogger.info(f"Starting Blue Raven replay from {args.blue_raven}")
+
+                slogger.info(
+                    f"Starting Blue Raven replay from {args.blue_raven}"
+                )
                 processed_packets = process_blue_raven(args.blue_raven)
             else:
-                raise ValueError("--mission requires also providing either the --mission or --blue-raven flag")
+                raise ValueError(
+                    "--mission requires also providing either the --mission or --blue-raven flag"
+                )
         else:
             from backend.simulation.run_simulation import get_replay_sim_data
 
@@ -457,8 +468,8 @@ def main():
             )
 
         MockPacket.initialize_settings(
-            config.get_config()[
-                'emulation'], FAKE_DEVICE_NAME=args.device_rocket
+            config.get_config()["emulation"],
+            FAKE_DEVICE_NAME=args.device_rocket,
         )
 
         # Will need to valid timeout before the gaps between packets may be extremely large

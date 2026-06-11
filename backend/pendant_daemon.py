@@ -176,7 +176,8 @@ def send_packet() -> None:
 
 def main() -> None:
     device_emulator.MockPacket.initialize_settings(
-        config.get_config()['emulation'])
+        config.get_config()["emulation"]
+    )
     slogger.debug("Starting pendant emulator")
 
     # global packet_thread

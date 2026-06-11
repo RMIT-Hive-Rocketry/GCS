@@ -197,7 +197,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
             try:
                 # poll pendant_daemon socket
                 events = dict(poller.poll(timeout=100))
-                #print(events)
+                # print(events)
                 if pendant_sub_socket in events:
                     pendant_state_dict = await pendant_sub_socket.recv_json()
 
@@ -298,15 +298,23 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     message = await logging_sub_socket.recv_json()
 
                     log_dicts = []
-                    
+
                     # Go through buffer of logs sent through from handler
                     for entry in message:
                         # Check if correct amount of passed data
-                        if(len(entry) == 3):
+                        if len(entry) == 3:
                             # Append passed logs in correct format to be sent to all web clients
-                            log_dicts.append({"timestamp": entry[0], "level": entry[1], "message": entry[2]})
+                            log_dicts.append(
+                                {
+                                    "timestamp": entry[0],
+                                    "level": entry[1],
+                                    "message": entry[2],
+                                }
+                            )
                         else:
-                            slogger.warning("Frontend logging passthrough Received incorrect packet")
+                            slogger.warning(
+                                "Frontend logging passthrough Received incorrect packet"
+                            )
 
                     if log_dicts:
                         output = {
@@ -321,7 +329,9 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                             break  # critical to break out of loop and not pass otherwise will get stuck trying to send to dead client
 
                     else:
-                        slogger.warning("Malformed data sent upstream to front end")
+                        slogger.warning(
+                            "Malformed data sent upstream to front end"
+                        )
 
                 # Give event handler time to check shutdown event
                 await asyncio.sleep(0.01)
