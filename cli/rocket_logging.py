@@ -153,7 +153,7 @@ class LogsLoopback(logging.Handler):
 
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough: {ex}")
-            # catch errors within the packet gen in case of malformed data and drop the packet quitely to avoid issues with cascade
+            # catch errors within the packet gen in case of malformed data and drop the packet quietly to avoid issues with cascade
             pass
 
         try:

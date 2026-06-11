@@ -77,7 +77,7 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
 
-        # skip frame if too soon, importantly checks data 1 and 2 seperate as otherwise often end up skipping all AV2 data
+        # skip frame if too soon, importantly checks data 1 and 2 separate as otherwise often end up skipping all AV2 data
         if packet.packet_type == PacketType.AV_TO_GCS_DATA_1:
             if target_time < next_earliest_frame_time_av1:
                 continue

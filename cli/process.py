@@ -33,7 +33,7 @@ class RunningProcess:
         for process in self.runningProcesses:
             if process.GetPID() == id:
                 return process
-        slogger.error("Couldnt find PID for Proccess")
+        slogger.error("Couldn't find PID for Process")
         return
 
     def GetAllProcessInfo(self) -> list[ProcessData]:

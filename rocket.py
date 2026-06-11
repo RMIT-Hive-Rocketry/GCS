@@ -40,7 +40,7 @@ IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
 RunningProcesses = process.RunningProcess()
 
-APP_START_TIME = None  # Start Time Of application initilised within main before logging starts
+APP_START_TIME = None  # Start Time Of application initialised within main before logging starts
 
 
 class Command(enum.Enum):

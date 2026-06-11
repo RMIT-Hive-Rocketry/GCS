@@ -238,8 +238,8 @@ function processDataForDisplay(apiData, apiId) {
     }
     /***
     This was made by Michael PP1 Hive 2026 team. I had to make changes to his code
-    for customizing and seperating diagnostic page variables while it follows
-    the same logic of Michael. I just sepearted the code into pieces.
+    for customizing and separating diagnostic page variables while it follows
+    the same logic of Michael. I just separated the code into pieces.
     - Mohammad
      */
     // if (apiId === 50) {
