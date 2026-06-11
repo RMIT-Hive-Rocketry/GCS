@@ -44,8 +44,16 @@ class ConfigHorizon(Config):
         # Define pages for Horizon
         self.PAGES: list = [
             {"name": "Overview", "icon": "icon-rocket", "id": "page-main"},
-            {"name": "Pre-flight", "icon": "icon-gamepad", "id": "page-control"},
-            {"name": "Diagnostics", "icon": "icon-signal", "id": "page-diagnostics"},
+            {
+                "name": "Pre-flight",
+                "icon": "icon-gamepad",
+                "id": "page-control",
+            },
+            {
+                "name": "Diagnostics",
+                "icon": "icon-signal",
+                "id": "page-diagnostics",
+            },
             {"name": "Settings", "icon": "icon-tasks", "id": "page-preflight"},
         ]
 

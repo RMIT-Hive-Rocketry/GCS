@@ -11,6 +11,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: detect-private-key
 
   - repo: https://github.com/psf/black
     rev: 22.10.0
@@ -37,3 +38,9 @@ repos:
         name: dos2unix
         entry: bash ./scripts/dos2unix.sh
         language: system
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        stages: [pre-commit]
