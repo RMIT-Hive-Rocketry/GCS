@@ -37,3 +37,16 @@ repos:
         name: dos2unix
         entry: bash ./scripts/dos2unix.sh
         language: system
+
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.78.1
+    hooks:
+      - id: trufflehog
+        entry: trufflehog git file://. --since-commit HEAD --only-verified --fail
+        stages: [commit, push]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        stages: [commit]
