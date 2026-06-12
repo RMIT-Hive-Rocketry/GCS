@@ -9,6 +9,7 @@ pandas~=3.0.2
 ping3~=5.1.5
 protobuf~=6.31.0
 pygame~=2.6.1
+pyserial~=3.5
 python-dotenv~=1.2.2
 pyzmq~=27.1.0
 rocketpy~=1.12.1

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 class InterfaceType(StrEnum):
     # Reference the main middleware cpp file
     UART_E5 = "UART_E5"
+    UART_FEATHER = "UART_FEATHER"
     TEST = "TEST"
     TEST_UART_E5 = "TEST_UART_E5"
     TCP = "TCP"
@@ -157,6 +158,11 @@ def build_middleware_argv(
         or config.interface_av_type == InterfaceType.UART_E5
     )
 
+    an_interface_is_uart_feather = InterfaceType.UART_FEATHER in (
+        config.interface_gse_type,
+        config.interface_av_type,
+    )
+
     if an_interface_is_uart_e5:
         if config.lora_config is None:
             raise ValueError("UART_E5 interface requires lora_config")
@@ -171,6 +177,17 @@ def build_middleware_argv(
                 config.lora_config["crc"],
                 config.lora_config["iq"],
                 config.lora_config["net"],
+            ]
+        )
+    elif an_interface_is_uart_feather:
+        # The Feather firmware only exposes frequency and power; modem
+        # settings are fixed (125 kHz BW, CR 4/5, SF7)
+        if config.lora_config is None:
+            raise ValueError("UART_FEATHER interface requires lora_config")
+        argv.extend(
+            [
+                config.lora_config["frequency"],
+                config.lora_config["power"],
             ]
         )
     if config.opt_arg is not None:

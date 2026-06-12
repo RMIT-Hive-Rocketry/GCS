@@ -2,6 +2,7 @@ import enum
 import logging
 import os
 from dataclasses import dataclass
+from serial.tools import list_ports  # pyserial
 from config.config import get_config
 from cli.start_middleware import (
     InterfaceType,
@@ -9,6 +10,21 @@ from cli.start_middleware import (
     get_interface_type,
 )
 from cli.start_socat import start_fake_serial_device
+
+# Adafruit Feather 32u4 RFM9x (433 MHz) USB identifiers
+FEATHER_USB_VID = 0x239A
+FEATHER_USB_PID = 0x800C
+
+
+def find_feather_port() -> str | None:
+    """Discover the Feather 32u4 RFM9x serial port by USB VID/PID.
+
+    macOS: /dev/cu.usbmodem*, linux: /dev/ttyACM*.
+    """
+    for port in list_ports.comports():
+        if port.vid == FEATHER_USB_VID and port.pid == FEATHER_USB_PID:
+            return str(port.device)
+    return None
 
 
 @dataclass(frozen=True)
@@ -80,8 +96,8 @@ class RuntimeLaunchConfig:
             opt_arg=self.optional_arg,
             lora_config=(
                 self.lora_config
-                if InterfaceType.UART_E5
-                in (self.interface_gse_type, self.interface_av_type)
+                if {InterfaceType.UART_E5, InterfaceType.UART_FEATHER}
+                & {self.interface_gse_type, self.interface_av_type}
                 else None
             ),
         )
@@ -172,6 +188,28 @@ class RuntimeLaunchConfig:
                 f"Starting UART E5 interface ({link_name}) on {serial_device}"
             )
             return str(serial_device)
+
+        if interface_type == InterfaceType.UART_FEATHER:
+            lora_section = cfg["lora_433"]
+            serial_device = str(lora_section.get("serial_device", "")).strip()
+            if not serial_device or serial_device.lower() == "auto":
+                discovered = find_feather_port()
+                if discovered is None:
+                    raise RuntimeError(
+                        "No Feather 32u4 RFM9x found (USB VID:PID 239a:800c)."
+                        " Plug the board in or set serial_device in"
+                        " [lora_433] in config/config.ini"
+                    )
+                serial_device = discovered
+            self.lora_config = {
+                "frequency": str(lora_section.get("frequency")),
+                "power": str(lora_section.get("power")),
+            }
+            self._print_large_config(lora_section)
+            self.logger.info(
+                f"Starting UART Feather interface ({link_name}) on {serial_device}"
+            )
+            return serial_device
 
         if interface_type == InterfaceType.TCP:
             self.logger.info(f"Starting TCP interface ({link_name})")
