@@ -107,11 +107,6 @@ Ground Control Software Team
         <td>2026</td>
     </tr>
     <tr>
-        <td>Kelly Wan Wing Kai (<code>kelly2504</code>)</td>
-        <td>GCS web designer</td>
-        <td>2026</td>
-    </tr>
-    <tr>
         <td><a href="https://www.linkedin.com/in/marven-wijesiriwardena-252254389/">
         Marven Wijesiriwardena</a>
         (<code>MarvenW</code>)
@@ -131,7 +126,7 @@ Ground Control Software Team
         <td>Mohammad Ullah
         (<code>mov360</code>)
         </td>
-        <td>GCS QA & Software Engineer (Frontend)</td>
+        <td>GCS frontend QA & Software Engineer</td>
         <td>2026</td>
     </tr>
     <tr>
@@ -153,6 +148,26 @@ Ground Control Software Team
         <td>Nathan La (<code>s4003562</code>)</td>
         <td>GCS data visualisation</td>
         <td>2025</td>
+    </tr>
+</table>
+
+Additional Ground Control Team
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Year</th>
+    </tr>
+    <tr>
+        <td>Hayden Rujak</td>
+        <td>GCS electronics</td>
+        <td>2026</td>
+    </tr>
+        <tr>
+        <td>Kelly Wan Wing Kai (<code>kelly2504</code>)</td>
+        <td>Hive web designer</td>
+        <td>2026</td>
     </tr>
 </table>
 
