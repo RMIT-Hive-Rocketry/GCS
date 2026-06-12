@@ -45,7 +45,7 @@ class ConfigHorizon(Config):
         self.PAGES: list = [
             {"name": "Overview", "icon": "icon-rocket", "id": "page-main"},
             {
-                "name": "Pre-flight",
+                "name": "GSE",
                 "icon": "icon-gamepad",
                 "id": "page-control",
             },
