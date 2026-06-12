@@ -198,7 +198,7 @@ The GCS, known as SOTERIA, is Hive's computer control system for GSE control, av
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/trist4nl3/">Tristan Le</a> - @trist4nl3</td>
-        <td>2026 GSE (Ground Service Equipment) & electronics lead</td>    
+        <td>2026 GSE (Ground Service Equipment) & electronics lead</td>
     </tr>
     <tr>
         <td><a href="https://www.linkedin.com/in/jonathan-chandler-03474b1ba/">Jonathan Chandler</a></td>
