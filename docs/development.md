@@ -141,7 +141,7 @@ TODO ^
 ## Pushing changes to the GCS repository from GCS-2026
 The following steps will help you merge all the new changes from GCS-2026 (or GCS-dev) into GCS, including all the code changes, credits updates, new screenshots and other relevant updates.
 
-### Get the remote URL for the GCS-2026 repo: 
+### Get the remote URL for the GCS-2026 repo:
 
 1. `cd GCS-2026`
 2. `git remote -v`
