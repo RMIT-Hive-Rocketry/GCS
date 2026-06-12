@@ -17,13 +17,6 @@ import { Config as cfg } from '/js/frontend_config.js';
 
 const previous_ping = {}
 
-function isHorizonRocket() {
-    return (
-        document.body.classList.contains('horizon')
-        || window.location.href.includes('rocket=horizon')
-    )
-}
-
 function getDiagnosticsNavLink() {
     return document.querySelector('nav a[href=\'#page-diagnostics\']')
 }
@@ -98,14 +91,7 @@ function addDiagnosticLogEntry(device_id, alive) {
     }
 }
 
-function processPacket(apiData) {
-    if (!isHorizonRocket()) {
-        return
-    }
-
-    if (!apiData || apiData.id !== 50) {
-        return
-    }
+function updateNetworkDiagnostics(apiData) {
 
     // Variable for tracking whether to visually ping the UI (when receiving ping from devices)
     // This *might* end up being removed if it's not useful/too distracting
@@ -145,4 +131,4 @@ function processPacket(apiData) {
     }
 }
 
-export { addDiagnosticLogEntry, processPacket }
+export { updateNetworkDiagnostics }

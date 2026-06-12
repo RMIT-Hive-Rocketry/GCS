@@ -28,27 +28,6 @@ const timers = {
     launchTimestamp: 0,
 }
 
-/* Combine all timeouts into one array of objects (only for radios).
- * This makes it easier to program sound alarms in a queue, with
- * past rockets included just so that their functionality is (hopefully)
- * preserved, as there used to be a data-timeout attribute.
-*/
-const timeoutsList = [
-    // This allows for customisation (note duration in ms)
-    { name: 'av', duration: 3000, state: 4, rocket: 'Legacy3' },
-    { name: 'av', duration: 10000, state: 5, rocket: 'Legacy3' },
-    { name: 'gse', duration: 3000, state: 4, rocket: 'Legacy3' },
-    { name: 'gse', duration: 10000, state: 5, rocket: 'Legacy3' },
-
-    { name: 'av', duration: 3000, state: 4, rocket: 'Atlas' },
-    { name: 'av', duration: 10000, state: 5, rocket: 'Atlas' },
-    { name: 'gse', duration: 3000, state: 4, rocket: 'Atlas' },
-    { name: 'gse', duration: 10000, state: 5, rocket: 'Atlas' },
-
-    { name: 'av', duration: 5000, state: 4, rocket: 'Horizon' },
-    { name: 'gse', duration: 5000, state: 4, rocket: 'Horizon' },
-]
-
 
 function updateTimestamp(new_timestamp) {
     if (timestamp.api) {
@@ -130,7 +109,7 @@ function updateTime() {
     }
 }
 
-// Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
+// Generate the loss sounds (1st 2 have a quicker version - see cfg.audio.timeouts)
 // Note: Horizon doesn't have 2 Australis boards (which is Dual_Board_Loss)
 const filenames_losses = ['GSE_Loss', 'AV_Loss', 'GPS_Fix_Loss']
 const soundsList_losses = filenames_losses.map((src) => {
@@ -385,7 +364,7 @@ function checkStateIndicator(elem = null) {
             updateSound(sound, !e1.classList.value.includes('green'), false)
 
             // Check for timeouts (won't execute on a non-radio state)
-            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name))).forEach((t1) => {
+            cfg.audio.timeouts[currRocket].filter(t1 => (indicator.includes(t1.name))).forEach((t1) => {
                 const currElems = document.querySelectorAll(`[data-key="${`state.${t1.name}.radio`}"]`)
 
                 currElems.forEach((c1) => {

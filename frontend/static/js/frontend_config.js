@@ -3,11 +3,15 @@
  */
 
 class Config {
-    // Logging
-    static logging = {
-        verbose: false,
-        websocket: false, // Whether to log messages received from the websocket
-        max_size_diagnostics: 40
+    // GPS
+    static gps = {
+        // Scaling constants
+        lat_scale_factor: 110.87,
+        lon_scale_factor: 95.48,
+
+        // Expected GCS coords (decimal)
+        gcs_lat: 31.039581,
+        gcs_lon: 103.526623,
     }
 
     // Websockets
@@ -15,6 +19,13 @@ class Config {
         url: `ws://${window.location.host.split(':')[0]}:1887`, // `ws://${_ws["host"]}:${_ws["port"]}`
         initial_reconnect_interval: 100, // Initial reconnection wait time
         max_reconnect_interval: 5000, // Maximum amount of time between reconnect attempts
+    }
+
+    // Logging
+    static logging = {
+        verbose: false,
+        websocket: false, // Whether to log messages received from the websocket
+        max_size_diagnostics: 40
     }
 
     // Graphing
@@ -25,15 +36,45 @@ class Config {
     }
 
     // Sounds
-    static sounds = {
-        parachute_altitude: 1200
+    static audio = {
+        // Altitude in metres for when to play parachute sound
+        parachute_altitude: 1200,
+        // Radius in metres from GCS for overhead warning (rocket coming down)
+        overhead_warn_radius: 50,
+        /*
+        Combine all timeouts into one array of objects (only for radios)
+        so we can program sound alarms in a queue, with past rockets included 
+        for legacy support (replaces data-timeout attribute).
+        */
+        timeouts: {
+            "Legacy3": [
+                { name: 'av', duration: 3000, state: 4 },
+                { name: 'av', duration: 10000, state: 5 },
+                { name: 'gse', duration: 3000, state: 4 },
+                { name: 'gse', duration: 10000, state: 5 },
+            ],
+            "Atlas": [
+                { name: 'av', duration: 3000, state: 4 },
+                { name: 'av', duration: 10000, state: 5 },
+                { name: 'gse', duration: 3000, state: 4 },
+                { name: 'gse', duration: 10000, state: 5 },
+            ],
+            "Horizon": [
+                { name: 'av', duration: 5000, state: 4 },
+                { name: 'gse', duration: 5000, state: 4 },
+            ]
+        },
     }
 
     // API configuration
     static api = {
         packet_id: {
+            avionics: 3,
+            avionics_rocket: 4,
             pendant: 10,
-            diagnostics: 50,
+            logging: 40,
+            network: 50,
+            gse: 55,
         },
         error_conditions: [
             {
