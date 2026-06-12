@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1" />
+    <title>MODULE DEBUG - RMIT High Velocity</title>
+    <link rel="stylesheet" type="text/css" href="/css/tailwind.css" media="screen" />
+</head>
+
+<body class="p-4">
+    <header class="mb-4">
+        <h1 class="text-2xl">Module debug page</h1>
+        <p>Loaded rocket modules:</p>
+    </header>
+
+    <main class="debug w-full flex flex-col gap-8">
+        {% for rocket in config.rockets %}
+        <section class="bg-zinc-700 p-4">
+            <h2 class="lowercase!">/rockets/{{ rocket.name }} modules</h2>
+            <div class="flex flex-col gap-4 py-4">
+                {% for rocketconfig in rocket.configs %} {% for module in
+                rocketconfig.MODULES %} {% if module.split("/")[0] ==
+                rocket.name and module !=
+                "default/modules/rocket_selector.html" and module !=
+                "legacy/modules/legacy3_header.html" %}
+                <div class="border border-black bg-zinc-900 bg-hex text-white w-fit">
+                    {{ module }} {% include 'rockets/' ~ module %}
+                </div>
+                {% endif %} {% endfor %} {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </main>
+</body>
+
+<!-- Javascript should generally go below, not in individual modules -->
+<script type="module" src="/js/frontend.js"></script>
+<script type="module" src="/js/frontend_api.js"></script>
+
+<!-- Data visualisation code -->
+<script src="/js/libraries/d3.min.js"></script>
+<script src="/js/frontend_graphs.js" type="module"></script>
+
+<!-- Debug/testing code -->
+<script src="/js/frontend_testing.js" type="module"></script>
+
+</html>

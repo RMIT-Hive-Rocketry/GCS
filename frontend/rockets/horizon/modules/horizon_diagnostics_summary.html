@@ -1,0 +1,221 @@
+<div class="module-horizon w-full h-full flex flex-col px-2.5 py-2 gap-3">
+    <h2>Summary</h2>
+
+    <div class="flex flex-col gap-2">
+        <p
+            class="font-bold text-sm"
+            style="color:var(--color-horizon-yellow,#f59e0b);"
+        >
+            SYSTEM OVERVIEW
+        </p>
+
+        <div
+            class="flex items-center justify-between px-4 py-2 rounded-xl"
+            style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,45,105,0.45);"
+        >
+            <span
+                class="font-bold"
+                style="color:rgba(255,255,255,0.65); font-size:0.8rem;"
+            >All Devices Online</span>
+
+            <span
+                id="diag-bottom-all-online"
+                class="font-bold rounded-lg"
+                style="
+                    background:#ef4444;
+                    color:white;
+                    min-width:3.4rem;
+                    height:1.8rem;
+                    padding:0 0.65rem;
+                    text-align:center; font-size:0.85rem;
+                    line-height:1;
+                    border-radius:0.65rem;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    box-sizing:border-box;"
+            >No</span>
+        </div>
+
+        <div
+            class="flex items-center justify-between px-4 py-2 rounded-xl"
+            style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,45,105,0.45);"
+        >
+            <span
+                class="font-bold"
+                style="color:rgba(255,255,255,0.65); font-size:0.8rem;"
+            >Offline Devices</span>
+
+            <span
+                id="diag-bottom-offline"
+                class="font-bold rounded-lg"
+                style="
+                    background:#ef4444;
+                    color:white;
+                    min-width:3.4rem;
+                    height:1.8rem;
+                    padding:0 0.65rem;
+                    text-align:center; font-size:0.85rem;
+                    line-height:1;
+                    border-radius:0.65rem;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    box-sizing:border-box;"
+            >0</span>
+        </div>
+
+        <div
+            class="flex items-center justify-between px-4 py-2 rounded-xl"
+            style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,45,105,0.45);"
+        >
+            <span
+                class="font-bold"
+                style="color:rgba(255,255,255,0.65); font-size:0.8rem;"
+            >Online Devices</span>
+
+            <span
+                id="diag-bottom-online"
+                class="font-bold rounded-lg"
+                style="
+                    background:#16a34a;
+                    color:white;
+                    min-width:3.4rem;
+                    height:1.8rem;
+                    padding:0 0.65rem;
+                    text-align:center; font-size:0.85rem;
+                    line-height:1;
+                    border-radius:0.65rem;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    box-sizing:border-box;"
+            >0</span>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+        <p
+            class="font-bold text-sm mt-2"
+            style="color:var(--color-horizon-yellow,#f59e0b);"
+        >
+            SYSTEM STATUS
+        </p>
+
+        <div
+            class="flex items-center justify-between px-4 py-2 rounded-xl"
+            style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,45,105,0.45);"
+        >
+            <span
+                class="font-bold"
+                style="color:rgba(255,255,255,0.65); font-size:0.85rem;"
+            >GSE</span>
+
+            <span
+                id="diag-summary-gse"
+                class="font-bold rounded-lg"
+                style="
+                    background:#ef4444;
+                    color:white;
+                    min-width:4.2rem;
+                    height:1.8rem;
+                    padding:0 0.75rem;
+                    text-align:center; font-size:0.85rem;
+                    line-height:1;
+                    border-radius:0.65rem;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    box-sizing:border-box;"
+            >DOWN</span>
+        </div>
+
+        <div
+            class="flex items-center justify-between px-4 py-2 rounded-xl"
+            style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,45,105,0.45);"
+        >
+            <span
+                class="font-bold"
+                style="color:rgba(255,255,255,0.65); font-size:0.85rem;"
+            >AVIONICS</span>
+
+            <span
+                id="diag-summary-av"
+                class="font-bold rounded-lg"
+                style="
+                    background:#4ade80;
+                    color:black;
+                    min-width:4.2rem;
+                    height:1.8rem;
+                    padding:0 0.75rem;
+                    text-align:center; font-size:0.85rem;
+                    line-height:1;
+                    border-radius:0.65rem;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    box-sizing:border-box;"
+            >GOOD</span>
+        </div>
+
+        <div
+            class="flex items-center justify-between px-4 py-2 rounded-xl"
+            style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,45,105,0.45);"
+        >
+            <span
+                class="font-bold"
+                style="color:rgba(255,255,255,0.65); font-size:0.85rem;"
+            >LAN</span>
+
+            <span
+                id="diag-summary-lan"
+                class="font-bold rounded-lg"
+                style="
+                    background:#ef4444;
+                    color:white;
+                    min-width:4.2rem;
+                    height:1.8rem;
+                    padding:0 0.75rem;
+                    text-align:center; font-size:0.85rem;
+                    line-height:1;
+                    border-radius:0.65rem;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    box-sizing:border-box;"
+            >DOWN</span>
+        </div>
+    </div>
+    <div class="flex flex-col gap-2 min-h-0">
+      <p
+          class="font-bold text-sm mt-2"
+          style="color:var(--color-horizon-yellow,#f59e0b);"
+      >
+          DIAGNOSTIC LOG
+      </p>
+
+      <div
+        id="diag-transition-log-list"
+        class="flex flex-col overflow-y-auto rounded-xl"
+        style="
+            height: 10rem;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,45,105,0.45);
+            padding: 0.5rem;
+            font-family: inherit;
+        "
+      >
+          <div
+              id="diag-transition-log-empty"
+              style="
+                  color: rgba(255,255,255,0.35);
+                  font-size: 0.72rem;
+                  font-weight: 700;
+                  text-align: center;
+                  padding-top: 0.5rem;"
+          >
+              No state changes yet
+          </div>
+      </div>
+  </div>
+  </div>

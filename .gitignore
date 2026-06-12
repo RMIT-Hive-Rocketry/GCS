@@ -1,7 +1,14 @@
+# yeah don't share this one
+.secrets
+
+# Custom build directory
+build-debug/
+build-release/
+
 # Local notes that don't need to be shared
 notes/local.txt
-notes/visualParadigm/*
-notes/design/*
+notes/visualParadigm/
+notes/design/
 
 TEMP_LOG_*
 
@@ -9,7 +16,7 @@ TEMP_LOG_*
 .vscode/c_cpp_properties.json
 
 # Compiled proto files
-backend/proto/generated/*
+backend/proto/generated/
 
 # Test binary
 backend/tests/runC++Tests
@@ -21,12 +28,10 @@ libmiddleware_lib.a
 
 # Stupid fucking library installs because homebrew fucking sucks at providing working libraries
 # submodule will still treat as new i think
-/third_party/*
-!third_party/README.md
+/third_party/
 
 # Flight logs
-logs/*
-# If you want to save a particular log, use !logs/foldername/ 
+logs/
 
 # Simulation files
 flightdataexport.csv
@@ -49,6 +54,7 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+GCS-2026-FRONTEND-PP1.code-workspace
 
 ### CMake Patch ###
 CMakeUserPresets.json
@@ -116,6 +122,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+build-debug/
+build-release/
 develop-eggs/
 dist/
 downloads/
@@ -303,3 +311,5 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,macos,python,windows,cmake
+
+node_modules

@@ -20,10 +20,10 @@ Commands:
   simulation  Start software in simulation mode
 ```
 
-> [!NOTE] 
+> [!NOTE]
 > The current *suggested* frontend dev command is as follows
 > ```
-> $ rocket simulation
+> $ rocket dev --interface test --frontend --nopendant
 > ```
 
 ## Using release binaries
@@ -40,14 +40,14 @@ If you plan to use a pre-compiled binary, please place it in the root directory 
 For development, `dev` mode is available
 
 ```terminal
-$ rocket dev --help                       
+$ rocket dev --help
 Usage: rocket dev [OPTIONS]
 
   Start software in development mode
 
 Options:
   -l, --log-level [DEBUG|INFO|SUCCESS|WARNING|ERROR|CRITICAL]
-                                  Overide the config log level
+                                  Override the config log level
   --docker                        Run in Docker
   --nobuild                       Do not build binaries. Search for pre-built
                                   binaries
@@ -59,7 +59,7 @@ Options:
   --help                          Show this message and exit.
 ```
 
-By default for `dev` mode: 
+By default for `dev` mode:
 - Data interface will be grabbed from `config/config.ini`
   - Unless `--interface` is passed which will override this
 - Cmake and make will rebuild the project
@@ -76,15 +76,18 @@ By default for `dev` mode:
 
 ### Simulation Mode
 
-Simulation mode can be run with 
+> [!WARNING]
+> Currently approaching deprecation. The `rocketpy` physics library has lots of limitations and is looking to be replaced.
+
+Simulation mode can be run with
 
 ```terminal
 $ rocket simulation
 ```
 
-This operates the same as dev mode, but will use simulation based data 
+This operates the same as dev mode, but will use simulation based data
 
-By default for `simulation` mode: 
+By default for `simulation` mode:
 - Behaviour is inherited from dev mode
 - The pendant service is disabled
 - The interface is the test interface (this make no difference to anything external to the middleware)
@@ -92,8 +95,8 @@ By default for `simulation` mode:
 
 > [!WARNING]
 > Currently, this mode only **simulates** AVtoGCSData1 packets from ignition to landing.
-> 
-> Options are being developed to replay preivous flights. We still need to fly at least once for this
+>
+> Options are being developed to replay previous flights. We still need to fly at least once for this
 
 ## Usage for operators
 
@@ -110,8 +113,8 @@ Options:
 
 1. If you have not downloaded a release binary, you can create one with `$ bash scripts/release.sh`. Do not build from a version not on main branch. You will also need to generate the Protobuf files with `$ bash scripts/proto_manual.sh`
 2. To start the software from the project directory, run the command `$ rocket run`
-3. To stop the software, enter <kbd>ctrl</kbd> + <kbd>c</kbd> on the pendant emulator window (if it has started) then in the other window after the emulator window has shut down. 
- 
+3. To stop the software, enter <kbd>ctrl</kbd> + <kbd>c</kbd> on the pendant emulator window (if it has started) then in the other window after the emulator window has shut down.
+
 ---
 
 [Home](../README.md)

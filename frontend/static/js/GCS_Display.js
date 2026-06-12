@@ -1,67 +1,10 @@
 /**
  * GCS Display
  *
- * Responsible for switching tabs/pages, button logic, etc.
- * Updates stats on the webpage based on the API and handles the password screen.
+ * Responsible for updating the webpage based on the API
  *
  * Functions and constants should be prefixed with "display"
  */
-
-// DYNAMIC MODULE SWITCHING CODE
-function displaySelectModule(selected) {
-    document.querySelectorAll(".module").forEach((elem) => {
-        if (elem.classList.contains(selected)) {
-            elem.classList.remove("hidden");
-        } else {
-            elem.classList.add("hidden");
-        }
-    });
-}
-
-const selectedClasses = ["selected"];
-
-// Get selected page
-var selected = window.location.hash
-    ? this.window.location.hash.substring(1)
-    : document.querySelector("nav a").href.split("#")[1];
-
-// Determine which modules are "selected"
-displaySelectModule(selected);
-
-// Highlight selected tab link
-document
-    .querySelector(`a[href='#${selected}']`)
-    .classList.add(...selectedClasses);
-
-// Switch tabs when links are pressed
-document.querySelectorAll("nav a").forEach((elem) => {
-    elem.addEventListener("click", (event) => {
-        event.preventDefault();
-
-        // Switch tabs
-        selected = elem.href.split("#")[1];
-        displaySelectModule(selected);
-
-        // Highlight new selected tab link
-        document.querySelectorAll("nav a").forEach((elem) => {
-            elem.classList.remove(...selectedClasses);
-        });
-        document
-            .querySelector(`a[href='#${selected}']`)
-            .classList.add(...selectedClasses);
-
-        if (selected == "m-ops") {
-            // Single operator icon fix
-            document.querySelector(`a[href='#m-password']`).classList.add(...selectedClasses);
-        }
-
-        // Update URL
-        history.replaceState(null, "", `#${selected}`);
-
-        // Dispatch page resize event (since elements are moving around)
-        window.dispatchEvent(new Event("resize"));
-    });
-});
 
 
 // FUNCTIONS FOR UPDATING DISPLAY ITEMS
@@ -203,7 +146,7 @@ function displayUpdateTime() {
     if (timestampApi != 0) {
         displaySetValue("fs-time-api", timestampApi, 1);
 
-        // Rocket launch time 
+        // Rocket launch time
         // TODO: Find somewhere nicer to put this in the code, this is so jank
         if (timers?.launchTimestamp != undefined) {
             const launchTime = timers.launchTimestamp == 0 ? 0 : timestampApi - timers.launchTimestamp;
@@ -221,39 +164,39 @@ function displayUpdateAuxData(data) {
     if (data?.transducer1) {
         // N2O in pressure
         displaySetValue("aux-transducer-1", data.transducer1, 1);
-        hmiUpdateValue("hmi-pressure-1", data.transducer1);
+        // hmiUpdateValue("hmi-pressure-1", data.transducer1);
     }
     if (data?.transducer2) {
         // N2O out pressure
         displaySetValue("aux-transducer-2", data.transducer2, 1);
-        hmiUpdateValue("hmi-pressure-2", data.transducer2);
+        // hmiUpdateValue("hmi-pressure-2", data.transducer2);
     }
     if (data?.transducer3) {
         // O2 pressure
         displaySetValue("aux-transducer-3", data.transducer3, 1);
-        hmiUpdateValue("hmi-pressure-3", data.transducer3);
+        // hmiUpdateValue("hmi-pressure-3", data.transducer3);
     }
 
     // Thermocouples (degrees Celsius)
     if (data?.thermocouple1) {
         // n2o (int) temperature
         displaySetValue("aux-thermocouple-1", data.thermocouple1, 0);
-        hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
+        // hmiUpdateValue("HMI_N2O-INTTEMP", data.thermocouple1);
     }
     if (data?.thermocouple2) {
         // n2o #1 pressure
         displaySetValue("aux-thermocouple-2", data.thermocouple2, 0);
-        hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
+        // hmiUpdateValue("HMI_N2O-1TEMP", data.thermocouple2);
     }
     if (data?.thermocouple3) {
         // n2o #2 pressure
         displaySetValue("aux-thermocouple-3", data.thermocouple3, 0);
-        hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
+        // hmiUpdateValue("HMI_N2O-2TEMP", data.thermocouple3);
     }
     if (data?.thermocouple4) {
         // o2 pressure
         displaySetValue("aux-thermocouple-4", data.thermocouple4, 0);
-        hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
+        // hmiUpdateValue("HMI_O2TEMP", data.thermocouple4);
     }
 
     // GSE enclosure thermocouple
@@ -281,13 +224,15 @@ function displayUpdateAuxData(data) {
     if (data?.analogVoltageInput1) {
         displaySetValue("aux-loadcell", data.analogVoltageInput1, 2);
     }
-    
+
     // Solenoids
+    /*
     if (data?.stateFlags) {
         hmiUpdateSolenoid("solenoidsV5", data.stateFlags.n20FillActivated);
         hmiUpdateSolenoid("solenoidsV6", data.stateFlags.o2FillActivated);
         hmiUpdateSolenoid("solenoidsV7", data.stateFlags.manualPurgeActivated); // Normally open
     }
+    */
 }
 
 function displayUpdateAvionics(data) {
@@ -512,7 +457,7 @@ function displayUpdateRadio(data) {
                     displaySetState("radio-gse-state", 5); // error
                 }, 10000);
             }
-            
+
 
             // Update GSE radio data
             if (data?.meta?.rssi) {
@@ -534,204 +479,12 @@ function displayUpdateRadio(data) {
     }
 }
 
-// SINGLE OPERATOR PAGE
-const mainPCheckbox = document.getElementById("optionMainP");
-const mainSCheckbox = document.getElementById("optionMainS");
-const apogeePCheckbox = document.getElementById("optionApogeeP");
-const apogeeSCheckbox = document.getElementById("optionApogeeS");
-const popButton = document.getElementById("popButton");
-const prompt = document.getElementById("prompt");
 
-// Continuity payload functions
-function sendContinuityA() {
-    apiSendContinuityCheck([1, 0, 0, 0]);
+function displaySloggerLogs(apiData)
+{
+    apiData.forEach(log => {
+        console.log(log);
+        logMessage(log.message, log.level.toLowerCase(), log.timestamp);
+        logMessage("LOST CONN", "critical");
+    });
 }
-
-function sendContinuityB() {
-    apiSendContinuityCheck([0, 1, 0, 0]);
-}
-
-function sendContinuityC() {
-    apiSendContinuityCheck([0, 0, 1, 0]);
-}
-
-function sendContinuityD() {
-    apiSendContinuityCheck([0, 0, 0, 1]);
-}
-
-// Pop test buttons
-document.addEventListener("DOMContentLoaded", () => {
-    mainPCheckbox.addEventListener("click", validateSelection);
-    mainSCheckbox.addEventListener("click", validateSelection);
-    apogeePCheckbox.addEventListener("click", validateSelection);
-    apogeeSCheckbox.addEventListener("click", validateSelection);
-
-    // Only one selection at a time
-    mainPCheckbox.addEventListener("change", () => {
-        if (mainPCheckbox.checked) {
-            mainSCheckbox.checked = false;
-            apogeePCheckbox.checked = false;
-            apogeeSCheckbox.checked = false;
-        }
-        validateSelection();
-    });
-
-    mainSCheckbox.addEventListener("change", () => {
-        if (mainSCheckbox.checked) {
-            mainPCheckbox.checked = false;
-            apogeePCheckbox.checked = false;
-            apogeeSCheckbox.checked = false;
-        }
-        validateSelection();
-    });
-
-    apogeePCheckbox.addEventListener("change", () => {
-        if (apogeePCheckbox.checked) {
-            mainPCheckbox.checked = false;
-            mainSCheckbox.checked = false;
-            apogeeSCheckbox.checked = false;
-        }
-        validateSelection();
-    });
-
-    apogeeSCheckbox.addEventListener("change", () => {
-        if (apogeeSCheckbox.checked) {
-            mainPCheckbox.checked = false;
-            mainSCheckbox.checked = false;
-            apogeePCheckbox.checked = false;
-        }
-        validateSelection();
-    });
-})
-
-function validateSelection() {
-
-    const checkedCount =
-        (mainPCheckbox.checked ? 1 : 0) +
-        (mainSCheckbox.checked ? 1 : 0) +
-        (apogeePCheckbox.checked ? 1 : 0) +
-        (apogeeSCheckbox.checked ? 1 : 0);
-
-    if (checkedCount === 1) {
-        popButton.disabled = false;
-        popButton.classList.remove("pop_button_inactive");
-        popButton.classList.add("pop_button_active");
-        prompt.style.visibility = 'hidden';
-    } else {
-        popButton.disabled = true;
-        popButton.classList.remove("pop_button_active");
-        popButton.classList.add("pop_button_inactive");
-        prompt.style.visibility = 'visible';
-    }
-}
-
-
-popButton.addEventListener("click", function () {
-    apiSendPopTest();
-});
-
-
-// Aux system buttons
-const solenoid = document.getElementById("solenoidButton");
-const modal = document.getElementById("confirmationModal");
-const confirmYes = document.getElementById("confirmYes");
-const confirmNo = document.getElementById("confirmNo");
-const confirmText = document.getElementById("confirmText");
-const solenoidCommand = document.getElementById("solenoidCommand");
-let isSolenoidActive = false;
-
-// Modal popup
-solenoid.addEventListener("click", () => {
-    // If manual activation is active, show a different confirmation text
-    if (isSolenoidActive) {
-        confirmText.textContent =
-            "Are you sure you want to disable manual solenoid?";
-    } else {
-        confirmText.textContent = "Are you sure you want to enable manual solenoid?";
-    }
-
-    modal.classList.remove("hidden");
-});
-
-// Modal disappear when No, keep state
-confirmNo.addEventListener("click", () => {
-    modal.classList.add("hidden");
-});
-
-// Modal disappear when Yes, handle active/inactive states
-confirmYes.addEventListener("click", () => {
-    modal.classList.add("hidden");
-
-    // If solenoid is active, deactivate it and reset switches
-    if (isSolenoidActive) {
-        solenoidCommand.hidden = true;
-        solenoid.classList.remove("solenoid_button_active");
-        solenoid.innerHTML = "Enable Manual Solenoid";
-        document.querySelectorAll(".solSwitch").forEach((el) => {
-            el.checked = false;
-            el.disabled = true;
-        });
-        isSolenoidActive = false;
-    } else {
-        // If solenoid is inactive, activate it and switch other items
-        solenoid.classList.add("solenoid_button_active");
-        solenoid.innerHTML = "Disable Manual Solenoid";
-        solenoidCommand.hidden = false;
-        document.querySelectorAll(".solSwitch").forEach((el) => {
-            el.disabled = false;
-        });
-        isSolenoidActive = true;
-    }
-    apiSendSolenoids();
-});
-
-// Send solenoid JSON packets to the websocket when clicked
-var solenoidBools = [];
-solenoidCommand.addEventListener("click", () => {
-    solenoidCommand.classList.remove("opacity-60");
-    solenoidCommand.classList.add("opacity-100")
-    
-    setTimeout(() => {
-        solenoidCommand.classList.remove("opacity-100");
-        solenoidCommand.classList.add("opacity-60");
-        
-    }, 150);
-
-    apiSendSolenoids();
-});
-
-
-// single operator password page
-window.onload = function () {
-    const password = "HIVE-RMIT";
-    const submit = document.getElementById("operatorSubmit");
-    const incorrectWarning = document.getElementById("passIncorrect");
-    const inputEnter = document.getElementById("operatorPass");
-
-    submit.addEventListener("click", () => {
-        const input = document.getElementById("operatorPass").value;
-        if (input === password) {
-            document.getElementById('m-ops-button').click();
-            incorrectWarning.hidden = true;
-
-        }
-        else {
-            incorrectWarning.hidden = false;
-        }
-    });
-
-    inputEnter.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-
-            if (inputEnter.value === password) {
-                document.getElementById('m-ops-button').click();
-                incorrectWarning.hidden = true;
-
-            }
-            else {
-                incorrectWarning.hidden = false;
-            }
-        }
-    });
-
-};

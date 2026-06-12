@@ -14,4 +14,3 @@ message GSEStateFlags {
     optional bool gas_fill_selected = 7;
     optional bool system_activated = 8;
 }
-

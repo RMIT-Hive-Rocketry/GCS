@@ -1,0 +1,242 @@
+<!-- 3D rocket module -->
+<div class="module-legacy pt-2">
+    <style>
+        .module-legacy .rocket-frame {
+            background-image: url("/legacy/static/img/rocket-frame.svg#svgView(preserveAspectRatio(none))");
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+
+        /*#rocketCanvasLegacy {
+            --current-color: var(--color-horizon-mauve);
+            filter: drop-shadow(1px 1px 0 var(--current-color)) drop-shadow(-1px 1px 0 var(--current-color)) drop-shadow(-1px -1px 0 var(--current-color)) drop-shadow(1px -1px 0 var(--current-color));
+        }*/
+    </style>
+
+    <div class="w-full h-full rocket-frame flex flex-col">
+        <p class="font-bold uppercase text-hive text-center mt-4">
+            3DOF Rocket Visualisation
+        </p>
+        <div class="flex flex-row gap-4 justify-center text-center text-legacy z-10">
+            <span>Pitch:<input readonly autocomplete="off" class="rocket-pitch border-b-red-500 border-b-2 text-right"
+                    size="6" />°</span>
+            <span>Yaw:<input readonly autocomplete="off" class="rocket-yaw border-b-green-500 border-b-2 text-right"
+                    size="6" />°</span>
+            <span>Roll:<input readonly autocomplete="off" class="rocket-roll border-b-blue-500 border-b-2 text-right"
+                    size="6" />°</span>
+        </div>
+
+        <!-- Viewer -->
+        <div class="grow flex items-center justify-center h-full p-2">
+            <div id="rocketContainerLegacy" class="relative w-full h-full group">
+                <canvas id="rocketCanvasLegacy" class="w-full h-full block -z-10" style="background-image:
+                            linear-gradient(
+                                to right,
+                                rgba(0, 0, 0, 0.4),
+                                rgba(0, 0, 0, 1) 30%,
+                                rgba(0,0,0,0) 31%
+                            ),
+                            url(/horizon/static/img/logo-horizon-rotated.png);
+                        background-repeat: no-repeat;
+                        background-size: auto 90%;
+                        background-position-y: 50%;
+                        background-position-x: 25px"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3DOF Rocket code -->
+    <script type="module" defer>
+        /**
+         * Legacy Rocket Viewer
+         *
+         * This script renders a 3D rocket model using Three.js, and updates its orientation in real-time
+         * using quaternion data. Smooth interpolation is supported to improve visual stability during flight.
+         */
+
+        import * as THREE from "/static/js/libraries/three.module.min.js";
+        import { GLTFLoader } from "/static/js/libraries/loaders/GLTFLoader.js";
+        import { displaySetValue } from "/static/js/frontend_display.js";
+
+        const containerID = "rocketContainerLegacy";
+        const canvasID = "rocketCanvasLegacy";
+        const rocketModel = "/horizon/static/assets/rocket_horizon.glb";
+
+        // === Core Variables ===
+        let rocket = null; // The main rocket model group
+        let targetQuat = new THREE.Quaternion(); // Most recent target orientation
+        let hasReceivedQuaternion = false; // Flag to begin rendering orientation once data is available
+
+        // === Orientation Smoothing Settings ===
+        const smoothingActivated = true; // Toggle smooth transitions between updates
+        const tau = 0.13; // Time constant for exponential smoothing (in seconds)
+        let lastFrameTs = performance.now(); // Timestamp of the last frame (used for dt calculation)
+
+        window.addEventListener("DOMContentLoaded", () => {
+            // === Canvas and Renderer Setup ===
+            const container = document.getElementById(containerID);
+            const canvas = document.getElementById(canvasID);
+
+            const renderer = new THREE.WebGLRenderer({
+                canvas,
+                antialias: true, // Smooth edges
+                alpha: true, // Transparent background
+            });
+
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            //renderer.shadowMap.enabled = true;
+            //renderer.gammaOutput = true;
+            //renderer.gammaFactor = 2.2;
+
+            // === Create Scene ===
+            const scene = new THREE.Scene();
+            //scene.background = null; // Keep canvas transparent
+
+            // === Camera Setup (Orthographic for a clean top-down view) ===
+            const aspect = container.clientWidth / container.clientHeight;
+            const viewSize = 10;
+            const camera = new THREE.OrthographicCamera(
+                (-aspect * viewSize) / 2, // left
+                (aspect * viewSize) / 2, // right
+                viewSize / 2, // top
+                -viewSize / 2, // bottom
+                0.1,
+                1000
+            );
+            camera.position.set(0, 0, 20);
+            camera.lookAt(0, 0, 0);
+
+            // Setup environment lighting
+            // Newer versions of three.js require an environment map for lighting
+            const environmentTexture = new THREE.CubeTextureLoader().setPath('/static/img/cubemap/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+            scene.environment = environmentTexture;
+            //scene.background = environmentTexture;
+            scene.environmentIntensity = 1;
+
+            // Also define fixed lights (for aesthetic reasons)
+            let skyColor = 0xB1E1FF;  // light blue
+            let groundColor = 0xB97A20;  // brownish orange
+            let lightIntensity = 150;
+            let light = new THREE.HemisphereLight(groundColor, skyColor, lightIntensity);
+            scene.add(light);
+
+            let light2 = new THREE.PointLight(skyColor, 20);
+            light2.position.set(10, 4, 2);
+            scene.add(light2);
+
+            let light3 = new THREE.PointLight(0xFFFFFF, 100);
+            light3.position.set(10, 2.5, 0);
+            scene.add(light3);
+
+            let light4 = new THREE.PointLight(groundColor, 50);
+            light4.position.set(-20, -4, 0);
+            scene.add(light4);
+
+            // === Load and Setup Rocket Model ===
+            new GLTFLoader().load(
+                rocketModel,
+                (gltf) => {
+                    const model = gltf.scene;
+                    const scale = 2.5;
+                    model.scale.set(scale, scale, scale); // Resize for better visibility
+
+                    // Center the model at the origin for rotation
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    model.position.sub(center);
+
+                    rocket = new THREE.Group();
+                    rocket.add(model);
+                    scene.add(rocket);
+
+                    // Dynamically position camera to fit model size
+                    const size = box.getSize(new THREE.Vector3()).length();
+                    camera.position.set(0, 0, size * 1.5);
+                    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+                    animate(); // Start render loop
+                },
+                (xhr) =>
+                    console.log(
+                        `Loading: ${((xhr.loaded / xhr.total) * 100).toFixed(1)}%`
+                    ),
+                (err) => console.error("Error loading model:", err)
+            );
+
+            // === Main Render Loop ===
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const now = performance.now();
+                const dt = (now - lastFrameTs) / 1000;
+                lastFrameTs = now;
+
+                // Only rotate model once we've received a quaternion
+                if (rocket && hasReceivedQuaternion) {
+                    if (smoothingActivated) {
+                        // compute frame-based alpha from time constant tau
+                        // (smooth with variable dt because we're using unreliable UDP)
+                        const alpha = 1 - Math.exp(-dt / tau);
+                        // smoothly blend current orientation → target
+                        rocket.quaternion.slerp(targetQuat, alpha);
+                    } else {
+                        // snap instantly to target orientation
+                        rocket.quaternion.copy(targetQuat);
+                    }
+
+                    // Extract Euler angles from smoothed quaternion for display
+                    const hudEuler = new THREE.Euler().setFromQuaternion(
+                        rocket.quaternion,
+                        "XYZ"
+                    );
+                    displaySetValue(
+                        "rocket-pitch",
+                        THREE.MathUtils.radToDeg(hudEuler.x),
+                        1
+                    );
+                    displaySetValue(
+                        "rocket-yaw",
+                        THREE.MathUtils.radToDeg(hudEuler.y),
+                        1
+                    );
+                    displaySetValue(
+                        "rocket-roll",
+                        THREE.MathUtils.radToDeg(hudEuler.z),
+                        1
+                    );
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            // === Responsive Canvas Resize ===
+            function onResize() {
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                const aspect = container.clientWidth / container.clientHeight;
+                camera.left = (-aspect * viewSize) / 2;
+                camera.right = (aspect * viewSize) / 2;
+                camera.top = viewSize / 2;
+                camera.bottom = -viewSize / 2;
+                camera.updateProjectionMatrix();
+            }
+            window.addEventListener("resize", onResize);
+
+            // === External Quaternion Update Entry Point ===
+            // Call this from elsewhere to update rocket orientation.
+            window.rocketUpdate = function (data) {
+                if (
+                    data.qw == null ||
+                    data.qx == null ||
+                    data.qy == null ||
+                    data.qz == null
+                )
+                    return;
+
+                targetQuat.set(data.qx, data.qy, data.qz, data.qw).normalize();
+                hasReceivedQuaternion = true;
+            };
+        });
+
+    </script>
+</div>

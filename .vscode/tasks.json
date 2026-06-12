@@ -4,7 +4,7 @@
         {
             "label": "middleware build-dev + generate proto",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j",
+            "command": "mkdir -p build-debug && cd build-debug; cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -24,7 +24,7 @@
         {
             "label": "middleware build-dev + generate proto + build tests",
             "type": "shell",
-            "command": "mkdir -p build && cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j",
+            "command": "mkdir -p build-debug && cd build-debug; cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON .. && make -j",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -57,12 +57,35 @@
                 "env": {
                     "CI_BUILD_ENV": "Debug"
                 }
-            },
+            }
         },
         {
-            "label": "python test",
+            "label": "python test Debug",
             "type": "shell",
             "command": "bash scripts/test_manual_python.sh",
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Debug"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "icon": {
+                "id": "check",
+                "color": "terminal.ansiCyan"
+            }
+        },
+        {
+            "label": "python test Run",
+            "type": "shell",
+            "command": "bash scripts/test_manual_python.sh",
+            "options": {
+                "env": {
+                    "CI_BUILD_ENV": "Run"
+                }
+            },
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -78,8 +101,7 @@
             "command": "socat -d -d pty,raw,echo=0 pty,raw,echo=0",
             "icon": {
                 "id": "debug-console"
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "start emulator manually",
@@ -87,8 +109,7 @@
             "command": "./venv/bin/python -u -Xfrozen_modules=off -m backend.device_emulator --device-rocket ${input:terminalPath}",
             "icon": {
                 "id": "debug-console"
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "start ZeroMQ debug subscriber",
@@ -105,15 +126,14 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "start RPI pendant controller debug",
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/python",
             "args": [
-                "backend/tools/debug_rpi_pendant.py",
+                "backend/tools/debug_rpi_pendant.py"
             ],
             "icon": {
                 "id": "debug-console"
@@ -122,8 +142,39 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
+            }
+        },
+        {
+            "label": "start Pygame pendant controller debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_pygame_pendant.py"
+            ],
+            "icon": {
+                "id": "debug-console"
             },
-            "problemMatcher": []
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
+        },
+        {
+            "label": "start Pygame input decoder",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_pygame_controller.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
         },
         {
             "label": "start websocket debug subscriber",
@@ -139,8 +190,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "start frontend API manually",
@@ -158,8 +208,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "start frontend API manually",
@@ -177,8 +226,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "start hardware pendant emulator manually",
@@ -194,8 +242,7 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
             "label": "Compile Manual Protobuf Payload",
@@ -231,64 +278,44 @@
             }
         },
         {
-            "label": "Tailwind Dev",
+            "label": "Frontend Tailwind",
             "type": "shell",
-            "command": "echo \"failed to find OS specific command\"",
-            "windows": {
-                "command": ".\\third_party\\tailwindcss.exe",
-                "args": [
-                    "--cwd",
-                    ".\\frontend\\static",
-                    "-i",
-                    ".\\css\\tailwind.input.css",
-                    "-o",
-                    ".\\css\\tailwind.css",
-                    "--watch",
-                    "--optimize"
-                ]
-            },
-            "linux": {
-                "command": "./third_party/tailwindcss",
-                "args": [
-                    "--cwd",
-                    "./frontend",
-                    "-i",
-                    "./static/css/tailwind.input.css",
-                    "-o",
-                    "./static/css/tailwind.css",
-                    "--watch",
-                    "--optimize"
-                ]
-            },
+            "command": "./frontend/tailwind.sh",
             "icon": {
                 "id": "paintcan"
-            },
-            "problemMatcher": []
+            }
         },
         {
-            "label": "start frontend (no API)",
+            "label": "Frontend Setup",
+            "type": "shell",
+            "command": "./frontend/setup.sh",
+            "icon": {
+                "dark": "resources/dark/build.svg",
+                "light": "resources/light/build.svg",
+                "color": "terminal.ansiRed"
+            }
+        },
+        {
+            "label": "Frontend Flask Server",
             "type": "shell",
             "command": "flask",
             "args": [
-                "--app",
-                "frontend.flask_server",
-                "--debug",
-                "run",
-                "--port=8008"
+                "-A",
+                "frontend.server",
+                "run"
             ],
             "icon": {
-                "id": "debug-console",
+                "id": "server-process",
                 "color": "terminal.ansiRed"
             },
             "options": {
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
-            "label": "start frontend (dev test mode)",
+            "label": "Frontend Dev",
             "type": "shell",
             "command": "source",
             "args": [
@@ -314,7 +341,7 @@
             "problemMatcher": []
         },
         {
-            "label": "start frontend (EXPERIMENTAL MODE)",
+            "label": "Frontend Dev [EXPERIMENTAL]",
             "type": "shell",
             "command": "source",
             "args": [
@@ -342,7 +369,7 @@
             "problemMatcher": []
         },
         {
-            "label": "start frontend (replay simulation mode)",
+            "label": "Frontend Rocket.py",
             "type": "shell",
             "command": "source",
             "args": [
@@ -357,18 +384,17 @@
                 "TEST"
             ],
             "icon": {
-                "id": "debug-console",
-                "color": "terminal.ansiRed"
+                "id": "debug-continue",
+                "color": "terminal.ansiMagenta"
             },
             "options": {
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            },
-            "problemMatcher": []
+            }
         },
         {
-            "label": "start frontend (replay mission 20250504)",
+            "label": "Frontend Replay 20250504",
             "type": "shell",
             "command": "source",
             "args": [
@@ -383,15 +409,64 @@
                 "20250504"
             ],
             "icon": {
-                "id": "debug-console",
-                "color": "terminal.ansiRed"
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
             },
             "options": {
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
+            }
+        },
+        {
+            "label": "Frontend Replay IREC2025",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "IREC2025"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
             },
-            "problemMatcher": []
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
+        },
+        {
+            "label": "Frontend Replay 20260428 @ White Cliffs",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                ".venv/bin/activate",
+                "&&",
+                "python3",
+                "./rocket.py",
+                "replay",
+                "--mode",
+                "mission",
+                "--mission",
+                "20260428"
+            ],
+            "icon": {
+                "id": "debug-restart",
+                "color": "terminal.ansiMagenta"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
         },
         {
             "label": "Run Simulation",
@@ -409,7 +484,6 @@
                 }
             },
             "group": "build",
-            "problemMatcher": [],
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
@@ -433,10 +507,63 @@
                 }
             },
             "group": "build",
-            "problemMatcher": [],
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiBlue"
+            }
+        },
+        {
+            "label": "Act: Local Build (Release/g++)",
+            "type": "shell",
+            "command": "act",
+            "args": [
+                "--matrix",
+                "build_type:Release",
+                "--matrix",
+                "cpp_compiler:g++",
+                "--secret-file",
+                ".secrets"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "start TCP interface loopback debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "backend/tools/debug_tcp_interface_packets.py"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
+        },
+        {
+            "label": "start E5 fake AV spam debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python3",
+            "args": [
+                "backend/tools/debug_e5_fake_av.py",
+                "--serial-path",
+                "${input:e5SerialPath}"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
             }
         }
     ],
@@ -452,6 +579,12 @@
             "type": "promptString",
             "description": "Enter the psuedoterminal /dev path",
             "default": "/dev/ttys..."
+        },
+        {
+            "id": "e5SerialPath",
+            "type": "promptString",
+            "description": "Enter E5 serial device path",
+            "default": "/dev/ttyAMA0"
         }
     ]
 }

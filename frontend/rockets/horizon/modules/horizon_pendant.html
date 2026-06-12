@@ -1,0 +1,671 @@
+<!--
+    Horizon Hybrid Control Pendant module.
+
+    Visualises the physical control pendant by stacking PNG layers,
+    each independently shown or hidden in response to packet ID 10.
+
+    Alongside the pendant, a cool looking status panel displays the same data,
+    showing current phase and dots for each state/input.
+
+    Also comes with a console log that automatically times how long each state,
+    has been activated for.
+-->
+<div class="module-horizon module-pendant w-full h-full flex flex-col">
+    <h2>Hybrid Control Pendant</h2>
+
+    <div class="pendant-layout flex-1 grid gap-6 p-5 min-h-0 min-w-0">
+        <!-- Visual pendant stack -->
+        <div class="hybridcontrolpendant pendant-visual flex justify-center items-center min-h-0 min-w-0">
+            <div class="pendant-stack">
+                <img src="/img/pendant/hybrid-off.png" alt="Pendant base" />
+                <img src="/img/pendant/hybrid-system-active.png" data-key="pendant.hybrid.SYSTEM_ACTIVATE"
+                    class="hidden" alt="System active" />
+                <!--<img
+                    src="/img/pendant/hybrid-standby.png"
+                    data-key="pendant.hybrid.STANDBY"
+                    class="hidden"
+                    alt="Standby"
+                />-->
+                <img src="/img/pendant/hybrid-fill.png" data-key="pendant.hybrid.GAS_FILL_SELECTED" class="hidden"
+                    alt="Fill mode" />
+                <img src="/img/pendant/hybrid-fill-N2O.png" data-key="pendant.hybrid.N2O_FILL_ACTIVATE" class="hidden"
+                    alt="N2O fill" />
+                <!--<img
+                    src="/img/pendant/hybrid-fill-neutral.png"
+                    data-key="pendant.hybrid.SELECTOR_SWITCH_NEUTRAL_POSITION"
+                    class="hidden"
+                    alt="Fill neutral"
+                />-->
+                <img src="/img/pendant/hybrid-fill-purge.png" data-key="pendant.hybrid.MANUAL_PURGE" class="hidden"
+                    alt="Purge" />
+                <img src="/img/pendant/hybrid-armed.png" data-key="pendant.hybrid.IGNITION_SELECTED" class="hidden"
+                    alt="Armed" />
+                <img src="/img/pendant/hybrid-armed-O2.png" data-key="pendant.hybrid.O2_FILL_ACTIVATE" class="hidden"
+                    alt="Armed O2" />
+                <img src="/img/pendant/hybrid-armed-ignition.png" data-key="pendant.hybrid.IGNITION_FIRE" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f9.png" data-key="pendant.hybrid.F9" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f10.png" data-key="pendant.hybrid.F10" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f11.png" data-key="pendant.hybrid.F11" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-f12.png" data-key="pendant.hybrid.F12" class="hidden"
+                    alt="Armed ignition" />
+                <img src="/img/pendant/hybrid-estop.png" data-key="pendant.hybrid.E_STOP" class="hidden" alt="E-stop" />
+            </div>
+        </div>
+
+        <!-- Status / telemetry sidebar -->
+        <aside class="pendant-status">
+            <div class="pendant-phase">
+                <div class="pendant-section-label">Current Phase</div>
+                <div class="pendant-phase-value phase-off" data-pendant-phase>OFF</div>
+            </div>
+
+            <div class="pendant-inputs">
+                <div class="pendant-section-label">Inputs</div>
+                <ul class="pendant-input-list">
+                    <li data-state-check="SYSTEM_ACTIVATE"><span class="dot"></span>System Active</li>
+                    <li data-state-check="GAS_FILL_SELECTED"><span class="dot"></span>Fill Mode Selected</li>
+                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Fill Selector
+                        Neutral</li>
+                    <li data-state-check="N2O_FILL_ACTIVATE"><span class="dot"></span>N₂O Fill Active</li>
+                    <li data-state-check="MANUAL_PURGE"><span class="dot"></span>Manual Purge</li>
+                    <li data-state-check="IGNITION_SELECTED"><span class="dot"></span>Armed</li>
+                    <li data-state-check="O2_FILL_ACTIVATE"><span class="dot"></span>O₂ Fill Active</li>
+                    <li data-state-check="IGNITION_FIRE"><span class="dot"></span>Ignition Fire</li>
+                    <li data-state-check="E_STOP" class="estop"><span class="dot"></span>E-STOP</li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Console row -->
+        <div class="pendant-console">
+            <div class="pendant-section-label console-header">Event Log</div>
+            <div class="console-log" data-console-log></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ---------- Grid layout ---------- */
+
+    .module-pendant .pendant-layout {
+        grid-template-columns: 1fr 280px;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "pendant status"
+            "console console";
+        row-gap: 1rem;
+    }
+
+    .module-pendant .pendant-visual {
+        grid-area: pendant;
+        padding: 1rem;
+    }
+
+    .module-pendant .pendant-status {
+        grid-area: status;
+    }
+
+    .module-pendant .pendant-console {
+        grid-area: console;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 8px 12px 10px;
+        border: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 60%, transparent);
+        background: color-mix(in oklab, var(--color-horizon-mauve) 5%, transparent);
+    }
+
+    .module-pendant .console-header {
+        flex: 0 0 auto;
+    }
+
+    .module-pendant .console-log {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        padding-right: 4px;
+    }
+
+    /* Marker line: --- LABEL --- */
+    .module-pendant .console-line-marker {
+        color: var(--color-horizon-yellow);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        text-align: center;
+        padding: 4px 0;
+    }
+
+    .module-pendant .console-line-marker.critical {
+        color: #ff3030;
+        text-shadow: 0 0 6px rgba(255, 48, 48, 0.5);
+    }
+
+    /* Timed line: LABEL .... STATUS .... 0.00 s */
+    .module-pendant .console-line-timed {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .module-pendant .console-line-timed .line-label {
+        flex: 0 0 auto;
+        min-width: 10ch;
+        color: rgba(255, 255, 255, 0.85);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .module-pendant .console-line-timed .line-leader {
+        flex: 1 1 0;
+        border-bottom: 1px dotted rgba(255, 255, 255, 0.25);
+        position: relative;
+        top: -4px;
+    }
+
+    .module-pendant .console-line-timed .line-status {
+        flex: 0 0 auto;
+        min-width: 90px;
+        text-align: center;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+    }
+
+    .module-pendant .console-line-timed.active .line-status {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 6px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+
+    .module-pendant .console-line-timed.disengaged .line-status {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .module-pendant .console-line-timed .line-time {
+        flex: 0 0 auto;
+        min-width: 70px;
+        text-align: right;
+        color: rgba(255, 255, 255, 0.7);
+        font-variant-numeric: tabular-nums;
+        font-weight: bold;
+    }
+
+    @media (max-width: 720px) {
+        .module-pendant .pendant-layout {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto;
+            grid-template-areas:
+                "pendant"
+                "status"
+                "console";
+        }
+
+        .module-pendant .pendant-status {
+            max-height: 40%;
+        }
+    }
+
+    /* ---------- Pendant visual ---------- */
+
+    .pendant-stack {
+        display: grid;
+        grid-template-columns: 100%;
+        grid-template-rows: 100%;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .pendant-stack img {
+        grid-row: 1;
+        grid-column: 1;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* ---------- Status sidebar ---------- */
+
+    .module-pendant .pendant-status {
+        display: flex;
+        flex-direction: column;
+        gap: 1.4rem;
+        font-size: 1rem;
+        min-width: 0;
+        overflow: auto;
+    }
+
+    .module-pendant .pendant-section-label {
+        font-size: 0.78rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--color-horizon-yellow);
+        border-bottom: 1px solid color-mix(in oklab, var(--color-horizon-mauve) 60%, transparent);
+        padding-bottom: 4px;
+        margin-bottom: 10px;
+    }
+
+    .module-pendant .pendant-phase-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        letter-spacing: 0.05em;
+        line-height: 1;
+        padding: 6px 0;
+        color: rgba(255, 255, 255, 0.55);
+        transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .module-pendant .pendant-phase-value.phase-standby {
+        color: var(--color-horizon-mauve);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-mauve) 40%, transparent);
+    }
+
+    .module-pendant .pendant-phase-value.phase-fill {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+
+    .module-pendant .pendant-phase-value.phase-fill-n2o {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+
+    .module-pendant .pendant-phase-value.phase-fill-neutral {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+
+    .module-pendant .pendant-phase-value.phase-purge {
+        color: var(--color-horizon-pink);
+        text-shadow: 0 0 8px color-mix(in oklab, var(--color-horizon-pink) 50%, transparent);
+    }
+
+    .module-pendant .pendant-phase-value.phase-armed {
+        color: #ff3030;
+        text-shadow: 0 0 14px #ff3030;
+    }
+
+    .module-pendant .pendant-phase-value.phase-armed-o2 {
+        color: #ff3030;
+        text-shadow: 0 0 14px #ff3030;
+    }
+
+    .module-pendant .pendant-phase-value.phase-ignition {
+        color: var(--color-horizon-yellow);
+        text-shadow: 0 0 14px color-mix(in oklab, var(--color-horizon-yellow) 50%, transparent);
+        animation: pendantPulse 0.6s infinite alternate;
+    }
+
+    .module-pendant .pendant-phase-value.phase-estop {
+        color: #ff3030;
+        text-shadow: 0 0 14px #ff3030;
+        animation: pendantPulse 0.4s infinite alternate;
+    }
+
+    /* Input dots */
+    .module-pendant .pendant-input-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.95rem;
+    }
+
+    .module-pendant .pendant-input-list li {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 5px 0;
+        color: rgba(255, 255, 255, 0.4);
+        transition: color 0.15s ease;
+    }
+
+    .module-pendant .pendant-input-list .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+
+    .module-pendant .pendant-input-list li.active {
+        color: var(--color-horizon-pink);
+    }
+
+    .module-pendant .pendant-input-list li.active .dot {
+        background: var(--color-horizon-pink);
+        border-color: var(--color-horizon-pink);
+        box-shadow: 0 0 8px var(--color-horizon-pink);
+    }
+
+    .module-pendant .pendant-input-list li.estop.active {
+        color: #ff3030;
+    }
+
+    .module-pendant .pendant-input-list li.estop.active .dot {
+        background: #ff3030;
+        border-color: #ff3030;
+        box-shadow: 0 0 10px #ff3030;
+    }
+
+    @keyframes pendantPulse {
+        from {
+            opacity: 0.7;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    // Mapping from a phase to its display label and CSS class
+    const PENDANT_PHASE_INFO = {
+        OFF: { label: "OFF", cls: "phase-off" },
+        STANDBY: { label: "STANDBY", cls: "phase-standby" },
+        FILL_NEUTRAL: { label: "FILL - NEUTRAL", cls: "phase-fill-neutral" },
+        FILL_N2O:     { label: "FILL - N₂O",    cls: "phase-fill-n2o"     },
+        PURGE:        { label: "PURGE",              cls: "phase-purge"        },
+        ARMED:        { label: "ARMED",              cls: "phase-armed"        },
+        ARMED_O2:     { label: "O₂ FILL",   cls: "phase-armed-o2"     },
+        IGNITION:     { label: "IGNITION",           cls: "phase-ignition"     },
+        ESTOP:        { label: "E-STOP",             cls: "phase-estop"        },
+    };
+
+    // This is the "priority order" of phases, since multiple can be true at once
+    function derivePendantPhase(apiData) {
+        if (!apiData) return "OFF";
+        if (apiData.E_STOP) return "E_STOP";
+        if (apiData.IGNITION_FIRE) return "IGNITION";
+        if (apiData.IGNITION_SELECTED) {
+            if (apiData.O2_FILL_ACTIVATE) return "ARMED_O2";
+            return "ARMED";
+        }
+        if (apiData.GAS_FILL_SELECTED) {
+            if (apiData.N2O_FILL_ACTIVATE) return "FILL_N2O";
+            if (apiData.MANUAL_PURGE) return "PURGE";
+            return "FILL_NEUTRAL";
+        }
+        if (apiData.SYSTEM_ACTIVATE) return "STANDBY";
+        return "OFF";
+    }
+
+    // TODO: TEMPORARY
+    // Okay so idk wtf is going on, my thing was receiving the new names
+    // but after merging a pendant naming refactor, the frontend is now receiving
+    // the old names??? Idek anymore, just gonna put this here to fix it
+    const NORMALIZE_KEY = {
+        // Old backend names
+        SYS_ON: "SYSTEM_ACTIVATE",
+        FILL_SELECTED: "GAS_FILL_SELECTED",
+        N2O_ACTIVE: "N2O_FILL_ACTIVATE",
+        NEUTRAL_ACTIVE: "SELECTOR_SWITCH_NEUTRAL_POSITION",
+        PURGE_ACTIVE: "MANUAL_PURGE",
+        O2_MOMENT_ACTIVE: "O2_FILL_ACTIVATE",
+        IGNITION_MOMENT_ACTIVE: "IGNITION_FIRE",
+
+        // New names
+        SYSTEM_ACTIVATE: "SYSTEM_ACTIVATE",
+        GAS_FILL_SELECTED: "GAS_FILL_SELECTED",
+        N2O_FILL_ACTIVATE: "N2O_FILL_ACTIVATE",
+        SELECTOR_SWITCH_NEUTRAL_POSITION: "SELECTOR_SWITCH_NEUTRAL_POSITION",
+        MANUAL_PURGE: "MANUAL_PURGE",
+        O2_FILL_ACTIVATE: "O2_FILL_ACTIVATE",
+        IGNITION_FIRE: "IGNITION_FIRE",
+
+        F9: "F9",
+        F10: "F10",
+        F11: "F11",
+        F12: "F12",
+
+        // Shared
+        IGNITION_SELECTED: "IGNITION_SELECTED",
+        E_STOP: "E_STOP",
+        ESTOP: "E_STOP",
+    };
+
+    function normalizeApiData(raw) {
+        const out = {};
+        for (const [key, value] of Object.entries(raw)) {
+            if (typeof value !== "boolean") continue;
+            const name = NORMALIZE_KEY[key];
+            if (name) out[name] = value;
+        }
+        return out;
+    }
+
+    // vvvvv Entry Point vvvvv
+    // Translates a packet ID 10 payload into the set of `pendant.hybrid.[state]`
+    // layers that should be visible, then applies that to the DOM.
+    function updatePendantState(rawApiData) {
+
+        const apiData = normalizeApiData(rawApiData);
+
+        const new_pendant_state = [];
+
+        for (const state in apiData) {
+            if (
+                typeof apiData[state] === "boolean" &&
+                apiData[state] === true
+            ) {
+                new_pendant_state.push(`pendant.hybrid.${state}`);
+            }
+        }
+
+        togglePendant(new_pendant_state);
+        updatePendantStatusPanel(apiData);
+        processConsoleEvents(apiData);
+    }
+
+    function togglePendant(pendant_state) {
+        // Hide all pendant layers
+        document
+            .querySelectorAll("[data-key^='pendant.hybrid']")
+            .forEach((elem) => {
+                elem.classList.add("hidden");
+            });
+
+        // Show the ones that should be active
+        for (const state of pendant_state) {
+            const elem = document.querySelector(`[data-key='${state}']`);
+            if (elem) {
+                elem.classList.remove("hidden");
+            } else {
+                //console.log(state);
+            }
+        }
+    }
+
+    function updatePendantStatusPanel(apiData) {
+        const phase = derivePendantPhase(apiData);
+        const info = PENDANT_PHASE_INFO[phase];
+
+        const phaseEl = document.querySelector("[data-pendant-phase]");
+        if (phaseEl) {
+            phaseEl.textContent = info.label;
+            phaseEl.className = "pendant-phase-value " + info.cls;
+        }
+
+        // Update the per-input dots
+        document.querySelectorAll("[data-state-check]").forEach((el) => {
+            const key = el.dataset.stateCheck;
+            el.classList.toggle("active", apiData && apiData[key] === true);
+        });
+    }
+
+    /* =========================================================
+     * Event log console
+     * =========================================================
+     * Watches inputs from packet ID 10 for rising/falling edges
+     * and logs them as lines in the console.
+     * The whole order of events is preserved -- each press
+     * adds a new line.
+     */
+
+    // Per-input config: how each one should appear in the log.
+    // Iteration order here also controls the order multiple
+    // simultaneous events get logged in.
+    const CONSOLE_INPUT_CONFIG = {
+        E_STOP: { label: "E-STOP ENGAGED", type: "marker", critical: true },
+        SYSTEM_ACTIVATE: { label: "SYSTEM ACTIVE", type: "marker" },
+        GAS_FILL_SELECTED: { label: "ENTER FILL MODE", type: "marker" },
+        IGNITION_SELECTED: { label: "ENTER ARMED MODE", type: "marker" },
+        SELECTOR_SWITCH_NEUTRAL_POSITION: { label: "SELECTOR NEUTRAL", type: "marker" },
+        N2O_FILL_ACTIVATE: { label: "N₂O FILL", type: "timed" },
+        MANUAL_PURGE: { label: "PURGE", type: "timed" },
+        O2_FILL_ACTIVATE: { label: "O₂ FILL", type: "timed" },
+        IGNITION_FIRE: { label: "IGNITION", type: "timed" },
+    };
+
+    // Internal state for the console
+    const consoleState = {
+        // Last packet's boolean for each input
+        lastInputs: {},
+
+        activeTimers: {},
+        tickerRunning: false,
+    };
+
+    function processConsoleEvents(apiData) {
+        // Walk inputs in predetermined order so simultaneous events
+        // log in a predictable order
+        for (const [key, config] of Object.entries(CONSOLE_INPUT_CONFIG)) {
+            const wasActive = consoleState.lastInputs[key] === true;
+            const isActive = apiData && apiData[key] === true;
+
+            // If an input just turned on, either make a status line
+            // Like for "entering fill mode"
+            // or make a timed line
+            if (!wasActive && isActive) {
+                if (config.type === "marker") {
+                    appendMarkerLine(config);
+                } else {
+                    startTimedLine(key, config);
+                }
+                // If an input just turned off, stop the timer
+            } else if (wasActive && !isActive) {
+                if (config.type === "timed") {
+                    freezeTimedLine(key);
+                }
+            }
+
+            // If any inputs are still on, or still off, we don't care
+
+            consoleState.lastInputs[key] = isActive;
+        }
+    }
+
+    function appendMarkerLine(config) {
+        const line = document.createElement("div");
+        // TODO: this line is framework for the e-stop, but currently it isn't being sent
+        // over on packet ID 10, but I'm leaving this here
+        line.className = "console-line-marker" + (config.critical ? " critical" : "");
+
+        line.textContent = `--- ${config.label} ---`;
+        appendConsoleLine(line);
+    }
+
+    function startTimedLine(key, config) {
+        const line = document.createElement("div");
+        line.className = "console-line-timed active";
+
+        const labelEl = document.createElement("span");
+        labelEl.className = "line-label";
+        labelEl.textContent = config.label;
+
+        const leader1 = document.createElement("span");
+        leader1.className = "line-leader";
+
+        const statusEl = document.createElement("span");
+        statusEl.className = "line-status";
+        statusEl.textContent = "ACTIVE";
+
+        const leader2 = document.createElement("span");
+        leader2.className = "line-leader";
+
+        const timeEl = document.createElement("span");
+        timeEl.className = "line-time";
+        timeEl.textContent = "0.00 s";
+
+        line.append(labelEl, leader1, statusEl, leader2, timeEl);
+        appendConsoleLine(line);
+
+        // Store these for later reference, so the timer doesn't need
+        // to re-query the DOM every time
+        consoleState.activeTimers[key] = {
+            lineEl: line,
+            statusEl,
+            timeEl,
+            startedAt: performance.now(),
+        };
+        ensureTickerRunning();
+    }
+
+    function freezeTimedLine(key) {
+        const timer = consoleState.activeTimers[key];
+        if (!timer) return;
+
+        // Final timestamp rounding and CSS changes
+        const elapsed = (performance.now() - timer.startedAt) / 1000;
+        timer.timeEl.textContent = elapsed.toFixed(2) + " s";
+        timer.statusEl.textContent = "DISENGAGED";
+        timer.lineEl.classList.remove("active");
+        timer.lineEl.classList.add("disengaged");
+
+        delete consoleState.activeTimers[key];
+    }
+
+    // So, we're using RAF for the timer animation
+    // It runs at the same refresh rate as your display, and automatically
+    // pauses if focus is lost, for optimisation
+    function tickActiveTimers() {
+        const keys = Object.keys(consoleState.activeTimers);
+        if (keys.length === 0) {
+            consoleState.tickerRunning = false;
+            return;
+        }
+        const now = performance.now();
+        for (const key of keys) {
+            const timer = consoleState.activeTimers[key];
+            const elapsed = (now - timer.startedAt) / 1000;
+            timer.timeEl.textContent = elapsed.toFixed(2) + " s";
+        }
+        requestAnimationFrame(tickActiveTimers);
+    }
+
+    // Important, because otherwise every new timed line would
+    // queue another RAF and we'd have a bunch of duplicate ticker loops
+    function ensureTickerRunning() {
+        if (consoleState.tickerRunning) return;
+        consoleState.tickerRunning = true;
+        requestAnimationFrame(tickActiveTimers);
+    }
+
+    // Auto-scrolling, stick to the bottom unless the user has
+    // scrolled up to read history
+    function appendConsoleLine(lineEl) {
+        const log = document.querySelector("[data-console-log]");
+        if (!log) return;
+        const wasAtBottom =
+            log.scrollHeight - log.scrollTop - log.clientHeight <= 8;
+        log.appendChild(lineEl);
+        if (wasAtBottom) {
+            log.scrollTop = log.scrollHeight;
+        }
+    }
+</script>

@@ -1,0 +1,40 @@
+<!-- Preflight information -->
+<div class="module-horizon grid grow gap-2 h-full">
+    <!-- Sound files -->
+    <h2>Overview</h2>
+    <p>
+        The above mute/unmute (default mute) icon can be used to toggle whether sounds play or not.
+        The 1st 4 sounds (2 of them with quicker versions) are alarms that signify if something is wrong
+        with connections to external devices (signified by a non-green indicator), and play in a queue
+        from top to bottom priority (GSE, AV, GPS Fix), the others being for specific events. Click the
+        following button to hear them in succession (same order as described below), with 0.5 sec of
+        silence between each (including any quicker versions):
+        <audio id="combined" src="sounds/Combined_Sounds.mp3" preload="auto" controls></audio>
+    </p>
+    <p>
+        Description of each sound:<br>
+        The GSE loss is a high-pitched chord (and AV loss a 1kHz square wave), both of which play
+        in quicker succession when timed out for more than 5 seconds. The GPS Fix Loss is a triangle
+        wave pitch-shifted to ~0.5 octaves below AV loss. When the rocket reaches Apogee a celebratory
+        piano chord is played, 2 seconds after which (and then at 1200ft) a descending sine sweep is
+        played. In terms of safety, if the rocket is within 50m of the GCS, a horn tritone plays for as
+        long as is the case, increasing to full volume during the 1st iteration (~16 seconds). Currently
+        this covers the case when the rocket is about to hit someone on the head (as this event is not
+        separately detectable).
+        Normally to avoid surprises, these sounds only play on the Horizon main page, except for the last 2
+        sounds, which for safety play on any page of the Horizon rocket.
+    </p>
+    <p>
+        Sources:<br>
+        GSE and GPS Fix losses are from https://www.youtube.com/watch?v=EWnhSCFCYto, AV loss is from
+        https://www.youtube.com/watch?v=W5Z-d1Zx02o, the parachute sound was created in Audacity and
+        the rest created in Musescore
+    </p>
+
+    <!-- Future code, when required:
+        Mention that the dual board loss is a low-pitched sound (slightly ascending) from
+        https://www.youtube.com/watch?v=W5Z-d1Zx02o, with the rocket hitting on the head sound being a
+        quick timpani increasing in pitch (and warn that it is all-out crazy, but so would the
+        scenario)
+    </tr> -->
+</div>

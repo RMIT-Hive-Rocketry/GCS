@@ -1,20 +1,26 @@
 """
-    Just read the csv file and read it linearly no stress
-    Replay the following CSV files
+Just read the csv file and read it linearly no stress
+Replay the following CSV files
 
 """
-from enum import Enum
-from dataclasses import dataclass
-import sys
+
 import os
 import csv
-from typing import List
 import time
-import config.config as config
-from backend.device_emulator import AVtoGCSData1, AVtoGCSData2, AVtoGCSData3, GSEtoGCSData1, GSEtoGCSData2, GCStoAVStateCMD, GCStoGSEStateCMD, MockPacket
+from config import config
+from backend.device_emulator import (
+    AVtoGCSData1,
+    AVtoGCSData2,
+    MockPacket,
+)
 import backend.includes_python.process_logging as slogger
-import backend.includes_python.service_helper as service_helper
-from backend.replay_system.packet_type import PacketType
+from backend.includes_python import service_helper
+from backend.replay_system.packet import Packet, PacketType
+from backend.replay_system.blue_raven_processor import (
+    process_blue_raven,
+    get_blue_raven_path,
+)
+from backend.simulation.run_simulation import get_replay_sim_data
 import configparser
 import argparse
 
@@ -23,40 +29,36 @@ cfg.read("config/replay.ini")
 timeout_cfg = cfg["Timeout"]
 MIN_TIMESTAMP_MS = float(timeout_cfg["min_timeout_ms"])
 SLEEP_BUFFER_MS = float(timeout_cfg["sleep_buffer_error"])
+MAX_FRAME_RATE = float(timeout_cfg["max_frame_rate"])
 
 
-@dataclass
-class Packet:
-    timestamp_ms: float
-    packet_type: PacketType
-    data: dict
-
-
-def process_csv_packets(min_timestamp_ms: int, mission_path: str) -> List[Packet]:
+def process_csv_packets(
+    min_timestamp_ms: int, mission_path: str
+) -> list[Packet]:
     """Read and sort all the csv files"""
     packets = []
     for packet_type in PacketType:
 
         filename = os.path.join(mission_path, f"{packet_type.name}.csv")
         try:
-            with open(filename, 'r', encoding='utf-8-sig') as f:
+            with open(filename, encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    timestamp_ms = float(row['timestamp_ms'])
+                    timestamp_ms = float(row["timestamp_ms"])
                     if timestamp_ms > min_timestamp_ms:
                         packet = Packet(
                             timestamp_ms=timestamp_ms,
                             packet_type=packet_type,
-                            data=row
+                            data=row,
                         )
                         packets.append(packet)
         except FileNotFoundError:
-            slogger.error(f'Warning Missing File: {filename}')
+            slogger.error(f"Warning Missing File: {filename}")
 
     return sorted(packets, key=lambda x: x.timestamp_ms)
 
 
-def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
+def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
     if not packets:
         return
 
@@ -66,15 +68,33 @@ def replay_packets(packets: List[Packet], min_timestamp_ms: int) -> None:
 
     if service_helper.time_to_stop():
         return
+
+    next_earliest_frame_time_av1 = start_time
+    next_earliest_frame_time_av2 = start_time
     for packet in packets:
         if service_helper.time_to_stop():
             break
         # Find when the packet should be sent
         target_time = start_time + (packet.timestamp_ms) / 1000.0
+
+        # skip frame if too soon, importantly checks data 1 and 2 separate as otherwise often end up skipping all AV2 data
+        if packet.packet_type == PacketType.AV_TO_GCS_DATA_1:
+            if target_time < next_earliest_frame_time_av1:
+                continue
+            # current packet will be sent, therefore update the next earliest allowed frame_time
+            next_earliest_frame_time_av1 += 1 / MAX_FRAME_RATE
+        if packet.packet_type == PacketType.AV_TO_GCS_DATA_2:
+            if target_time < next_earliest_frame_time_av2:
+                continue
+            # current packet will be sent, therefore update the next earliest allowed frame_time
+            next_earliest_frame_time_av2 += 1 / MAX_FRAME_RATE
+
         time_to_wait = target_time - time.time()
+
         if time_to_wait >= 3.0:
             slogger.warning(
-                f"Time until next packet: {round(time_to_wait,3)} seconds")
+                f"Time until next packet: {round(time_to_wait,3)} seconds"
+            )
         # slogger.debug(f"Time to wait: {time_to_wait} for packet: {packet.packet_type} at time: {packet.timestamp_ms}")
         if time_to_wait > 0:
             remaining_time = time_to_wait
@@ -154,13 +174,16 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
 
         if CURRENT_VALUE > ABS_THRESHOLD:
             slogger.error(
-                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE")
+                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE"
+            )
             data[key] = ABS_THRESHOLD
         elif CURRENT_VALUE < -ABS_THRESHOLD:
             slogger.error(
-                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE")
+                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE"
+            )
             data[key] = -ABS_THRESHOLD
         return packet
+
     # Check gyro values
     packet = _gyro_capper(packet, "x")
     packet = _gyro_capper(packet, "y")
@@ -176,35 +199,40 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
         SNR=float(data["snr"]),
         FLIGHT_STATE_=flight_state,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
-            data["dual_board_connectivity_state_flag"]),
+            data["dual_board_connectivity_state_flag"]
+        ),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
-            data["recovery_checks_complete_and_flight_ready"]),
+            data["recovery_checks_complete_and_flight_ready"]
+        ),
         GPS_FIX_FLAG=bool(data["GPS_fix_flag"]),
         PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
         CAMERA_CONTROLLER_CONNECTION=bool(
-            data["camera_controller_connection_flag"]),
+            data["camera_controller_connection_flag"]
+        ),
         ACCEL_LOW_X=int(float(data["accel_low_x"]) / 9.81 * 2048),
         ACCEL_LOW_Y=int(float(data["accel_low_y"]) / 9.81 * 2048),
         ACCEL_LOW_Z=int(float(data["accel_low_z"]) / 9.81 * 2048),
-        ACCEL_HIGH_X=int(float(data['accel_high_x']) / 9.81 * -1048),
-        ACCEL_HIGH_Y=int(float(data['accel_high_y']) / 9.81 * -1048),
-        ACCEL_HIGH_Z=int(float(data['accel_high_z']) / 9.81 * 1048),
+        ACCEL_HIGH_X=int(float(data["accel_high_x"]) / 9.81 * -1048),
+        ACCEL_HIGH_Y=int(float(data["accel_high_y"]) / 9.81 * -1048),
+        ACCEL_HIGH_Z=int(float(data["accel_high_z"]) / 9.81 * 1048),
         GYRO_X=int((float(data["gyro_x"])) / 0.00875),
         GYRO_Y=int((float(data["gyro_y"])) / 0.00875),
         GYRO_Z=int((float(data["gyro_z"])) / 0.00875),
-        ALTITUDE=float(data['altitude']),
+        ALTITUDE=float(data["altitude"]),
         VELOCITY=float(data["velocity"]),
         APOGEE_PRIMARY_TEST_COMPETE=bool(data["apogee_primary_test_complete"]),
         APOGEE_SECONDARY_TEST_COMPETE=bool(
-            data["apogee_secondary_test_complete"]),
+            data["apogee_secondary_test_complete"]
+        ),
         APOGEE_PRIMARY_TEST_RESULTS=bool(data["apogee_primary_test_results"]),
         APOGEE_SECONDARY_TEST_RESULTS=bool(
-            data["apogee_secondary_test_results"]),
+            data["apogee_secondary_test_results"]
+        ),
         MAIN_PRIMARY_TEST_COMPETE=bool(data["main_primary_test_complete"]),
         MAIN_SECONDARY_TEST_COMPETE=bool(data["main_secondary_test_complete"]),
         MAIN_PRIMARY_TEST_RESULTS=bool(data["main_primary_test_results"]),
         MAIN_SECONDARY_TEST_RESULTS=bool(data["main_secondary_test_results"]),
-        MOVE_TO_BROADCAST=bool(data["broadcast_flag"])
+        MOVE_TO_BROADCAST=bool(data["broadcast_flag"]),
     )
     item.write_payload()
 
@@ -217,22 +245,25 @@ def _handle_av_to_gcs_data_2(packet: Packet) -> None:
     flight_state = int(data["FlightState"])
     item = AVtoGCSData2(
         RSSI=float(data["rssi"]),
-        SNR=float(data['snr']),
+        SNR=float(data["snr"]),
         FLIGHT_STATE_=flight_state,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
-            data['dual_board_connectivity_state_flag']),
+            data["dual_board_connectivity_state_flag"]
+        ),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
-            data['recovery_checks_complete_and_flight_ready']),
-        GPS_FIX_FLAG=bool(data['GPS_fix_flag']),
+            data["recovery_checks_complete_and_flight_ready"]
+        ),
+        GPS_FIX_FLAG=bool(data["GPS_fix_flag"]),
         PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
         CAMERA_CONTROLLER_CONNECTION=bool(
-            data['camera_controller_connection_flag']),
+            data["camera_controller_connection_flag"]
+        ),
         LATITUDE=float(data["GPS_latitude"]),
         LONGITUDE=float(data["GPS_longitude"]),
-        QW=float(data['qw']),
-        QX=float(data['qx']),
-        QY=float(data['qy']),
-        QZ=float(data['qz']),
+        QW=float(data["qw"]),
+        QX=float(data["qz"]),
+        QY=float(data["qx"]),
+        QZ=float(data["qy"]),
     )
     item.write_payload()
 
@@ -251,7 +282,8 @@ def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
         MANUAL_PURGED=bool(data["manual_purge_activated"]),
         O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(
-            data["selector_switch_neutral_position"]),
+            data["selector_switch_neutral_position"]
+        ),
         N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
         IGNITION_FIRED=bool(data["ignition_fired"]),
         IGNITION_SELECTED=bool(data["ignition_selected"]),
@@ -279,7 +311,7 @@ def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
         TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
         TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
         TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
-        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"])
+        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"]),
     )
     item.write_payload()
 
@@ -294,7 +326,8 @@ def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
         MANUAL_PURGED=bool(data["manual_purge_activated"]),
         O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(
-            data["selector_switch_neutral_position"]),
+            data["selector_switch_neutral_position"]
+        ),
         N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
         IGNITION_FIRED=bool(data["ignition_fired"]),
         IGNITION_SELECTED=bool(data["ignition_selected"]),
@@ -323,7 +356,7 @@ def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
         TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
         TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
         TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
-        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"])
+        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"]),
     )
     item.write_payload()
 
@@ -344,10 +377,11 @@ def validate_timeout_skip(packet: Packet, min_timeout_ms: int) -> int:
     # Get the first packet timeout
     first_timestamp_ms = packet[0].timestamp_ms
 
-    if (first_timestamp_ms > min_timeout_ms + SLEEP_BUFFER_MS):
+    if first_timestamp_ms > min_timeout_ms + SLEEP_BUFFER_MS:
         new_timeout = int(first_timestamp_ms - SLEEP_BUFFER_MS)
         slogger.warning(
-            f"Minimum timeout is too long between packets, adjusting the min_timeout_ms to: {new_timeout}")
+            f"Minimum timeout is too long between packets, adjusting the min_timeout_ms to: {new_timeout}"
+        )
         return new_timeout
     return min_timeout_ms
 
@@ -358,60 +392,96 @@ def get_mission_path():
 
 
 def main():
-    # Using parser because theres too many arguments and I couldn't get sys working
+    # Using parser because there's too many arguments and I couldn't get sys working
     parser = argparse.ArgumentParser()
-    parser.add_argument('--device-rocket', required=True)
+    parser.add_argument("--device-rocket", required=True)
     parser.add_argument(
-        '--mode', choices=['simulation', 'mission'], required=True)
-    parser.add_argument('--mission', help="Check the mission directory names")
+        "--mode", choices=["simulation", "mission"], required=True
+    )
+    parser.add_argument("--mission", help="Check the mission directory names")
+    parser.add_argument("--blue-raven", help="Check the blue raven file path")
     parser.add_argument(
-        '--simulation', choices=['TEST', 'legacy', 'FAIL', 'DEMO'])
+        "--simulation", choices=["TEST", "legacy", "FAIL", "DEMO"]
+    )
     args = parser.parse_args()
 
     # mission_path = get_mission_path()
     try:
-        if args.mode == 'mission':
-            if not args.mission:
-                raise ValueError("No mission has been provided")
-            mission_path = os.path.join(get_mission_path(), args.mission)
-            if not os.path.exists(mission_path):
-                raise FileNotFoundError(
-                    f"No mission direction found at: {mission_path}")
-            if str(args.mission).lower() == "test":
-                raise NotImplementedError("Test has not been implemented")
-            slogger.info(f"Starting mission replay for {args.mission}")
+        if args.mode == "mission":
+            if args.mission and args.blue_raven:
+                raise ValueError(
+                    "Do not provide --blue-raven and --mission at the same time"
+                )
 
-            processed_packets = process_csv_packets(
-                MIN_TIMESTAMP_MS, mission_path)
+            if args.mission:
+                mission_path = os.path.join(get_mission_path(), args.mission)
+                if not os.path.exists(mission_path):
+                    raise FileNotFoundError(
+                        f"No mission direction found at: {mission_path}"
+                    )
+
+                if str(args.mission).lower() == "test":
+                    raise NotImplementedError("Test has not been implemented")
+                slogger.info(f"Starting mission replay for {args.mission}")
+
+                processed_packets = process_csv_packets(
+                    MIN_TIMESTAMP_MS, mission_path
+                )
+            elif args.blue_raven:
+                blue_raven_path = os.path.join(
+                    get_blue_raven_path(), args.blue_raven
+                )
+                if not os.path.exists(blue_raven_path):
+                    raise FileNotFoundError(
+                        f"Blue Raven file not found: {blue_raven_path}"
+                    )
+
+                if str(args.blue_raven).lower() == "test":
+                    raise NotImplementedError("Test has not been implemented")
+
+                slogger.info(
+                    f"Starting Blue Raven replay from {args.blue_raven}"
+                )
+                processed_packets = process_blue_raven(args.blue_raven)
+            else:
+                raise ValueError(
+                    "--mission requires also providing either the --mission or --blue-raven flag"
+                )
         else:
             from backend.simulation.run_simulation import get_replay_sim_data
+
             if not args.simulation:
                 raise ValueError(
-                    "No simulation was selected, required for simulation mode")
+                    "No simulation was selected, required for simulation mode"
+                )
             if args.simulation != "TEST" and args.simulation != "DEMO":
                 raise NotImplementedError(
-                    f"The simulation mode: {args.simulation} has not been implemented yet")
+                    f"The simulation mode: {args.simulation} has not been implemented yet"
+                )
 
             processed_packets = get_replay_sim_data()
             slogger.info(f"Starting simulation replay for {args.simulation}")
 
         if processed_packets is None:
             raise ValueError(
-                "No packets have been received, replay data is empty")
+                "No packets have been received, replay data is empty"
+            )
 
         MockPacket.initialize_settings(
-            config.load_config()[
-                'emulation'], FAKE_DEVICE_NAME=args.device_rocket
+            config.get_config()["emulation"],
+            FAKE_DEVICE_NAME=args.device_rocket,
         )
 
         # Will need to valid timeout before the gaps between packets may be extremely large
         # When replaying the packets the delay will cause an error when trying to shut down
         valid_timeout = validate_timeout_skip(
-            processed_packets, MIN_TIMESTAMP_MS)
-        if (args.simulation == "DEMO"):
+            processed_packets, MIN_TIMESTAMP_MS
+        )
+        if args.simulation == "DEMO":
             while not service_helper.time_to_stop():
                 slogger.warning(
-                    "STARTING UP DEMO MODE, THIS WILL RUN UNTIL STOPPED")
+                    "STARTING UP DEMO MODE, THIS WILL RUN UNTIL STOPPED"
+                )
                 replay_packets(processed_packets, valid_timeout)
                 slogger.info("FINISHED SENDING PACKETS FOR DEMO")
         else:
@@ -419,8 +489,7 @@ def main():
             replay_packets(processed_packets, valid_timeout)
             slogger.info("FINISHED SENDING PACKETS")
     except ValueError as ve:
-        slogger.error(
-            f"Value Error in replay system: {str(ve)}")
+        slogger.error(f"Value Error in replay system: {str(ve)}")
         raise
 
     except FileNotFoundError as fe:

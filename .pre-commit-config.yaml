@@ -1,0 +1,46 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_language_version:
+  python: python3.11
+
+# run locally with `pre-commit run --all-files`
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: detect-private-key
+
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell
+        args:
+          - --exclude-file=package-lock.json # , ['-w'] # uncomment to autofix
+
+  - repo: local
+    hooks:
+      # - id: eslint
+      #   name: eslint
+      #   entry: npx eslint
+      #   language: system
+      #   types: [javascript]
+      # args: ["--fix"] # uncomment to autofix
+
+      - id: dos2unix
+        name: dos2unix
+        entry: bash ./scripts/dos2unix.sh
+        language: system
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        stages: [pre-commit]

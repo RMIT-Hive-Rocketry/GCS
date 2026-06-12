@@ -1,11 +1,10 @@
-
 # Development notes
 
 See [usage](./usage.md)
 
-### Debugging in dev mode
+## Debugging in dev mode
 
-See launch options in `.vscode/` for pre-conifgured debug setups. Note that the cli option will start the ENTIRE system in dev mode and attach a python debugger to all procceses except the pendant emulator. Other launch options may require manual injection or manual monitoring depending on what the subsystem is. If you're starting the server by itself, you'll need to specify it's command arguments and read the ZeroMQ socket
+See launch options in `.vscode/` for pre-conifgured debug setups. Note that the cli option will start the ENTIRE system in dev mode and attach a python debugger to all processes except the pendant emulator. Other launch options may require manual injection or manual monitoring depending on what the subsystem is. If you're starting the server by itself, you'll need to specify it's command arguments and read the ZeroMQ socket
 
 ## Semantic Versioning
 
@@ -13,7 +12,7 @@ For this project, changes made before our first release can all just be 0.x.x-de
 
 If you're still developing internally and the product is not considered to be in 'publicly usable' or 'finished' state, use:
 
-- `MAJOR`: Major semver 
+- `MAJOR`: Major semver
 - `MINOR`: Minor semver. Consider internal breaking changes pre `1.x.x` to be on this level
 - `PATCH`: Patch semver
 - `PR_I`: Pre release identifier. This program is not designed to be used by anyone but our internal team. So semver suffixes like this can be restrained to: `dev` or nothing. Where `dev` is development and field testing focused, and final release with no suffix can be presentable packages for competition or when the repo is at a good state for a stable release of course.
@@ -32,20 +31,19 @@ For example:
 
 Would be the first release, as it's the first internal test. If the code changes in White Cliffs, you would go to `0.1.0-dev.2+whitecliffs` and then next field test in Serpentine would probably be `0.2.0-dev.1+serpentine`
 
-
 ## Writing a subprocess
 
-Important requirements for each subproccess you spawn from the CLI:
+Important requirements for each subprocess you spawn from the CLI:
 
-- All python subprocess have to have unbuffered output to be logged correctly. 
+- All python subprocess have to have unbuffered output to be logged correctly.
 
-Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example. 
+Please use the `-u` flag to do this. Note that some print functions to STDOUT may not respect this flag like when using `pprint` for example.
 
-Also I've seen a python subprocces run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`.
+Also I've seen a python subprocess run with the `-u` flag and still run buffered. It required `sys.stdout.flush()`.
 
 If you're using `subprocess_logging.py`, this is already handled for you.
 
-- You must support signal handling at a minimum. Graceful shutdown prefferably
+- You must support signal handling at a minimum. Graceful shutdown preferably
 
 Graceful shutdown in python can be done by including this line in any of your python modules in your process
 
@@ -74,10 +72,9 @@ while True:
 cleanup_code()
 ```
 
-
 ## Writing a Payload Reader
 
-Payload readers are found in `backend/middleware/payloads/*.hpp` with the excpetion of the helper headers. 
+Payload readers are found in `backend/middleware/payloads/*.hpp` with the exception of the helper headers.
 
 They follow a typical template of:
 
@@ -107,7 +104,7 @@ class AV_TO_GCS_DATA_1 {
     ByteParser parser(DATA, SIZE);
 
     // DON'T EXTRACT BITS FOR ID!!!!
-    // ID is handled seperatly in main loop for packet type identification
+    // ID is handled separately in main loop for packet type identification
     accel_low_x_ = calc_low_accel_xy_(parser.extract_signed_bits(16));
   }
 
@@ -132,7 +129,7 @@ class AV_TO_GCS_DATA_1 {
 
 ## Ports and Sockets
 
-For debug, so far we've only opened temporary `/tmp/gcs_rocket_pub.sock` and `/tmp/gcs_rocket_sub.sock` sockets. They should be formalised with the config.ini file at some point perhaps? or maybe just best to document it here and hard code it into the file. 
+For debug, so far we've only opened temporary `/tmp/gcs_rocket_pub.sock` and `/tmp/gcs_rocket_sub.sock` sockets. They should be formalised with the config.ini file at some point perhaps? or maybe just best to document it here and hard code it into the file.
 
 - Frontend API websocket: `ws://localhost:1887`
 - Frontend HTTP server: `http://localhost:8008` (in config.ini)

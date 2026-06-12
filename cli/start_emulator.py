@@ -1,37 +1,50 @@
 import logging
-import cli.proccess as process
-import cli.start_middleware as start_middleware
+from cli import process
+from cli import start_middleware
+import sys
 
 
-def start_fake_serial_device_emulator(logger: logging.Logger, DEVICE: str,
-                                      INTERFACE_TYPE: start_middleware.InterfaceType,
-                                      experimental: bool,
-                                      corruption: bool) -> None:
-    SERVICE_NAME = "device emulator"
+def start_fake_serial_device_emulator(
+    logger: logging.Logger,
+    device: str,
+    interface_type: start_middleware.InterfaceType,
+    experimental: bool,
+    corruption: bool,
+    performance_logging: process.RunningProcess = None,
+) -> None:
+    service_name = "device emulator"
     try:
 
-        EMULATOR_COMMAND = [
-            "python3", "-u", "-Xfrozen_modules=off", "-m", "backend.device_emulator",
-            "--device-rocket", DEVICE, "--interface-type", INTERFACE_TYPE.value,
+        emulator_command = [
+            sys.executable,
+            "-u",
+            "-Xfrozen_modules=off",
+            "-m",
+            "backend.device_emulator",
+            "--device-rocket",
+            device,
+            "--interface-type",
+            interface_type.value,
         ]
 
         if experimental:
-            EMULATOR_COMMAND.append("--experimental")
+            emulator_command.append("--experimental")
 
         if corruption:
-            EMULATOR_COMMAND.append("--corruption")
+            emulator_command.append("--corruption")
 
         logger.debug(
-            f"Starting {SERVICE_NAME} module with: {EMULATOR_COMMAND} with interface type: {INTERFACE_TYPE}")
+            f"Starting {service_name} module with: {emulator_command} with interface type: {interface_type}"
+        )
 
         emulator_process = process.LoggedSubProcess(
-            EMULATOR_COMMAND,
-            name=SERVICE_NAME,
-            parse_output=True
+            emulator_command, name=service_name, parse_output=True
         )
         emulator_process.start()
 
+        if performance_logging is not None:
+            performance_logging.AddNewProcess(emulator_process)
+
     except Exception as e:
-        logger.error(
-            f"An error occurred while starting {SERVICE_NAME}: {e}")
+        logger.error(f"An error occurred while starting {service_name}: {e}")
         raise

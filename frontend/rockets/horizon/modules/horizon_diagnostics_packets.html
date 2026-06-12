@@ -1,0 +1,39 @@
+<!-- LEFT: Device list sidebar -->
+<div class="module-horizon w-full h-full flex flex-col p-2 gap-2 overflow-hidden">
+    <div class="flex items-baseline gap-3 shrink-0">
+        <h2>DEVICES</h2>
+    </div>
+
+    <!-- AV radio -->
+    <div class="flex flex-col px-3 py-2.5 rounded-lg gap-2 shrink-0"
+         style="background:rgba(0,0,0,0.3); border:1px solid rgba(158,25,60,0.6);">
+        <div class="flex items-center gap-2">
+            <div
+                id="diag-av-indicator"
+                style="width:1.25rem; height:0.75rem; border-radius:9999px; flex-shrink:0;
+                    background:#ef4444; box-shadow:0 0 6px #ef4444;"
+            ></div>
+            <span class="font-bold text-sm tracking-wide"
+                  style="color:var(--color-horizon-yellow,#f59e0b);">AV</span>
+        </div>
+        <div class="flex gap-4 text-xs" style="color:rgba(255,255,255,0.35); letter-spacing:0.04em;">
+            <span style="position:relative; bottom:4px;">RSSI: <input data-key="meta.av.rssi" data-precision="0" readonly autocomplete="off"
+                class="bg-transparent border-0 outline-none text-center w-8"
+                style="color:white; font-weight:700; background:rgba(255,255,255,0.07); border-radius:4px;" size="4" /></span>
+            <span style="position:relative; bottom:4px;">SNR: <input data-key="meta.av.snr" data-precision="0" readonly autocomplete="off"
+                class="bg-transparent border-0 outline-none text-center w-6"
+                style="color:white; font-weight:700; background:rgba(255,255,255,0.07); border-radius:4px;" size="3" /></span>
+            <span style="position:relative; bottom:4px;">Updates: <input data-key="meta.av.packets" data-precision="0" readonly autocomplete="off"
+                class="bg-transparent border-0 outline-none text-center w-14"
+                style="color:white; font-weight:700; background:rgba(255,255,255,0.07); border-radius:4px;" size="8" /></span>
+        </div>
+    </div>
+
+    <!-- Dynamic device cards -->
+    <div id="diag-device-list" class="flex-1 flex flex-col gap-2 overflow-y-auto min-h-0">
+    </div>
+
+    <!-- Last updated -->
+    <p id="diag-last-updated" class="text-sm text-center font-semibold shrink-0"
+       style="color:var(--color-horizon-yellow,#f59e0b);">Last updated: --</p>
+</div>

@@ -19,7 +19,7 @@ class Mach:
         R = 8.3145  # Molar gas constant
         Y = 1.4  # Adiabatic index
         M = 0.0289645  # Molar mass for air
-        return math.sqrt((R*Y*TEMPERATURE)/(M))
+        return math.sqrt((R * Y * TEMPERATURE) / (M))
 
     @staticmethod
     def isa_temp(ALTITUDE_M: Number) -> float:
@@ -34,27 +34,27 @@ class Mach:
         """
         if ALTITUDE_M < -20:
             slogger.error(
-                f"Altitude should be above ground for accurate Mach calculation: {ALTITUDE_M}")
+                f"Altitude should be above ground for accurate Mach calculation: {ALTITUDE_M}"
+            )
 
         if ALTITUDE_M < 11000:
             # Legacy won't go past 3km anyway
             return 288.15 - (0.0065 * ALTITUDE_M)
-        elif ALTITUDE_M < 20000:
+        if ALTITUDE_M < 20000:
             return 216.65
-        elif ALTITUDE_M < 32000:
+        if ALTITUDE_M < 32000:
             return 216.65 + (0.001 * (ALTITUDE_M - 20000))
-        elif ALTITUDE_M < 47000:
+        if ALTITUDE_M < 47000:
             return 228.65 + (0.0028 * (ALTITUDE_M - 32000))
-        elif ALTITUDE_M < 51000:
+        if ALTITUDE_M < 51000:
             return 270.65
-        elif ALTITUDE_M < 71000:
+        if ALTITUDE_M < 71000:
             return 270.65 + (-0.0028 * (ALTITUDE_M - 51000))
-        elif ALTITUDE_M < 84852:
+        if ALTITUDE_M < 84852:
             return 214.65 + (-0.002 * (ALTITUDE_M - 71000))
-        elif ALTITUDE_M < 90000:
+        if ALTITUDE_M < 90000:
             return 186.95
-        else:
-            return 186.95 + (0.004 * (ALTITUDE_M - 90000))
+        return 186.95 + (0.004 * (ALTITUDE_M - 90000))
 
     @staticmethod
     def mach_from_alt_estimate(VELOCITY_M: Number, ALTITUDE_M: Number) -> float:
@@ -65,6 +65,6 @@ class Mach:
             ALTITUDE_M (Number): Altitude in meters
 
         Returns:
-            float: Mach speed 
+            float: Mach speed
         """
-        return VELOCITY_M/Mach.sound_speed(Mach.isa_temp(ALTITUDE_M))
+        return VELOCITY_M / Mach.sound_speed(Mach.isa_temp(ALTITUDE_M))

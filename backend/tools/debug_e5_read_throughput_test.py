@@ -3,29 +3,33 @@ import time
 import re
 
 
-def send_at_commands():
+def send_at_commands() -> None:
     try:
-        ser = serial.Serial('/dev/ttyAMA0', baudrate=230400, timeout=1)
+        ser = serial.Serial("/dev/ttyAMA0", baudrate=230400, timeout=1)
         if ser.is_open:
             print("Serial port opened successfully.")
     except Exception as e:
         print(f"Failed to open serial port: {e}")
         return
 
-    at_setup_commands = ["AT",
-                         "AT+MODE=TEST",
-                         "AT+TEST=RFCFG,915,SF9,500,12,16,22,OFF,OFF,OFF",
-                         "AT+TEST=?",
-                         "AT+TEST=RXLRPKT"]
+    at_setup_commands = [
+        "AT",
+        "AT+MODE=TEST",
+        "AT+TEST=RFCFG,915,SF9,500,12,16,22,OFF,OFF,OFF",
+        "AT+TEST=?",
+        "AT+TEST=RXLRPKT",
+    ]
     try:
         for command in at_setup_commands:
             # Send the AT command
-            ser.write((command + '\r\n').encode())
+            ser.write((command + "\r\n").encode())
             print(f"Sent: {command}")
             time.sleep(0.5)
 
-            response = ser.read_all().decode('utf-8', errors='ignore')
-            print(f">: {response}")
+            data = ser.read_all()
+            if data:
+                response = data.decode("utf-8", errors="ignore")
+                print(f">: {response}")
 
         print("Continuous read started")
         packet_num = 0
@@ -33,11 +37,15 @@ def send_at_commands():
         start_time = time.monotonic()
         buffer = ""
         restring = r'\+TEST: LEN:\d+, RSSI:-?\d+, SNR:-?\d+\s\+TEST: RX\s?"[0-9A-F]+"\s'
-        REGEX = re.compile(restring, re.DOTALL)
+        regex = re.compile(restring, re.DOTALL)
         while True:
-            response = ser.read_all().decode('utf-8', errors='ignore')
+            data = ser.read_all()
+            if not data:
+                continue
+
+            response = data.decode("utf-8", errors="ignore")
             buffer += response
-            if re.match(REGEX, buffer):
+            if re.match(regex, buffer):
                 packet_num += 1
                 now = time.monotonic()
 
@@ -51,7 +59,8 @@ def send_at_commands():
                 print(f">: {buffer}")
                 print(
                     f"\rPkt #{packet_num:<4d} | Δ={delta_ms:4.3f} ms | total PPS={pps:6.2f}",
-                    end='', flush=True
+                    end="",
+                    flush=True,
                 )
                 buffer = ""
 

@@ -1,0 +1,174 @@
+<!-- Avionics module -->
+<!-- Includes acceleration, gyro, velocity -->
+<div class="module-horizon">
+    <h2>Avionics</h2>
+
+    <!-- Avionics indicators -->
+    <div
+        class="col-span-2 border-2 border-hive-dark bg-hive/20 mx-2 p-1 pb-0 grid grid-cols-6 text-center gap-2"
+    >
+        <div>
+            <div data-key="state.gpsFix" data-type="state" class="indicator-state"></div>
+            <p>GPS Fix</p>
+        </div>
+        <div>
+            <div data-key="state.dualBoard" data-type="state" class="indicator-state"></div>
+            <p>Dual Board</p>
+        </div>
+        <div>
+            <div
+                data-key="state.av-state-pyro-1"
+                data-type="state"
+                class="indicator-state error"
+            ></div>
+            <p>Pyro 1</p>
+        </div>
+        <div>
+            <div
+                data-key="state.av-state-pyro-2"
+                data-type="state"
+                class="indicator-state error"
+            ></div>
+            <p>Pyro 2</p>
+        </div>
+        <div>
+            <div class="indicator-state av-state-pyro-3 error"></div>
+            <p>Pyro 3</p>
+        </div>
+        <div>
+            <div class="indicator-state av-state-pyro-4 error"></div>
+            <p>Pyro 4</p>
+        </div>
+    </div>
+
+    <!-- Accel and gyro -->
+    <div class="grid grid-cols-2 flex-1 gap-4">
+        <!-- Accelerometer -->
+        <div class="flex flex-col">
+            <h3 class="mb-0 pl-4">Accelerometer Readings</h3>
+            <div class="grow w-full h-full">
+                <svg
+                    id="graph-av-accel"
+                    class="w-full h-full"
+                    width="0"
+                    height="0"
+                ></svg>
+            </div>
+            <div class="flex gap-4 items-center px-2 justify-evenly text-sm">
+                <label>
+                    X:<input
+                        data-key="accelX"
+                        data-precision="1"
+                        readonly
+                        autocomplete="off"
+                        style="border-bottom: 2px solid #FF0000"
+                        size="6"
+                    />
+                </label>
+                <label>
+                    Y:<input
+                        data-key="accelY"
+                        data-precision="1"
+                        readonly
+                        autocomplete="off"
+                        style="border-bottom: 2px solid #00FF00"
+                        size="6"
+                    />
+                </label>
+                <label>
+                    Z:<input
+                        data-key="accelZ"
+                        data-precision="1"
+                        readonly
+                        autocomplete="off"
+                        style="border-bottom: 2px solid #0000FF"
+                        size="6"
+                    />
+                </label>
+            </div>
+        </div>
+
+        <!-- Gyro -->
+        <div class="flex flex-col">
+            <h3 class="mb-0 pl-4">Gyroscope Readings</h3>
+            <div class="grow w-full h-full">
+                <svg
+                    id="graph-av-gyro"
+                    class="w-full h-full"
+                    width="0"
+                    height="0"
+                ></svg>
+            </div>
+            <div class="flex gap-4 items-center px-2 justify-evenly text-sm">
+                <label
+                    >X:<input
+                        data-key="gyroX"
+                        data-precision="1"
+                        readonly
+                        autocomplete="off"
+                        style="border-bottom: 2px solid #FF0000"
+                        size="6"
+                /></label>
+                <label
+                    >Y:<input
+                        data-key="gyroY"
+                        data-precision="1"
+                        readonly
+                        autocomplete="off"
+                        style="border-bottom: 2px solid #00FF00"
+                        size="6"
+                /></label>
+                <label
+                    >Z:<input
+                        data-key="gyroZ"
+                        data-precision="1"
+                        readonly
+                        autocomplete="off"
+                        style="border-bottom: 2px solid #0000FF"
+                        size="6"
+                /></label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Velocity -->
+    <div class="grow flex flex-col flex-1">
+        <h3>Vertical Speed</h3>
+        <div class="grow w-full h-full">
+            <svg
+                id="graph-av-velocity"
+                class="w-full h-full"
+                width="0"
+                height="0"
+            ></svg>
+        </div>
+        <div class="flex flex-row gap-4 grow justify-around px-2 items-center">
+            <label>
+                Vertical Speed:&nbsp;<input
+                    data-key="velocity"
+                    data-precision="1"
+                    readonly
+                    size="10"
+                    autocomplete="off"
+                    style="border-bottom: 2px solid #FF0000"
+                />m/s&nbsp;&nbsp;<input
+                    data-key="velocityFeet"
+                    data-precision="0"
+                    readonly
+                    size="10"
+                    autocomplete="off"
+                    class="text-center"
+                />ft/s
+            </label>
+            <label>
+                Mach:<input
+                    data-key="mach_number"
+                    data-precision="2"
+                    readonly
+                    size="6"
+                    autocomplete="off"
+                />
+            </label>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-﻿timestamp_ms,rssi,snr,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,nav_status,qw,qx,qy,qz
+timestamp_ms,rssi,snr,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,nav_status,qw,qx,qy,qz
 0,0,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,123,123,NA,1,0,0,0.00003
 2,0,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,123,123,NA,1,0,0,0.00003
 4,0,0,0,FALSE,FALSE,FALSE,FALSE,FALSE,123,123,NA,1,0,0,0.00003

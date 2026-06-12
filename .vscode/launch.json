@@ -19,7 +19,7 @@
                 // 3 args please
                 "TEST",
                 "/dev/ttys011", // socat device. Either is fine
-                // Note that using /var/run requires elevated privleges
+                // Note that using /var/run requires elevated privileges
                 "gcs_rocket.sock",
             ],
             "preLaunchTask": "middleware build-dev + generate proto",
@@ -61,6 +61,22 @@
                 "dev",
                 "--interface",
                 "test",
+                "--nopendant"
+            ]
+        },
+        {
+            "name": "Python Debugger: cli dev gse-only",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            // I think this is the default value anyway.
+            // But you can debug python subprocess with this which is great
+            // Just need to use the CALL STACK menu on the left in VSCode
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--gse-only",
                 "--nopendant"
             ]
         },
@@ -115,6 +131,22 @@
             ]
         },
         {
+            "name": "Python Debugger: cli dev test uarte5",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/rocket.py",
+            "console": "integratedTerminal",
+            "subProcess": true,
+            "args": [
+                "dev",
+                "--interface-av",
+                "test",
+                "--interface-gse",
+                "uart_e5",
+                "--nopendant",
+            ],
+        },
+        {
             "name": "Python Debugger: emulator",
             "type": "debugpy",
             "request": "launch",
@@ -146,6 +178,21 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
+        },
+        {
+            "name": "Python Debugger: pytest",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "backend/tests/python_tests/",
+                "-v"
+            ],
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
         },
     ],
 }

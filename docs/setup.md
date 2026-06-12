@@ -1,75 +1,48 @@
-
 # Setup
 
 The GCS software is run by using a Python based CLI with a C++ server component. There are several dev tools used for testing included in the dependencies as well
 
-## Prerequisites
+## Setup
 
 For a minimal clean slate installation, you can get away with:
 
 1. Setting up your Linux environment
-2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, (see version below) and cpp compilers (`CXX20`) with your package manager
+2. Installing `cmake` (see version below), `git`,`socat`, `python`, `qrencode`, `swig`, `zmq`, (see version below) and cpp compilers (`CXX20`) with your package manager
 3. Clone and `cd` in to the repository
-4. Run `bash setup.sh` to check python version and protobuf installation
-5. Run `python -m pip install -r requirements.txt`
+4. Run `bash setup.sh` to verify installs, setup python, and the rocket alias
+5. Run `source .venv/bin/activate` to use the python environment
 6. Run `rocket dev --interface test --nopendant` to install other libraries automatically and build the project
 
-> [!WARNING]
-> Please message @mcloughlan with system and setup details and screenshots if that does not work ^
+> [!NOTE]
+> You can run the CLI with `$ python rocket.py <args>` in place of `$ rocket <args>` if you don't run the setup file.
 
 > [!NOTE]
-> Items denoted with 🐳 are installed in the Docker container. They do not require manual installation.
-> Items denoted with 🟨 are not required if you use release binaries. Install these if you want to build yourself with debug binaries
-
-> [!NOTE]
-> *Protobuf gencode without building can be done by running the proto script in `scripts/`.
-> 
+> \*Protobuf gencode without building can be done by running the proto script in `scripts/`.
+>
 > Some C++ libraries have untested `FetchContent` support for cmake. This means you may be able to build after installing just CMake. Provided you are connected to internet to download those packages. Currently they do not work. Protobuf is a pain in the ass to work with.
 >
 > Also running setup.sh will install Protobuf automatically
 
-| Software | Version | Release Mode Only | Docker Dev | Native Dev |
-| --- | --- | --- | --- | --- |
-| Python | `3.11.x` | ✅ | ✅ | ✅ |
-| Docker | | ❌ | ✅ | ❌ |
-| Socat | Latest? | ❌ | 🐳 | ✅ |
-| Cmake | >=`3.25` | ❌ | 🐳 | 🟨 |
-| g++ or clang++ | Untested | ❌ | 🐳 | 🟨 - needed if you don't have Protobuf |
-| [ZeroMQ](https://zeromq.org/download/) | `4.3.x` | ❌? | 🐳 | 🟨 |
-| cppzmq | `4.10.x` | ❌? | 🐳 | 🟨 |
-| Abseil libraries | `20250127.x` | ❌? | 🐳 | 🟨 |
-| Protobuf* (inc. `proto` compiler & `libprotodev`) | `30.x` | ✅ (_needed for gencode_) | 🐳 | ✅ |
-| qrencode | Latest? | ✅ | 🐳 | ✅ |
-| pytest | Latest? | _for testing_ | 🐳 | _for testing_ |
-
-> [!WARNING]
-> Please let me know if this is wrong. I may have missed some things
-
-## Setup Instructions
-
-Firstly navigate into this repository directory and ensure you have Python 3 installed
-
-```shell
-$ python3 --version
-```
-
-Then install the necessary packages
-
-```shell
-$ python3 -m pip install -r requirements.txt
-```
+| Software       | Version        | Release Mode   | Native Dev  |
+| -------------- | -------------- | -------------- | ----------- |
+| Python         | `3.11.x`       | ✅             | ✅          |
+| Socat          | `>=1.8.0.0`    | ❌             | ✅          |
+| Cmake          | `>=3.25`       | ❌             | 🟨          |
+| g++ or clang++ | Supports C++20 | ❌             | 🟨          |
+| libzmq         | `4.3.x`        | ❌?            | 🟨          |
+| cppzmq         | `4.10.x`       | ❌?            | 🟨          |
+| Abseil         | `20250127.x`   | ❌?            | 🟨          |
+| Protobuf       | `30.x`         | ✅ for gencode | ✅          |
+| qrencode       | `>=4.1.0`      | ✅             | ✅          |
+| swig           | `>=4.3`        | ❌             | ✅          |
+| pytest         | `8.3.x`        | for testing    | for testing |
+| googletest     | `1.16.x`       | for testing    | for testing |
 
 > [!NOTE]
-> These packages are required for CLI usage and the production environment of the software. Testing packages are installed in the Docker container only
-
-And run the setup script to make aliases, setup permissions and install protobuf.
-
-```shell
-$ bash setup.sh
-```
+> Items denoted with 🟨 are not required if you use release binaries. Install these if you want to build yourself with debug binaries
 
 > [!NOTE]
->  Otherwise you can run the CLI with `$ python3 rocket.py <args>` in place of all further refferences of `$ rocket --args` if you don't run the setup file.
+> If you have a different version of protobuf installed globally and dont want to override it refer to [this](protobuf.md).
 
 ## Further Steps
 

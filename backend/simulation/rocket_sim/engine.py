@@ -5,12 +5,18 @@ from backend.simulation.rocket_sim.config import get_motor_config
 
 def create_hybrid_motor():
     """
-        Currently only implementation from a basic hybrid motor
+    Currently only implementation from a basic hybrid motor
     """
     config = get_motor_config()
 
-    def thrust_calculation(t): return config["thrust_start"] - (
-        config["thrust_start"] - config["thrust_end"]) / config["burn_time"] * t
+    def thrust_calculation(t):
+        return (
+            config["thrust_start"]
+            - (config["thrust_start"] - config["thrust_end"])
+            / config["burn_time"]
+            * t
+        )
+
     hybrid_motor = HybridMotor(
         thrust_source=thrust_calculation,
         dry_mass=config["dry_mass"],
@@ -26,8 +32,7 @@ def create_hybrid_motor():
         grains_center_of_mass_position=config["grains_com"],
         center_of_dry_mass_position=config["dry_cm"],
         nozzle_position=config["nozzle_position"],
-        burn_time=config["burn_time"]
-
+        burn_time=config["burn_time"],
     )
 
     oxidizer_tank = create_oxidizer_tank()

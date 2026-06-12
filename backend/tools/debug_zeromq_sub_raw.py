@@ -1,3 +1,4 @@
+from typing import Never
 import zmq
 import argparse
 from datetime import datetime
@@ -9,12 +10,12 @@ import backend.proto.generated.AV_TO_GCS_DATA_2_pb2 as AV_TO_GCS_DATA_2_pb
 # Subscribes to the ZeroMQ PUB socket and prints received messages in hex and ASCII format
 
 
-def format_hex(data):
+def format_hex(data) -> str:
     """Convert bytes to readable hex format"""
-    return ' '.join(f"{byte:02x}" for byte in data)
+    return " ".join(f"{byte:02x}" for byte in data)
 
 
-def get_sha(data, length=8):
+def get_sha(data, length=8) -> str:
     """Compute the SHA-1 hash of data and return the first `length` characters of its hex digest.
 
     Args:
@@ -28,12 +29,12 @@ def get_sha(data, length=8):
     return sha_full[:length]
 
 
-def signal_handler(sig, frame):
+def signal_handler(_sig, _frame) -> Never:
     print("\nExiting...")
     exit(0)
 
 
-def main(socket_path):
+def main(socket_path) -> None:
     context = zmq.Context()
     sub_socket = context.socket(zmq.SUB)
 
@@ -47,7 +48,7 @@ def main(socket_path):
         print(f"Connection error: {e}")
         return
 
-    sub_socket.setsockopt_string(zmq.SUBSCRIBE, '')
+    sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -62,14 +63,11 @@ def main(socket_path):
                 if last_item != "DATA" and last_item != "UNINITIALISED":
                     match last_item:
                         case "ID":
-                            print(ansci.FG_RED +
-                                  f"MISSING:DATA ^^" + ansci.RESET)
-                        case "DATA":
-                            print(ansci.FG_RED +
-                                  f"MISSING:ID ^^" + ansci.RESET)
+                            print(
+                                ansci.FG_RED + "MISSING:DATA ^^" + ansci.RESET
+                            )
                         case "NOTHING":
-                            print(ansci.FG_RED +
-                                  f"MISSING:?? ^^" + ansci.RESET)
+                            print(ansci.FG_RED + "MISSING:?? ^^" + ansci.RESET)
                 last_item = "NOTHING"
                 color = ansci.BG_RED
             elif len(message) == 1:
@@ -87,7 +85,8 @@ def main(socket_path):
             hex_data = format_hex(message)
             sha_data = get_sha(message)
             print(
-                f"[{timestamp}] {color}Received {len(message)} bytes:{ansci.RESET}")
+                f"[{timestamp}] {color}Received {len(message)} bytes:{ansci.RESET}"
+            )
             print(f"({sha_data}) {hex_data}")
             if len(message) > 1:
                 try:
@@ -103,10 +102,13 @@ def main(socket_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="ZeroMQ SUB client for LoRa interface")
-    parser.add_argument("socket_path",
-                        help="Base socket path name used in the C++ program (without _pub.sock)",
-                        default="gcs_rocket")
+        description="ZeroMQ SUB client for LoRa interface"
+    )
+    parser.add_argument(
+        "socket_path",
+        help="Base socket path name used in the C++ program (without _pub.sock)",
+        default="gcs_rocket",
+    )
     args = parser.parse_args()
 
     main(args.socket_path)

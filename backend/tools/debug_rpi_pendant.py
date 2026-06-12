@@ -1,9 +1,9 @@
-import backend.pendant_daemon as pendant_daemon
-import backend.includes_python.service_helper as service_helper
+from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+from backend.includes_python import service_helper
 
 
 def main():
-    controller = pendant_daemon.RPI_GPIO_Device()
+    controller = RPI_GPIO_Device()
     last_state = None
     updates = 0
     while not service_helper.time_to_stop():
@@ -11,7 +11,7 @@ def main():
         if states != last_state:
             updates += 1
             print(f"===== UPDATE [{updates}] =====")
-            print(repr(states))
+            print(states)
         last_state = states
 
 

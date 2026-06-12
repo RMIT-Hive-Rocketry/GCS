@@ -1,278 +1,170 @@
-import zmq
+"""
+This file sends packets to GSE and Frontend api
+It should only have devices controlled by a human
+"""
+
 import backend.includes_python.process_logging as slogger
+
+try:
+    import hid
+except (ImportError, RuntimeError) as e:
+    """
+    if the hid module fails to import and you dont want to use a hid controller, then no harm so just warn in slogger
+    if you want the hid device (controller = rpi_gpio_device)
+    """
+    error_message = "This should not have run, make sure you set controller = rpi_gpio_device or pygame_device (config.ini) or check your hid install is correct"
+    slogger.error(
+        f"hid is not correctly installed: {e}. This is okay if your using rpi_gpio_device or pygame_device (check config.ini)"
+    )
+
+    class hid:
+        def Device():
+            raise NotImplementedError(error_message)
+
+
+import pygame
+import zmq
 import os
 import time
-import backend.device_emulator as device_emulator
-import backend.includes_python.service_helper as service_helper
-import config.config as config
-import threading
-from abc import ABC, abstractmethod
-try:
-    from gpiozero import Button
-except (ImportError, RuntimeError):
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    slogger.error(
-        "gpiozero not found, this library is only available on Raspberry Pi devices."
-    )
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    slogger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+from backend import device_emulator
+from backend.includes_python import service_helper
+from backend.includes_python.timers import RepeatingTimer
+from backend.includes_python.devices.control_device_manager import (
+    ControlDeviceManager,
+)
+from backend.includes_python.devices.control_device import ControlDevice
+from config import config
 
-    class Button:
-        def __init__(self, pin, pull_up=False): self.pin = pin
-        @property
-        def is_pressed(self): return False
+# Wait LINGER_TIME_MS before giving up on push request
+LINGER_TIME_MS = 300
 
+# path to the socket that gets forwarded to GSE in the c++ server
+GSE_SOCKET_PATH = os.path.abspath(
+    os.path.join(os.path.sep, "tmp", "gcs_rocket_pendant_pull.sock")
+)
 
-# ==============================
-# ==============================
-# TODO: add event based GPIO changes here, don't run polls.
-# ==============================
-# ==============================
+# path to the socket read by frontend api
+FRONTEND_SOCKET_PATH = os.path.abspath(
+    os.path.join(os.path.sep, "tmp", "gcs_pendant_frontend_pub.sock")
+)
 
 
+def get_control_device() -> ControlDevice:
+    # fmt: off
+    manager = ControlDeviceManager()
 
-class StateTable():
-    """
-    Stores the states (argument) for the GSE to GCS packet. bonza cunt
-    """
+    def hybrid_import() -> type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import HybridPygamePendant
+        return HybridPygamePendant
 
-    FALLBACK_DICT = {
-        "SYS_ON": False,
-        "FILL_SELECTED": False,
-        "IGNITION_SELECTED": False,
-        "N2O_ACTIVE": False,
-        "NEUTRAL_ACTIVE": False,
-        "PURGE_ACTIVE": False,
-        "O2_MOMENT_ACTIVE": False,
-        "IGNITION_MOMENT_ACTIVE": False,
-    }
+    manager.add_managed_device("hybrid_device", hybrid_import)
 
-    @staticmethod
-    def _bool_table_str(printable_dict: dict) -> str:
-        MAX_KEY_LEN = max(len(str(k)) for k in printable_dict)
-        output = ""
-        for k, v in printable_dict.items():
-            assert isinstance(v, bool)
-            symbol = '🟩' if v else '🟥'
-            output += f"{k:<{MAX_KEY_LEN}} : {symbol}\n"
-        return output
+    def rpi_import() -> type[ControlDevice]:
+        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+        return RPI_GPIO_Device
 
-    def __str__(self):
-        mock_states = self.get_states_dict()
-        return StateTable._bool_table_str(mock_states)
+    manager.add_managed_device("rpi_gpio_device",rpi_import)
 
-    def __repr__(self):
-        """Debug print statement"""
-        debug_attributes = {
-            "SYS_ON": self.SYS_ON,
-            "FILL_SELECTED": self.FILL_SELECTED,
-            "IGNITION_SELECTED": self.IGNITION_SELECTED,
-            "N2O_ACTIVE": self.N2O_ACTIVE,
-            "NEUTRAL_ACTIVE": self.NEUTRAL_ACTIVE,
-            "PURGE_ACTIVE": self.PURGE_ACTIVE,
-            "O2_MOMENT_ACTIVE": self.O2_MOMENT_ACTIVE,
-            "IGNITION_MOMENT_ACTIVE": self.IGNITION_MOMENT_ACTIVE,
-        }
-        # Get string of outputs
-        output = StateTable._bool_table_str(debug_attributes)
-        # Get string if calculated packet states
-        output += '\n'
-        output += self.__str__()
-        return output
+    def f710_import() -> type[ControlDevice]:
+        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
+        return LogitechGamepadF710
 
-    def __eq__(self, other):
-        if not isinstance(other, StateTable):
-            return NotImplemented
-        return self.get_states_dict() == other.get_states_dict()
+    manager.add_managed_device("f710", f710_import)
 
-    def __ne__(self, other):
-        return not self == other
+    # TEMPORARY: idk why this got left out but i adding it back
+    def emulated_import() -> type[ControlDevice]:
+        from backend.includes_python.devices.emulated_device import Emulated_Device
+        return Emulated_Device
 
-    def __init__(self,
-                 SYS_ON: bool = True,
-                 FILL_SELECTED: bool = True,
-                 IGNITION_SELECTED: bool = True,
-                 N2O_ACTIVE: bool = True,
-                 NEUTRAL_ACTIVE: bool = True,
-                 PURGE_ACTIVE: bool = True,
-                 O2_MOMENT_ACTIVE: bool = True,
-                 IGNITION_MOMENT_ACTIVE: bool = True,
-                 ):
-        self.SYS_ON = SYS_ON
-        self.FILL_SELECTED = FILL_SELECTED
-        self.IGNITION_SELECTED = IGNITION_SELECTED
-        self.N2O_ACTIVE = N2O_ACTIVE
-        self.NEUTRAL_ACTIVE = NEUTRAL_ACTIVE
-        self.PURGE_ACTIVE = PURGE_ACTIVE
-        self.O2_MOMENT_ACTIVE = O2_MOMENT_ACTIVE
-        self.IGNITION_MOMENT_ACTIVE = IGNITION_MOMENT_ACTIVE
+    manager.add_managed_device("emulated_device", emulated_import)
 
-    def get_states_dict(self) -> dict:
-        """returns argument dictionary for use in GCS to GSE packet
-        """
-        # You should also check these states electronically where applicable
-        states = {
-            "MANUAL_PURGE": self.SYS_ON and self.FILL_SELECTED and self.PURGE_ACTIVE,
-            "O2_FILL_ACTIVATE": self.SYS_ON and self.IGNITION_SELECTED and self.O2_MOMENT_ACTIVE,
-            "SELECTOR_SWITCH_NEUTRAL_POSITION": self.SYS_ON and self.FILL_SELECTED and self.NEUTRAL_ACTIVE,
-            "N2O_FILL_ACTIVATE": self.SYS_ON and self.FILL_SELECTED and self.N2O_ACTIVE,
-            "IGNITION_FIRE": self.SYS_ON and self.IGNITION_SELECTED and self.IGNITION_MOMENT_ACTIVE,
-            "IGNITION_SELECTED": self.SYS_ON and self.IGNITION_SELECTED,
-            "GAS_FILL_SELECTED": self.SYS_ON and self.FILL_SELECTED,
-            "SYSTEM_ACTIVATE": self.SYS_ON,
-        }
-
-        # Type and range validation
-        if any(not isinstance(x, bool) for x in states.values()) or len(states) != 8:
-            slogger.error(f"Missing/invalid states: {states}")
-            return StateTable.get_fallback_table()
-
-        # Nonsensical states that should not exist. GSE will complain if any true
-        nonsensical_conditions = {
-            "purge and fill": states["MANUAL_PURGE"] and states["O2_FILL_ACTIVATE"],
-            "purge on neutral": states["MANUAL_PURGE"] and states["SELECTOR_SWITCH_NEUTRAL_POSITION"],
-            # states["MANUAL_PURGE"] and states["SELECTOR_SWITCH_NEUTRAL_POSITION"]
-            # add more. please do this automatically
-        }
-
-        for k, v in nonsensical_conditions.items():
-            if v:
-                slogger.warning(f"Impossible condition detected: {k}")
-                states = StateTable.FALLBACK_DICT
-
-        return states
-
-    def get_fallback_table() -> dict:
-        """Return an instance of StateTable which is safe"""
-        return StateTable(**StateTable.FALLBACK_DICT)
+    return manager.get_control_device()
+    # fmt: on
 
 
-class ControlDevice(ABC):
-    def __init__(self):
-        self._setup_device()
-        # Set default fallback state to send whist waiting for inputs
-        self.state_table = StateTable.get_fallback_table()
-
-    @abstractmethod
-    def _setup_device(self):
-        """Setup the control device"""
-        pass
-
-    @abstractmethod
-    def _update_state_table(self) -> None:
-        """Updates state table with new values"""
-        pass
-
-    def get_state_table(self) -> StateTable:
-        """Updates and gets the current states from the control device."""
-        try:
-            self._update_state_table()
-        except Exception:
-            slogger.warning("Failed to update pendant states")
-        if not self.state_table:
-            slogger.warning(
-                "No inputs received from control device, using fallback state")
-            state_table = StateTable.get_fallback_table()
-        return self.state_table
-    
-    def get_states_dict(self) -> dict:
-        state_table = self.get_state_table()
-        return state_table.get_states_dict()
-
-    def cleanup(self):
-        """Code to run after controller is no longer needed."""
-        pass
-
-
-class RPI_GPIO_Device(ControlDevice):
-    """Parent class for GPIO devices on Raspberry Pi."""
-    # MAPPING FROM DB15 PINS
-    # PIN1 -> POWER (5V)?
-    # DB_PIN_GPIO_0 -> (SYS_ACTIVE)
-    # DB_PIN_GPIO_1 -> (FILL_SELECTED)
-    # DB_PIN_GPIO_2 -> (IGNITION_SELECTED)
-    # DB_PIN_GPIO_3 -> (IGNITION_MOMENT_ACTIVE)
-    # DB_PIN_GPIO_4 -> (N2O_ACTIVE)
-    # DB_PIN_GPIO_5 -> (NEUTRAL_ACTIVE) *currently unwired*
-    # DB_PIN_GPIO_6 -> (O2_MOMENT_ACTIVE)
-    # DB_PIN_GPIO_7 -> (PURGE_ACTIVE)
-    # PIN9 -> GND
-
-    # What GPIO ports represent the logical input
-    PIN_MAP = {
-        4: "SYS_ON",
-        17: "FILL_SELECTED",
-        27: "IGNITION_SELECTED",
-        22: "IGNITION_MOMENT_ACTIVE",
-        10: "N2O_ACTIVE",
-        9: "NEUTRAL_ACTIVE",
-        11: "O2_MOMENT_ACTIVE",
-        5: "PURGE_ACTIVE",
-    }
-
-    def _setup_device(self):
-        self.buttons = {
-            pin: Button(pin, pull_up=False, bounce_time=0.05) for pin in RPI_GPIO_Device.PIN_MAP
-        }
-
-    def __init__(self):
-        super().__init__()
-
-    def _update_state_table(self):
-        """Updates instance attributes and returns a dictionary of the current states."""
-        for pin, attr in RPI_GPIO_Device.PIN_MAP.items():
-            setattr(self, attr, self.buttons[pin].is_pressed)
-        states = {
-            attr: getattr(self, attr) for attr in RPI_GPIO_Device.PIN_MAP.values()
-        }
-        # Temporary fix for neutral state which isn't wired
-        self.NEUTRAL_ACTIVE = not self.N2O_ACTIVE and not self.PURGE_ACTIVE
-        self.state_table = StateTable(**states)
-
-
-def get_control_device(key: str) -> ControlDevice:
-    key = key.lower().strip()
-    return {
-        'rpi_gpio_device': RPI_GPIO_Device,
-    }.get(key, None)
-
-
-def send_packet():
+def send_packet() -> None:
     context = zmq.Context()
-    try:
-        push_socket = context.socket(zmq.PUSH)
-        CONFIG = config.load_config()
-        SOCKET_PATH = os.path.abspath(os.path.join(
-            os.path.sep, 'tmp', 'gcs_rocket_pendant_pull.sock')
-        )
-        CONTROL_TYPE = CONFIG['hardware']['controller']
-        controller: ControlDevice = get_control_device(CONTROL_TYPE)()
-        # Wait LINGER_TIME_MS before giving up on push request
-        LINGER_TIME_MS = 300
 
-        push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
-        push_socket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
-        push_socket.connect(f"ipc://{SOCKET_PATH}")
+    gse_packet_send_timer = RepeatingTimer(0.05)
+    frontend_packet_send_timer = RepeatingTimer(0.5)
+    gse_complain_timer = RepeatingTimer(5)
+    frontend_complain_timer = RepeatingTimer(5)
+
+    controller = get_control_device()
+
+    # define sockets first to ensure they are not undefined
+    gse_push_socket = context.socket(zmq.PUSH)
+    frontend_pub_socket = context.socket(zmq.PUB)
+
+    try:
+        gse_push_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        gse_push_socket.setsockopt(
+            zmq.SNDHWM, 1
+        )  # Limit send buffer to 1 message
+        gse_push_socket.connect(f"ipc://{GSE_SOCKET_PATH}")
+
+        frontend_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+        frontend_pub_socket.setsockopt(
+            zmq.SNDHWM, 1
+        )  # Limit send buffer to 1 message
+        frontend_pub_socket.bind(f"ipc://{FRONTEND_SOCKET_PATH}")
+
+        previous_packet = {}
 
         while not service_helper.time_to_stop():
             # Get values to pass to emulator
             # These states are validated, error checked and include fallback
-            states = controller.get_states_dict()
-            state_command = device_emulator.GCStoGSEStateCMD(**states)
-            try:
-                push_socket.send(
-                    state_command.get_payload_bytes(EXTERNAL=True), flags=zmq.NOBLOCK)
-            except zmq.ZMQError:
-                # Queue is likely full
-                slogger.warning(
-                    "ZMQ Push socket is full. Cannot send data until it is emptied in server. Sleeping")
-                time.sleep(1)
+            state_table = controller.get_state_table()
+            pendant_state_dict = state_table.get_pendant_states()
+
+            state_command = device_emulator.GCStoGSEStateCMD(
+                **state_table.get_gse_states()
+            )
+
+            change_in_pendant_data = previous_packet != pendant_state_dict
+            previous_packet = pendant_state_dict
+
+            # NEVER SEND PACKET FROM THE EMULATED_DEVICE TO THE SERVER
+            if (
+                gse_packet_send_timer.time_has_passed()
+                or change_in_pendant_data
+            ):
+                # send to c++ server to forward to GSE
+                try:
+                    gse_push_socket.send(
+                        state_command.get_payload_bytes(EXTERNAL=True),
+                        flags=zmq.NOBLOCK,
+                    )
+                except zmq.ZMQError:
+                    # Queue is likely full
+                    if gse_complain_timer.time_has_passed():
+                        slogger.warning(
+                            "Server ZMQ Push socket is full. Cannot send data until it is emptied in server."
+                        )
+
+            if (
+                frontend_packet_send_timer.time_has_passed()
+                or change_in_pendant_data
+            ):
+                # send to frontend api
+                try:
+                    frontend_pub_socket.send_json(
+                        pendant_state_dict,
+                        flags=zmq.NOBLOCK,
+                    )
+                except zmq.ZMQError as e:
+                    # Queue is likely full
+                    if frontend_complain_timer.time_has_passed():
+                        slogger.warning(
+                            f"Frontend ZMQ Push socket is likely full. error: {e}"
+                        )
+
             # No need to go full blast.
             time.sleep(0.05)
     finally:
         slogger.debug("Packet sender closing socket")
-        push_socket.close()
+        gse_push_socket.close()
+        frontend_pub_socket.close()
         slogger.debug("Packet sender closed socket")
         slogger.debug(f"Packet sender closing context (<{LINGER_TIME_MS}ms)")
         context.term()
@@ -282,9 +174,10 @@ def send_packet():
         slogger.debug("Cleaned up controller")
 
 
-def main():
+def main() -> None:
     device_emulator.MockPacket.initialize_settings(
-        config.load_config()['emulation'])
+        config.get_config()["emulation"]
+    )
     slogger.debug("Starting pendant emulator")
 
     # global packet_thread

@@ -7,7 +7,9 @@ from backend.simulation.rocket_sim.config import hash_ini_file
 import json
 
 
-def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landing_time: int) -> int:
+def determine_flight_state(
+    t: int, max_speed_time: int, apogee_time: int, landing_time: int
+) -> int:
     """Determine the flight state based on elapsed time."""
     # 0.1% tolerance for the apogee
     tolerance_amount = 0.00001
@@ -26,7 +28,7 @@ def determine_flight_state(t: int, max_speed_time: int, apogee_time: int, landin
 
 def get_simulated_flight_data() -> pd.DataFrame:
     """
-        Use this function to run the api, you will get all the necessary data for the backend in a pandas dataframe
+    Use this function to run the api, you will get all the necessary data for the backend in a pandas dataframe
     """
     CONFIG_HASH = hash_ini_file()
     CACHE_DIRS = os.path.join("backend", "simulation", "cache")
@@ -34,7 +36,8 @@ def get_simulated_flight_data() -> pd.DataFrame:
     csv_export_name = os.path.join(THIS_CACHE_DIR, "flightdataexport.csv")
     cache_building_lock_name = os.path.join(THIS_CACHE_DIR, "building.lock")
     extra_data_path = os.path.join(
-        os.path.dirname(csv_export_name), "data.json")
+        os.path.dirname(csv_export_name), "data.json"
+    )
     os.makedirs(CACHE_DIRS, exist_ok=True)
 
     build_data = True
@@ -60,16 +63,29 @@ def get_simulated_flight_data() -> pd.DataFrame:
         # a is acceleration
         flight_object.export_data(
             csv_export_name,
-            "altitude", "speed",
-            "w1", "w2", "w3",
-            "ax", "ay", "az",
-            'e0', 'e1', 'e2', 'e3',
-            'latitude', "longitude"
+            "altitude",
+            "speed",
+            "w1",
+            "w2",
+            "w3",
+            "ax",
+            "ay",
+            "az",
+            "e0",
+            "e1",
+            "e2",
+            "e3",
+            "latitude",
+            "longitude",
         )
         with open(extra_data_path, "w") as f:
-            json.dump({
-                "apogee_time": flight_object.apogee_time,
-                "max_speed_time": flight_object.max_speed_time}, f)
+            json.dump(
+                {
+                    "apogee_time": flight_object.apogee_time,
+                    "max_speed_time": flight_object.max_speed_time,
+                },
+                f,
+            )
         os.remove(cache_building_lock_name)
 
     if not os.path.isfile(csv_export_name):
@@ -77,7 +93,7 @@ def get_simulated_flight_data() -> pd.DataFrame:
 
     flight_df = pd.read_csv(csv_export_name)
 
-    with open(extra_data_path, "r") as f:
+    with open(extra_data_path) as f:
         extra_data = json.load(f)
         apogee_time = extra_data["apogee_time"]
         max_speed_time = extra_data["max_speed_time"]
@@ -87,8 +103,14 @@ def get_simulated_flight_data() -> pd.DataFrame:
     # Grab the landing time which is just the last result in the simulation
     landing_time = flight_df["# Time (s)"].iloc[-1]
     # Add the state the rocket is in based on timestamps from simulation
-    flight_df["flight_state"] = flight_df["# Time (s)"].apply(lambda t: determine_flight_state(
-        t, max_speed_time=max_speed_time, apogee_time=apogee_time, landing_time=landing_time))
+    flight_df["flight_state"] = flight_df["# Time (s)"].apply(
+        lambda t: determine_flight_state(
+            t,
+            max_speed_time=max_speed_time,
+            apogee_time=apogee_time,
+            landing_time=landing_time,
+        )
+    )
     # @TODO add some verification and testing if apogee exists.
     # Verify if apogee exists
     apogee_data = flight_df[flight_df["flight_state"] == 4]

@@ -6,7 +6,7 @@
 namespace debug {
 
 [[maybe_unused]]
-static std::string vectorToHexString(const std::vector<uint8_t> &data,
+static std::string vectorToHexString(const std::vector<uint8_t>& data,
                                      const ssize_t BUFFER_BYTE_COUNT) {
   std::ostringstream oss;
   oss << std::uppercase << std::hex << std::setfill('0');

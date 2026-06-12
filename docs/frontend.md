@@ -1,0 +1,144 @@
+# Frontend developer documentation
+
+_Developer notes and documentation for working on the GCS frontend._
+
+## Interface items
+
+Certain elements on the page can be made to update when data is received. Previously, this was done by hardcoding into JavaScript which DOM elements would be updated (and how), but it's recently been changed with the inclusion of a registry.
+
+### Registry
+
+A registry is generated on page load to store all the elements that are live updated with data. All registry information relevant for updating elements is stored directly in the HTML, to reduce redundancy and make it easier for someone to edit the behaviour of the interface.
+
+The registry is created by scanning for all HTML elements with the `data-key=""` field, then checking which type (or rather, function) they have on the page as stored in the `data-type=""` field.
+
+The key refers to the name of the variable that updates that HTML element, for instance the element `<input data-key="localTime" data-type="string" readonly>` would have its value updated whenever localTime is received from the data stream, and it would be updated as a string type.
+
+Further optional fields may be added to augment the behaviour. All fields and respective behaviour is in the table below.
+
+| Name             | Values                                         | Description                                                                                                                                    |
+| ---------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-key`\*     | Any alphanumeric string delineated by '.'      | Refers to a key in the incoming data stream                                                                                                    |
+| `data-type`\*    | "value", "string", "state"                     | Changes how incoming data is handled by the element                                                                                            |
+| `data-precision` | Positive integer                               | Number of decimal places to render "value" data type with.                                                                                     |
+
+\*Required.
+
+### Data types
+
+| Type     | Description                                                                  |
+| -------- | ---------------------------------------------------------------------------- |
+| "value"  | Numerical value, most common type of data to be shown on a page.             |
+| "string" | Text string, for displaying text or specific number formatting.              |
+| "state"  | State indicator, small lights which change colour depending on system state. |
+
+## Libraries
+
+We're using the following libraries for frontend:
+
+- Tailwind v4.0.17
+- D3.js v7.9.0
+- Three.js v0.175.0
+
+These libraries have been included as standalone JS so we don't have to rely on NPM or a CDN.
+
+These are likely to be updated before IREC 2026, probably in March after our first test launch.
+
+### Tailwind
+
+**Tailwind v4.0.17 is used for stylesheets.**
+
+The standalone version of Tailwind will be used so we don't have to rely on node.js. Download it from https://github.com/tailwindlabs/tailwindcss/releases/tag/v4.0.17, rename to *tailwindcss*, and place it INSIDE `/third_party/` for development.
+
+The `/frontend/scripts/` folder has a number of scripts for using Tailwind:
+
+- _tailwind_dev.sh_ will update tailwind.css in realtime, as you make changes to the html. Use this while developing the webpage.
+- _tailwind_build.sh_ will build an optimised and minified version of tailwind.css for production. This probably isn't necessary since it's a fairly small website, but we'll take any optimisations we can get.
+
+### D3.js
+
+**D3.js v7.9.0 is used for data visualisation.**
+
+It lets us make pretty graphs
+
+### Three.js
+
+**Three.js r183 is used to render the 3D model of the rocket.**
+
+Included with this is the **GLTFLoader.js** loader and some other utils which let us load .gltf and .glb model files.
+
+## Interface items
+### Display item keys and IDs
+
+> These are out of date, and were documented during development of the GCS-2025 system.
+>
+> TODO: Incorporate this into the API standardisation, which makes all keys and values consistently handled across the entire system, instead of having to do a bunch of processing/handling on each interface
+
+### Module tables
+These are the item IDs for updating values with JavaScript.
+
+**Aux Data (aux)**
+| Name | Unit | API ID | API key | ID | Error ID | Error Key |
+| --- | --- | --- | --- | --- | --- | --- |
+| Transducer 1 - N2O In | Bar | 6 | `transducer1` | `aux-transducer-1` | 6,7 | `errorFlags.transducer1Error` |
+| Transducer 2 - N2O Out | Bar | 6 | `transducer2` | `aux-transducer-2` | 6,7 | `errorFlags.transducer2Error` |
+| Transducer 3 - O2 | Bar | 6 | `transducer3` | `aux-transducer-3` | 6,7 | `errorFlags.transducer3Error` |
+| Thermocouple 1 - N2O (int) | degC | 6 | `thermocouple1` | `aux-thermocouple-1` | 6,7 | `errorFlags.thermocouple1Error` |
+| Thermocouple 2 - N2O #1 | degC | 6 | `thermocouple2` | `aux-thermocouple-2` | 6,7 | `errorFlags.thermocouple2Error` |
+| Thermocouple 3 - N2O #2| degC | 6 | `thermocouple3` | `aux-thermocouple-3` | 6,7 | `errorFlags.thermocouple3Error` |
+| Thermocouple 4 - O2 | degC | 6 | `thermocouple4` | `aux-thermocouple-4` | 6,7 | `errorFlags.thermocouple4Error` |
+| Internal temperature | degC | 7 | `internalTemp` | `aux-internaltemp` |  |  |
+| Gas bottle 1 - N2O #1 | kg | 7 | `gasBottleWeight1` | `aux-gasbottle-1` |  |  |
+| Gas bottle 2 - N2O #2 | kg | 7 | `gasBottleWeight2` | `aux-gasbottle-2` |  |  |
+| Rocket mass | kg | 7 | `analogVoltageInput1` | `aux-loadcell` |  |  |
+
+**Avionics (av)**
+| Name | Unit | API ID | API key | ID |
+| --- | --- | --- | --- | --- |
+| GPS fix | bool | 3,4,5 | `stateFlags.GPSFixFlag` | `av-state-gpsfix` |
+| Dual board state | bool | 3,4,5 | `stateFlags.dualBoardConnectivityStateFlag` | `av-state-dualboard` |
+| Pyro 1 |  |  |  |`av-state-pyro-1` |
+| Pyro 2 |  |  |  |`av-state-pyro-2` |
+| Pyro 3 |  |  |  |`av-state-pyro-3` |
+| Pyro 4 |  |  |  |`av-state-pyro-4` |
+| Velocity | m/s | 3 | `velocity` | `av-velocity` |
+| Mach |  | 3 | `mach_number` | `av-mach` |
+| Accel X | *g* | 3 | `accelLowX, accelHighX` | `av-accel-x` |
+| Accel Y | *g* | 3 | `accelLowY, accelHighY` | `av-accel-y` |
+| Accel Z | *g* | 3 | `accelLowZ, accelHighZ` | `av-accel-z` |
+| Gyro X | deg/s | 3 | `gyroX` | `av-gyro-x` |
+| Gyro Y | deg/s | 3 | `gyroY` | `av-gyro-y` |
+| Gyro Z | deg/s | 3 | `gyroZ` | `av-gyro-z` |
+
+**Flight State (fs)**
+| Name | Unit | API ID | API key | ID |
+| --- | --- | --- | --- | --- |
+| Flight state |  | 3,4,5 | `flightState` | `fs-flightstate` |
+| Time |  |  |  | `fs-time` |
+
+**Position (pos)**
+| Name | Unit | API ID | API key | ID |
+| --- | --- | --- | --- | --- |
+| Altitude | m | 3 | `altitude` | `pos-alt-m` |
+| Altitude | ft |  |  | `pos-alt-ft` |
+| Max altitude | m |  |  | `pos-maxalt-m` |
+| Max altitude | ft |  |  | `pos-maxalt-f` |
+| GPS latitude |  | 4 | `GPSLatitude` | `pos-gps-lat` |
+| GPS longitude |  | 4 | `GPSLongitude` | `pos-gps-lon` |
+| Nav state |  |  | `navigationStatus` | `pos-navstate` |
+
+**Radio (radio)**
+| Name | Unit | API ID | API key | ID |
+| --- | --- | --- | --- | --- |
+| AV comms state | *bool* |  |  | `radio-av-state` |
+| AV RSSI | dBm [0,255] | 3,4,5 | `meta.rssi` | `radio-av-rssi` |
+| AV SNR | dB | 3,4,5 | `meta.snr` | `radio-av-snr` |
+| AV Packets | *int* | 3,4,5 | `meta.packets` | `radio-av-packets` |
+| GSE comms state | *bool* |  |  | `radio-gse-state` |
+| GSE RSSI | dBm [0,255] | 6,7 | `meta.rssi` | `radio-gse-rssi` |
+| GSE SNR | dB | 6,7 | `meta.snr` | `radio-gse-snr` |
+| GSE Packets | *int* | 6,7 | `meta.packets` | `radio-gse-packets` |
+
+---
+
+[Home](../README.md)

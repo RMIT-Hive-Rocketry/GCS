@@ -1,0 +1,149 @@
+<style>
+    /* Only apply to rocket selector page */
+    body.default {
+        color: white;
+        border: 2px solid var(--color-hive-dark);
+        padding: 8px;
+
+        /* Hex background */
+        background-position: inherit;
+        background-origin: inherit;
+        background-repeat: no-repeat, repeat;
+        background-color: black;
+        background-image:
+            url("/img/logo-hive-gradient.png"), url("/img/bg-hex-orange.svg");
+        background-size:
+            auto 100%,
+            100%;
+
+        animation-name: moveBackground;
+        animation-duration: 15s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+
+    @keyframes moveBackground {
+        from {
+            background-position-x: left, 0px;
+            background-position-y: center, 0px;
+        }
+
+        to {
+            background-position-x:
+                left,
+                -394px;
+            background-position-y: center, 270px;
+        }
+    }
+
+    /*
+    body.default a {
+        filter: grayscale(100%);
+    }
+    body.default a:hover {
+        filter: grayscale(0%);
+    }*/
+</style>
+
+<!-- Example module -->
+<div class="module-default">
+    <h2>Rocket Selector</h2>
+    <div class="absolute bottom-0 right-0 text-right">
+        <a href="/debug/rockets" class="block text-hive-dark hover:underline hover:text-hive">debug/rockets</a>
+        <a href="/debug/modules" class="block text-hive-dark hover:underline hover:text-hive">debug/modules</a>
+        <a href="/debug/pendant" class="block text-hive-dark hover:underline hover:text-hive">debug/pendant</a>
+    </div>
+
+    <div class="flex flex-col gap-12 w-full h-full justify-center items-center">
+        <p>Welcome to the RMIT High Velocity Ground Control Station</p>
+        <div>
+            <p class="font-bold text-hive w-full text-center mb-2">
+                SELECT CONFIGURATION
+            </p>
+            <div class="flex flex-row gap-4 justify-center items-center">
+                <!-- Legacy -->
+                {% for rocket in config.rockets %} {% if rocket.name == "legacy"
+                %}
+                <a href="/?rocket=legacy" style="
+                        background-image:
+                            linear-gradient(
+                                to right,
+                                rgba(0, 0, 0, 0.5),
+                                rgba(0, 0, 0, 1) 50%
+                            ),
+                            url(/legacy/static/img/logo-legacy3-rotated.png);
+                        background-repeat: no-repeat;
+                        background-size: auto 90%;
+                        background-position-y: bottom;
+                    "
+                    class="w-48 h-auto border-2 border-white/50 hover:outline-4 hover:outline-legacy-dark hover:border-legacy bg-black flex flex-col items-center p-2">
+                    <img src="{{rocket.configs[0].LOGO}}" alt="Legacy Logo"
+                        class="max-w-full h-12 grow p-2 object-contain" />
+                    <canvas width="192" height="512" id="legacyPreview"></canvas>
+                </a>
+                {% endif %} {% endfor %}
+
+                <!-- Atlas -->
+                {% for rocket in config.rockets %} {% if rocket.name == "atlas"
+                %}
+                <a href="/?rocket=atlas"
+                    class="w-48 h-auto border-2 border-white/50 hover:outline-4 hover:outline-atlas-medium hover:border-atlas bg-black flex flex-col items-center p-2"
+                    style="
+                        background-image:
+                            linear-gradient(
+                                to right,
+                                rgba(0, 0, 0, 0.5),
+                                rgba(0, 0, 0, 1) 110%
+                            ),
+                            url(/atlas/static/img/atlas-name-rotated.png);
+                        background-repeat: no-repeat;
+                        background-size: 90%;
+                        background-position-y: bottom;
+                        background-position-x: -10px;
+                    ">
+                    <img src="{{rocket.configs[0].LOGO}}" alt="Atlas Logo"
+                        class="max-w-full h-12 grow p-2 object-contain" />
+                    <canvas width="192" height="512" id="atlasPreview"></canvas>
+                </a>
+                {% endif %} {% endfor %}
+
+                <!-- Horizon -->
+                {% for rocket in config.rockets %} {% if rocket.name ==
+                "horizon" %}
+                <a href="/?rocket=horizon"
+                    class="w-48 h-auto border-2 border-white/50 hover:outline-4 hover:outline-horizon-pink hover:border-horizon-yellow bg-black flex flex-col items-center p-2"
+                    style="
+                        background-image:
+                            linear-gradient(
+                                to right,
+                                rgba(0, 0, 0, 0.4),
+                                rgba(0, 0, 0, 1) 100%
+                            ),
+                            url(/horizon/static/img/logo-horizon-rotated.png);
+                        background-repeat: no-repeat;
+                        background-size: auto 89%;
+                        background-position-y: 92%;
+                        background-position-x: -12px;
+                    ">
+                    <img src="{{rocket.configs[0].LOGO}}" alt="Horizon Logo"
+                        class="max-w-full h-12 grow p-2 object-contain" />
+                    <canvas width="192" height="512" id="horizonPreview"></canvas>
+                </a>
+                {% endif %} {% endfor %}
+
+                <!-- Any other rockets -->
+                {% for rocket in config.rockets %} {% if rocket.name !=
+                "default" and rocket.name != "legacy" and rocket.name != "atlas"
+                and rocket.name != "horizon" %}
+                <a href="/?rocket={{rocket.name}}"
+                    class="w-48 h-48 border-2 border-white/50 hover:border-hive hover:text-hive bg-black flex flex-col items-center p-2">
+                    <img src="{{rocket.configs[0].LOGO}}" alt="{{rocket.name}} Logo"
+                        class="max-w-full max-h-12 mt-2 grow p-2 object-contain" />
+                </a>
+                {% endif %} {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="/default/static/js/rocket_selector.js" defer></script>
