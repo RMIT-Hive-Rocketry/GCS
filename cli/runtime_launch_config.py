@@ -2,7 +2,7 @@ import enum
 import logging
 import os
 from dataclasses import dataclass
-from config import config
+from config.config import get_config
 from cli.start_middleware import (
     InterfaceType,
     MiddlewareConfig,
@@ -39,18 +39,16 @@ class RuntimeLaunchConfig:
         self.is_release = self._is_release_mode(command)
 
         # get from config if not specified in CLI args
+        cfg = get_config()
+
         if not interface_gse_arg:
             interface_gse_arg = (
-                config.get_config()["hardware"]["interface_dev_gse"]
-                .strip()
-                .upper()
+                cfg["hardware"]["interface_dev_gse"].strip().upper()
             )
 
         if not interface_av_arg:
             interface_av_arg = (
-                config.get_config()["hardware"]["interface_dev_av"]
-                .strip()
-                .upper()
+                cfg["hardware"]["interface_dev_av"].strip().upper()
             )
 
         self.interface_gse_type = get_interface_type(interface_gse_arg)
@@ -82,8 +80,8 @@ class RuntimeLaunchConfig:
             opt_arg=self.optional_arg,
             lora_config=(
                 self.lora_config
-                if self.interface_gse_type == InterfaceType.UART_E5
-                or self.interface_av_type == InterfaceType.UART_E5
+                if InterfaceType.UART_E5
+                in (self.interface_gse_type, self.interface_av_type)
                 else None
             ),
         )
@@ -93,9 +91,9 @@ class RuntimeLaunchConfig:
         return getattr(command, "name", "").upper() == "RUN"
 
     def _validate_split_emulation_support(self) -> None:
-        if (
-            self.interface_gse_type == InterfaceType.NONE
-            or self.interface_av_type == InterfaceType.NONE
+        if InterfaceType.NONE in (
+            self.interface_gse_type,
+            self.interface_av_type,
         ):
             # NONE should allow split emulation
             return
@@ -116,16 +114,16 @@ class RuntimeLaunchConfig:
             self.interface_gse_type in self._test_interfaces
             or self.interface_av_type in self._test_interfaces
         )
-        either_is_none = (
-            self.interface_gse_type == InterfaceType.NONE
-            or self.interface_av_type == InterfaceType.NONE
+        either_is_none = InterfaceType.NONE in (
+            self.interface_gse_type,
+            self.interface_av_type,
         )
         both_are_test = (
             self.interface_gse_type in self._test_interfaces
             and self.interface_av_type in self._test_interfaces
         )
 
-        if either_is_none and either_is_test or both_are_test:
+        if (either_is_none and either_is_test) or both_are_test:
             middleware_device, aux_device = self._run_pseudoterm_setup()
             self.device_path_gse = middleware_device
             self.device_path_av = middleware_device
@@ -149,8 +147,10 @@ class RuntimeLaunchConfig:
     def _resolve_non_test_device_path(
         self, interface_type: InterfaceType, link_name: str
     ) -> str:
+        cfg = get_config()
+
         if interface_type == InterfaceType.UART_E5:
-            lora_section = config.get_config()["lora"]
+            lora_section = cfg["lora_915"]
             serial_device = lora_section.get("serial_device")
             if serial_device is None or len(str(serial_device).strip()) == 0:
                 raise RuntimeError(
@@ -175,16 +175,19 @@ class RuntimeLaunchConfig:
 
         if interface_type == InterfaceType.TCP:
             self.logger.info(f"Starting TCP interface ({link_name})")
-            tcp_section = config.get_config()["tcp"]
+            tcp_section = cfg["tcp"]
             tcp_ip = str(tcp_section.get("gse_ip"))
-            tcp_port = int(tcp_section.get("gse_port"))
+            tcp_port = int(tcp_section.get("gse_port", 0))
             self._print_large_config(tcp_section)
             if tcp_ip is None or tcp_port is None:
                 raise RuntimeError(
                     "Please specify gse_ip and gse_port in config/config.ini"
                 )
-            if not (1 <= tcp_port <= 65535):
-                raise RuntimeError("tcp-port must be between 1 and 65535")
+            port_range = 65535
+            if not (1 <= tcp_port <= port_range):
+                raise RuntimeError(
+                    f"tcp-port must be between 1 and {port_range}"
+                )
             return f"{tcp_ip}:{tcp_port}"
 
         if interface_type == InterfaceType.NONE:
@@ -201,7 +204,7 @@ class RuntimeLaunchConfig:
         devices = start_fake_serial_device(self.logger)
         if devices == (None, None):
             raise RuntimeError("Failed to start fake serial device. Exiting")
-        return devices[0], devices[1]
+        return str(devices[0]), str(devices[1])
 
     def _print_large_config(self, params) -> None:
         self.logger.info("----------# RADIO PARAMETERS #----------")

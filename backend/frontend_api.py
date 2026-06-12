@@ -92,8 +92,8 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     )
     ping_interval_s = float(cfg_frontend_api["ping_interval_s"])
 
-    PING_GAP_TIME_S = 2
-    next_ping_time = asyncio.get_running_loop().time() + PING_GAP_TIME_S
+    ping_gap_time_s = 2
+    next_ping_time = asyncio.get_running_loop().time() + ping_gap_time_s
     cached_ping_results: dict = {}
     ping_task = None
     tcp_gse_task = None
@@ -141,19 +141,18 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     cached_ping_results = await network_pings.ping_manifest()
                 except Exception as e:
                     slogger.error("ping_manifest failed: %s", e)
-                await asyncio.sleep(PING_GAP_TIME_S)
+                await asyncio.sleep(ping_gap_time_s)
 
         ping_task = asyncio.create_task(_network_ping_worker())
 
         async def _tcp_gse_labview_reader():
             """Pull data from LabVIEW or from LabVIEW emulator"""
             cfg = get_config()
-            port = int(cfg["emulation"]["tcp_server_port"])
+            host = cfg["tcp"]["labview_server_ip"]
+            port = int(cfg["tcp"]["labview_server_port"])
             writer = None
             try:
-                reader, writer = await asyncio.open_connection(
-                    "127.0.0.1", port
-                )
+                reader, writer = await asyncio.open_connection(host, port)
             except OSError as e:
                 slogger.error(f"GSE LabVIEW TCP connect failed: {e}")
                 return
@@ -246,7 +245,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                 if asyncio.get_running_loop().time() > next_ping_time:
                     if cached_ping_results:
                         packet = {
-                            "id": NETWORK_DIAGNOSTICS_PACKET_ID,
+                            "id": network_diagnostics_packet_id,
                             "data": cached_ping_results,
                         }
                         try:
@@ -254,7 +253,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         except websockets.ConnectionClosedOK:
                             break
                     next_ping_time = (
-                        asyncio.get_running_loop().time() + PING_GAP_TIME_S
+                        asyncio.get_running_loop().time() + ping_gap_time_s
                     )
 
                 while True:

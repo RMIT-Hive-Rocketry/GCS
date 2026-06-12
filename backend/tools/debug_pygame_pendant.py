@@ -1,6 +1,4 @@
-from backend.includes_python.devices.pygame_devices import (
-    HybridPygamePendant,
-)
+from backend.includes_python.devices.pygame_devices import HybridPygamePendant
 from backend.includes_python import service_helper
 
 import faulthandler
