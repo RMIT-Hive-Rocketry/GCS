@@ -148,12 +148,11 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
         async def _tcp_gse_labview_reader():
             """Pull data from LabVIEW or from LabVIEW emulator"""
             cfg = get_config()
-            port = int(cfg["emulation"]["tcp_server_port"])
+            host = cfg["tcp"]["labview_server_ip"]
+            port = int(cfg["tcp"]["labview_server_port"])
             writer = None
             try:
-                reader, writer = await asyncio.open_connection(
-                    "127.0.0.1", port
-                )
+                reader, writer = await asyncio.open_connection(host, port)
             except OSError as e:
                 slogger.error(f"GSE LabVIEW TCP connect failed: {e}")
                 return
