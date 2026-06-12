@@ -3,82 +3,36 @@
 <div class="module-horizon p-1 gap-2 justify-center">
     <div class="w-full flex gap-2 justify-start items-center">
         <p class="font-bold text-hive">&nbsp;AV</p>
-        <div
-            data-key="state.av.radio"
-            data-type="state"
-            class="indicator-state mx-0 timeout"
-        ></div>
+        <div data-key="state.av.radio" data-type="state" class="indicator-state mx-0 timeout"></div>
         <div class="flex flex-row gap-2 grow justify-between">
             <label>
-                RSSI:<input
-                    data-key="meta.av.rssi"
-                    data-precision="0"
-                    readonly
-                    autocomplete="off"
-                    class="text-right"
-                    size="4"
-                />dBm &nbsp
+                RSSI:<input data-key="meta.av.rssi" data-precision="0" readonly autocomplete="off" class="text-right"
+                    size="4" />dBm &nbsp
             </label>
             <label>
-                SNR:<input
-                    data-key="meta.av.snr"
-                    data-precision="0"
-                    readonly
-                    autocomplete="off"
-                    size="4"
-                />
+                SNR:<input data-key="meta.av.snr" data-precision="0" readonly autocomplete="off" size="4" />
             </label>
             <label>
-                Packets:<input
-                    data-key="meta.av.packets"
-                    data-precision="0"
-                    readonly
-                    autocomplete="off"
-                    class="text-right"
-                    size="11"
-                />
+                Packets:<input data-key="meta.av.packets" data-precision="0" readonly autocomplete="off"
+                    class="text-right" size="11" />
             </label>
         </div>
     </div>
     <div class="w-full flex gap-2 justify-between items-center">
         <p class="font-bold text-hive">GSE</p>
-        <div
-            data-key="state.gse.radio"
-            data-type="state"
-            class="indicator-state mx-0 timeout"
-        ></div>
+        <div data-key="state.gse.radio" data-type="state" class="indicator-state mx-0 timeout"></div>
         <div class="flex flex-row gap-0.5 grow justify-between">
             <label>
-                Packet Loss:<input
-                    data-key="Vulcan ESP32.packet_loss"
-                    data-precision="1"
-                    readonly
-                    autocomplete="off"
-                    size="4"
-                    value="0"
-                />%
+                Packet Loss:<input data-key="Vulcan ESP32.packet_loss" data-precision="1" readonly autocomplete="off"
+                    size="4" value="0" />%
             </label>
             <label>
-                Ping:<input
-                    data-key="Vulcan ESP32.ping"
-                    data-precision="0"
-                    readonly
-                    autocomplete="off"
-                    class="text-right"
-                    size="4"
-                    value="-1"
-                />ms
+                Ping:<input data-key="Vulcan ESP32.ping" data-precision="0" readonly autocomplete="off"
+                    class="text-right" size="4" value="-1" />ms
             </label>
             <label>
-                Packets:<input
-                    data-key="Vulcan ESP32.count"
-                    data-precision="0"
-                    readonly
-                    autocomplete="off"
-                    class="text-right"
-                    size="11"
-                    value="0"
-                />
+                Packets:<input data-key="Vulcan ESP32.count" data-precision="0" readonly autocomplete="off"
+                    class="text-right" size="11" value="0" />
             </label>
         </div>
     </div>
