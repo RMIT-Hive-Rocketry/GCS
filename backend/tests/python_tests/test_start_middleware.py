@@ -105,9 +105,7 @@ def test_build_middleware_argv_uart_e5_requires_lora_config():
         "/dev/serial0",
         lora_config=None,
     )
-    with pytest.raises(
-        ValueError, match="UART_E5 interface requires lora_config"
-    ):
+    with pytest.raises(ValueError, match="interface requires lora_config"):
         build_middleware_argv(cfg, FAKE_BINARY)
 
 

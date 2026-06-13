@@ -53,8 +53,7 @@ void require_interface_support(const ParsedArgs& args) {
 
 ParsedArgs parse_args(int argc, char* argv[]) {
   // Argv: <gse_type> <gse_path> <av_type> <av_path> <pendant> <web>
-  //       [9x lora if gse_type==UART_E5 or av_type==UART_E5]
-  //       [2x lora (freq, power) if gse_type or av_type is UART_FEATHER]
+  //       [9x lora if gse_type or av_type is UART_E5 or UART_FEATHER]
   //       [--GSE-ONLY]
   // Validation is done on the Python side; C++ only parses.
   const int MIN_ARGS = 7;
@@ -76,13 +75,11 @@ ParsedArgs parse_args(int argc, char* argv[]) {
                   .lora_cfg = {},
                   .gse_only_mode = false};
 
+  // Both serial LoRa interfaces take the same 9 radio params
   const bool has_lora_args =
-      (args.gse_type == "UART_E5" || args.av_type == "UART_E5");
-  // The Feather bridge only takes frequency and power; the other modem
-  // settings are fixed by its firmware.
-  const bool has_feather_args =
-      (args.gse_type == "UART_FEATHER" || args.av_type == "UART_FEATHER");
-  const int LORA_ARGS = has_lora_args ? 9 : (has_feather_args ? 2 : 0);
+      (args.gse_type == "UART_E5" || args.av_type == "UART_E5" ||
+       args.gse_type == "UART_FEATHER" || args.av_type == "UART_FEATHER");
+  const int LORA_ARGS = has_lora_args ? 9 : 0;
 
   // Parse --GSE-ONLY before interface check so GSE-only mode is allowed.
   if (argc >= MIN_ARGS + LORA_ARGS + 1 &&
@@ -95,8 +92,9 @@ ParsedArgs parse_args(int argc, char* argv[]) {
   if (has_lora_args) {
     if (argc < MIN_ARGS + LORA_ARGS) {
       slogger::error(
-          "UART_E5 (GSE or AV) requires 9 lora args after the 7 base args.");
-      throw std::runtime_error("Error: Not enough arguments for UART_E5");
+          "UART_E5/UART_FEATHER (GSE or AV) requires 9 lora args after the 7 "
+          "base args.");
+      throw std::runtime_error("Error: Not enough arguments for LoRa device");
     }
     args.lora_cfg = {
         .frequency = argv[7],
@@ -109,15 +107,6 @@ ParsedArgs parse_args(int argc, char* argv[]) {
         .iq = argv[14],
         .net = argv[15],
     };
-  } else if (has_feather_args) {
-    if (argc < MIN_ARGS + LORA_ARGS) {
-      slogger::error(
-          "UART_FEATHER (GSE or AV) requires 2 lora args (frequency, power) "
-          "after the 7 base args.");
-      throw std::runtime_error("Error: Not enough arguments for UART_FEATHER");
-    }
-    args.lora_cfg.frequency = argv[7];
-    args.lora_cfg.power = argv[8];
   }
 
   return args;

@@ -23,9 +23,10 @@
 /// sends AT+BLINK during init; it stays on for the duration of each LoRa TX.
 class UartFeatherInterface : public RadioInterface {
  public:
-  /// Only lora_cfg.frequency (MHz, 410-525) and lora_cfg.power (dBm, 2-20)
-  /// are used; the other modem settings are fixed by the firmware
-  /// (RadioHead defaults: 125 kHz BW, CR 4/5, SF7).
+  /// Applies the full LoraConfig at init: frequency (MHz, 410-525),
+  /// spread_factor ("SF7" or "7"), bandwidth (kHz), tx_preamble (symbols),
+  /// power (dBm, 2-20), crc/iq/net (ON|OFF). rx_preamble is unused: the
+  /// SX127x has a single preamble length register (used for TX).
   UartFeatherInterface(LoraConfig lora_cfg, const std::string& device_path,
                        int baud_rate = B115200);
   virtual ~UartFeatherInterface();

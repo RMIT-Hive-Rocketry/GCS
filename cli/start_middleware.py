@@ -135,7 +135,8 @@ def build_middleware_argv(
     """Build argv for the middleware process (always gse + av format).
 
     Order: binary, gse_type, gse_path, av_type, av_path, pendant, web,
-    [9 lora params if gse_type==UART_E5 or av_type==UART_E5], [--GSE-ONLY].
+    [9 lora params if gse_type or av_type is UART_E5 or UART_FEATHER],
+    [--GSE-ONLY].
     """
     if not isinstance(
         config.interface_gse_type, InterfaceType
@@ -153,19 +154,17 @@ def build_middleware_argv(
         config.web_control_socket_path,
     ]
 
-    an_interface_is_uart_e5 = (
-        config.interface_gse_type == InterfaceType.UART_E5
-        or config.interface_av_type == InterfaceType.UART_E5
+    # Both serial LoRa interfaces take the same 9 radio params
+    an_interface_is_lora = bool(
+        {InterfaceType.UART_E5, InterfaceType.UART_FEATHER}
+        & {config.interface_gse_type, config.interface_av_type}
     )
 
-    an_interface_is_uart_feather = InterfaceType.UART_FEATHER in (
-        config.interface_gse_type,
-        config.interface_av_type,
-    )
-
-    if an_interface_is_uart_e5:
+    if an_interface_is_lora:
         if config.lora_config is None:
-            raise ValueError("UART_E5 interface requires lora_config")
+            raise ValueError(
+                "UART_E5/UART_FEATHER interface requires lora_config"
+            )
         argv.extend(
             [
                 config.lora_config["frequency"],
@@ -177,17 +176,6 @@ def build_middleware_argv(
                 config.lora_config["crc"],
                 config.lora_config["iq"],
                 config.lora_config["net"],
-            ]
-        )
-    elif an_interface_is_uart_feather:
-        # The Feather firmware only exposes frequency and power; modem
-        # settings are fixed (125 kHz BW, CR 4/5, SF7)
-        if config.lora_config is None:
-            raise ValueError("UART_FEATHER interface requires lora_config")
-        argv.extend(
-            [
-                config.lora_config["frequency"],
-                config.lora_config["power"],
             ]
         )
     if config.opt_arg is not None:

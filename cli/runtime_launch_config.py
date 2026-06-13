@@ -203,7 +203,14 @@ class RuntimeLaunchConfig:
                 serial_device = discovered
             self.lora_config = {
                 "frequency": str(lora_section.get("frequency")),
+                "spread_factor": str(lora_section.get("spread_factor")),
+                "bandwidth": str(lora_section.get("bandwidth")),
+                "tx_preamble": str(lora_section.get("tx_preamble")),
+                "rx_preamble": str(lora_section.get("rx_preamble")),
                 "power": str(lora_section.get("power")),
+                "crc": str(lora_section.get("crc")),
+                "iq": str(lora_section.get("iq")),
+                "net": str(lora_section.get("net")),
             }
             self._print_large_config(lora_section)
             self.logger.info(

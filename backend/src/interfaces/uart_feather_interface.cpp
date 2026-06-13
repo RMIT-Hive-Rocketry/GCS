@@ -120,11 +120,26 @@ void UartFeatherInterface::at_setup() {
     slogger::warning("Feather radio version check failed");
   }
 
-  if (!at_send_command("AT+FREQ=" + lora_cfg_.frequency)) {
-    slogger::error("Failed to set Feather frequency: " + lora_cfg_.frequency);
-  }
-  if (!at_send_command("AT+POWER=" + lora_cfg_.power)) {
-    slogger::error("Failed to set Feather TX power: " + lora_cfg_.power);
+  // Config stores spread factor E5-style ("SF7"); firmware wants the number
+  std::string sf = lora_cfg_.spread_factor;
+  if (sf.rfind("SF", 0) == 0 || sf.rfind("sf", 0) == 0) sf = sf.substr(2);
+
+  // Full SX127x modem configuration, same option set as the E5.
+  // rx_preamble is omitted: the SX127x has a single (TX) preamble register
+  const std::vector<std::pair<std::string, std::string>> SETUP_COMMANDS = {
+      {"AT+FREQ=", lora_cfg_.frequency},
+      {"AT+SF=", sf},
+      {"AT+BW=", lora_cfg_.bandwidth},
+      {"AT+PREAMBLE=", lora_cfg_.tx_preamble},
+      {"AT+POWER=", lora_cfg_.power},
+      {"AT+CRC=", lora_cfg_.crc},
+      {"AT+IQ=", lora_cfg_.iq},
+      {"AT+NET=", lora_cfg_.net},
+  };
+  for (const auto& [prefix, value] : SETUP_COMMANDS) {
+    if (!at_send_command(prefix + value)) {
+      slogger::error("Feather setup command failed: " + prefix + value);
+    }
   }
 
   slogger::info("End of Feather setup...");
