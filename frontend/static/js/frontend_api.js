@@ -9,17 +9,17 @@
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
 import { Config as cfg } from '/js/frontend_config.js';
-import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
 import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
+import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
 import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
 
 // Global display values
 const errors = []
 const altitudeHistory = []
-var altitudeMax
-var packetsAV1 = 0
-var packetsAV1offset = 0
+let altitudeMax
+let packetsAV1 = 0
+let packetsAV1offset = 0
 
 // Handle incoming messages through the API
 function API_OnMessage(event_data) {

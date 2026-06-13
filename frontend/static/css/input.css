@@ -433,7 +433,7 @@
 
   /* Continuity (Single Operator) */
   .continuity-header {
-    @apply font-mono text-hive border-r-1 border-hive-dark flex flex-row items-center text-center justify-center;
+    @apply font-mono text-hive border-r border-hive-dark flex flex-row items-center text-center justify-center;
   }
 
   .continuity-button {
@@ -452,7 +452,7 @@
   }
 
   .continuity-variables-middle {
-    @apply flex flex-row items-center justify-center border-r-1 border-hive-dark p-2;
+    @apply flex flex-row items-center justify-center border-r border-hive-dark p-2;
   }
 
   .continuity-variables-right {

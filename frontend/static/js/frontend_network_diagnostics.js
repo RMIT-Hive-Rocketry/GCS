@@ -139,6 +139,7 @@ function updateNetworkDiagnostics(apiData) {
 function diagNowSeconds() {
     return performance.now() / 1000;
 }
+
 function diagClampGraphPing(value) {
     return Math.max(1, Math.min(498, value));
 }
@@ -153,7 +154,7 @@ function diagUpdateDeviceCard(device_id, device_data) {
     // Get safe device ID
     const device_id_safe = format_device_id(device_id);
     const device_list = document.getElementById("diag-device-list");
-    if (device_list == undefined)
+    if (device_list === undefined)
         return;
 
     // Network device info element
@@ -197,19 +198,19 @@ function diagUpdateDeviceCard(device_id, device_data) {
     }
 
     // Loss
-    let elem_loss = document.getElementById(`${device_id_safe}-loss`);
+    const elem_loss = document.getElementById(`${device_id_safe}-loss`);
     if (elem_loss && elem_loss !== undefined) {
         elem_loss.textContent = device_data.packet_loss != null ? `${device_data.packet_loss}%` : "-";
     }
 
     // Ping
-    let elem_ping = document.getElementById(`${device_id_safe}-ping`);
+    const elem_ping = document.getElementById(`${device_id_safe}-ping`);
     if (elem_ping && elem_ping !== undefined) {
         elem_ping.textContent = device_data.connected ? `${device_data.ping.toPrecision(3)} ms` : "- ms";
     }
 
     // Packet count
-    let elem_packets = document.getElementById(`${device_id_safe}-packets`);
+    const elem_packets = document.getElementById(`${device_id_safe}-packets`);
     if (elem_packets && elem_packets !== undefined) {
         elem_packets.textContent = device_data.packet_count ?? "-";
     }
@@ -239,4 +240,4 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
     }
 }
 
-export { updateNetworkDiagnostics, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id, diagNowSeconds }
+export { diagClampGraphPing, diagNowSeconds, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id, updateNetworkDiagnostics }

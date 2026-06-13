@@ -10,7 +10,7 @@
 
 import { Config as cfg } from '/js/frontend_config.js'
 import { diagSetAvIndicator, diagSetSummaryOnlineBox, timestamp } from '/js/frontend_display.js'
-import { diagNowSeconds, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id } from '/js/frontend_network_diagnostics.js'
+import { diagClampGraphPing, diagNowSeconds, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id } from '/js/frontend_network_diagnostics.js'
 import { metresToFeet } from '/js/frontend_utils.js'
 
 // DEFINE CHARTS
