@@ -35,37 +35,6 @@ class Config {
         y_ticks: 8
     }
 
-    // Sounds
-    static audio = {
-        // Altitude in metres for when to play parachute sound
-        parachute_altitude: 1200,
-        // Radius in metres from GCS for overhead warning (rocket coming down)
-        overhead_warn_radius: 50,
-        /*
-        Combine all timeouts into one array of objects (only for radios)
-        so we can program sound alarms in a queue, with past rockets included 
-        for legacy support (replaces data-timeout attribute).
-        */
-        timeouts: {
-            "Legacy3": [
-                { name: 'av', duration: 3000, state: 4 },
-                { name: 'av', duration: 10000, state: 5 },
-                { name: 'gse', duration: 3000, state: 4 },
-                { name: 'gse', duration: 10000, state: 5 },
-            ],
-            "Atlas": [
-                { name: 'av', duration: 3000, state: 4 },
-                { name: 'av', duration: 10000, state: 5 },
-                { name: 'gse', duration: 3000, state: 4 },
-                { name: 'gse', duration: 10000, state: 5 },
-            ],
-            "Horizon": [
-                { name: 'av', duration: 5000, state: 4 },
-                { name: 'gse', duration: 5000, state: 4 },
-            ]
-        },
-    }
-
     // API configuration
     static api = {
         packet_id: {
@@ -231,6 +200,44 @@ class Config {
                 },
             },
         ]
+    }
+
+    // Sounds
+    static audio = {
+        // Altitude in metres for when to play parachute sound
+        parachute_altitude: 1200,
+        // Radius in metres from GCS for overhead warning (rocket coming down)
+        overhead_warn_radius: 50,
+        /*
+        Combine all timeouts into one array of objects (only for radios)
+        so we can program sound alarms in a queue, with past rockets included 
+        for legacy support (replaces data-timeout attribute).
+        */
+        timeouts: {
+            "Legacy3": [
+                { name: 'av', duration: 3000, state: 4 },
+                { name: 'av', duration: 10000, state: 5 },
+                { name: 'gse', duration: 3000, state: 4 },
+                { name: 'gse', duration: 10000, state: 5 },
+            ],
+            "Atlas": [
+                { name: 'av', duration: 3000, state: 4 },
+                { name: 'av', duration: 10000, state: 5 },
+                { name: 'gse', duration: 3000, state: 4 },
+                { name: 'gse', duration: 10000, state: 5 },
+            ],
+            "Horizon": [
+                { name: 'av', duration: 5000, state: 4 },
+                { name: 'gse', duration: 5000, state: 4 },
+            ]
+        },
+    }
+
+    // Network diagnostics
+    static network = {
+        gse_devices: ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"],
+        lan_devices: ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"],
+        graph_render_rate_s: 1.8,
     }
 }
 

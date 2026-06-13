@@ -231,42 +231,27 @@ window.addEventListener('keydown', (event) => {
 
 // ── Right panel: flip a status box green/red ─────────────────────
 function diagSetStatusBox(id, pingValue) {
-    const el = document.getElementById(id);
-    if (!el)
+    const elem = document.getElementById(id);
+    if (!elem)
         return;
 
     // No data / offline
     if (pingValue == null || pingValue < 0) {
-        el.textContent = "DOWN";
-        el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-        el.style.borderColor = "var(--color-red-800,#991b1b)";
-        el.style.color = "white";
-        return;
+        // No data (offline)
+        elem.classList.remove("good", "warn", "bad");
+    } else if (pingValue <= 100) {
+        // Good connection (green light)
+        elem.classList.remove("warn", "bad");
+        elem.classList.add("good");
+    } else if (pingValue <= 200) {
+        // Connection warning (amber light)
+        elem.classList.remove("good", "bad");
+        elem.classList.add("warn");
+    } else {
+        // Bad connection (red light)
+        elem.classList.remove("good", "warn");
+        elem.classList.add("bad");
     }
-
-    // Green
-    if (pingValue <= 100) {
-        el.textContent = "GOOD";
-        el.style.backgroundColor = "var(--color-green-400,#4ade80)";
-        el.style.borderColor = "var(--color-green-700,#15803d)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Yellow
-    if (pingValue <= 200) {
-        el.textContent = "WARN";
-        el.style.backgroundColor = "var(--color-yellow-400,#facc15)";
-        el.style.borderColor = "var(--color-yellow-700,#a16207)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Red
-    el.textContent = "BAD";
-    el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-    el.style.borderColor = "var(--color-red-800,#991b1b)";
-    el.style.color = "white";
 }
 
 function diagSetSummaryOnlineBox(id, online) {

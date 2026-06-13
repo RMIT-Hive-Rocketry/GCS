@@ -10,6 +10,7 @@
 
 import { Config as cfg } from '/js/frontend_config.js'
 import { diagSetAvIndicator, diagSetSummaryOnlineBox, timestamp } from '/js/frontend_display.js'
+import { diagNowSeconds, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id } from '/js/frontend_network_diagnostics.js'
 import { metresToFeet } from '/js/frontend_utils.js'
 
 // DEFINE CHARTS
@@ -666,126 +667,13 @@ function graphUpdateAuxData(data) {
     }
 }
 
-
-
 // ── Main entry point: called by frontend_api.js when packet 50 arrives ─
-const diagGraphs = {}; // d_id → graph object (with pingValues[])
-const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
-const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
-const DIAG_RENDER_LATENCY_SECONDS = 1.8;
-
-
-// ================================================================
-// DIAGNOSTICS — Full redesign
-// Manages: device list cards, ping graphs, status boxes, bottom bar
-// Called by frontend_api.js when packet ID 50 arrives
-// ================================================================
-function diagNowSeconds() {
-    return performance.now() / 1000;
-}
-function diagClampGraphPing(value) {
-    return Math.max(1, Math.min(498, value));
-}
-
-// Returns a CSS-safe ID string from a device name
-function diagSafeId(d_id) {
-    return d_id.replace(/[^a-z0-9]/gi, "-").toLowerCase();
-}
-
-// ── Left panel: create/update a device card ──────────────────────
-function diagUpdateDeviceCard(d_id, d_data) {
-    const safeId = diagSafeId(d_id);
-    const listEl = document.getElementById("diag-device-list");
-    if (!listEl)
-        return;
-
-    let card = document.getElementById(`diag-card-${safeId}`);
-    if (!card) {
-        card = document.createElement("div");
-        card.id = `diag-card-${safeId}`;
-        card.className = "flex flex-col px-3 py-2 rounded-xl gap-1 shrink-0";
-        listEl.appendChild(card);
-    }
-
-    const lossText = d_data.packet_loss != null ? `${d_data.packet_loss}%` : "--";
-    const pingText = d_data.connected ? `${d_data.ping.toPrecision(3)} ms` : "-- ms";
-    const pktsText = d_data.packet_count ?? "--";
-
-    card.style.background =
-        d_data.connected
-            ? "linear-gradient(180deg, rgba(12,12,16,0.9), rgba(4,4,8,0.9))"
-            : "linear-gradient(180deg, rgba(80,0,0,0.35), rgba(20,0,0,0.85))";
-
-    card.style.border =
-        `1px solid ${d_data.connected ? "rgba(255,45,105,0.65)" : "rgba(220,38,38,0.55)"}`;
-
-    card.style.boxShadow =
-        d_data.connected
-            ? "0 0 8px rgba(255,45,105,0.15)"
-            : "0 0 12px rgba(239,68,68,0.35)";
-
-    card.innerHTML = `
-        <div class="flex items-center gap-2 mb-1">
-            <div style="
-                width:10px; height:10px; border-radius:50%; flex-shrink:0;
-                background:${d_data.connected ? "#4ade80" : "#ef4444"};
-                box-shadow:0 0 6px ${d_data.connected ? "#4ade80" : "#ef4444"};
-            "></div>
-            <span class="font-bold" style="color:var(--color-horizon-yellow,#f59e0b); font-size:0.95rem;">${d_id}</span>
-        </div>
-        <div style="
-            display:grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 4px;
-        ">
-            <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Packet Loss</span>
-                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${lossText}</span>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Ping</span>
-                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pingText}</span>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Updates</span>
-                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pktsText}</span>
-            </div>
-        </div>
-    `;
-}
-
-
-// ── Bottom bar: update summary counts ────────────────────────────
-function diagUpdateBottomBar(totalDevices, onlineCount) {
-    const offlineCount = totalDevices - onlineCount;
-    const allOnline = offlineCount === 0 && totalDevices > 0;
-
-    const elAll = document.getElementById("diag-bottom-all-online");
-    const elOffline = document.getElementById("diag-bottom-offline");
-    const elOnline = document.getElementById("diag-bottom-online");
-
-    if (elAll) {
-        elAll.textContent = allOnline ? "Yes" : "No";
-        elAll.style.background = allOnline ? "#16a34a" : "#dc2626";
-    }
-    if (elOffline) {
-        elOffline.textContent = offlineCount;
-        elOffline.style.background = offlineCount > 0 ? "#dc2626" : "#16a34a";
-    }
-    if (elOnline) {
-        elOnline.textContent = onlineCount;
-        elOnline.style.background = onlineCount > 0 ? "#16a34a" : "rgba(255,255,255,0.1)";
-    }
-}
-
+const diagGraphs = {}; // device_id → graph object (with pingValues[])
 
 // ── Middle panel: create a graph card if it doesn't exist ────────
-function diagEnsureGraph(d_id) {
+function diagEnsureGraph(device_id) {
     // Check if graph exists
-    if (diagGraphs[d_id])
+    if (diagGraphs[device_id])
         return;
 
     //
@@ -793,13 +681,13 @@ function diagEnsureGraph(d_id) {
     if (!container)
         return;
 
-    const safeId = diagSafeId(d_id);
-    const svgId = `diag-graph-${safeId}`;
+    const device_id_safe = format_device_id(device_id);
+    const svgId = `diag-graph-${device_id_safe}`;
     if (document.getElementById(svgId))
         return;
 
     const panel = document.createElement("div");
-    panel.id = `diag-panel-${safeId}`;
+    panel.id = `diag-panel-${device_id_safe}`;
     panel.className = "flex flex-col rounded-xl overflow-hidden";
     panel.style.cssText =
         "background:linear-gradient(180deg, rgba(20,0,8,0.95), rgba(5,0,3,0.95)); border:1px solid rgba(255,45,105,0.75); box-shadow:0 0 12px rgba(255,45,105,0.22);";
@@ -807,8 +695,8 @@ function diagEnsureGraph(d_id) {
     panel.innerHTML = `
         <div class="flex items-center justify-between px-2 pt-1 shrink-0">
             <span class="text-xs font-semibold"
-                  style="color:var(--color-horizon-yellow,#f59e0b);">${d_id}</span>
-            <span id="diag-badge-${safeId}"
+                  style="color:var(--color-horizon-yellow,#f59e0b);">${device_id}</span>
+            <span id="diag-badge-${device_id_safe}"
                   style="font-size:0.6rem; padding:1px 5px; border-radius:3px;
                          background:#ef4444; color:white; font-weight:700;">
                 OFFLINE
@@ -818,7 +706,7 @@ function diagEnsureGraph(d_id) {
             <svg id="${svgId}" class="w-full h-full absolute inset-0"
                  width="0" height="0"></svg>
         </div>
-        <div id="diag-stats-${safeId}"
+        <div id="diag-stats-${device_id_safe}"
              class="px-2 pb-1 shrink-0 flex gap-1 justify-center"
              style="font-size:0.6rem; color:rgba(255,255,255,0.45);">
             <span>Avg: -- ms</span><span>|</span>
@@ -839,7 +727,7 @@ function diagEnsureGraph(d_id) {
         pingValues: [], // for avg/min/max tracking
     };
 
-    diagGraphs[d_id] = graph;
+    diagGraphs[device_id] = graph;
 
     // Add threshold background layers after graph initialises
     // Delay so the browser paints the panel before we measure its dimensions
@@ -885,21 +773,21 @@ function diagEnsureGraph(d_id) {
 }
 
 // ── Middle panel: update badge, graph line, and stats ────────────
-function diagUpdateGraph(d_id, d_data, timestamp) {
-    const safeId = diagSafeId(d_id);
-    const graph = diagGraphs[d_id];
+function diagUpdateGraph(device_id, device_data, timestamp) {
+    const device_id_safe = format_device_id(device_id);
+    const graph = diagGraphs[device_id];
 
     // Badge
-    const badge = document.getElementById(`diag-badge-${safeId}`);
+    const badge = document.getElementById(`diag-badge-${device_id_safe}`);
     if (badge) {
-        badge.textContent = d_data.connected ? "ONLINE" : "OFFLINE";
-        badge.style.background = d_data.connected ? "#4ade80" : "#ef4444";
-        badge.style.color = d_data.connected ? "black" : "white";
+        badge.textContent = device_data.connected ? "ONLINE" : "OFFLINE";
+        badge.style.background = device_data.connected ? "#4ade80" : "#ef4444";
+        badge.style.color = device_data.connected ? "black" : "white";
     }
 
     // Graph data + stats
     if (graph) {
-        graphAddValue(graph, 0, timestamp, d_data.ping);
+        graphAddValue(graph, 0, timestamp, device_data.ping);
 
         // Update diagnostics threshold layer positions
         if (graph?.g && graph?.graphHeight) {
@@ -928,13 +816,13 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
 
         // This keeps disconnected values from affecting average/min/max stats.
         // Ping 0 is a special graph marker, so it is also excluded from stats.
-        if (d_data.connected) {
-            graph.pingValues.push(d_data.ping);
+        if (device_data.connected) {
+            graph.pingValues.push(device_data.ping);
             if (graph.pingValues.length > 300)
                 graph.pingValues.shift();
         }
 
-        const statsEl = document.getElementById(`diag-stats-${safeId}`);
+        const statsEl = document.getElementById(`diag-stats-${device_id_safe}`);
 
         if (statsEl) {
             if (graph.pingValues.length > 0) {
@@ -953,7 +841,7 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
             }
         }
     } else {
-        const statsEl = document.getElementById(`diag-stats-${safeId}`);
+        const statsEl = document.getElementById(`diag-stats-${device_id_safe}`);
         if (statsEl) {
             statsEl.innerHTML =
                 "<span>Avg: -- ms</span><span>|</span><span>Min: -- ms</span><span>|</span><span>Max: -- ms</span>";
@@ -970,45 +858,45 @@ function graphUpdateDiagnostics(apiData) {
     let hasGseDevice = false;
     let hasLanDevice = false;
 
-    Object.entries(apiData).forEach(([d_id, d_data]) => {
-        if (d_id === "id" || d_id === "state" || d_id === "meta")
+    Object.entries(apiData).forEach(([device_id, device_data]) => {
+        if (device_id === "id" || device_id === "state" || device_id === "meta")
             return;
-        if (typeof d_data !== "object" || d_data === null)
+        if (typeof device_data !== "object" || device_data === null)
             return;
 
-        if (d_data.ping === undefined) {
-            d_data.ping = -1;
-            d_data.connected = false;
+        if (device_data.ping === undefined) {
+            device_data.ping = -1;
+            device_data.connected = false;
         }
 
-        if (DIAG_GSE_DEVICES.includes(d_id)) {
+        if (cfg.network.gse_devices.includes(device_id)) {
             hasGseDevice = true;
 
-            if (!d_data.connected) {
+            if (!device_data.connected) {
                 gseOnline = false;
             }
-        } else if (DIAG_LAN_DEVICES.includes(d_id)) {
+        } else if (cfg.network.lan_devices.includes(device_id)) {
             hasLanDevice = true;
 
-            if (!d_data.connected) {
+            if (!device_data.connected) {
                 lanOnline = false;
             }
         }
 
         totalCount++;
-        if (d_data.connected)
+        if (device_data.connected)
             onlineCount++;
 
         // Left panel
-        diagUpdateDeviceCard(d_id, d_data);
+        diagUpdateDeviceCard(device_id, device_data);
 
         // Middle panel
-        if (diagGraphs[d_id] === undefined) {
-            diagEnsureGraph(d_id);
+        if (diagGraphs[device_id] === undefined) {
+            diagEnsureGraph(device_id);
         }
-        diagUpdateGraph(d_id, d_data, current_timestamp);
+        diagUpdateGraph(device_id, device_data, current_timestamp);
 
-        // if (DIAG_LAN_DEVICES.includes(d_id) && alive) {
+        // if (cfg.network.lan_devices.includes(device_id) && alive) {
         //     lanWorstPing =
         //         lanWorstPing == null
         //             ? ping
@@ -1052,7 +940,7 @@ function graphRenderDiagnostics() {
             return;
 
         const renderNow = diagNowSeconds();
-        const now = renderNow - DIAG_RENDER_LATENCY_SECONDS;
+        const now = renderNow - cfg.network.graph_render_rate_s;
 
         if (!Number.isFinite(now))
             return;

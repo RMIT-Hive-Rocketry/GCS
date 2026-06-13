@@ -14,14 +14,12 @@ import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataT
 import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
 import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
 
-// Logging
-const errors = []
-
 // Global display values
-let altitudeMax
+const errors = []
 const altitudeHistory = []
-let packetsAV1 = 0
-let packetsAV1offset = 0
+var altitudeMax
+var packetsAV1 = 0
+var packetsAV1offset = 0
 
 // Handle incoming messages through the API
 function API_OnMessage(event_data) {

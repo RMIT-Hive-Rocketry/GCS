@@ -131,4 +131,112 @@ function updateNetworkDiagnostics(apiData) {
     }
 }
 
-export { updateNetworkDiagnostics }
+// ================================================================
+// DIAGNOSTICS — Full redesign
+// Manages: device list cards, ping graphs, status boxes, bottom bar
+// Called by frontend_api.js when packet ID 50 arrives
+// ================================================================
+function diagNowSeconds() {
+    return performance.now() / 1000;
+}
+function diagClampGraphPing(value) {
+    return Math.max(1, Math.min(498, value));
+}
+
+// Returns a CSS-safe ID string from a device name
+function format_device_id(device_id) {
+    return device_id.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+}
+
+// ── Left panel: create/update a device card ──────────────────────
+function diagUpdateDeviceCard(device_id, device_data) {
+    // Get safe device ID
+    const device_id_safe = format_device_id(device_id);
+    const device_list = document.getElementById("diag-device-list");
+    if (device_list == undefined)
+        return;
+
+    // Network device info element
+    let elem = document.getElementById(`diag-card-${device_id_safe}`);
+    if (!elem) {
+        // Create network device element
+        elem = document.createElement("div");
+        elem.classList.add("network-device");
+        elem.id = `diag-card-${device_id_safe}`;
+
+        // Setup inner html
+        elem.innerHTML = `
+        <div class="status">
+            <div class="indicator-network"></div>
+            <span>${device_id}</span>
+        </div>
+        <div class="details">
+            <div>
+                <span>Loss</span>
+                <span id="${device_id_safe}-loss" ></span>
+            </div>
+            <div>
+                <span>Ping</span>
+                <span id="${device_id_safe}-ping"></span>
+            </div>
+            <div>
+                <span>Packets</span>
+                <span id="${device_id_safe}-packets"></span>
+            </div>
+        </div>
+        `;
+
+        // Add card to list
+        device_list.appendChild(elem);
+    }
+
+    if (device_data.connected) {
+        elem.classList.add("connected");
+    } else {
+        elem.classList.remove("connected");
+    }
+
+    // Loss
+    let elem_loss = document.getElementById(`${device_id_safe}-loss`);
+    if (elem_loss && elem_loss !== undefined) {
+        elem_loss.textContent = device_data.packet_loss != null ? `${device_data.packet_loss}%` : "-";
+    }
+
+    // Ping
+    let elem_ping = document.getElementById(`${device_id_safe}-ping`);
+    if (elem_ping && elem_ping !== undefined) {
+        elem_ping.textContent = device_data.connected ? `${device_data.ping.toPrecision(3)} ms` : "- ms";
+    }
+
+    // Packet count
+    let elem_packets = document.getElementById(`${device_id_safe}-packets`);
+    if (elem_packets && elem_packets !== undefined) {
+        elem_packets.textContent = device_data.packet_count ?? "-";
+    }
+}
+
+
+// ── Bottom bar: update summary counts ────────────────────────────
+function diagUpdateBottomBar(totalDevices, onlineCount) {
+    const offlineCount = totalDevices - onlineCount;
+    const allOnline = offlineCount === 0 && totalDevices > 0;
+
+    const elAll = document.getElementById("diag-bottom-all-online");
+    const elOffline = document.getElementById("diag-bottom-offline");
+    const elOnline = document.getElementById("diag-bottom-online");
+
+    if (elAll) {
+        elAll.textContent = allOnline ? "Yes" : "No";
+        elAll.style.background = allOnline ? "#16a34a" : "#dc2626";
+    }
+    if (elOffline) {
+        elOffline.textContent = offlineCount;
+        elOffline.style.background = offlineCount > 0 ? "#dc2626" : "#16a34a";
+    }
+    if (elOnline) {
+        elOnline.textContent = onlineCount;
+        elOnline.style.background = onlineCount > 0 ? "#16a34a" : "rgba(255,255,255,0.1)";
+    }
+}
+
+export { updateNetworkDiagnostics, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id, diagNowSeconds }
