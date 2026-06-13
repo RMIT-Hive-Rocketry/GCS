@@ -108,6 +108,9 @@ void UartFeatherInterface::at_setup() {
     throw std::runtime_error("Feather LoRa bridge not responding to AT");
   }
 
+  // Firmware holds the onboard LED on for 1 s (same as power-up blink)
+  at_send_command("AT+BLINK", nullptr, BLINK_TIMEOUT_MS);
+
   // Confirm the radio silicon itself is alive (SX127x version register)
   std::vector<std::string> ver_lines;
   if (at_send_command("AT+VER?", &ver_lines) && !ver_lines.empty() &&

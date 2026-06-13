@@ -19,6 +19,8 @@
 ///
 /// WARNING: never open this port at 1200 baud. A 1200-baud open/close resets
 /// the 32u4 into its bootloader (that is the firmware-flashing mechanism).
+/// The onboard LED (pin 13) is on for 1 s at power-up and again when the host
+/// sends AT+BLINK during init; it stays on for the duration of each LoRa TX.
 class UartFeatherInterface : public RadioInterface {
  public:
   /// Only lora_cfg.frequency (MHz, 410-525) and lora_cfg.power (dBm, 2-20)
@@ -44,6 +46,8 @@ class UartFeatherInterface : public RadioInterface {
   LoraConfig lora_cfg_;
 
   constexpr static int AT_TIMEOUT_MS = 1000;
+  // AT+BLINK holds the LED on for 1 s before replying OK
+  constexpr static int BLINK_TIMEOUT_MS = 2000;
   // AT+SENDX blocks until TX completes, which can take hundreds of ms
   constexpr static int SEND_TIMEOUT_MS = 5000;
   constexpr static size_t MAX_PAYLOAD_BYTES = 251;  // RH_RF95_MAX_MESSAGE_LEN
