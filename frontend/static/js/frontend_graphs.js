@@ -13,87 +13,7 @@ import { diagSetAvIndicator, diagSetSummaryOnlineBox, timestamp } from '/js/fron
 import { diagClampGraphPing, diagNowSeconds, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id } from '/js/frontend_network_diagnostics.js'
 import { metresToFeet } from '/js/frontend_utils.js'
 
-// DEFINE CHARTS
-const LINE_COLOURS = [
-    "#FF0000",
-    "#00FF00",
-    "#0000FF",
-    // "#FFFFFF", - not required at this stage
-];
-const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
-
-const GRAPH_AV_ACCEL = {
-    selector: "#graph-av-accel",
-    ylabel: "Acceleration (g)",
-    numLines: 3,
-    data: [],
-};
-const GRAPH_AV_GYRO = {
-    selector: "#graph-av-gyro",
-    ylabel: "Rotation Rate (°/s)",
-    numLines: 3,
-    data: [],
-};
-const GRAPH_AV_VELOCITY = {
-    selector: "#graph-av-velocity",
-    ylabel: "Vertical Speed (m/s)",
-    numLines: 1,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_POS_ALT = {
-    selector: "#graph-pos-alt",
-    ylabel: "Altitude (ft)",
-    numLines: 1,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_TRANSDUCERS = {
-    selector: "#graph-aux-transducers",
-    ylabel: "Pressure (bar)",
-    numLines: 3,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_THERMOCOUPLES = {
-    selector: "#graph-aux-thermocouples",
-    ylabel: "Temperature (°C)",
-    numLines: 3,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_VENTTEMP = {
-    selector: "#graph-aux-venttemp",
-    ylabel: "Temperature (°C)",
-    numLines: 1,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_SUPPLY_TEMP = {
-    selector: "#graph-aux-n2o-supply-temp",
-    ylabel: "Temperature (°C)",
-    numLines: 1,
-    data: [],
-};
-
-const GRAPH_TEST_COLOURS = {
-    selector: "#graph-test-colours",
-    ylabel: "Sample metric",
-    numLines: 3,
-    data: [],
-}
-
-const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
+const GRAPHS = cfg.graphs;
 
 // Create and initialise line graphs
 function graphCreateLine(chart) {
@@ -115,7 +35,7 @@ function graphCreateLine(chart) {
 
     // Update graph margins and axes
     if (chart.margin === undefined) {
-        chart.margin = DEFAULT_MARGINS;
+        chart.margin = cfg.graphs.default_margins;
     }
 
     /* If the 1st parameter is 0, this would throw -ve dimension errors.
@@ -187,7 +107,7 @@ function graphCreateLine(chart) {
     // Lines array to hold multiple line data sets
     chart.lines = [];
     for (let i = 0; i < chart.numLines; i++) {
-        chart.lines.push({ data: [], color: LINE_COLOURS[i] });
+        chart.lines.push({ data: [], color: cfg.graphs.line_colours[i] });
     }
 
     // ResizeObserver (for dynamic graph resizing)
@@ -300,7 +220,7 @@ function graphRender(chart) {
          * hence the graph should just be a static display (barring the
          * changes in colour made by the operator).
         */
-        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - cfg.graphs.max_time) : 0;
+        const windowStart = (chart !== GRAPHS.test.colours) ? (now - cfg.graphs.max_time) : 0;
 
         if (chart.lastRender !== now) {
             // Limit data to graph window
@@ -343,7 +263,7 @@ function graphRender(chart) {
                 /* Update x and y domains (unless it's the test colour
                  * graph where no scrolling is required).
                 */
-                if (chart !== GRAPH_TEST_COLOURS) {
+                if (chart !== GRAPHS.test.colours) {
                     chart.x.domain([windowStart, now]);
                 }
 
@@ -409,27 +329,27 @@ function graphRender(chart) {
                                 chart.g
                                     .append("path")
                                     .attr("class", "line-dot")
-                                    .attr("d", symbolCircle)
+                                    .attr("d", cfg.graphs.symbol_circle)
                                     .attr(
                                         "transform",
                                         `translate(${chart.x(d.x)},${chart.y(d.y)})`,
                                     )
                                     .attr(
                                         "fill",
-                                        lineData.color || LINE_COLOURS[index],
+                                        lineData.color || cfg.graphs.line_colours[index],
                                     );
                             } else if (!d.next || !d.prev) {
                                 chart.g
                                     .append("path")
                                     .attr("class", "line-dot")
-                                    .attr("d", symbolCircle) // Make cross?
+                                    .attr("d", cfg.graphs.symbol_circle) // Make cross?
                                     .attr(
                                         "transform",
                                         `translate(${chart.x(d.x)},${chart.y(d.y)})`,
                                     )
                                     .attr(
                                         "fill",
-                                        lineData.color || LINE_COLOURS[index],
+                                        lineData.color || cfg.graphs.line_colours[index],
                                     );
                             }
                         }
@@ -453,7 +373,7 @@ function graphRender(chart) {
                         )
                         .attr("class", "line-path")
                         .attr("fill", "none")
-                        .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
+                        .attr("stroke", lineData.color || cfg.graphs.line_colours[index]) // Cycle through colors
                         .attr("stroke-width", 1.5)
                         .attr("stroke-linecap", "round")
                         .attr("d", line);
@@ -471,18 +391,15 @@ function graphRender(chart) {
 
 function graphRequestRender() {
     // Attempt to render all graphs
-    graphRender(GRAPH_AV_ACCEL);
-    graphRender(GRAPH_AV_GYRO);
-    graphRender(GRAPH_AV_VELOCITY);
-
-    graphRender(GRAPH_POS_ALT);
-
-    graphRender(GRAPH_AUX_TRANSDUCERS);
-    graphRender(GRAPH_AUX_THERMOCOUPLES);
-    graphRender(GRAPH_AUX_VENTTEMP);
-    graphRender(GRAPH_AUX_SUPPLY_TEMP);
-
-    graphRender(GRAPH_TEST_COLOURS);
+    graphRender(GRAPHS.av.accel);
+    graphRender(GRAPHS.av.gyro);
+    graphRender(GRAPHS.av.velocity);
+    graphRender(GRAPHS.pos.alt);
+    graphRender(GRAPHS.gse.transducers);
+    graphRender(GRAPHS.gse.thermocouples);
+    graphRender(GRAPHS.gse.vent_temp);
+    graphRender(GRAPHS.gse.supply_temp);
+    graphRender(GRAPHS.test.colours);
 
     // Diagnostics ping graphs
     graphRenderDiagnostics();
@@ -520,20 +437,20 @@ function graphAddValue(graph, line, timestamp, value) {
 
 function graphInit() {
     // Build D3 charts
-    graphCreateLine(GRAPH_AV_ACCEL);
-    graphCreateLine(GRAPH_AV_GYRO);
-    graphCreateLine(GRAPH_AV_VELOCITY);
-    graphCreateLine(GRAPH_POS_ALT);
-    graphCreateLine(GRAPH_AUX_TRANSDUCERS);
-    graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
-    graphCreateLine(GRAPH_AUX_VENTTEMP);
-    graphCreateLine(GRAPH_AUX_SUPPLY_TEMP);
-    graphCreateLine(GRAPH_TEST_COLOURS);
+    graphCreateLine(GRAPHS.av.accel);
+    graphCreateLine(GRAPHS.av.gyro);
+    graphCreateLine(GRAPHS.av.velocity);
+    graphCreateLine(GRAPHS.pos.alt);
+    graphCreateLine(GRAPHS.gse.transducers);
+    graphCreateLine(GRAPHS.gse.thermocouples);
+    graphCreateLine(GRAPHS.gse.vent_temp);
+    graphCreateLine(GRAPHS.gse.supply_temp);
+    graphCreateLine(GRAPHS.test.colours);
 
     // Update the test colours graph
-    for (let i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
-        graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
-        graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+    for (let i = 0; i < GRAPHS.test.colours.numLines; ++i) {
+        graphAddValue(GRAPHS.test.colours, i, 0, 2 + i);
+        graphAddValue(GRAPHS.test.colours, i, 1, 2 + i);
     }
 
     window.graphsInitialised = true;
@@ -549,19 +466,19 @@ if (document.readyState === "loading") {
 // Update colours in real-time
 ["One", "Two", "Three", "Four"].forEach((c1, index) => {
     document.getElementById(`colour${c1}`)?.addEventListener('input', (event) => {
-        LINE_COLOURS[index] = event.target.value;
+        cfg.graphs.line_colours[index] = event.target.value;
 
         // Same code as above
-        for (let i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
-            graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
-            graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+        for (let i = 0; i < GRAPHS.test.colours.numLines; ++i) {
+            graphAddValue(GRAPHS.test.colours, i, 0, 2 + i);
+            graphAddValue(GRAPHS.test.colours, i, 1, 2 + i);
         }
 
         // Update the colours (even if no data is coming through)
-        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY, GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES, GRAPH_AUX_VENTTEMP, GRAPH_AUX_SUPPLY_TEMP, GRAPH_TEST_COLOURS];
+        const graphsList = [GRAPHS.av.accel, GRAPHS.av.gyro, GRAPHS.av.velocity, GRAPHS.pos.alt, GRAPHS.gse.transducers, GRAPHS.gse.thermocouples, GRAPHS.gse.vent_temp, GRAPHS.gse.supply_temp, GRAPHS.test.colours];
         graphsList.forEach((g1) => {
             g1.lines.forEach((l1, index) => {
-                l1.color = LINE_COLOURS[index];
+                l1.color = cfg.graphs.line_colours[index];
             });
         });
 
@@ -574,7 +491,7 @@ if (document.readyState === "loading") {
             line.forEach((c1) => {
                 const inputElement = document.querySelector(`input[data-key="${c1}"]`);
                 if (inputElement != null) {
-                    inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                    inputElement.style.borderBottomColor = cfg.graphs.line_colours[index];
                 }
             });
         });
@@ -583,7 +500,7 @@ if (document.readyState === "loading") {
         ["pitch", "yaw", "roll"].forEach((a1, index) => {
             const inputElement = document.querySelector(`input[class*="rocket-${a1}"]`);
             if (inputElement != null) {
-                inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                inputElement.style.borderBottomColor = cfg.graphs.line_colours[index];
             }
         });
     })
@@ -596,17 +513,17 @@ function graphUpdateAvionics(data) {
         const timestamp = data.meta.timestampS;
 
         // Acceleration
-        graphAddValue(GRAPH_AV_ACCEL, 0, timestamp, data.accelX);
-        graphAddValue(GRAPH_AV_ACCEL, 1, timestamp, data.accelY);
-        graphAddValue(GRAPH_AV_ACCEL, 2, timestamp, data.accelZ);
+        graphAddValue(GRAPHS.av.accel, 0, timestamp, data.accelX);
+        graphAddValue(GRAPHS.av.accel, 1, timestamp, data.accelY);
+        graphAddValue(GRAPHS.av.accel, 2, timestamp, data.accelZ);
 
         // Gyroscope
-        graphAddValue(GRAPH_AV_GYRO, 0, timestamp, data.gyroX);
-        graphAddValue(GRAPH_AV_GYRO, 1, timestamp, data.gyroY);
-        graphAddValue(GRAPH_AV_GYRO, 2, timestamp, data.gyroZ);
+        graphAddValue(GRAPHS.av.gyro, 0, timestamp, data.gyroX);
+        graphAddValue(GRAPHS.av.gyro, 1, timestamp, data.gyroY);
+        graphAddValue(GRAPHS.av.gyro, 2, timestamp, data.gyroZ);
 
         // Velocity
-        graphAddValue(GRAPH_AV_VELOCITY, 0, timestamp, data.velocity);
+        graphAddValue(GRAPHS.av.velocity, 0, timestamp, data.velocity);
     }
 }
 
@@ -616,7 +533,7 @@ function graphUpdatePosition(data) {
         const timestamp = data.meta.timestampS;
 
         // Altitude
-        graphAddValue(GRAPH_POS_ALT, 0, timestamp, metresToFeet(data.altitude));
+        graphAddValue(GRAPHS.pos.alt, 0, timestamp, metresToFeet(data.altitude));
     }
 }
 
@@ -631,35 +548,35 @@ function graphUpdateAuxData(data) {
         // console.log(timestamp);
 
         // Transducers
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.pressure_n2o_bottle);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.pressure_n2o_tank);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.pressure_o2_tank);
+        graphAddValue(GRAPHS.gse.transducers, 0, timestamp, data.pressure_n2o_bottle);
+        graphAddValue(GRAPHS.gse.transducers, 1, timestamp, data.pressure_n2o_tank);
+        graphAddValue(GRAPHS.gse.transducers, 2, timestamp, data.pressure_o2_tank);
 
         // Supply Temp
         graphAddValue(
-            GRAPH_AUX_SUPPLY_TEMP,
+            GRAPHS.gse.supply_temp,
             0,
             timestamp,
             data.temp_pipe_n2o_gse,
         );
 
         // Vent temperature
-        graphAddValue(GRAPH_AUX_VENTTEMP, 0, timestamp, data.temp_vent);
+        graphAddValue(GRAPHS.gse.vent_temp, 0, timestamp, data.temp_vent);
 
         graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
+            GRAPHS.gse.thermocouples,
             0,
             timestamp,
             data.temp_tank_top,
         );
         graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
+            GRAPHS.gse.thermocouples,
             1,
             timestamp,
             data.temp_tank_middle,
         );
         graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
+            GRAPHS.gse.thermocouples,
             2,
             timestamp,
             data.temp_tank_bottom,

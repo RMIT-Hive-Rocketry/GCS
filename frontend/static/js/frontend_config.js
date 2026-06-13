@@ -2,6 +2,8 @@
  * Javascript configuration for GCS frontend
  */
 
+/* global d3 */
+
 class Config {
     // GPS
     static gps = {
@@ -32,7 +34,92 @@ class Config {
     static graphs = {
         max_time: 20,  // Seconds of graph shown
         max_gap_size: 4,  // Max time between data points where line is drawn
-        y_ticks: 8
+        y_ticks: 8,
+        line_colours: [
+            "#FF0000",
+            "#00FF00",
+            "#0000FF",
+            // "#FFFFFF", - not required at this stage
+        ],
+        default_margins: { top: 6, right: 10, bottom: 24, left: 50 },
+        symbol_circle: d3.symbol().type(d3.symbolCircle).size(10),
+        av: {
+            accel: {
+                selector: "#graph-av-accel",
+                ylabel: "Acceleration (g)",
+                numLines: 3,
+                data: [],
+            },
+            gyro: {
+                selector: "#graph-av-gyro",
+                ylabel: "Rotation Rate (°/s)",
+                numLines: 3,
+                data: [],
+            },
+            velocity: {
+                selector: "#graph-av-velocity",
+                ylabel: "Vertical Speed (m/s)",
+                numLines: 1,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+        },
+        pos: {
+            alt: {
+                selector: "#graph-pos-alt",
+                ylabel: "Altitude (ft)",
+                numLines: 1,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            }
+        },
+        gse: {
+            transducers: {
+                selector: "#graph-aux-transducers",
+                ylabel: "Pressure (bar)",
+                numLines: 3,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+            thermocouples: {
+                selector: "#graph-aux-thermocouples",
+                ylabel: "Temperature (°C)",
+                numLines: 3,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+            vent_temp: {
+                selector: "#graph-aux-venttemp",
+                ylabel: "Temperature (°C)",
+                numLines: 1,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+            supply_temp: {
+                selector: "#graph-aux-n2o-supply-temp",
+                ylabel: "Temperature (°C)",
+                numLines: 1,
+                data: [],
+            },
+        },
+        test: {
+            colours: {
+                selector: "#graph-test-colours",
+                ylabel: "Sample metric",
+                numLines: 3,
+                data: [],
+            }
+        }
     }
 
     // API configuration
