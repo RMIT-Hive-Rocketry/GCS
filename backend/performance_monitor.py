@@ -534,11 +534,15 @@ def main() -> None:
             )
             loop_start_time = time.time()
 
-        if(GCS_cpu_use_percent > system_data.cpu_usage_percent):
-            slogger.error("Performance Monitor Detected, GCS cpu util exceeds System Util")
+        if GCS_cpu_use_percent > system_data.cpu_usage_percent:
+            slogger.error(
+                "Performance Monitor Detected, GCS cpu util exceeds System Util"
+            )
 
-        if(GCS_ram_use_percent > total_ram_use_percent):
-            slogger.error("Performance Monitor Detected, GCS cpu util exceeds System Util")
+        if GCS_ram_use_percent > total_ram_use_percent:
+            slogger.error(
+                "Performance Monitor Detected, GCS cpu util exceeds System Util"
+            )
 
         # Update Old Values with current ones
         previous_sys_data = system_data
