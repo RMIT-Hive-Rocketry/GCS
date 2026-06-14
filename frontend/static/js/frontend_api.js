@@ -430,17 +430,17 @@ function processDataForDisplay(apiData, apiId) {
 
     // State flags
     // GPS fix (navigation state)
-    if (apiData.navigationStatus !== undefined) {
-        if (['NF'].includes(apiData.navigationStatus)) {
-            processedData.state.gpsFix = 3 // Red
-        }
-        else if (['DR', 'TT'].includes(apiData.navigationStatus)) {
-            processedData.state.gpsFix = 2 // Yellow
-        }
-        else if (
-            ['D2', 'D3', 'G2', 'G3', 'RK'].includes(apiData.navigationStatus)
+    if (apiData.nav_status !== undefined) {
+        if (
+            ['D2', 'D3', 'G2', 'G3', 'RK'].includes(apiData.nav_status)
         ) {
             processedData.state.gpsFix = 1 // Green
+        } else if (['DR', 'TT'].includes(apiData.nav_status)) {
+            processedData.state.gpsFix = 2 // Yellow
+        } else if (['NA'].includes(apiData.nav_status)) {
+            processedData.state.gpsFix = 5 // Red
+        } else {
+            processedData.state.gpsFix = 5 // Error
         }
     }
 
@@ -451,6 +451,8 @@ function processDataForDisplay(apiData, apiId) {
                 .dualBoardConnectivityStateFlag
                 ? 1
                 : 5 // green / error
+        } else {
+            processedData.state.dualBoard = 5;
         }
         // Recovery checks
         if (apiData.stateFlags.recoveryChecksCompleteAndFlightReady) {
@@ -458,6 +460,8 @@ function processDataForDisplay(apiData, apiId) {
                 .recoveryChecksCompleteAndFlightReady
                 ? 1
                 : 0
+        } else {
+            processedData.state.recoveryCheck = 5;
         }
         // Payload
         if (apiData.stateFlags.payloadConnectionFlag) {
@@ -465,6 +469,8 @@ function processDataForDisplay(apiData, apiId) {
                 .payloadConnectionFlag
                 ? 1
                 : 0
+        } else {
+            processedData.state.payload = 5;
         }
         // Camera controller
         if (apiData.stateFlags.cameraControllerConnectionFlag) {
@@ -472,6 +478,8 @@ function processDataForDisplay(apiData, apiId) {
                 .cameraControllerConnectionFlag
                 ? 1
                 : 0
+        } else {
+            processedData.state.camera = 5;
         }
     }
 

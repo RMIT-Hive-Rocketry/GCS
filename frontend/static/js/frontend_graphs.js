@@ -777,7 +777,7 @@ function graphRenderDiagnostics() {
             return;
 
         const renderNow = performance.now() / 1000;
-        const now = renderNow - cfg.network.graph_render_rate_s;
+        const now = renderNow - cfg.network.render_rate_s;
 
         if (!Number.isFinite(now))
             return;

@@ -31,10 +31,16 @@ class Config {
         max_size_diagnostics: 40
     }
 
+    // Display
+    static display = {
+        indicator_states: ['off', 'green', 'yellow', 'red', 'timeout', 'error'],
+    }
+
     // Graphing
     static graphs = {
-        max_time: 20,  // Seconds of graph shown
+        max_time: 60,  // Seconds of graph shown
         max_gap_size: 4,  // Max time between data points where line is drawn
+        render_rate: 20,  // Frames per second that graphs are updates
         y_ticks: 8,
         line_colours: [
             "#FF0000",
@@ -63,6 +69,7 @@ class Config {
                 numLines: 1,
                 limits: {
                     yBottomMax: 0,
+                    yBottomMin: 0,
                 },
                 data: [],
             },
@@ -178,10 +185,6 @@ class Config {
             },
             {
                 ids: ['gyroX', 'gyroY', 'gyroZ'],
-                discard: {
-                    min: -295,
-                    max: 295,
-                },
             },
             {
                 ids: ['temp_vent'],
@@ -205,7 +208,7 @@ class Config {
                 },
             },
             {
-                ids: ['navigationStatus'],
+                ids: ['nav_status'],
                 accept: ['NF', 'DR', 'G2', 'G3', 'D2', 'D3', 'RK', 'TT'],
             },
             {
@@ -339,7 +342,7 @@ class Config {
                 // "WiFi Bridge GSE"
             ],
         },
-        graph_render_rate_s: 1.8,
+        render_rate_s: 1.8,
     }
 }
 

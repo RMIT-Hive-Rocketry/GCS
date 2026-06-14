@@ -199,40 +199,52 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
         SNR=float(data["snr"]),
         FLIGHT_STATE_=flight_state,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
-            data["dual_board_connectivity_state_flag"]
+            int(data["dual_board_connectivity_state_flag"])
         ),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
-            data["recovery_checks_complete_and_flight_ready"]
+            int(data["recovery_checks_complete_and_flight_ready"])
         ),
-        GPS_FIX_FLAG=bool(data["GPS_fix_flag"]),
-        PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
+        GPS_FIX_FLAG=bool(int(data["GPS_fix_flag"])),
+        PAYLOAD_CONNECTION_FLAG=bool(int(data["payload_connection_flag"])),
         CAMERA_CONTROLLER_CONNECTION=bool(
-            data["camera_controller_connection_flag"]
+            int(data["camera_controller_connection_flag"])
         ),
-        ACCEL_LOW_X=int(float(data["accel_low_x"]) / 9.81 * 2048),
-        ACCEL_LOW_Y=int(float(data["accel_low_y"]) / 9.81 * 2048),
-        ACCEL_LOW_Z=int(float(data["accel_low_z"]) / 9.81 * 2048),
-        ACCEL_HIGH_X=int(float(data["accel_high_x"]) / 9.81 * -1048),
-        ACCEL_HIGH_Y=int(float(data["accel_high_y"]) / 9.81 * -1048),
-        ACCEL_HIGH_Z=int(float(data["accel_high_z"]) / 9.81 * 1048),
+        ACCEL_LOW_X=int(float(data["accel_low_x"]) * 2048),  # / 9.81 * 2048),
+        ACCEL_LOW_Y=int(float(data["accel_low_y"]) * 2048),  # / 9.81 * 2048),
+        ACCEL_LOW_Z=int(float(data["accel_low_z"]) * 2048),  # / 9.81 * 2048),
+        ACCEL_HIGH_X=int(
+            float(data["accel_high_x"]) * 2048
+        ),  # / 9.81 * -1048),
+        ACCEL_HIGH_Y=int(
+            float(data["accel_high_y"]) * 2048
+        ),  # / 9.81 * -1048),
+        ACCEL_HIGH_Z=int(float(data["accel_high_z"]) * 2048),  # / 9.81 * 1048),
         GYRO_X=int((float(data["gyro_x"])) / 0.00875),
         GYRO_Y=int((float(data["gyro_y"])) / 0.00875),
         GYRO_Z=int((float(data["gyro_z"])) / 0.00875),
         ALTITUDE=float(data["altitude"]),
         VELOCITY=float(data["velocity"]),
-        APOGEE_PRIMARY_TEST_COMPETE=bool(data["apogee_primary_test_complete"]),
+        APOGEE_PRIMARY_TEST_COMPETE=bool(
+            int(data["apogee_primary_test_complete"])
+        ),
         APOGEE_SECONDARY_TEST_COMPETE=bool(
-            data["apogee_secondary_test_complete"]
+            int(data["apogee_secondary_test_complete"])
         ),
-        APOGEE_PRIMARY_TEST_RESULTS=bool(data["apogee_primary_test_results"]),
+        APOGEE_PRIMARY_TEST_RESULTS=bool(
+            int(data["apogee_primary_test_results"])
+        ),
         APOGEE_SECONDARY_TEST_RESULTS=bool(
-            data["apogee_secondary_test_results"]
+            int(data["apogee_secondary_test_results"])
         ),
-        MAIN_PRIMARY_TEST_COMPETE=bool(data["main_primary_test_complete"]),
-        MAIN_SECONDARY_TEST_COMPETE=bool(data["main_secondary_test_complete"]),
-        MAIN_PRIMARY_TEST_RESULTS=bool(data["main_primary_test_results"]),
-        MAIN_SECONDARY_TEST_RESULTS=bool(data["main_secondary_test_results"]),
-        MOVE_TO_BROADCAST=bool(data["broadcast_flag"]),
+        MAIN_PRIMARY_TEST_COMPETE=bool(int(data["main_primary_test_complete"])),
+        MAIN_SECONDARY_TEST_COMPETE=bool(
+            int(data["main_secondary_test_complete"])
+        ),
+        MAIN_PRIMARY_TEST_RESULTS=bool(int(data["main_primary_test_results"])),
+        MAIN_SECONDARY_TEST_RESULTS=bool(
+            int(data["main_secondary_test_results"])
+        ),
+        MOVE_TO_BROADCAST=bool(int(data["broadcast_flag"])),
     )
     item.write_payload()
 
@@ -248,18 +260,19 @@ def _handle_av_to_gcs_data_2(packet: Packet) -> None:
         SNR=float(data["snr"]),
         FLIGHT_STATE_=flight_state,
         DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
-            data["dual_board_connectivity_state_flag"]
+            int(data["dual_board_connectivity_state_flag"])
         ),
         RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
-            data["recovery_checks_complete_and_flight_ready"]
+            int(data["recovery_checks_complete_and_flight_ready"])
         ),
-        GPS_FIX_FLAG=bool(data["GPS_fix_flag"]),
-        PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
+        GPS_FIX_FLAG=bool(int(data["GPS_fix_flag"])),
+        PAYLOAD_CONNECTION_FLAG=bool(int(data["payload_connection_flag"])),
         CAMERA_CONTROLLER_CONNECTION=bool(
-            data["camera_controller_connection_flag"]
+            int(data["camera_controller_connection_flag"])
         ),
         LATITUDE=float(data["GPS_latitude"]),
         LONGITUDE=float(data["GPS_longitude"]),
+        NAV_STATUS=str(data["nav_status"]),
         QW=float(data["qw"]),
         QX=float(data["qz"]),
         QY=float(data["qx"]),
@@ -279,16 +292,16 @@ def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
     item = GSEtoGCSData1(
         RSSI=float(data["rssi"]),
         SNR=float(data["snr"]),
-        MANUAL_PURGED=bool(data["manual_purge_activated"]),
-        O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
+        MANUAL_PURGED=bool(int(data["manual_purge_activated"])),
+        O2_FILL_ACTIVATED=bool(int(data["o2_fill_activated"])),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(
             data["selector_switch_neutral_position"]
         ),
-        N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
-        IGNITION_FIRED=bool(data["ignition_fired"]),
-        IGNITION_SELECTED=bool(data["ignition_selected"]),
-        GAS_FILL_SELECTED=bool(data["gas_fill_selected"]),
-        SYSTEM_ACTIVATED=bool(data["system_activated"]),
+        N2O_FILL_ACTIVATED=bool(int(data["n20_fill_activated"])),
+        IGNITION_FIRED=bool(int(data["ignition_fired"])),
+        IGNITION_SELECTED=bool(int(data["ignition_selected"])),
+        GAS_FILL_SELECTED=bool(int(data["gas_fill_selected"])),
+        SYSTEM_ACTIVATED=bool(int(data["system_activated"])),
         TRANSDUCER1=float(data["transducer_1"]),
         TRANSDUCER2=float(data["transducer_2"]),
         TRANSDUCER3=float(data["transducer_3"]),
@@ -296,22 +309,22 @@ def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
         THERMOCOUPLE2=float(data["thermocouple_2"]),
         THERMOCOUPLE3=float(data["thermocouple_3"]),
         THERMOCOUPLE4=float(data["thermocouple_4"]),
-        IGNITION_ERROR=bool(data["ignition_error"]),
-        RELAY3_ERROR=bool(data["relay_3_error"]),
-        RELAY2_ERROR=bool(data["relay_2_error"]),
-        RELAY1_ERROR=bool(data["relay_1_error"]),
-        THERMOCOUPLE_4_ERROR=bool(data["thermocouple_4_error"]),
-        THERMOCOUPLE_3_ERROR=bool(data["thermocouple_3_error"]),
-        THERMOCOUPLE_2_ERROR=bool(data["thermocouple_2_error"]),
-        THERMOCOUPLE_1_ERROR=bool(data["thermocouple_1_error"]),
-        LOAD_CELL_4_ERROR=bool(data["load_cell_4_error"]),
-        LOAD_CELL_3_ERROR=bool(data["load_cell_3_error"]),
-        LOAD_CELL_2_ERROR=bool(data["load_cell_2_error"]),
-        LOAD_CELL_1_ERROR=bool(data["load_cell_1_error"]),
-        TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
-        TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
-        TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
-        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"]),
+        IGNITION_ERROR=bool(int(data["ignition_error"])),
+        RELAY3_ERROR=bool(int(data["relay_3_error"])),
+        RELAY2_ERROR=bool(int(data["relay_2_error"])),
+        RELAY1_ERROR=bool(int(data["relay_1_error"])),
+        THERMOCOUPLE_4_ERROR=bool(int(data["thermocouple_4_error"])),
+        THERMOCOUPLE_3_ERROR=bool(int(data["thermocouple_3_error"])),
+        THERMOCOUPLE_2_ERROR=bool(int(data["thermocouple_2_error"])),
+        THERMOCOUPLE_1_ERROR=bool(int(data["thermocouple_1_error"])),
+        LOAD_CELL_4_ERROR=bool(int(data["load_cell_4_error"])),
+        LOAD_CELL_3_ERROR=bool(int(data["load_cell_3_error"])),
+        LOAD_CELL_2_ERROR=bool(int(data["load_cell_2_error"])),
+        LOAD_CELL_1_ERROR=bool(int(data["load_cell_1_error"])),
+        TRANSDUCER_4_ERROR=bool(int(data["transducer_4_error"])),
+        TRANSDUCER_3_ERROR=bool(int(data["transducer_3_error"])),
+        TRANSDUCER_2_ERROR=bool(int(data["transducer_2_error"])),
+        TRANSDUCER_1_ERROR=bool(int(data["transducer_1_error"])),
     )
     item.write_payload()
 
@@ -323,16 +336,16 @@ def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
     item = GSEtoGCSData2(
         RSSI=float(data["rssi"]),
         SNR=float(data["snr"]),
-        MANUAL_PURGED=bool(data["manual_purge_activated"]),
-        O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
+        MANUAL_PURGED=bool(int(data["manual_purge_activated"])),
+        O2_FILL_ACTIVATED=bool(int(data["o2_fill_activated"])),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(
             data["selector_switch_neutral_position"]
         ),
-        N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
-        IGNITION_FIRED=bool(data["ignition_fired"]),
-        IGNITION_SELECTED=bool(data["ignition_selected"]),
-        GAS_FILL_SELECTED=bool(data["gas_fill_selected"]),
-        SYSTEM_ACTIVATED=bool(data["system_activated"]),
+        N2O_FILL_ACTIVATED=bool(int(data["n20_fill_activated"])),
+        IGNITION_FIRED=bool(int(data["ignition_fired"])),
+        IGNITION_SELECTED=bool(int(data["ignition_selected"])),
+        GAS_FILL_SELECTED=bool(int(data["gas_fill_selected"])),
+        SYSTEM_ACTIVATED=bool(int(data["system_activated"])),
         INTERNAL_TEMPERATURE=float(data["internal_temp"]),
         WIND_SPEED=float(data["wind_speed"]),
         GAS_BOTTLE_WEIGHT_1=int(data["gas_bottle_weight_1"]),
@@ -341,22 +354,22 @@ def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
         ADDITIONAL_VA_2=float(data["analog_voltage_input_2"]),
         ADDITIONAL_CURRENT_1=float(data["additional_current_input_1"]),
         ADDITIONAL_CURRENT_2=float(data["additional_current_input_2"]),
-        IGNITION_ERROR=bool(data["ignition_error"]),
-        RELAY3_ERROR=bool(data["relay_3_error"]),
-        RELAY2_ERROR=bool(data["relay_2_error"]),
-        RELAY1_ERROR=bool(data["relay_1_error"]),
-        THERMOCOUPLE_4_ERROR=bool(data["thermocouple_4_error"]),
-        THERMOCOUPLE_3_ERROR=bool(data["thermocouple_3_error"]),
-        THERMOCOUPLE_2_ERROR=bool(data["thermocouple_2_error"]),
-        THERMOCOUPLE_1_ERROR=bool(data["thermocouple_1_error"]),
-        LOAD_CELL_4_ERROR=bool(data["load_cell_4_error"]),
-        LOAD_CELL_3_ERROR=bool(data["load_cell_3_error"]),
-        LOAD_CELL_2_ERROR=bool(data["load_cell_2_error"]),
-        LOAD_CELL_1_ERROR=bool(data["load_cell_1_error"]),
-        TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
-        TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
-        TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
-        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"]),
+        IGNITION_ERROR=bool(int(data["ignition_error"])),
+        RELAY3_ERROR=bool(int(data["relay_3_error"])),
+        RELAY2_ERROR=bool(int(data["relay_2_error"])),
+        RELAY1_ERROR=bool(int(data["relay_1_error"])),
+        THERMOCOUPLE_4_ERROR=bool(int(data["thermocouple_4_error"])),
+        THERMOCOUPLE_3_ERROR=bool(int(data["thermocouple_3_error"])),
+        THERMOCOUPLE_2_ERROR=bool(int(data["thermocouple_2_error"])),
+        THERMOCOUPLE_1_ERROR=bool(int(data["thermocouple_1_error"])),
+        LOAD_CELL_4_ERROR=bool(int(data["load_cell_4_error"])),
+        LOAD_CELL_3_ERROR=bool(int(data["load_cell_3_error"])),
+        LOAD_CELL_2_ERROR=bool(int(data["load_cell_2_error"])),
+        LOAD_CELL_1_ERROR=bool(int(data["load_cell_1_error"])),
+        TRANSDUCER_4_ERROR=bool(int(data["transducer_4_error"])),
+        TRANSDUCER_3_ERROR=bool(int(data["transducer_3_error"])),
+        TRANSDUCER_2_ERROR=bool(int(data["transducer_2_error"])),
+        TRANSDUCER_1_ERROR=bool(int(data["transducer_1_error"])),
     )
     item.write_payload()
 
