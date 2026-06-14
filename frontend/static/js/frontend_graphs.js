@@ -607,7 +607,7 @@ function diagEnsureGraph(device_id) {
     panel.id = `diag-panel-${device_id_safe}`;
     panel.className = "flex flex-col rounded-xl overflow-hidden";
     panel.style.cssText =
-        "background:linear-gradient(180deg, rgba(20,0,8,0.95), rgba(5,0,3,0.95)); border:1px solid rgba(255,45,105,0.75); box-shadow:0 0 12px rgba(255,45,105,0.22);";
+        "min-height:250px; background:linear-gradient(180deg, rgba(20,0,8,0.95), rgba(5,0,3,0.95)); border:1px solid rgba(255,45,105,0.75); box-shadow:0 0 12px rgba(255,45,105,0.22);";
 
     panel.innerHTML = `
         <div class="flex items-center justify-between px-2 pt-1 shrink-0">

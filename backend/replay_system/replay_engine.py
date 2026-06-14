@@ -185,9 +185,12 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
         return packet
 
     # Check gyro values
+    """
+    # TEMPORARILY DISABLED
     packet = _gyro_capper(packet, "x")
     packet = _gyro_capper(packet, "y")
     packet = _gyro_capper(packet, "z")
+    """
 
     if service_helper.time_to_stop():
         return

@@ -30,8 +30,7 @@ const timers = {
 function updateTimestamp(new_timestamp) {
     if (timestamp.api) {
         timestamp.api = Math.max(timestamp.api, new_timestamp)
-    }
-    else {
+    } else {
         timestamp.api = new_timestamp
     }
 
@@ -41,8 +40,13 @@ function updateTimestamp(new_timestamp) {
     }
     else {
         // Code to synchronise local time with GSE time if it gets too far behind
-        timestamp.drift
-            = timestamp.local - (timestamp.api - timestamp.apiConnect)
+        if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
+            // Calculate drift with apiConnect offset
+            timestamp.drift = timestamp.local - (timestamp.api - timestamp.apiConnect)
+        } else {
+            // Calculate drift without apiConnect offset (sometimes it's undefined)
+            timestamp.drift = timestamp.local - timestamp.api
+        }
 
         // Time drift
         // timestamp.drift > 0 means LOCAL is ahead of GSE
@@ -100,9 +104,23 @@ function updateTime() {
     }
 
     // Local time
-    if (timestamp.local !== undefined && timestamp.local !== 0) {
+    if (timestamp.local !== undefined && timestamp.local !== 0 && timestamp.apiConnect !== undefined && timestamp.drift !== undefined) {
+        let calculated_local_time = timestamp.local + timestamp.apiConnect - timestamp.drift;
+
+        /*
+        // Add api connection time
+        if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
+            calculated_local_time += timestamp.apiConnect;
+        }
+
+        // Subtract drift
+        if (timestamp.drift !== undefined && !Number.isNaN(timestamp.drift)) {
+            calculated_local_time -= timestamp.drift;
+        }
+            */
+
         sendDataToRegistry({
-            localTime: `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)} s`,
+            localTime: `${calculated_local_time.toFixed(1)} s`,
         })
     }
 }
