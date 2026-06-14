@@ -18,7 +18,7 @@ import { diagEnsureGraph, diagGraphs, diagUpdateGraph } from '/js/frontend_graph
 
 const network_devices = {};
 const previous_ping = {};
-const elementCache = new Map(); // Cache DOM element references
+const elems = new Map(); // Cache DOM element references
 
 class NetworkDevice {
     constructor(device_id) {
@@ -55,10 +55,10 @@ class NetworkDevice {
 }
 
 function getDiagnosticsNavLink() {
-    if (!elementCache.has('navLink')) {
-        elementCache.set('navLink', document.querySelector('nav a[href=\'#page-diagnostics\']'));
+    if (!elems.has('navLink')) {
+        elems.set('navLink', document.querySelector('nav a[href=\'#page-diagnostics\']'));
     }
-    return elementCache.get('navLink');
+    return elems.get('navLink');
 }
 
 function pulseDiagnosticsNav() {
@@ -223,10 +223,10 @@ function updateNetworkDiagnostics2(apiData) {
 }
 
 function diagSetStatusBox(id, pingValue) {
-    const elem = elementCache.get(id) || document.getElementById(id);
+    const elem = elems.get(id) || document.getElementById(id);
     if (!elem)
         return;
-    elementCache.set(id, elem);
+    elems.set(id, elem);
 
     let newClass;
     if (pingValue == null || pingValue < 0) {
@@ -249,10 +249,10 @@ function diagSetStatusBox(id, pingValue) {
 }
 
 function diagSetSummaryOnlineBox(id, online) {
-    const el = elementCache.get(id) || document.getElementById(id);
+    const el = elems.get(id) || document.getElementById(id);
     if (!el)
         return;
-    elementCache.set(id, el);
+    elems.set(id, el);
 
     // Use a class instead of inline styles
     if (online && !el.classList.contains('online')) {
@@ -267,10 +267,10 @@ function diagSetSummaryOnlineBox(id, online) {
 }
 
 function diagSetAvIndicator(online) {
-    const el = elementCache.get('av-indicator') || document.getElementById('diag-av-indicator');
+    const el = elems.get('av-indicator') || document.getElementById('diag-av-indicator');
     if (!el)
         return;
-    elementCache.set('av-indicator', el);
+    elems.set('av-indicator', el);
 
     // Use a class for styling
     if (online && !el.classList.contains('online')) {
@@ -294,12 +294,12 @@ function diagUpdateDeviceCard(device_id, device_data) {
     const device_id_safe = format_device_id(device_id);
     const cacheKey = `card-${device_id_safe}`;
 
-    let elem = elementCache.get(cacheKey);
-    const device_list = elementCache.get('device-list') || document.getElementById('diag-device-list');
+    let elem = elems.get(cacheKey);
+    const device_list = elems.get('device-list') || document.getElementById('diag-device-list');
 
     if (!device_list)
         return;
-    elementCache.set('device-list', device_list);
+    elems.set('device-list', device_list);
 
     if (!elem) {
         elem = document.createElement('div');
@@ -317,7 +317,7 @@ function diagUpdateDeviceCard(device_id, device_data) {
             </div>
         `;
         device_list.appendChild(elem);
-        elementCache.set(cacheKey, elem);
+        elems.set(cacheKey, elem);
     }
 
     // Only update class if connection state changed
@@ -330,12 +330,12 @@ function diagUpdateDeviceCard(device_id, device_data) {
     // Cache and update text content with change detection
     const updateTextContent = (subKey, newText) => {
         const elemKey = `${cacheKey}-${subKey}`;
-        let subElem = elementCache.get(elemKey);
+        let subElem = elems.get(elemKey);
 
         if (!subElem) {
             subElem = document.getElementById(`${device_id_safe}-${subKey}`);
             if (subElem)
-                elementCache.set(elemKey, subElem);
+                elems.set(elemKey, subElem);
         }
 
         if (subElem && subElem.textContent !== newText) {
@@ -353,10 +353,10 @@ function diagUpdateBottomBar(totalDevices, onlineCount) {
     const allOnline = offlineCount === 0 && totalDevices > 0;
 
     const updateElement = (id, text, isOnline) => {
-        const el = elementCache.get(id) || document.getElementById(id);
+        const el = elems.get(id) || document.getElementById(id);
         if (!el)
             return;
-        elementCache.set(id, el);
+        elems.set(id, el);
 
         if (el.textContent !== text) {
             el.textContent = text;
