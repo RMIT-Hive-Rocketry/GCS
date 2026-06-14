@@ -6,6 +6,7 @@
 
 import { Config as cfg } from '/js/frontend_config.js';
 import { graphRequestRender } from '/js/frontend_graphs.js'
+import { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox } from '/js/frontend_network_diagnostics.js'
 import { logMessage } from '/js/frontend_utils.js'
 
 const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
@@ -27,28 +28,6 @@ const timers = {
     gasTimestamp: 0,
     launchTimestamp: 0,
 }
-
-/* Combine all timeouts into one array of objects (only for radios).
- * This makes it easier to program sound alarms in a queue, with
- * past rockets included just so that their functionality is (hopefully)
- * preserved, as there used to be a data-timeout attribute.
-*/
-const timeoutsList = [
-    // This allows for customisation (note duration in ms)
-    { name: 'av', duration: 3000, state: 4, rocket: 'Legacy3' },
-    { name: 'av', duration: 10000, state: 5, rocket: 'Legacy3' },
-    { name: 'gse', duration: 3000, state: 4, rocket: 'Legacy3' },
-    { name: 'gse', duration: 10000, state: 5, rocket: 'Legacy3' },
-
-    { name: 'av', duration: 3000, state: 4, rocket: 'Atlas' },
-    { name: 'av', duration: 10000, state: 5, rocket: 'Atlas' },
-    { name: 'gse', duration: 3000, state: 4, rocket: 'Atlas' },
-    { name: 'gse', duration: 10000, state: 5, rocket: 'Atlas' },
-
-    { name: 'av', duration: 5000, state: 4, rocket: 'Horizon' },
-    { name: 'gse', duration: 5000, state: 4, rocket: 'Horizon' },
-]
-
 
 function updateTimestamp(new_timestamp) {
     if (timestamp.api) {
@@ -130,7 +109,7 @@ function updateTime() {
     }
 }
 
-// Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
+// Generate the loss sounds (1st 2 have a quicker version - see cfg.audio.timeouts)
 // Note: Horizon doesn't have 2 Australis boards (which is Dual_Board_Loss)
 const filenames_losses = ['GSE_Loss', 'AV_Loss', 'GPS_Fix_Loss']
 const soundsList_losses = filenames_losses.map((src) => {
@@ -250,68 +229,6 @@ window.addEventListener('keydown', (event) => {
     }
 })
 
-// ── Right panel: flip a status box green/red ─────────────────────
-function diagSetStatusBox(id, pingValue) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    // No data / offline
-    if (pingValue == null || pingValue < 0) {
-        el.textContent = "DOWN";
-        el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-        el.style.borderColor = "var(--color-red-800,#991b1b)";
-        el.style.color = "white";
-        return;
-    }
-
-    // Green
-    if (pingValue <= 100) {
-        el.textContent = "GOOD";
-        el.style.backgroundColor = "var(--color-green-400,#4ade80)";
-        el.style.borderColor = "var(--color-green-700,#15803d)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Yellow
-    if (pingValue <= 200) {
-        el.textContent = "WARN";
-        el.style.backgroundColor = "var(--color-yellow-400,#facc15)";
-        el.style.borderColor = "var(--color-yellow-700,#a16207)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Red
-    el.textContent = "BAD";
-    el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-    el.style.borderColor = "var(--color-red-800,#991b1b)";
-    el.style.color = "white";
-}
-
-function diagSetSummaryOnlineBox(id, online) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    el.textContent = online ? "GOOD" : "DOWN";
-    el.style.backgroundColor = online ? "#4ade80" : "#ef4444";
-    el.style.borderColor = online ? "#15803d" : "#991b1b";
-    el.style.color = online ? "black" : "white";
-}
-
-function diagSetAvIndicator(online) {
-    const el = document.getElementById("diag-av-indicator");
-    if (!el)
-        return;
-
-    el.style.background = online ? "#4ade80" : "#ef4444";
-    el.style.boxShadow = online
-        ? "0 0 6px #4ade80"
-        : "0 0 6px #ef4444";
-}
-
 // Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
     return soundsList_losses.every(item => !item.source.muted)
@@ -385,7 +302,7 @@ function checkStateIndicator(elem = null) {
             updateSound(sound, !e1.classList.value.includes('green'), false)
 
             // Check for timeouts (won't execute on a non-radio state)
-            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name))).forEach((t1) => {
+            cfg.audio.timeouts[currRocket].filter(t1 => (indicator.includes(t1.name))).forEach((t1) => {
                 const currElems = document.querySelectorAll(`[data-key="${`state.${t1.name}.radio`}"]`)
 
                 currElems.forEach((c1) => {
@@ -877,4 +794,4 @@ function sendDataToRegistry(apiData) {
     })
 }
 
-export { diagSetAvIndicator, diagSetSummaryOnlineBox, displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };
+export { displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };

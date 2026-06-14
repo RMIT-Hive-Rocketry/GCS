@@ -9,30 +9,29 @@
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
 import { Config as cfg } from '/js/frontend_config.js';
-import { processPacket } from '/js/frontend_diagnostics.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
-import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
+import { graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition } from '/js/frontend_graphs.js';
+import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
 import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
 
-// Logging
-const errors = []
-
 // Global display values
-let altitudeMax
+const errors = []
 const altitudeHistory = []
+let altitudeMax
 let packetsAV1 = 0
 let packetsAV1offset = 0
 
 // Handle incoming messages through the API
 function API_OnMessage(event_data) {
     let apiLatest, apiData
+    const pid = cfg.api.packet_id
     try {
         // Handle incoming data
         apiLatest = JSON.parse(event_data)
 
         // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
-        if (apiLatest.id === 40) {
-            /// // ----- sLogger PACKETS ----- /////
+        if (apiLatest.id === pid.logging) {
+            // Slogger
             displaySloggerLogs(apiLatest.data.slogger)
             return
         }
@@ -56,8 +55,8 @@ function API_OnMessage(event_data) {
         }
 
         // Handle different packet types
-        if (apiData.id === 3 || apiData.id === 4) {
-            /// // ----- AVIONICS PACKETS ----- /////
+        if (apiData.id === pid.avionics || apiData.id === pid.avionics_rocket) {
+            // Avionics packets
             // Display values
             displayUpdateFlightState(apiData)
 
@@ -66,26 +65,25 @@ function API_OnMessage(event_data) {
             graphUpdatePosition(apiData)
 
             // Rocket visualisation
-            if (apiData.id === 4) {
+            if (apiData.id === pid.avionics_rocket) {
                 if (typeof rocketUpdate === 'function') {
                     rocketUpdate(apiData)
                 }
             }
         }
-        else if (apiData.id === cfg.api.packet_id.pendant) {
-            /// // ----- PENDANT ----- /////
+        else if (apiData.id === pid.pendant) {
+            // Control pendant
             if (typeof updatePendantState === 'function') {
                 updatePendantState(apiData)
             }
         }
-        else if (apiData.id === cfg.api.packet_id.diagnostics) {
-            /// // ----- NETWORK DIAGNOSTICS ----- /////
-            processPacket(apiData)
-            graphUpdateDiagnostics(apiData)
+        else if (apiData.id === pid.network) {
+            // Network diagnostics
+            updateNetworkDiagnostics(apiData)
+            updateNetworkDiagnostics2(apiData)
         }
-        else if (apiData.id === 55) {
-            /// // ----- GSE PACKETS ----- /////
-            // Graphs
+        else if (apiData.id === pid.gse) {
+            // GSE packets
             graphUpdateAuxData(apiData)
         }
     }
@@ -237,9 +235,9 @@ function processDataForDisplay(apiData, apiId) {
         processedData.meta = {}
     }
 
-    if (apiId === cfg.api.packet_id.diagnostics) {
+    if (apiId === cfg.api.packet_id.network) {
         // Track packet counts per device and attach to processedData.
-        // All HTML rendering is handled by graphUpdateDiagnostics() in frontend_graphs.js.
+        // All HTML rendering is handled by updateNetworkDiagnostics2() in frontend_graphs.js.
         Object.keys(apiData).forEach((device) => {
             if (typeof apiData[device] !== 'object' || apiData[device] === null)
                 return
@@ -346,7 +344,7 @@ function processDataForDisplay(apiData, apiId) {
         // The new altitude must be below the threshold, unlike the old one
         const prevAltitude = metresToFeet(altitudeHistory.at(-2))
         const currAltitude = metresToFeet(altitudeHistory.at(-1))
-        if ((currAltitude < cfg.sounds.parachute_altitude) && (prevAltitude >= cfg.sounds.parachute_altitude)) {
+        if ((currAltitude < cfg.audio.parachute_altitude) && (prevAltitude >= cfg.audio.parachute_altitude)) {
             playOtherSound('Parachute')
         }
     }
@@ -373,27 +371,16 @@ function processDataForDisplay(apiData, apiId) {
        * testing, or else the rocket will appear to be very far from the GCS
       */
     if (apiData.GPSLatitude !== undefined && apiData.GPSLongitude !== undefined) {
-        // Scaling constants
-        const lat_kilometers = 110.87
-        const long_kilometers = 95.48
-
-        // (Decimal) Coordinates of the GCS
-        const lat_GCS = 31.039581
-        const long_GCS = 103.526623
-
-        /* Distance to GCS in km (both latitude and longitude). Use the decimal
-             * version of the coordinates as this is what the GCS coordinates are given
-             * as.
-            */
-        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2
-        const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2
-        const final_distance = Math.sqrt(lat_distance + long_distance)
+        // Distance to GCS in km (both latitude and longitude)
+        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - cfg.gps.gcs_lat)) * cfg.gps.lat_scale_factor)
+        const lon_distance = ((gpsToDecimal(apiData.GPSLongitude - cfg.gps.gcs_lon)) * cfg.gps.lon_scale_factor)
+        const final_distance = Math.sqrt(lat_distance ** 2 + lon_distance ** 2)
 
         // Rocket_Warn sound
         const currSound = soundGetOther(2)
 
         // 50m in km
-        if (final_distance <= 50 / 1000) {
+        if (final_distance <= cfg.audio.overhead_warn_radius / 1000) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
             if (!Number.isNaN(currSound.source.duration)) {
                 /* Volume rises in logarithmic fashion the longer the rocket stays within

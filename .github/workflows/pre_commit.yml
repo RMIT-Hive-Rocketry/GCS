@@ -1,33 +1,33 @@
 name: pre-commit
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
 
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      #- uses: actions/setup-node@v4
-      #  with:
-      #    node-version: 22
-      # - run: npm ci
-      - run: sudo apt-get install -y dos2unix
-      - uses: pre-commit/action@v3.0.1
-      - name: Pre-commit failed - how to fix
-        if: failure()
-        run: |
-          echo "----------------------------"
-          echo "PRE-COMMIT CHECKS FAILED"
-          echo "----------------------------"
-          echo ""
-          echo "To fix this locally, run:"
-          echo "  pre-commit run --all-files"
-          echo ""
-          echo "Then commit and push your changes"
+    pre-commit:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: actions/setup-python@v5
+                with:
+                    python-version: '3.11'
+            # - uses: actions/setup-node@v4
+            #  with:
+            #    node-version: 22
+            # - run: npm ci
+            -   run: sudo apt-get install -y dos2unix
+            -   uses: pre-commit/action@v3.0.1
+            -   name: Pre-commit failed - how to fix
+                if: failure()
+                run: |
+                    echo "----------------------------"
+                    echo "PRE-COMMIT CHECKS FAILED"
+                    echo "----------------------------"
+                    echo ""
+                    echo "To fix this locally, run:"
+                    echo "  pre-commit run --all-files"
+                    echo ""
+                    echo "Then commit and push your changes"

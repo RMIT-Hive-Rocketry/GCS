@@ -9,90 +9,11 @@
 /* global d3 */
 
 import { Config as cfg } from '/js/frontend_config.js'
-import { diagSetAvIndicator, diagSetSummaryOnlineBox, timestamp } from '/js/frontend_display.js'
+import { timestamp } from '/js/frontend_display.js'
+import { diagClampGraphPing, format_device_id, updateNetworkDiagnostics2 } from '/js/frontend_network_diagnostics.js'
 import { metresToFeet } from '/js/frontend_utils.js'
 
-// DEFINE CHARTS
-const LINE_COLOURS = [
-    "#FF0000",
-    "#00FF00",
-    "#0000FF",
-    // "#FFFFFF", - not required at this stage
-];
-const DEFAULT_MARGINS = { top: 6, right: 10, bottom: 24, left: 50 };
-
-const GRAPH_AV_ACCEL = {
-    selector: "#graph-av-accel",
-    ylabel: "Acceleration (g)",
-    numLines: 3,
-    data: [],
-};
-const GRAPH_AV_GYRO = {
-    selector: "#graph-av-gyro",
-    ylabel: "Rotation Rate (°/s)",
-    numLines: 3,
-    data: [],
-};
-const GRAPH_AV_VELOCITY = {
-    selector: "#graph-av-velocity",
-    ylabel: "Vertical Speed (m/s)",
-    numLines: 1,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_POS_ALT = {
-    selector: "#graph-pos-alt",
-    ylabel: "Altitude (ft)",
-    numLines: 1,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_TRANSDUCERS = {
-    selector: "#graph-aux-transducers",
-    ylabel: "Pressure (bar)",
-    numLines: 3,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_THERMOCOUPLES = {
-    selector: "#graph-aux-thermocouples",
-    ylabel: "Temperature (°C)",
-    numLines: 3,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_VENTTEMP = {
-    selector: "#graph-aux-venttemp",
-    ylabel: "Temperature (°C)",
-    numLines: 1,
-    limits: {
-        yBottomMax: 0,
-    },
-    data: [],
-};
-const GRAPH_AUX_SUPPLY_TEMP = {
-    selector: "#graph-aux-n2o-supply-temp",
-    ylabel: "Temperature (°C)",
-    numLines: 1,
-    data: [],
-};
-
-const GRAPH_TEST_COLOURS = {
-    selector: "#graph-test-colours",
-    ylabel: "Sample metric",
-    numLines: 3,
-    data: [],
-}
-
-const symbolCircle = d3.symbol().type(d3.symbolCircle).size(10);
+const GRAPHS = cfg.graphs;
 
 // Create and initialise line graphs
 function graphCreateLine(chart) {
@@ -114,7 +35,7 @@ function graphCreateLine(chart) {
 
     // Update graph margins and axes
     if (chart.margin === undefined) {
-        chart.margin = DEFAULT_MARGINS;
+        chart.margin = cfg.graphs.default_margins;
     }
 
     /* If the 1st parameter is 0, this would throw -ve dimension errors.
@@ -186,7 +107,7 @@ function graphCreateLine(chart) {
     // Lines array to hold multiple line data sets
     chart.lines = [];
     for (let i = 0; i < chart.numLines; i++) {
-        chart.lines.push({ data: [], color: LINE_COLOURS[i] });
+        chart.lines.push({ data: [], color: cfg.graphs.line_colours[i] });
     }
 
     // ResizeObserver (for dynamic graph resizing)
@@ -299,7 +220,7 @@ function graphRender(chart) {
          * hence the graph should just be a static display (barring the
          * changes in colour made by the operator).
         */
-        const windowStart = (chart !== GRAPH_TEST_COLOURS) ? (now - cfg.graphs.max_time) : 0;
+        const windowStart = (chart !== GRAPHS.test.colours) ? (now - cfg.graphs.max_time) : 0;
 
         if (chart.lastRender !== now) {
             // Limit data to graph window
@@ -342,7 +263,7 @@ function graphRender(chart) {
                 /* Update x and y domains (unless it's the test colour
                  * graph where no scrolling is required).
                 */
-                if (chart !== GRAPH_TEST_COLOURS) {
+                if (chart !== GRAPHS.test.colours) {
                     chart.x.domain([windowStart, now]);
                 }
 
@@ -408,27 +329,27 @@ function graphRender(chart) {
                                 chart.g
                                     .append("path")
                                     .attr("class", "line-dot")
-                                    .attr("d", symbolCircle)
+                                    .attr("d", cfg.graphs.symbol_circle)
                                     .attr(
                                         "transform",
                                         `translate(${chart.x(d.x)},${chart.y(d.y)})`,
                                     )
                                     .attr(
                                         "fill",
-                                        lineData.color || LINE_COLOURS[index],
+                                        lineData.color || cfg.graphs.line_colours[index],
                                     );
                             } else if (!d.next || !d.prev) {
                                 chart.g
                                     .append("path")
                                     .attr("class", "line-dot")
-                                    .attr("d", symbolCircle) // Make cross?
+                                    .attr("d", cfg.graphs.symbol_circle) // Make cross?
                                     .attr(
                                         "transform",
                                         `translate(${chart.x(d.x)},${chart.y(d.y)})`,
                                     )
                                     .attr(
                                         "fill",
-                                        lineData.color || LINE_COLOURS[index],
+                                        lineData.color || cfg.graphs.line_colours[index],
                                     );
                             }
                         }
@@ -452,7 +373,7 @@ function graphRender(chart) {
                         )
                         .attr("class", "line-path")
                         .attr("fill", "none")
-                        .attr("stroke", lineData.color || LINE_COLOURS[index]) // Cycle through colors
+                        .attr("stroke", lineData.color || cfg.graphs.line_colours[index]) // Cycle through colors
                         .attr("stroke-width", 1.5)
                         .attr("stroke-linecap", "round")
                         .attr("d", line);
@@ -470,18 +391,15 @@ function graphRender(chart) {
 
 function graphRequestRender() {
     // Attempt to render all graphs
-    graphRender(GRAPH_AV_ACCEL);
-    graphRender(GRAPH_AV_GYRO);
-    graphRender(GRAPH_AV_VELOCITY);
-
-    graphRender(GRAPH_POS_ALT);
-
-    graphRender(GRAPH_AUX_TRANSDUCERS);
-    graphRender(GRAPH_AUX_THERMOCOUPLES);
-    graphRender(GRAPH_AUX_VENTTEMP);
-    graphRender(GRAPH_AUX_SUPPLY_TEMP);
-
-    graphRender(GRAPH_TEST_COLOURS);
+    graphRender(GRAPHS.av.accel);
+    graphRender(GRAPHS.av.gyro);
+    graphRender(GRAPHS.av.velocity);
+    graphRender(GRAPHS.pos.alt);
+    graphRender(GRAPHS.gse.transducers);
+    graphRender(GRAPHS.gse.thermocouples);
+    graphRender(GRAPHS.gse.vent_temp);
+    graphRender(GRAPHS.gse.supply_temp);
+    graphRender(GRAPHS.test.colours);
 
     // Diagnostics ping graphs
     graphRenderDiagnostics();
@@ -519,20 +437,20 @@ function graphAddValue(graph, line, timestamp, value) {
 
 function graphInit() {
     // Build D3 charts
-    graphCreateLine(GRAPH_AV_ACCEL);
-    graphCreateLine(GRAPH_AV_GYRO);
-    graphCreateLine(GRAPH_AV_VELOCITY);
-    graphCreateLine(GRAPH_POS_ALT);
-    graphCreateLine(GRAPH_AUX_TRANSDUCERS);
-    graphCreateLine(GRAPH_AUX_THERMOCOUPLES);
-    graphCreateLine(GRAPH_AUX_VENTTEMP);
-    graphCreateLine(GRAPH_AUX_SUPPLY_TEMP);
-    graphCreateLine(GRAPH_TEST_COLOURS);
+    graphCreateLine(GRAPHS.av.accel);
+    graphCreateLine(GRAPHS.av.gyro);
+    graphCreateLine(GRAPHS.av.velocity);
+    graphCreateLine(GRAPHS.pos.alt);
+    graphCreateLine(GRAPHS.gse.transducers);
+    graphCreateLine(GRAPHS.gse.thermocouples);
+    graphCreateLine(GRAPHS.gse.vent_temp);
+    graphCreateLine(GRAPHS.gse.supply_temp);
+    graphCreateLine(GRAPHS.test.colours);
 
     // Update the test colours graph
-    for (let i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
-        graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
-        graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+    for (let i = 0; i < GRAPHS.test.colours.numLines; ++i) {
+        graphAddValue(GRAPHS.test.colours, i, 0, 2 + i);
+        graphAddValue(GRAPHS.test.colours, i, 1, 2 + i);
     }
 
     window.graphsInitialised = true;
@@ -548,19 +466,19 @@ if (document.readyState === "loading") {
 // Update colours in real-time
 ["One", "Two", "Three", "Four"].forEach((c1, index) => {
     document.getElementById(`colour${c1}`)?.addEventListener('input', (event) => {
-        LINE_COLOURS[index] = event.target.value;
+        cfg.graphs.line_colours[index] = event.target.value;
 
         // Same code as above
-        for (let i = 0; i < GRAPH_TEST_COLOURS.numLines; ++i) {
-            graphAddValue(GRAPH_TEST_COLOURS, i, 0, 2 + i);
-            graphAddValue(GRAPH_TEST_COLOURS, i, 1, 2 + i);
+        for (let i = 0; i < GRAPHS.test.colours.numLines; ++i) {
+            graphAddValue(GRAPHS.test.colours, i, 0, 2 + i);
+            graphAddValue(GRAPHS.test.colours, i, 1, 2 + i);
         }
 
         // Update the colours (even if no data is coming through)
-        const graphsList = [GRAPH_AV_ACCEL, GRAPH_AV_GYRO, GRAPH_AV_VELOCITY, GRAPH_POS_ALT, GRAPH_AUX_TRANSDUCERS, GRAPH_AUX_THERMOCOUPLES, GRAPH_AUX_VENTTEMP, GRAPH_AUX_SUPPLY_TEMP, GRAPH_TEST_COLOURS];
+        const graphsList = [GRAPHS.av.accel, GRAPHS.av.gyro, GRAPHS.av.velocity, GRAPHS.pos.alt, GRAPHS.gse.transducers, GRAPHS.gse.thermocouples, GRAPHS.gse.vent_temp, GRAPHS.gse.supply_temp, GRAPHS.test.colours];
         graphsList.forEach((g1) => {
             g1.lines.forEach((l1, index) => {
-                l1.color = LINE_COLOURS[index];
+                l1.color = cfg.graphs.line_colours[index];
             });
         });
 
@@ -573,7 +491,7 @@ if (document.readyState === "loading") {
             line.forEach((c1) => {
                 const inputElement = document.querySelector(`input[data-key="${c1}"]`);
                 if (inputElement != null) {
-                    inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                    inputElement.style.borderBottomColor = cfg.graphs.line_colours[index];
                 }
             });
         });
@@ -582,7 +500,7 @@ if (document.readyState === "loading") {
         ["pitch", "yaw", "roll"].forEach((a1, index) => {
             const inputElement = document.querySelector(`input[class*="rocket-${a1}"]`);
             if (inputElement != null) {
-                inputElement.style.borderBottomColor = LINE_COLOURS[index];
+                inputElement.style.borderBottomColor = cfg.graphs.line_colours[index];
             }
         });
     })
@@ -595,17 +513,17 @@ function graphUpdateAvionics(data) {
         const timestamp = data.meta.timestampS;
 
         // Acceleration
-        graphAddValue(GRAPH_AV_ACCEL, 0, timestamp, data.accelX);
-        graphAddValue(GRAPH_AV_ACCEL, 1, timestamp, data.accelY);
-        graphAddValue(GRAPH_AV_ACCEL, 2, timestamp, data.accelZ);
+        graphAddValue(GRAPHS.av.accel, 0, timestamp, data.accelX);
+        graphAddValue(GRAPHS.av.accel, 1, timestamp, data.accelY);
+        graphAddValue(GRAPHS.av.accel, 2, timestamp, data.accelZ);
 
         // Gyroscope
-        graphAddValue(GRAPH_AV_GYRO, 0, timestamp, data.gyroX);
-        graphAddValue(GRAPH_AV_GYRO, 1, timestamp, data.gyroY);
-        graphAddValue(GRAPH_AV_GYRO, 2, timestamp, data.gyroZ);
+        graphAddValue(GRAPHS.av.gyro, 0, timestamp, data.gyroX);
+        graphAddValue(GRAPHS.av.gyro, 1, timestamp, data.gyroY);
+        graphAddValue(GRAPHS.av.gyro, 2, timestamp, data.gyroZ);
 
         // Velocity
-        graphAddValue(GRAPH_AV_VELOCITY, 0, timestamp, data.velocity);
+        graphAddValue(GRAPHS.av.velocity, 0, timestamp, data.velocity);
     }
 }
 
@@ -615,7 +533,7 @@ function graphUpdatePosition(data) {
         const timestamp = data.meta.timestampS;
 
         // Altitude
-        graphAddValue(GRAPH_POS_ALT, 0, timestamp, metresToFeet(data.altitude));
+        graphAddValue(GRAPHS.pos.alt, 0, timestamp, metresToFeet(data.altitude));
     }
 }
 
@@ -630,35 +548,35 @@ function graphUpdateAuxData(data) {
         // console.log(timestamp);
 
         // Transducers
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 0, timestamp, data.pressure_n2o_bottle);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 1, timestamp, data.pressure_n2o_tank);
-        graphAddValue(GRAPH_AUX_TRANSDUCERS, 2, timestamp, data.pressure_o2_tank);
+        graphAddValue(GRAPHS.gse.transducers, 0, timestamp, data.pressure_n2o_bottle);
+        graphAddValue(GRAPHS.gse.transducers, 1, timestamp, data.pressure_n2o_tank);
+        graphAddValue(GRAPHS.gse.transducers, 2, timestamp, data.pressure_o2_tank);
 
         // Supply Temp
         graphAddValue(
-            GRAPH_AUX_SUPPLY_TEMP,
+            GRAPHS.gse.supply_temp,
             0,
             timestamp,
             data.temp_pipe_n2o_gse,
         );
 
         // Vent temperature
-        graphAddValue(GRAPH_AUX_VENTTEMP, 0, timestamp, data.temp_vent);
+        graphAddValue(GRAPHS.gse.vent_temp, 0, timestamp, data.temp_vent);
 
         graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
+            GRAPHS.gse.thermocouples,
             0,
             timestamp,
             data.temp_tank_top,
         );
         graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
+            GRAPHS.gse.thermocouples,
             1,
             timestamp,
             data.temp_tank_middle,
         );
         graphAddValue(
-            GRAPH_AUX_THERMOCOUPLES,
+            GRAPHS.gse.thermocouples,
             2,
             timestamp,
             data.temp_tank_bottom,
@@ -666,126 +584,13 @@ function graphUpdateAuxData(data) {
     }
 }
 
-
-
 // ── Main entry point: called by frontend_api.js when packet 50 arrives ─
-const diagGraphs = {}; // d_id → graph object (with pingValues[])
-const DIAG_GSE_DEVICES = ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"];
-const DIAG_LAN_DEVICES = ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"];
-const DIAG_RENDER_LATENCY_SECONDS = 1.8;
-
-
-// ================================================================
-// DIAGNOSTICS — Full redesign
-// Manages: device list cards, ping graphs, status boxes, bottom bar
-// Called by frontend_api.js when packet ID 50 arrives
-// ================================================================
-function diagNowSeconds() {
-    return performance.now() / 1000;
-}
-function diagClampGraphPing(value) {
-    return Math.max(1, Math.min(498, value));
-}
-
-// Returns a CSS-safe ID string from a device name
-function diagSafeId(d_id) {
-    return d_id.replace(/[^a-z0-9]/gi, "-").toLowerCase();
-}
-
-// ── Left panel: create/update a device card ──────────────────────
-function diagUpdateDeviceCard(d_id, d_data) {
-    const safeId = diagSafeId(d_id);
-    const listEl = document.getElementById("diag-device-list");
-    if (!listEl)
-        return;
-
-    let card = document.getElementById(`diag-card-${safeId}`);
-    if (!card) {
-        card = document.createElement("div");
-        card.id = `diag-card-${safeId}`;
-        card.className = "flex flex-col px-3 py-2 rounded-xl gap-1 shrink-0";
-        listEl.appendChild(card);
-    }
-
-    const lossText = d_data.packet_loss != null ? `${d_data.packet_loss}%` : "--";
-    const pingText = d_data.connected ? `${d_data.ping.toPrecision(3)} ms` : "-- ms";
-    const pktsText = d_data.packet_count ?? "--";
-
-    card.style.background =
-        d_data.connected
-            ? "linear-gradient(180deg, rgba(12,12,16,0.9), rgba(4,4,8,0.9))"
-            : "linear-gradient(180deg, rgba(80,0,0,0.35), rgba(20,0,0,0.85))";
-
-    card.style.border =
-        `1px solid ${d_data.connected ? "rgba(255,45,105,0.65)" : "rgba(220,38,38,0.55)"}`;
-
-    card.style.boxShadow =
-        d_data.connected
-            ? "0 0 8px rgba(255,45,105,0.15)"
-            : "0 0 12px rgba(239,68,68,0.35)";
-
-    card.innerHTML = `
-        <div class="flex items-center gap-2 mb-1">
-            <div style="
-                width:10px; height:10px; border-radius:50%; flex-shrink:0;
-                background:${d_data.connected ? "#4ade80" : "#ef4444"};
-                box-shadow:0 0 6px ${d_data.connected ? "#4ade80" : "#ef4444"};
-            "></div>
-            <span class="font-bold" style="color:var(--color-horizon-yellow,#f59e0b); font-size:0.95rem;">${d_id}</span>
-        </div>
-        <div style="
-            display:grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 4px;
-        ">
-            <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Packet Loss</span>
-                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${lossText}</span>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Ping</span>
-                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pingText}</span>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:2px;">
-                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Updates</span>
-                <span style="font-size:0.9rem; color:rgba(255,255,255,0.85);">${pktsText}</span>
-            </div>
-        </div>
-    `;
-}
-
-
-// ── Bottom bar: update summary counts ────────────────────────────
-function diagUpdateBottomBar(totalDevices, onlineCount) {
-    const offlineCount = totalDevices - onlineCount;
-    const allOnline = offlineCount === 0 && totalDevices > 0;
-
-    const elAll = document.getElementById("diag-bottom-all-online");
-    const elOffline = document.getElementById("diag-bottom-offline");
-    const elOnline = document.getElementById("diag-bottom-online");
-
-    if (elAll) {
-        elAll.textContent = allOnline ? "Yes" : "No";
-        elAll.style.background = allOnline ? "#16a34a" : "#dc2626";
-    }
-    if (elOffline) {
-        elOffline.textContent = offlineCount;
-        elOffline.style.background = offlineCount > 0 ? "#dc2626" : "#16a34a";
-    }
-    if (elOnline) {
-        elOnline.textContent = onlineCount;
-        elOnline.style.background = onlineCount > 0 ? "#16a34a" : "rgba(255,255,255,0.1)";
-    }
-}
-
+const diagGraphs = {}; // device_id → graph object (with pingValues[])
 
 // ── Middle panel: create a graph card if it doesn't exist ────────
-function diagEnsureGraph(d_id) {
+function diagEnsureGraph(device_id) {
     // Check if graph exists
-    if (diagGraphs[d_id])
+    if (diagGraphs[device_id])
         return;
 
     //
@@ -793,13 +598,13 @@ function diagEnsureGraph(d_id) {
     if (!container)
         return;
 
-    const safeId = diagSafeId(d_id);
-    const svgId = `diag-graph-${safeId}`;
+    const device_id_safe = format_device_id(device_id);
+    const svgId = `diag-graph-${device_id_safe}`;
     if (document.getElementById(svgId))
         return;
 
     const panel = document.createElement("div");
-    panel.id = `diag-panel-${safeId}`;
+    panel.id = `diag-panel-${device_id_safe}`;
     panel.className = "flex flex-col rounded-xl overflow-hidden";
     panel.style.cssText =
         "background:linear-gradient(180deg, rgba(20,0,8,0.95), rgba(5,0,3,0.95)); border:1px solid rgba(255,45,105,0.75); box-shadow:0 0 12px rgba(255,45,105,0.22);";
@@ -807,8 +612,8 @@ function diagEnsureGraph(d_id) {
     panel.innerHTML = `
         <div class="flex items-center justify-between px-2 pt-1 shrink-0">
             <span class="text-xs font-semibold"
-                  style="color:var(--color-horizon-yellow,#f59e0b);">${d_id}</span>
-            <span id="diag-badge-${safeId}"
+                  style="color:var(--color-horizon-yellow,#f59e0b);">${device_id}</span>
+            <span id="diag-badge-${device_id_safe}"
                   style="font-size:0.6rem; padding:1px 5px; border-radius:3px;
                          background:#ef4444; color:white; font-weight:700;">
                 OFFLINE
@@ -818,7 +623,7 @@ function diagEnsureGraph(d_id) {
             <svg id="${svgId}" class="w-full h-full absolute inset-0"
                  width="0" height="0"></svg>
         </div>
-        <div id="diag-stats-${safeId}"
+        <div id="diag-stats-${device_id_safe}"
              class="px-2 pb-1 shrink-0 flex gap-1 justify-center"
              style="font-size:0.6rem; color:rgba(255,255,255,0.45);">
             <span>Avg: -- ms</span><span>|</span>
@@ -839,7 +644,7 @@ function diagEnsureGraph(d_id) {
         pingValues: [], // for avg/min/max tracking
     };
 
-    diagGraphs[d_id] = graph;
+    diagGraphs[device_id] = graph;
 
     // Add threshold background layers after graph initialises
     // Delay so the browser paints the panel before we measure its dimensions
@@ -885,21 +690,21 @@ function diagEnsureGraph(d_id) {
 }
 
 // ── Middle panel: update badge, graph line, and stats ────────────
-function diagUpdateGraph(d_id, d_data, timestamp) {
-    const safeId = diagSafeId(d_id);
-    const graph = diagGraphs[d_id];
+function diagUpdateGraph(device_id, device_data) {
+    const device_id_safe = format_device_id(device_id);
+    const graph = diagGraphs[device_id];
 
     // Badge
-    const badge = document.getElementById(`diag-badge-${safeId}`);
+    const badge = document.getElementById(`diag-badge-${device_id_safe}`);
     if (badge) {
-        badge.textContent = d_data.connected ? "ONLINE" : "OFFLINE";
-        badge.style.background = d_data.connected ? "#4ade80" : "#ef4444";
-        badge.style.color = d_data.connected ? "black" : "white";
+        badge.textContent = device_data.connected ? "ONLINE" : "OFFLINE";
+        badge.style.background = device_data.connected ? "#4ade80" : "#ef4444";
+        badge.style.color = device_data.connected ? "black" : "white";
     }
 
     // Graph data + stats
     if (graph) {
-        graphAddValue(graph, 0, timestamp, d_data.ping);
+        graphAddValue(graph, 0, performance.now() / 1000, device_data.ping);
 
         // Update diagnostics threshold layer positions
         if (graph?.g && graph?.graphHeight) {
@@ -928,13 +733,13 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
 
         // This keeps disconnected values from affecting average/min/max stats.
         // Ping 0 is a special graph marker, so it is also excluded from stats.
-        if (d_data.connected) {
-            graph.pingValues.push(d_data.ping);
+        if (device_data.connected) {
+            graph.pingValues.push(device_data.ping);
             if (graph.pingValues.length > 300)
                 graph.pingValues.shift();
         }
 
-        const statsEl = document.getElementById(`diag-stats-${safeId}`);
+        const statsEl = document.getElementById(`diag-stats-${device_id_safe}`);
 
         if (statsEl) {
             if (graph.pingValues.length > 0) {
@@ -953,91 +758,11 @@ function diagUpdateGraph(d_id, d_data, timestamp) {
             }
         }
     } else {
-        const statsEl = document.getElementById(`diag-stats-${safeId}`);
+        const statsEl = document.getElementById(`diag-stats-${device_id_safe}`);
         if (statsEl) {
             statsEl.innerHTML =
                 "<span>Avg: -- ms</span><span>|</span><span>Min: -- ms</span><span>|</span><span>Max: -- ms</span>";
         }
-    }
-}
-
-function graphUpdateDiagnostics(apiData) {
-    const current_timestamp = diagNowSeconds();
-
-    let onlineCount = 0; let totalCount = 0;
-    let gseOnline = true;
-    let lanOnline = true;
-    let hasGseDevice = false;
-    let hasLanDevice = false;
-
-    Object.entries(apiData).forEach(([d_id, d_data]) => {
-        if (d_id === "id" || d_id === "state" || d_id === "meta")
-            return;
-        if (typeof d_data !== "object" || d_data === null)
-            return;
-
-        if (d_data.ping === undefined) {
-            d_data.ping = -1;
-            d_data.connected = false;
-        }
-
-        if (DIAG_GSE_DEVICES.includes(d_id)) {
-            hasGseDevice = true;
-
-            if (!d_data.connected) {
-                gseOnline = false;
-            }
-        } else if (DIAG_LAN_DEVICES.includes(d_id)) {
-            hasLanDevice = true;
-
-            if (!d_data.connected) {
-                lanOnline = false;
-            }
-        }
-
-        totalCount++;
-        if (d_data.connected)
-            onlineCount++;
-
-        // Left panel
-        diagUpdateDeviceCard(d_id, d_data);
-
-        // Middle panel
-        if (diagGraphs[d_id] === undefined) {
-            diagEnsureGraph(d_id);
-        }
-        diagUpdateGraph(d_id, d_data, current_timestamp);
-
-        // if (DIAG_LAN_DEVICES.includes(d_id) && alive) {
-        //     lanWorstPing =
-        //         lanWorstPing == null
-        //             ? ping
-        //             : Math.max(lanWorstPing, ping);
-        // }
-    });
-
-
-    // Right panel
-    diagSetSummaryOnlineBox("diag-summary-gse", hasGseDevice && gseOnline);
-    diagSetSummaryOnlineBox("diag-summary-lan", hasLanDevice && lanOnline);
-
-    const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
-
-    if (avIndicator) {
-        const avOnline = avIndicator.classList.contains("green");
-
-        diagSetSummaryOnlineBox("diag-summary-av", avOnline);
-        diagSetAvIndicator(avOnline);
-    }
-
-    // Bottom bar
-    diagUpdateBottomBar(totalCount, onlineCount);
-
-    // Last updated
-    const lastUpdated = document.getElementById("diag-last-updated");
-    if (lastUpdated) {
-        const now = new Date();
-        lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString("en-AU")} AEST`;
     }
 }
 
@@ -1051,8 +776,8 @@ function graphRenderDiagnostics() {
         if (allPoints.length === 0)
             return;
 
-        const renderNow = diagNowSeconds();
-        const now = renderNow - DIAG_RENDER_LATENCY_SECONDS;
+        const renderNow = performance.now() / 1000;
+        const now = renderNow - cfg.network.graph_render_rate_s;
 
         if (!Number.isFinite(now))
             return;
@@ -1237,4 +962,4 @@ function graphRenderDiagnostics() {
     });
 }
 
-export { graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition }
+export { diagGraphs, diagEnsureGraph, diagUpdateGraph, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition }

@@ -2,12 +2,19 @@
  * Javascript configuration for GCS frontend
  */
 
+/* global d3 */
+
+
 class Config {
-    // Logging
-    static logging = {
-        verbose: false,
-        websocket: false, // Whether to log messages received from the websocket
-        max_size_diagnostics: 40
+    // GPS
+    static gps = {
+        // Scaling constants
+        lat_scale_factor: 110.87,
+        lon_scale_factor: 95.48,
+
+        // Expected GCS coords (decimal)
+        gcs_lat: 31.039581,
+        gcs_lon: 103.526623,
     }
 
     // Websockets
@@ -17,23 +24,114 @@ class Config {
         max_reconnect_interval: 5000, // Maximum amount of time between reconnect attempts
     }
 
+    // Logging
+    static logging = {
+        verbose: false,
+        websocket: false, // Whether to log messages received from the websocket
+        max_size_diagnostics: 40
+    }
+
     // Graphing
     static graphs = {
         max_time: 20,  // Seconds of graph shown
         max_gap_size: 4,  // Max time between data points where line is drawn
-        y_ticks: 8
-    }
-
-    // Sounds
-    static sounds = {
-        parachute_altitude: 1200
+        y_ticks: 8,
+        line_colours: [
+            "#FF0000",
+            "#00FF00",
+            "#0000FF",
+            // "#FFFFFF", - not required at this stage
+        ],
+        default_margins: { top: 6, right: 10, bottom: 24, left: 50 },
+        symbol_circle: d3.symbol().type(d3.symbolCircle).size(10),
+        av: {
+            accel: {
+                selector: "#graph-av-accel",
+                ylabel: "Acceleration (g)",
+                numLines: 3,
+                data: [],
+            },
+            gyro: {
+                selector: "#graph-av-gyro",
+                ylabel: "Rotation Rate (°/s)",
+                numLines: 3,
+                data: [],
+            },
+            velocity: {
+                selector: "#graph-av-velocity",
+                ylabel: "Vertical Speed (m/s)",
+                numLines: 1,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+        },
+        pos: {
+            alt: {
+                selector: "#graph-pos-alt",
+                ylabel: "Altitude (ft)",
+                numLines: 1,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            }
+        },
+        gse: {
+            transducers: {
+                selector: "#graph-aux-transducers",
+                ylabel: "Pressure (bar)",
+                numLines: 3,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+            thermocouples: {
+                selector: "#graph-aux-thermocouples",
+                ylabel: "Temperature (°C)",
+                numLines: 3,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+            vent_temp: {
+                selector: "#graph-aux-venttemp",
+                ylabel: "Temperature (°C)",
+                numLines: 1,
+                limits: {
+                    yBottomMax: 0,
+                },
+                data: [],
+            },
+            supply_temp: {
+                selector: "#graph-aux-n2o-supply-temp",
+                ylabel: "Temperature (°C)",
+                numLines: 1,
+                data: [],
+            },
+        },
+        test: {
+            colours: {
+                selector: "#graph-test-colours",
+                ylabel: "Sample metric",
+                numLines: 3,
+                data: [],
+            }
+        }
     }
 
     // API configuration
     static api = {
         packet_id: {
+            avionics: 3,
+            avionics_rocket: 4,
             pendant: 10,
-            diagnostics: 50,
+            logging: 40,
+            network: 50,
+            gse: 55,
         },
         error_conditions: [
             {
@@ -190,6 +288,58 @@ class Config {
                 },
             },
         ]
+    }
+
+    // Sounds
+    static audio = {
+        // Altitude in metres for when to play parachute sound
+        parachute_altitude: 1200,
+        // Radius in metres from GCS for overhead warning (rocket coming down)
+        overhead_warn_radius: 50,
+        /*
+        Combine all timeouts into one array of objects (only for radios)
+        so we can program sound alarms in a queue, with past rockets included
+        for legacy support (replaces data-timeout attribute).
+        */
+        timeouts: {
+            "Legacy3": [
+                { name: 'av', duration: 3000, state: 4 },
+                { name: 'av', duration: 10000, state: 5 },
+                { name: 'gse', duration: 3000, state: 4 },
+                { name: 'gse', duration: 10000, state: 5 },
+            ],
+            "Atlas": [
+                { name: 'av', duration: 3000, state: 4 },
+                { name: 'av', duration: 10000, state: 5 },
+                { name: 'gse', duration: 3000, state: 4 },
+                { name: 'gse', duration: 10000, state: 5 },
+            ],
+            "Horizon": [
+                { name: 'av', duration: 5000, state: 4 },
+                { name: 'gse', duration: 5000, state: 4 },
+            ]
+        },
+    }
+
+    // Network diagnostics
+    static network = {
+        devices: {
+            control: [
+                // "TP-Link Router",
+                "GC-1",
+                "GC-2",
+                // "WiFi Bridge Control"
+            ],
+            gse: [
+                "Launchpad Cam",
+                "LabJack",
+                "QuantumX DAQ",
+                "DAQ 4-Channel",
+                "Vulcan ESP32",
+                // "WiFi Bridge GSE"
+            ],
+        },
+        graph_render_rate_s: 1.8,
     }
 }
 
