@@ -9,8 +9,8 @@
 /* global d3 */
 
 import { Config as cfg } from '/js/frontend_config.js'
-import { diagSetAvIndicator, diagSetSummaryOnlineBox, timestamp } from '/js/frontend_display.js'
-import { diagClampGraphPing, diagNowSeconds, diagUpdateBottomBar, diagUpdateDeviceCard, format_device_id } from '/js/frontend_network_diagnostics.js'
+import { timestamp } from '/js/frontend_display.js'
+import { diagClampGraphPing, format_device_id, updateNetworkDiagnostics2 } from '/js/frontend_network_diagnostics.js'
 import { metresToFeet } from '/js/frontend_utils.js'
 
 const GRAPHS = cfg.graphs;
@@ -690,7 +690,7 @@ function diagEnsureGraph(device_id) {
 }
 
 // ── Middle panel: update badge, graph line, and stats ────────────
-function diagUpdateGraph(device_id, device_data, timestamp) {
+function diagUpdateGraph(device_id, device_data) {
     const device_id_safe = format_device_id(device_id);
     const graph = diagGraphs[device_id];
 
@@ -704,7 +704,7 @@ function diagUpdateGraph(device_id, device_data, timestamp) {
 
     // Graph data + stats
     if (graph) {
-        graphAddValue(graph, 0, timestamp, device_data.ping);
+        graphAddValue(graph, 0, performance.now() / 1000, device_data.ping);
 
         // Update diagnostics threshold layer positions
         if (graph?.g && graph?.graphHeight) {
@@ -766,86 +766,6 @@ function diagUpdateGraph(device_id, device_data, timestamp) {
     }
 }
 
-function graphUpdateDiagnostics(apiData) {
-    const current_timestamp = diagNowSeconds();
-
-    let onlineCount = 0; let totalCount = 0;
-    let gseOnline = true;
-    let lanOnline = true;
-    let hasGseDevice = false;
-    let hasLanDevice = false;
-
-    Object.entries(apiData).forEach(([device_id, device_data]) => {
-        if (device_id === "id" || device_id === "state" || device_id === "meta")
-            return;
-        if (typeof device_data !== "object" || device_data === null)
-            return;
-
-        if (device_data.ping === undefined) {
-            device_data.ping = -1;
-            device_data.connected = false;
-        }
-
-        if (cfg.network.gse_devices.includes(device_id)) {
-            hasGseDevice = true;
-
-            if (!device_data.connected) {
-                gseOnline = false;
-            }
-        } else if (cfg.network.lan_devices.includes(device_id)) {
-            hasLanDevice = true;
-
-            if (!device_data.connected) {
-                lanOnline = false;
-            }
-        }
-
-        totalCount++;
-        if (device_data.connected)
-            onlineCount++;
-
-        // Left panel
-        diagUpdateDeviceCard(device_id, device_data);
-
-        // Middle panel
-        if (diagGraphs[device_id] === undefined) {
-            diagEnsureGraph(device_id);
-        }
-        diagUpdateGraph(device_id, device_data, current_timestamp);
-
-        // if (cfg.network.lan_devices.includes(device_id) && alive) {
-        //     lanWorstPing =
-        //         lanWorstPing == null
-        //             ? ping
-        //             : Math.max(lanWorstPing, ping);
-        // }
-    });
-
-
-    // Right panel
-    diagSetSummaryOnlineBox("diag-summary-gse", hasGseDevice && gseOnline);
-    diagSetSummaryOnlineBox("diag-summary-lan", hasLanDevice && lanOnline);
-
-    const avIndicator = document.querySelector('[data-key="state.av.radio"][data-type="state"]');
-
-    if (avIndicator) {
-        const avOnline = avIndicator.classList.contains("green");
-
-        diagSetSummaryOnlineBox("diag-summary-av", avOnline);
-        diagSetAvIndicator(avOnline);
-    }
-
-    // Bottom bar
-    diagUpdateBottomBar(totalCount, onlineCount);
-
-    // Last updated
-    const lastUpdated = document.getElementById("diag-last-updated");
-    if (lastUpdated) {
-        const now = new Date();
-        lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString("en-AU")} AEST`;
-    }
-}
-
 // Renders all diagnostics ping graphs every animation frame
 function graphRenderDiagnostics() {
     Object.values(diagGraphs).forEach((graph) => {
@@ -856,7 +776,7 @@ function graphRenderDiagnostics() {
         if (allPoints.length === 0)
             return;
 
-        const renderNow = diagNowSeconds();
+        const renderNow = performance.now() / 1000;
         const now = renderNow - cfg.network.graph_render_rate_s;
 
         if (!Number.isFinite(now))
@@ -1042,4 +962,4 @@ function graphRenderDiagnostics() {
     });
 }
 
-export { graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition }
+export { diagGraphs, diagEnsureGraph, diagUpdateGraph, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition }

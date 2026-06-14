@@ -4,6 +4,7 @@
 
 /* global d3 */
 
+
 class Config {
     // GPS
     static gps = {
@@ -297,7 +298,7 @@ class Config {
         overhead_warn_radius: 50,
         /*
         Combine all timeouts into one array of objects (only for radios)
-        so we can program sound alarms in a queue, with past rockets included 
+        so we can program sound alarms in a queue, with past rockets included
         for legacy support (replaces data-timeout attribute).
         */
         timeouts: {
@@ -322,8 +323,22 @@ class Config {
 
     // Network diagnostics
     static network = {
-        gse_devices: ["GSE ESP32", "Vulcan ESP32", "WiFi Bridge @ GSE"],
-        lan_devices: ["TP-Link", "TP-Link Router", "GCS Raspberry Pi", "GC-1", "GC-2", "WiFi Bridge @ GCS"],
+        devices: {
+            control: [
+                // "TP-Link Router",
+                "GC-1",
+                "GC-2",
+                // "WiFi Bridge Control"
+            ],
+            gse: [
+                "Launchpad Cam",
+                "LabJack",
+                "QuantumX DAQ",
+                "DAQ 4-Channel",
+                "Vulcan ESP32",
+                // "WiFi Bridge GSE"
+            ],
+        },
         graph_render_rate_s: 1.8,
     }
 }

@@ -6,6 +6,7 @@
 
 import { Config as cfg } from '/js/frontend_config.js';
 import { graphRequestRender } from '/js/frontend_graphs.js'
+import { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox } from '/js/frontend_network_diagnostics.js'
 import { logMessage } from '/js/frontend_utils.js'
 
 const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
@@ -27,7 +28,6 @@ const timers = {
     gasTimestamp: 0,
     launchTimestamp: 0,
 }
-
 
 function updateTimestamp(new_timestamp) {
     if (timestamp.api) {
@@ -228,53 +228,6 @@ window.addEventListener('keydown', (event) => {
         }
     }
 })
-
-// ── Right panel: flip a status box green/red ─────────────────────
-function diagSetStatusBox(id, pingValue) {
-    const elem = document.getElementById(id);
-    if (!elem)
-        return;
-
-    // No data / offline
-    if (pingValue == null || pingValue < 0) {
-        // No data (offline)
-        elem.classList.remove("good", "warn", "bad");
-    } else if (pingValue <= 100) {
-        // Good connection (green light)
-        elem.classList.remove("warn", "bad");
-        elem.classList.add("good");
-    } else if (pingValue <= 200) {
-        // Connection warning (amber light)
-        elem.classList.remove("good", "bad");
-        elem.classList.add("warn");
-    } else {
-        // Bad connection (red light)
-        elem.classList.remove("good", "warn");
-        elem.classList.add("bad");
-    }
-}
-
-function diagSetSummaryOnlineBox(id, online) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    el.textContent = online ? "GOOD" : "DOWN";
-    el.style.backgroundColor = online ? "#4ade80" : "#ef4444";
-    el.style.borderColor = online ? "#15803d" : "#991b1b";
-    el.style.color = online ? "black" : "white";
-}
-
-function diagSetAvIndicator(online) {
-    const el = document.getElementById("diag-av-indicator");
-    if (!el)
-        return;
-
-    el.style.background = online ? "#4ade80" : "#ef4444";
-    el.style.boxShadow = online
-        ? "0 0 6px #4ade80"
-        : "0 0 6px #ef4444";
-}
 
 // Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
@@ -841,4 +794,4 @@ function sendDataToRegistry(apiData) {
     })
 }
 
-export { diagSetAvIndicator, diagSetSummaryOnlineBox, displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };
+export { displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };

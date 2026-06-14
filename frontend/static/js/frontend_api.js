@@ -10,7 +10,7 @@
 
 import { Config as cfg } from '/js/frontend_config.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
-import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
+import { graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition } from '/js/frontend_graphs.js';
 import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
 import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
 
@@ -80,7 +80,7 @@ function API_OnMessage(event_data) {
         else if (apiData.id === pid.network) {
             // Network diagnostics
             updateNetworkDiagnostics(apiData)
-            graphUpdateDiagnostics(apiData)
+            updateNetworkDiagnostics2(apiData)
         }
         else if (apiData.id === pid.gse) {
             // GSE packets
@@ -237,7 +237,7 @@ function processDataForDisplay(apiData, apiId) {
 
     if (apiId === cfg.api.packet_id.network) {
         // Track packet counts per device and attach to processedData.
-        // All HTML rendering is handled by graphUpdateDiagnostics() in frontend_graphs.js.
+        // All HTML rendering is handled by updateNetworkDiagnostics2() in frontend_graphs.js.
         Object.keys(apiData).forEach((device) => {
             if (typeof apiData[device] !== 'object' || apiData[device] === null)
                 return
