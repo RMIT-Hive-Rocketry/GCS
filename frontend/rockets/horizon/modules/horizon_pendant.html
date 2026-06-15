@@ -373,7 +373,7 @@
         ARMED: { label: "ARMED", cls: "phase-armed" },
         ARMED_O2: { label: "O₂ FILL", cls: "phase-armed-o2" },
         IGNITION: { label: "IGNITION", cls: "phase-ignition" },
-        ESTOP: { label: "E-STOP", cls: "phase-estop" },
+        E_STOP: { label: "E-STOP", cls: "phase-estop" },
     };
 
     // This is the "priority order" of phases, since multiple can be true at once
@@ -485,7 +485,7 @@
         const info = PENDANT_PHASE_INFO[phase];
 
         const phaseEl = document.querySelector("[data-pendant-phase]");
-        if (phaseEl) {
+        if (phaseEl !== undefined) {
             phaseEl.textContent = info.label;
             phaseEl.className = "pendant-phase-value " + info.cls;
         }
