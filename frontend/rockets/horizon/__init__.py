@@ -43,7 +43,7 @@ class ConfigHorizon(Config):
 
         # Define pages for Horizon
         self.PAGES: list = [
-            {"name": "Overview", "icon": "icon-rocket", "id": "page-main"},
+            {"name": "Main", "icon": "icon-rocket", "id": "page-main"},
             {
                 "name": "GSE",
                 "icon": "icon-gamepad",
