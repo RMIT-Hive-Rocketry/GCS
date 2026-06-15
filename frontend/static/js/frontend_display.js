@@ -9,9 +9,7 @@ import { graphRequestRender } from '/js/frontend_graphs.js'
 import { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox } from '/js/frontend_network_diagnostics.js'
 import { logMessage } from '/js/frontend_utils.js'
 
-const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
 const metricOffline = {} // key -> boolean
-const graph_render_rate = 20 // FPS for rendering graphs
 
 let then, fpsInterval
 
@@ -32,8 +30,7 @@ const timers = {
 function updateTimestamp(new_timestamp) {
     if (timestamp.api) {
         timestamp.api = Math.max(timestamp.api, new_timestamp)
-    }
-    else {
+    } else {
         timestamp.api = new_timestamp
     }
 
@@ -43,8 +40,13 @@ function updateTimestamp(new_timestamp) {
     }
     else {
         // Code to synchronise local time with GSE time if it gets too far behind
-        timestamp.drift
-            = timestamp.local - (timestamp.api - timestamp.apiConnect)
+        if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
+            // Calculate drift with apiConnect offset
+            timestamp.drift = timestamp.local - (timestamp.api - timestamp.apiConnect)
+        } else {
+            // Calculate drift without apiConnect offset (sometimes it's undefined)
+            timestamp.drift = timestamp.local - timestamp.api
+        }
 
         // Time drift
         // timestamp.drift > 0 means LOCAL is ahead of GSE
@@ -64,7 +66,7 @@ function getMetricOffline(key) {
 
 // Animation/timing code
 function startAnimating() {
-    fpsInterval = 1000 / graph_render_rate
+    fpsInterval = 1000 / cfg.graphs.render_rate
     then = window.performance.now()
     animate()
 }
@@ -102,9 +104,23 @@ function updateTime() {
     }
 
     // Local time
-    if (timestamp.local !== undefined && timestamp.local !== 0) {
+    if (timestamp.local !== undefined && timestamp.local !== 0 && timestamp.apiConnect !== undefined && timestamp.drift !== undefined) {
+        let calculated_local_time = timestamp.local + timestamp.apiConnect - timestamp.drift;
+
+        /*
+        // Add api connection time
+        if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
+            calculated_local_time += timestamp.apiConnect;
+        }
+
+        // Subtract drift
+        if (timestamp.drift !== undefined && !Number.isNaN(timestamp.drift)) {
+            calculated_local_time -= timestamp.drift;
+        }
+            */
+
         sendDataToRegistry({
-            localTime: `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)} s`,
+            localTime: `${calculated_local_time.toFixed(1)} s`,
         })
     }
 }
@@ -307,7 +323,7 @@ function checkStateIndicator(elem = null) {
 
                 currElems.forEach((c1) => {
                     // Use functions for recalculating the expressions
-                    const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state])
+                    const timeoutState = () => c1.classList.value.includes(cfg.display.indicator_states[t1.state])
                     const greenState = () => !c1.classList.value.includes('green')
                     const currSound = `${t1.name.toUpperCase()}_Loss`
 
@@ -558,15 +574,15 @@ function displaySetState(item, value) {
 
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
-            elem.classList.remove(...indicatorStates)
+            elem.classList.remove(...cfg.display.indicator_states)
             // Convert true/false boolean values to on/error
             if (typeof value == 'boolean') {
                 value = value ? 1 : 3
             }
 
             // Get indicator state from value (only then change the sound)
-            if (value >= 0 && value < indicatorStates.length) {
-                elem.classList.add(indicatorStates[value])
+            if (value >= 0 && value < cfg.display.indicator_states.length) {
+                elem.classList.add(cfg.display.indicator_states[value])
             }
 
             // Check if sound needs to be played
