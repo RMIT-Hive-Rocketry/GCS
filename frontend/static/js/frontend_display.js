@@ -104,10 +104,12 @@ function updateTime() {
     }
 
     // Local time
+    /*
+    console.log(timestamp.local, timestamp.apiConnect, timestamp.drift);
     if (timestamp.local !== undefined && timestamp.local !== 0 && timestamp.apiConnect !== undefined && timestamp.drift !== undefined) {
-        let calculated_local_time = timestamp.local + timestamp.apiConnect - timestamp.drift;
+        const calculated_local_time = timestamp.local + timestamp.apiConnect - timestamp.drift;
 
-        /*
+        
         // Add api connection time
         if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
             calculated_local_time += timestamp.apiConnect;
@@ -117,12 +119,14 @@ function updateTime() {
         if (timestamp.drift !== undefined && !Number.isNaN(timestamp.drift)) {
             calculated_local_time -= timestamp.drift;
         }
-            */
 
         sendDataToRegistry({
             localTime: `${calculated_local_time.toFixed(1)} s`,
         })
-    }
+    } */
+    sendDataToRegistry({
+        localTime: `${timestamp.local.toFixed(1)} s`,
+    })
 }
 
 // Generate the loss sounds (1st 2 have a quicker version - see cfg.audio.timeouts)

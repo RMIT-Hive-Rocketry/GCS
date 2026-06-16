@@ -212,7 +212,7 @@ function graphRender(chart) {
                 chart.lines.flatMap((line) => line.data),
                 (d) => d.x,
             ),
-            timestamp.local + timestamp.apiConnect - timestamp.drift,
+            timestamp.local // + timestamp.apiConnect - timestamp.drift,
         );
 
         /* Normally, line data is filtered to be in sync with the time,
@@ -543,42 +543,44 @@ function graphUpdateAuxData(data) {
     // TODO Based on launch configuration, some values will be "offline"
     // Clearly label those graphs as offline instead of leaving them blank
 
-    if (data?.id && data?.meta?.timestampS) {
-        const timestamp = data.meta.timestampS;
-        // console.log(timestamp);
+    console.log(data)
+
+    if (data?.id) {
+        const ts = timestamp.local;
+        console.log(ts);
 
         // Transducers
-        graphAddValue(GRAPHS.gse.transducers, 0, timestamp, data.n2o_pressure);
-        graphAddValue(GRAPHS.gse.transducers, 1, timestamp, data.tank_pressure);
-        graphAddValue(GRAPHS.gse.transducers, 2, timestamp, data.o2_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 0, ts, data.n2o_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 1, ts, data.tank_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 2, ts, data.o2_pressure);
 
         // Supply Temp
         graphAddValue(
             GRAPHS.gse.supply_temp,
             0,
-            timestamp,
+            ts,
             data.n2o_temp,
         );
 
         // Vent temperature
-        graphAddValue(GRAPHS.gse.vent_temp, 0, timestamp, data.vent_temp);
+        graphAddValue(GRAPHS.gse.vent_temp, 0, ts, data.vent_temp);
 
         graphAddValue(
             GRAPHS.gse.thermocouples,
             0,
-            timestamp,
+            ts,
             data.rtd_top,
         );
         graphAddValue(
             GRAPHS.gse.thermocouples,
             1,
-            timestamp,
+            ts,
             data.rtd_middle,
         );
         graphAddValue(
             GRAPHS.gse.thermocouples,
             2,
-            timestamp,
+            ts,
             data.rtd_bottom,
         );
     }
@@ -962,4 +964,4 @@ function graphRenderDiagnostics() {
     });
 }
 
-export { diagGraphs, diagEnsureGraph, diagUpdateGraph, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition }
+export { diagEnsureGraph, diagGraphs, diagUpdateGraph, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdatePosition, updateNetworkDiagnostics2 }
