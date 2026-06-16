@@ -109,7 +109,7 @@ function updateTime() {
     if (timestamp.local !== undefined && timestamp.local !== 0 && timestamp.apiConnect !== undefined && timestamp.drift !== undefined) {
         const calculated_local_time = timestamp.local + timestamp.apiConnect - timestamp.drift;
 
-        
+
         // Add api connection time
         if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
             calculated_local_time += timestamp.apiConnect;

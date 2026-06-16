@@ -1,5 +1,3 @@
-# paThofleastresistance
-
 from backend.includes_python import network_pings
 from backend.includes_python.mach import Mach
 import backend.includes_python.process_logging as slogger
