@@ -315,7 +315,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
 async def consumer(websocket) -> None:
     context = zmq.asyncio.Context()
     try:
-        push_socket = context.socket(zmq.PUSH)
+        push_socket = context.socket(zmq.PUB)
         socket_path = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
         )

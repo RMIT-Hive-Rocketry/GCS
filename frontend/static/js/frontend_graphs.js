@@ -220,7 +220,12 @@ function graphRender(chart) {
          * hence the graph should just be a static display (barring the
          * changes in colour made by the operator).
         */
-        const windowStart = (chart !== GRAPHS.test.colours) ? (now - cfg.graphs.max_time) : 0;
+        let max_time = cfg.graphs.max_time
+        if (chart.max_time !== undefined) {
+            max_time = chart.max_time
+        }
+
+        const windowStart = (chart !== GRAPHS.test.colours) ? (now - max_time) : 0;
 
         if (chart.lastRender !== now) {
             // Limit data to graph window
@@ -784,7 +789,7 @@ function graphRenderDiagnostics() {
         if (!Number.isFinite(now))
             return;
 
-        const windowStart = now - cfg.graphs.max_time;
+        const windowStart = now - cfg.graphs.max_time_av;
 
         graph.lines.forEach((line) => {
             line.data = line.data.filter(

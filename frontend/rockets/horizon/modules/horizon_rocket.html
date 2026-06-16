@@ -67,6 +67,64 @@
             const container = document.getElementById(containerID);
             const canvas = document.getElementById(canvasID);
 
+            // Setup canvas and renderer
+            const renderer = new THREE.WebGLRenderer({
+                canvas,
+                antialias: true, // Smooth edges
+                alpha: true, // Transparent background
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(
+                canvas.parentElement.clientWidth,
+                Math.min(canvas.parentElement.clientHeight, 512),
+            );
+
+            // Setup scene and camera
+            const scene = new THREE.Scene();
+
+            const aspect =
+                canvas.parentElement.clientWidth /
+                Math.min(canvas.parentElement.clientHeight, 512);
+            const viewSize = 10;
+            const camera = new THREE.OrthographicCamera(
+                (-aspect * viewSize) / 2, // left
+                (aspect * viewSize) / 2, // right
+                viewSize / 2, // top
+                -viewSize / 2, // bottom
+                0.1,
+                1000,
+            );
+            camera.position.set(0, 0, 20);
+            camera.lookAt(0, 0, 0);
+
+
+            // Setup environment lighting
+            // Newer versions of three.js require an environment map for lighting
+            const environmentTexture = new THREE.CubeTextureLoader().setPath('/static/img/cubemap/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+            scene.environment = environmentTexture;
+            // scene.background = environmentTexture;
+            scene.environmentIntensity = 1;
+
+            // Also define fixed lights (for aesthetic reasons)
+            const skyColor = 0xB1E1FF;  // light blue
+            const groundColor = 0xB97A20;  // brownish orange
+            const lightIntensity = 25;
+            const light = new THREE.HemisphereLight(skyColor, groundColor, lightIntensity);
+            scene.add(light);
+
+            const light2 = new THREE.PointLight(skyColor, 20);
+            light2.position.set(10, 4, 2);
+            scene.add(light2);
+
+            const light3 = new THREE.PointLight(0xFFFFFF, 100);
+            light3.position.set(10, 2.5, 0);
+            scene.add(light3);
+
+            const light4 = new THREE.PointLight(groundColor, 50);
+            light4.position.set(-20, -4, 0);
+            scene.add(light4);
+
+            /*
             const renderer = new THREE.WebGLRenderer({
                 canvas,
                 antialias: true, // Smooth edges
@@ -122,12 +180,16 @@
             camera.add(cameraLight);
             scene.add(camera); // camera must be added to scene for its children to work
 
+            */
+
+            const rocket_scale = 2.5;
+
             // === Load and Setup Rocket Model ===
             new GLTFLoader().load(
                 rocketModel,
                 (gltf) => {
                     const model = gltf.scene;
-                    model.scale.set(2, 2, 2); // Resize for better visibility
+                    model.scale.set(rocket_scale, rocket_scale, rocket_scale); // Resize for better visibility
 
                     // Center the model at the origin for rotation
                     const box = new THREE.Box3().setFromObject(model);
@@ -140,7 +202,7 @@
 
                     // Dynamically position camera to fit model size
                     const size = box.getSize(new THREE.Vector3()).length();
-                    camera.position.set(0, 0, size * 1.5);
+                    camera.position.set(0, 10, size * 1.5);
                     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
                     animate(); // Start render loop

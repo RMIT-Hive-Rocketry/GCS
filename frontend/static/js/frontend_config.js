@@ -38,7 +38,7 @@ class Config {
 
     // Graphing
     static graphs = {
-        max_time: 60,  // Seconds of graph shown
+        max_time: 60,  // Seconds of graph shown for avionics graphs
         max_gap_size: 4,  // Max time between data points where line is drawn
         render_rate: 20,  // Frames per second that graphs are updates
         y_ticks: 8,
@@ -87,6 +87,7 @@ class Config {
         },
         gse: {
             transducers: {
+                max_time: 20,
                 selector: "#graph-aux-transducers",
                 ylabel: "Pressure (bar)",
                 numLines: 3,
@@ -96,6 +97,7 @@ class Config {
                 data: [],
             },
             thermocouples: {
+                max_time: 20,
                 selector: "#graph-aux-thermocouples",
                 ylabel: "Temperature (°C)",
                 numLines: 3,
@@ -105,6 +107,7 @@ class Config {
                 data: [],
             },
             vent_temp: {
+                max_time: 20,
                 selector: "#graph-aux-venttemp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
@@ -114,6 +117,7 @@ class Config {
                 data: [],
             },
             supply_temp: {
+                max_time: 20,
                 selector: "#graph-aux-n2o-supply-temp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,

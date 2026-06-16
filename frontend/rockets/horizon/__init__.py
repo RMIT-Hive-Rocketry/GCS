@@ -46,16 +46,17 @@ class ConfigHorizon(Config):
         self.PAGES: list = [
             {"name": "Main", "icon": "icon-rocket", "id": "page-main"},
             {
-                "name": "GSE",
+                "name": "Ground Service Equipment",
                 "icon": "icon-gamepad",
                 "id": "page-control",
             },
-            # {
-            #    "name": "Diagnostics",
-            #    "icon": "icon-signal",
-            #    "id": "page-diagnostics",
-            # },
-            {"name": "Settings", "icon": "icon-tasks", "id": "page-preflight"},
+            # {"name": "Diagnostics","icon": "icon-signal","id": "page-diagnostics",},
+            # {"name": "Settings", "icon": "icon-tasks", "id": "page-preflight"},
+            {
+                "name": "Launchpad Camera",
+                "icon": "icon-video-camera",
+                "id": "page-camera",
+            },
         ]
 
         # Module positioning on each page
@@ -65,33 +66,37 @@ class ConfigHorizon(Config):
             # Header / nav (including sounds)
             "horizon_logos": [
                 ("page-main", 0, 0, 8, 1),
-                ("page-preflight", 0, 0, 8, 1),
                 ("page-control", 0, 0, 8, 1),
+                ("page-camera", 0, 0, 8, 1),
+                # ("page-preflight", 0, 0, 8, 1),
                 # ("page-diagnostics", 0, 0, 8, 1),
             ],
             "horizon_nav": [
                 ("page-main", 8, 0, 8, 1),
-                ("page-preflight", 8, 0, 8, 1),
                 ("page-control", 8, 0, 8, 1),
+                ("page-camera", 8, 0, 8, 1),
+                # ("page-preflight", 8, 0, 8, 1),
                 # ("page-diagnostics", 8, 0, 8, 1),
             ],
             "horizon_radio": [
                 ("page-main", 16, 0, 8, 1),
-                ("page-preflight", 16, 0, 8, 1),
                 ("page-control", 16, 0, 8, 1),
+                ("page-camera", 16, 0, 8, 1),
+                # ("page-preflight", 16, 0, 8, 1),
                 # ("page-diagnostics", 16, 0, 8, 1),
             ],
             # Main page modules (mirrors Legacy III's main page for now)
             "horizon_avionics_position": [("page-main", 0, 1, 8, 11)],
             "horizon_rocket": [("page-main", 8, 1, 8, 8)],
             "horizon_timeline": [("page-main", 8, 9, 8, 3)],
-            "horizon_camera": [("page-main", 16, 1, 8, 4)],
+            "horizon_camera": [
+                ("page-main", 16, 1, 8, 4),
+                ("page-camera", 0, 1, 24, 11),
+            ],
             "horizon_auxiliary_gse": [("page-main", 16, 5, 8, 7)],
             # Settings page
-            "horizon_settings_audio": [("page-preflight", 0, 1, 12, 11)],
-            "horizon_settings_graph_colours": [
-                ("page-preflight", 12, 1, 12, 11)
-            ],
+            # "horizon_settings_audio": [("page-preflight", 0, 1, 12, 11)],
+            # "horizon_settings_graph_colours": [    ("page-preflight", 12, 1, 12, 11)],
             # Control page: GSE HMI on the left (14 cols), pendant on the right (10 cols)
             "horizon_gse_hmi": [("page-control", 0, 1, 14, 11)],
             "horizon_pendant": [("page-control", 14, 1, 10, 11)],
