@@ -1,6 +1,8 @@
+# paThofleastresistance
+
+from backend.includes_python import network_pings
 from backend.includes_python.mach import Mach
 import backend.includes_python.process_logging as slogger
-import backend.includes_python.network_pings as network_pings
 import backend.proto.generated.GSE_TO_GCS_DATA_2_pb2 as GSE_TO_GCS_DATA_2_pb
 import backend.proto.generated.GSE_TO_GCS_DATA_1_pb2 as GSE_TO_GCS_DATA_1_pb
 import backend.proto.generated.AV_TO_GCS_DATA_3_pb2 as AV_TO_GCS_DATA_3_pb
@@ -80,18 +82,19 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
         os.path.join(os.path.sep, "tmp", "gcs_logging_frontend_pull.sock")
     )
 
+    labview_socket_path = os.path.abspath(
+        os.path.join(os.path.sep, "tmp", "labview_frontend_pub.sock")
+    )
+
     cfg = get_config()
     cfg_frontend_api = cfg["frontend_api"]
     pendant_packet_id = int(cfg_frontend_api["pendant_packet_id"])
+    labview_packet_id = int(cfg_frontend_api["labview_packet_id"])
     slogger_packet_id = int(cfg_frontend_api["slogger_packet_id"])
     network_diagnostics_packet_id = int(
         cfg_frontend_api["network_diagnostics_packet_id"]
     )
-    gse_labview_tcp_packet_id = int(
-        cfg_frontend_api["gse_labview_tcp_packet_id"]
-    )
     ping_interval_s = float(cfg_frontend_api["ping_interval_s"])
-
     ping_gap_time_s = 2
     next_ping_time = asyncio.get_running_loop().time() + ping_gap_time_s
     cached_ping_results: dict = {}
@@ -124,14 +127,19 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
         logging_sub_socket.connect(f"ipc://{frontend_socket_path_logging}")
         logging_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
+        labview_sub_socket = context.socket(zmq.SUB)
+        labview_sub_socket.connect(f"ipc://{labview_socket_path}")
+        labview_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+
         # https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/multisocket/zmqpoller.html
         # ^ more about Poller
         poller = zmq.Poller()
         poller.register(server_sub_socket, zmq.POLLIN)
         poller.register(pendant_sub_socket, zmq.POLLIN)
         poller.register(logging_sub_socket, zmq.POLLIN)
+        poller.register(labview_sub_socket, zmq.POLLIN)
 
-        gse_tcp_queue: asyncio.Queue = asyncio.Queue(maxsize=64)
+        # gse_tcp_queue: asyncio.Queue = asyncio.Queue(maxsize=64)
 
         async def _network_ping_worker() -> None:
             """Run ICMP manifest off the hot path so packet 55 is not stalled."""
@@ -144,43 +152,6 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                 await asyncio.sleep(ping_gap_time_s)
 
         ping_task = asyncio.create_task(_network_ping_worker())
-
-        async def _tcp_gse_labview_reader():
-            """Pull data from LabVIEW or from LabVIEW emulator"""
-            cfg = get_config()
-            host = cfg["tcp"]["labview_server_ip"]
-            port = int(cfg["tcp"]["labview_server_port"])
-            writer = None
-            try:
-                reader, writer = await asyncio.open_connection(host, port)
-            except OSError as e:
-                slogger.error(f"GSE LabVIEW TCP connect failed: {e}")
-                return
-            try:
-                while not shutdown_event.is_set():
-                    line = await reader.readline()
-                    if not line:
-                        break
-                    while True:
-                        try:
-                            gse_tcp_queue.put_nowait(line)
-                            break
-                        except asyncio.QueueFull:
-                            try:
-                                gse_tcp_queue.get_nowait()
-                            except asyncio.QueueEmpty:
-                                pass
-            except asyncio.CancelledError:
-                raise
-            except Exception as e:
-                slogger.error("GSE LabVIEW TCP read error: %s", e)
-            finally:
-                if writer is not None:
-                    writer.close()
-                    with contextlib.suppress(Exception):
-                        await writer.wait_closed()
-
-        tcp_gse_task = asyncio.create_task(_tcp_gse_labview_reader())
 
         # Reserved 40 for sending logs ignoring Protobuf
         # reserved 10 for pendant
@@ -242,6 +213,22 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     else:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
 
+                if labview_sub_socket in events:
+                    labview_state_dict = await labview_sub_socket.recv_json()
+
+                    pendant_state_dict = append_data(
+                        labview_state_dict, labview_packet_id
+                    )
+
+                    packet = {
+                        "id": labview_packet_id,
+                        "data": labview_state_dict,
+                    }
+                    try:
+                        await websocket.send(json.dumps(packet))
+                    except websockets.ConnectionClosedOK:
+                        break
+
                 if asyncio.get_running_loop().time() > next_ping_time:
                     if cached_ping_results:
                         packet = {
@@ -255,43 +242,6 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                     next_ping_time = (
                         asyncio.get_running_loop().time() + ping_gap_time_s
                     )
-
-                while True:
-                    try:
-                        # as mentioned in [labview_row_bytes_to_data_dict] this line
-                        # is assumed to be a complete tag.
-                        # otherwise the xml match will fail and throw valueerror
-                        gse_line = gse_tcp_queue.get_nowait()
-                    except asyncio.QueueEmpty:
-                        break
-                    try:
-                        gse_data = GseDaqMetrics.labview_row_bytes_to_data_dict(
-                            gse_line
-                        )
-                        # TODO make this packetcount serverside.
-                        # It resets if no clients are connected I think
-                        tcp_gse_packet_count += 1
-                        # See variable definition comments
-                        tcp_update_timestamp_s = (
-                            time.monotonic()
-                            - server_monotonic_time
-                            + last_server_timestamp
-                        )
-                        output = {
-                            "id": gse_labview_tcp_packet_id,
-                            "data": {
-                                "meta": {
-                                    "totalPacketCountGse": tcp_gse_packet_count,
-                                    "timestampS": tcp_update_timestamp_s,
-                                }
-                            }
-                            | gse_data,
-                        }
-                        await websocket.send(json.dumps(output))
-                    except (ValueError, SyntaxError, TypeError) as e:
-                        slogger.warning("GSE LabVIEW row parse skip: %s", e)
-                    except websockets.ConnectionClosedOK:
-                        break
 
                 if logging_sub_socket in events:
                     message = await logging_sub_socket.recv_json()
@@ -353,22 +303,19 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
             ping_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await ping_task
-        if tcp_gse_task is not None:
-            tcp_gse_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await tcp_gse_task
         # Wait LINGER_TIME_MS before giving up on push request
         LINGER_TIME_MS = 300
         server_sub_socket.close(linger=LINGER_TIME_MS)
         pendant_sub_socket.close(linger=LINGER_TIME_MS)
         logging_sub_socket.close(linger=LINGER_TIME_MS)
+        labview_sub_socket.close(linger=LINGER_TIME_MS)
         context.term()
 
 
 async def consumer(websocket) -> None:
     context = zmq.asyncio.Context()
     try:
-        push_socket = context.socket(zmq.PUSH)
+        push_socket = context.socket(zmq.PUB)
         socket_path = os.path.abspath(
             os.path.join(os.path.sep, "tmp", "gcs_rocket_web_pull.sock")
         )

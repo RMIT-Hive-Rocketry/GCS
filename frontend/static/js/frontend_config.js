@@ -38,7 +38,7 @@ class Config {
 
     // Graphing
     static graphs = {
-        max_time: 60,  // Seconds of graph shown
+        max_time: 60,  // Seconds of graph shown for avionics graphs
         max_gap_size: 4,  // Max time between data points where line is drawn
         render_rate: 20,  // Frames per second that graphs are updates
         y_ticks: 8,
@@ -87,6 +87,7 @@ class Config {
         },
         gse: {
             transducers: {
+                max_time: 20,
                 selector: "#graph-aux-transducers",
                 ylabel: "Pressure (bar)",
                 numLines: 3,
@@ -96,6 +97,7 @@ class Config {
                 data: [],
             },
             thermocouples: {
+                max_time: 20,
                 selector: "#graph-aux-thermocouples",
                 ylabel: "Temperature (°C)",
                 numLines: 3,
@@ -105,6 +107,7 @@ class Config {
                 data: [],
             },
             vent_temp: {
+                max_time: 20,
                 selector: "#graph-aux-venttemp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
@@ -114,6 +117,7 @@ class Config {
                 data: [],
             },
             supply_temp: {
+                max_time: 20,
                 selector: "#graph-aux-n2o-supply-temp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
@@ -142,7 +146,7 @@ class Config {
         },
         error_conditions: [
             {
-                ids: ['weight_rocket'], // Rocket weight
+                ids: ['rocket_weight'], // Rocket weight
                 discard: {
                     min: -1,
                     max: 128,
@@ -187,7 +191,7 @@ class Config {
                 ids: ['gyroX', 'gyroY', 'gyroZ'],
             },
             {
-                ids: ['temp_vent'],
+                ids: ['vent_temp'],
                 discard: {
                     min: -200,
                     max: 80,
@@ -237,9 +241,9 @@ class Config {
             },
             {
                 ids: [
-                    'temp_tank_top',
-                    'temp_tank_middle',
-                    'temp_tank_bottom',
+                    'rtd_top',
+                    'rtd_middle',
+                    'rtd_bottom',
                 ],
                 error: {
                     max: 30,
@@ -252,7 +256,7 @@ class Config {
             },
             {
                 ids: [
-                    'temp_pipe_n2o_gse',
+                    'n2o_temp',
                 ],
                 error: {
                     max: 40,
@@ -265,7 +269,7 @@ class Config {
             },
             {
                 ids: [
-                    'temp_vent',
+                    'vent_temp',
                 ],
                 error: {
                     max: 34.5,
@@ -277,9 +281,9 @@ class Config {
             },
             {
                 ids: [
-                    'pressure_n2o_bottle',
-                    'pressure_n2o_tank',
-                    'pressure_o2_tank',
+                    'bottle_pressure',
+                    'tank_pressure',
+                    'o2_pressure',
                 ],
                 error: {
                     max: 64.5,

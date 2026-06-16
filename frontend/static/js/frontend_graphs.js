@@ -212,7 +212,7 @@ function graphRender(chart) {
                 chart.lines.flatMap((line) => line.data),
                 (d) => d.x,
             ),
-            timestamp.local + timestamp.apiConnect - timestamp.drift,
+            timestamp.local // + timestamp.apiConnect - timestamp.drift,
         );
 
         /* Normally, line data is filtered to be in sync with the time,
@@ -220,7 +220,12 @@ function graphRender(chart) {
          * hence the graph should just be a static display (barring the
          * changes in colour made by the operator).
         */
-        const windowStart = (chart !== GRAPHS.test.colours) ? (now - cfg.graphs.max_time) : 0;
+        let max_time = cfg.graphs.max_time
+        if (chart.max_time !== undefined) {
+            max_time = chart.max_time
+        }
+
+        const windowStart = (chart !== GRAPHS.test.colours) ? (now - max_time) : 0;
 
         if (chart.lastRender !== now) {
             // Limit data to graph window
@@ -483,9 +488,9 @@ if (document.readyState === "loading") {
         });
 
         // Update the bottom borders (lineFour not required at this stage)
-        const lineOne = ["test1", "accelX", "gyroX", "pressure_n2o_bottle", "temp_tank_top", "temp_pipe_n2o_gse", "gasBottleWeight1", "temp_vent", "altitudeFeet", "velocity"];
-        const lineTwo = ["test2", "accelY", "gyroY", "pressure_n2o_tank", "temp_tank_middle", "gasBottleWeight2"];
-        const lineThree = ["test3", "accelZ", "gyroZ", "pressure_o2_tank", "temp_tank_bottom"];
+        const lineOne = ["test1", "accelX", "gyroX", "bottle_pressure", "rtd_top", "n2o_temp", "gasBottleWeight1", "vent_temp", "altitudeFeet", "velocity"];
+        const lineTwo = ["test2", "accelY", "gyroY", "tank_pressure", "rtd_middle", "gasBottleWeight2"];
+        const lineThree = ["test3", "accelZ", "gyroZ", "o2_pressure", "rtd_bottom"];
 
         [lineOne, lineTwo, lineThree].forEach((line, index) => {
             line.forEach((c1) => {
@@ -543,43 +548,45 @@ function graphUpdateAuxData(data) {
     // TODO Based on launch configuration, some values will be "offline"
     // Clearly label those graphs as offline instead of leaving them blank
 
-    if (data?.id && data?.meta?.timestampS) {
-        const timestamp = data.meta.timestampS;
-        // console.log(timestamp);
+    console.log(data)
+
+    if (data?.id) {
+        const ts = timestamp.local;
+        console.log(ts);
 
         // Transducers
-        graphAddValue(GRAPHS.gse.transducers, 0, timestamp, data.pressure_n2o_bottle);
-        graphAddValue(GRAPHS.gse.transducers, 1, timestamp, data.pressure_n2o_tank);
-        graphAddValue(GRAPHS.gse.transducers, 2, timestamp, data.pressure_o2_tank);
+        graphAddValue(GRAPHS.gse.transducers, 0, ts, data.n2o_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 1, ts, data.tank_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 2, ts, data.o2_pressure);
 
         // Supply Temp
         graphAddValue(
             GRAPHS.gse.supply_temp,
             0,
-            timestamp,
-            data.temp_pipe_n2o_gse,
+            ts,
+            data.n2o_temp,
         );
 
         // Vent temperature
-        graphAddValue(GRAPHS.gse.vent_temp, 0, timestamp, data.temp_vent);
+        graphAddValue(GRAPHS.gse.vent_temp, 0, ts, data.vent_temp);
 
         graphAddValue(
             GRAPHS.gse.thermocouples,
             0,
-            timestamp,
-            data.temp_tank_top,
+            ts,
+            data.rtd_top,
         );
         graphAddValue(
             GRAPHS.gse.thermocouples,
             1,
-            timestamp,
-            data.temp_tank_middle,
+            ts,
+            data.rtd_middle,
         );
         graphAddValue(
             GRAPHS.gse.thermocouples,
             2,
-            timestamp,
-            data.temp_tank_bottom,
+            ts,
+            data.rtd_bottom,
         );
     }
 }
@@ -782,7 +789,7 @@ function graphRenderDiagnostics() {
         if (!Number.isFinite(now))
             return;
 
-        const windowStart = now - cfg.graphs.max_time;
+        const windowStart = now - cfg.graphs.max_time_av;
 
         graph.lines.forEach((line) => {
             line.data = line.data.filter(
@@ -962,4 +969,4 @@ function graphRenderDiagnostics() {
     });
 }
 
-export { diagGraphs, diagEnsureGraph, diagUpdateGraph, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition }
+export { diagEnsureGraph, diagGraphs, diagUpdateGraph, graphRequestRender, graphUpdateAuxData, graphUpdateAvionics, graphUpdatePosition, updateNetworkDiagnostics2 }

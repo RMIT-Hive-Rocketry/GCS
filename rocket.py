@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import click
-from cli import rocket_logging
-from cli import process
+from cli import rocket_logging, process
 from config import config
 import logging
 import subprocess
@@ -21,6 +20,7 @@ from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
 from cli.start_performance_monitor import start_performance_monitor
+from cli.start_labview_listener import start_labview_listener
 from cli.start_replay_system import (
     start_replay_system,
     get_available_missions,
@@ -475,18 +475,23 @@ def start_services(
         performance_logging=RunningProcesses,
     )
 
-    # 7. Start the frontend web server
+    # 7. Start the labview listener
+    start_labview_listener(logger=logger, performance_logging=RunningProcesses)
+
+    # 8. Start the frontend web server
     if frontend:
         start_frontend_webserver(
             logger=logger, performance_logging=RunningProcesses
         )
 
-    # 8. Start performance monitor after all other services have started
+    # 9. Start performance monitor after all other services have started
+    """
     start_performance_monitor(
         logger=logger,
         performance_logging=RunningProcesses,
         start_time=APP_START_TIME,
     )
+    """
 
 
 @click.group()

@@ -22,7 +22,7 @@ body.horizon {
       color-mix(in oklab, var(--color-horizon-mauve) 25%, transparent) 0%,
       transparent 70%
     ),
-    black url("/img/bg-hex.svg");
+    black /*url("/img/bg-hex.svg")*/;
   color: white;
   border: 2px solid var(--color-horizon);
 }
