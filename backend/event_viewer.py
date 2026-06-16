@@ -264,14 +264,15 @@ class Packet(ABC):
         ) -> list[str | int | float | bool]:
             values = []
             for field, value in proto.ListFields():
-                if field.label == field.LABEL_REPEATED:
+                try:
                     # Handle repeated fields
                     for item in value:
                         if field.type == field.TYPE_MESSAGE:
                             values.extend(extract_proto_values(item))  # Recurse
                         else:
                             values.append(item)
-                else:
+                except:
+                    # If it doesn't work, it's not a repeated field :)
                     if field.type == field.TYPE_MESSAGE:
                         values.extend(extract_proto_values(value))  # Recurse
                     else:
