@@ -26,11 +26,10 @@ def start_labview_listener(
         labview_process = process.LoggedSubProcess(
             start_command,
             name=service_name,
-            parse_output=True,
             env=env,
+            parse_output=True,
         )
         labview_process.start()
-
         if performance_logging is not None:
             performance_logging.AddNewProcess(labview_process)
 

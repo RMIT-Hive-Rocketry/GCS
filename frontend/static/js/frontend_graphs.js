@@ -483,9 +483,9 @@ if (document.readyState === "loading") {
         });
 
         // Update the bottom borders (lineFour not required at this stage)
-        const lineOne = ["test1", "accelX", "gyroX", "pressure_n2o_bottle", "temp_tank_top", "temp_pipe_n2o_gse", "gasBottleWeight1", "temp_vent", "altitudeFeet", "velocity"];
-        const lineTwo = ["test2", "accelY", "gyroY", "pressure_n2o_tank", "temp_tank_middle", "gasBottleWeight2"];
-        const lineThree = ["test3", "accelZ", "gyroZ", "pressure_o2_tank", "temp_tank_bottom"];
+        const lineOne = ["test1", "accelX", "gyroX", "bottle_pressure", "rtd_top", "n2o_temp", "gasBottleWeight1", "vent_temp", "altitudeFeet", "velocity"];
+        const lineTwo = ["test2", "accelY", "gyroY", "tank_pressure", "rtd_middle", "gasBottleWeight2"];
+        const lineThree = ["test3", "accelZ", "gyroZ", "o2_pressure", "rtd_bottom"];
 
         [lineOne, lineTwo, lineThree].forEach((line, index) => {
             line.forEach((c1) => {
@@ -548,38 +548,38 @@ function graphUpdateAuxData(data) {
         // console.log(timestamp);
 
         // Transducers
-        graphAddValue(GRAPHS.gse.transducers, 0, timestamp, data.pressure_n2o_bottle);
-        graphAddValue(GRAPHS.gse.transducers, 1, timestamp, data.pressure_n2o_tank);
-        graphAddValue(GRAPHS.gse.transducers, 2, timestamp, data.pressure_o2_tank);
+        graphAddValue(GRAPHS.gse.transducers, 0, timestamp, data.n2o_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 1, timestamp, data.tank_pressure);
+        graphAddValue(GRAPHS.gse.transducers, 2, timestamp, data.o2_pressure);
 
         // Supply Temp
         graphAddValue(
             GRAPHS.gse.supply_temp,
             0,
             timestamp,
-            data.temp_pipe_n2o_gse,
+            data.n2o_temp,
         );
 
         // Vent temperature
-        graphAddValue(GRAPHS.gse.vent_temp, 0, timestamp, data.temp_vent);
+        graphAddValue(GRAPHS.gse.vent_temp, 0, timestamp, data.vent_temp);
 
         graphAddValue(
             GRAPHS.gse.thermocouples,
             0,
             timestamp,
-            data.temp_tank_top,
+            data.rtd_top,
         );
         graphAddValue(
             GRAPHS.gse.thermocouples,
             1,
             timestamp,
-            data.temp_tank_middle,
+            data.rtd_middle,
         );
         graphAddValue(
             GRAPHS.gse.thermocouples,
             2,
             timestamp,
-            data.temp_tank_bottom,
+            data.rtd_bottom,
         );
     }
 }

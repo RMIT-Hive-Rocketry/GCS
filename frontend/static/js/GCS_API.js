@@ -683,7 +683,7 @@ function API_OnMessage(event) {
 function checkErrorConditions(apiData) {
     const errorConditions = [
         {
-            IDs: ["weight_rocket"], // Rocket weight
+            IDs: ["rocket_weight"], // Rocket weight
             discard: {
                 min: -1,
                 max: 128,
@@ -732,7 +732,7 @@ function checkErrorConditions(apiData) {
             },
         },
         {
-            IDs: ["temp_vent"],
+            IDs: ["vent_temp"],
             discard: {
                 min: -200,
                 max: 80,
@@ -782,9 +782,9 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "temp_tank_top",
-                "temp_tank_middle",
-                "temp_tank_bottom",
+                "rtd_top",
+                "rtd_middle",
+                "rtd_bottom",
             ],
             error: {
                 max: 30,
@@ -797,7 +797,7 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "temp_pipe_n2o_gse",
+                "n2o_temp",
             ],
             error: {
                 max: 40,
@@ -810,7 +810,7 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "temp_vent",
+                "vent_temp",
             ],
             error: {
                 max: 34.5,
@@ -822,9 +822,9 @@ function checkErrorConditions(apiData) {
         },
         {
             IDs: [
-                "pressure_n2o_bottle",
-                "pressure_n2o_tank",
-                "pressure_o2_tank",
+                "bottle_pressure",
+                "tank_pressure",
+                "o2_pressure",
             ],
             error: {
                 max: 64.5,

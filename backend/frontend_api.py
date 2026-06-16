@@ -89,6 +89,7 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     cfg = get_config()
     cfg_frontend_api = cfg["frontend_api"]
     pendant_packet_id = int(cfg_frontend_api["pendant_packet_id"])
+    labview_packet_id = int(cfg_frontend_api["labview_packet_id"])
     slogger_packet_id = int(cfg_frontend_api["slogger_packet_id"])
     network_diagnostics_packet_id = int(
         cfg_frontend_api["network_diagnostics_packet_id"]
@@ -98,11 +99,6 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
     next_ping_time = asyncio.get_running_loop().time() + ping_gap_time_s
     cached_ping_results: dict = {}
     ping_task = None
-
-    labview_packet_id = int(cfg_frontend_api["labview_packet_id"])
-    labview_gap_time_s = 1 / 50
-    next_labview_time = asyncio.get_running_loop().time() + labview_gap_time_s
-    cached_labview_results = {}
     tcp_gse_task = None
     tcp_gse_packet_count = 0
     # Used to copy across packets that need to be synced with the sevrer
@@ -218,15 +214,15 @@ async def zmq_to_websocket(websocket, zmq_sub_socket) -> None:
                         slogger.error(f"Unexpected packet ID: {packet_id}")
 
                 if labview_sub_socket in events:
-                    pendant_state_dict = await pendant_sub_socket.recv_json()
+                    labview_state_dict = await labview_sub_socket.recv_json()
 
                     pendant_state_dict = append_data(
-                        pendant_state_dict, pendant_packet_id
+                        labview_state_dict, labview_packet_id
                     )
 
                     packet = {
-                        "id": pendant_packet_id,
-                        "data": pendant_state_dict,
+                        "id": labview_packet_id,
+                        "data": labview_state_dict,
                     }
                     try:
                         await websocket.send(json.dumps(packet))

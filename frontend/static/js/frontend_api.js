@@ -10,7 +10,7 @@
 
 import { Config as cfg } from '/js/frontend_config.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
-import { graphUpdateAuxData, graphUpdateAvionics, updateNetworkDiagnostics2, graphUpdatePosition } from '/js/frontend_graphs.js';
+import { graphUpdateAuxData, graphUpdateAvionics, graphUpdatePosition, updateNetworkDiagnostics2 } from '/js/frontend_graphs.js';
 import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
 import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
 
@@ -50,9 +50,11 @@ function API_OnMessage(event_data) {
         sendDataToRegistry(apiData)
 
         // Legacy Legacy support
+        /*
         if (typeof hmiUpdate === 'function') {
             hmiUpdate(apiData)
         }
+        */
 
         // Handle different packet types
         if (apiData.id === pid.avionics || apiData.id === pid.avionics_rocket) {
@@ -84,7 +86,9 @@ function API_OnMessage(event_data) {
         }
         else if (apiData.id === pid.gse) {
             // GSE packets
+            // console.log(apiData)
             graphUpdateAuxData(apiData)
+            hmiUpdate(apiData)
         }
     }
     catch (error) {

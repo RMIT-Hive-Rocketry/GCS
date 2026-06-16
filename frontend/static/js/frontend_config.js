@@ -142,7 +142,7 @@ class Config {
         },
         error_conditions: [
             {
-                ids: ['weight_rocket'], // Rocket weight
+                ids: ['rocket_weight'], // Rocket weight
                 discard: {
                     min: -1,
                     max: 128,
@@ -187,7 +187,7 @@ class Config {
                 ids: ['gyroX', 'gyroY', 'gyroZ'],
             },
             {
-                ids: ['temp_vent'],
+                ids: ['vent_temp'],
                 discard: {
                     min: -200,
                     max: 80,
@@ -237,9 +237,9 @@ class Config {
             },
             {
                 ids: [
-                    'temp_tank_top',
-                    'temp_tank_middle',
-                    'temp_tank_bottom',
+                    'rtd_top',
+                    'rtd_middle',
+                    'rtd_bottom',
                 ],
                 error: {
                     max: 30,
@@ -252,7 +252,7 @@ class Config {
             },
             {
                 ids: [
-                    'temp_pipe_n2o_gse',
+                    'n2o_temp',
                 ],
                 error: {
                     max: 40,
@@ -265,7 +265,7 @@ class Config {
             },
             {
                 ids: [
-                    'temp_vent',
+                    'vent_temp',
                 ],
                 error: {
                     max: 34.5,
@@ -277,9 +277,9 @@ class Config {
             },
             {
                 ids: [
-                    'pressure_n2o_bottle',
-                    'pressure_n2o_tank',
-                    'pressure_o2_tank',
+                    'bottle_pressure',
+                    'tank_pressure',
+                    'o2_pressure',
                 ],
                 error: {
                     max: 64.5,
