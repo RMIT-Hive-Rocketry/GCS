@@ -6,11 +6,10 @@
 
 import { Config as cfg } from '/js/frontend_config.js';
 import { graphRequestRender } from '/js/frontend_graphs.js'
+import { diagSetAvIndicator, diagSetStatusBox, diagSetSummaryOnlineBox } from '/js/frontend_network_diagnostics.js'
 import { logMessage } from '/js/frontend_utils.js'
 
-const indicatorStates = ['off', 'green', 'yellow', 'red', 'timeout', 'error']
 const metricOffline = {} // key -> boolean
-const graph_render_rate = 20 // FPS for rendering graphs
 
 let then, fpsInterval
 
@@ -28,33 +27,10 @@ const timers = {
     launchTimestamp: 0,
 }
 
-/* Combine all timeouts into one array of objects (only for radios).
- * This makes it easier to program sound alarms in a queue, with
- * past rockets included just so that their functionality is (hopefully)
- * preserved, as there used to be a data-timeout attribute.
-*/
-const timeoutsList = [
-    // This allows for customisation (note duration in ms)
-    { name: 'av', duration: 3000, state: 4, rocket: 'Legacy3' },
-    { name: 'av', duration: 10000, state: 5, rocket: 'Legacy3' },
-    { name: 'gse', duration: 3000, state: 4, rocket: 'Legacy3' },
-    { name: 'gse', duration: 10000, state: 5, rocket: 'Legacy3' },
-
-    { name: 'av', duration: 3000, state: 4, rocket: 'Atlas' },
-    { name: 'av', duration: 10000, state: 5, rocket: 'Atlas' },
-    { name: 'gse', duration: 3000, state: 4, rocket: 'Atlas' },
-    { name: 'gse', duration: 10000, state: 5, rocket: 'Atlas' },
-
-    { name: 'av', duration: 5000, state: 4, rocket: 'Horizon' },
-    { name: 'gse', duration: 5000, state: 4, rocket: 'Horizon' },
-]
-
-
 function updateTimestamp(new_timestamp) {
     if (timestamp.api) {
         timestamp.api = Math.max(timestamp.api, new_timestamp)
-    }
-    else {
+    } else {
         timestamp.api = new_timestamp
     }
 
@@ -64,8 +40,13 @@ function updateTimestamp(new_timestamp) {
     }
     else {
         // Code to synchronise local time with GSE time if it gets too far behind
-        timestamp.drift
-            = timestamp.local - (timestamp.api - timestamp.apiConnect)
+        if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
+            // Calculate drift with apiConnect offset
+            timestamp.drift = timestamp.local - (timestamp.api - timestamp.apiConnect)
+        } else {
+            // Calculate drift without apiConnect offset (sometimes it's undefined)
+            timestamp.drift = timestamp.local - timestamp.api
+        }
 
         // Time drift
         // timestamp.drift > 0 means LOCAL is ahead of GSE
@@ -85,7 +66,7 @@ function getMetricOffline(key) {
 
 // Animation/timing code
 function startAnimating() {
-    fpsInterval = 1000 / graph_render_rate
+    fpsInterval = 1000 / cfg.graphs.render_rate
     then = window.performance.now()
     animate()
 }
@@ -123,14 +104,32 @@ function updateTime() {
     }
 
     // Local time
-    if (timestamp.local !== undefined && timestamp.local !== 0) {
+    /*
+    console.log(timestamp.local, timestamp.apiConnect, timestamp.drift);
+    if (timestamp.local !== undefined && timestamp.local !== 0 && timestamp.apiConnect !== undefined && timestamp.drift !== undefined) {
+        const calculated_local_time = timestamp.local + timestamp.apiConnect - timestamp.drift;
+
+
+        // Add api connection time
+        if (timestamp.apiConnect !== undefined && !Number.isNaN(timestamp.apiConnect)) {
+            calculated_local_time += timestamp.apiConnect;
+        }
+
+        // Subtract drift
+        if (timestamp.drift !== undefined && !Number.isNaN(timestamp.drift)) {
+            calculated_local_time -= timestamp.drift;
+        }
+
         sendDataToRegistry({
-            localTime: `${(timestamp.local + timestamp.apiConnect - timestamp.drift).toFixed(1)} s`,
+            localTime: `${calculated_local_time.toFixed(1)} s`,
         })
-    }
+    } */
+    sendDataToRegistry({
+        localTime: `${timestamp.local.toFixed(1)} s`,
+    })
 }
 
-// Generate the loss sounds (1st 2 have a quicker version - see timeoutsList)
+// Generate the loss sounds (1st 2 have a quicker version - see cfg.audio.timeouts)
 // Note: Horizon doesn't have 2 Australis boards (which is Dual_Board_Loss)
 const filenames_losses = ['GSE_Loss', 'AV_Loss', 'GPS_Fix_Loss']
 const soundsList_losses = filenames_losses.map((src) => {
@@ -250,68 +249,6 @@ window.addEventListener('keydown', (event) => {
     }
 })
 
-// ── Right panel: flip a status box green/red ─────────────────────
-function diagSetStatusBox(id, pingValue) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    // No data / offline
-    if (pingValue == null || pingValue < 0) {
-        el.textContent = "DOWN";
-        el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-        el.style.borderColor = "var(--color-red-800,#991b1b)";
-        el.style.color = "white";
-        return;
-    }
-
-    // Green
-    if (pingValue <= 100) {
-        el.textContent = "GOOD";
-        el.style.backgroundColor = "var(--color-green-400,#4ade80)";
-        el.style.borderColor = "var(--color-green-700,#15803d)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Yellow
-    if (pingValue <= 200) {
-        el.textContent = "WARN";
-        el.style.backgroundColor = "var(--color-yellow-400,#facc15)";
-        el.style.borderColor = "var(--color-yellow-700,#a16207)";
-        el.style.color = "black";
-        return;
-    }
-
-    // Red
-    el.textContent = "BAD";
-    el.style.backgroundColor = "var(--color-red-500,#ef4444)";
-    el.style.borderColor = "var(--color-red-800,#991b1b)";
-    el.style.color = "white";
-}
-
-function diagSetSummaryOnlineBox(id, online) {
-    const el = document.getElementById(id);
-    if (!el)
-        return;
-
-    el.textContent = online ? "GOOD" : "DOWN";
-    el.style.backgroundColor = online ? "#4ade80" : "#ef4444";
-    el.style.borderColor = online ? "#15803d" : "#991b1b";
-    el.style.color = online ? "black" : "white";
-}
-
-function diagSetAvIndicator(online) {
-    const el = document.getElementById("diag-av-indicator");
-    if (!el)
-        return;
-
-    el.style.background = online ? "#4ade80" : "#ef4444";
-    el.style.boxShadow = online
-        ? "0 0 6px #4ade80"
-        : "0 0 6px #ef4444";
-}
-
 // Check if all sounds (alarms and otherwise) are unmuted
 function allUnmuted() {
     return soundsList_losses.every(item => !item.source.muted)
@@ -385,12 +322,12 @@ function checkStateIndicator(elem = null) {
             updateSound(sound, !e1.classList.value.includes('green'), false)
 
             // Check for timeouts (won't execute on a non-radio state)
-            timeoutsList.filter(t1 => (t1.rocket === currRocket) && (indicator.includes(t1.name))).forEach((t1) => {
+            cfg.audio.timeouts[currRocket].filter(t1 => (indicator.includes(t1.name))).forEach((t1) => {
                 const currElems = document.querySelectorAll(`[data-key="${`state.${t1.name}.radio`}"]`)
 
                 currElems.forEach((c1) => {
                     // Use functions for recalculating the expressions
-                    const timeoutState = () => c1.classList.value.includes(indicatorStates[t1.state])
+                    const timeoutState = () => c1.classList.value.includes(cfg.display.indicator_states[t1.state])
                     const greenState = () => !c1.classList.value.includes('green')
                     const currSound = `${t1.name.toUpperCase()}_Loss`
 
@@ -641,15 +578,15 @@ function displaySetState(item, value) {
 
     if (elements && elements.length > 0) {
         elements.forEach((elem) => {
-            elem.classList.remove(...indicatorStates)
+            elem.classList.remove(...cfg.display.indicator_states)
             // Convert true/false boolean values to on/error
             if (typeof value == 'boolean') {
                 value = value ? 1 : 3
             }
 
             // Get indicator state from value (only then change the sound)
-            if (value >= 0 && value < indicatorStates.length) {
-                elem.classList.add(indicatorStates[value])
+            if (value >= 0 && value < cfg.display.indicator_states.length) {
+                elem.classList.add(cfg.display.indicator_states[value])
             }
 
             // Check if sound needs to be played
@@ -877,4 +814,4 @@ function sendDataToRegistry(apiData) {
     })
 }
 
-export { diagSetAvIndicator, diagSetSummaryOnlineBox, displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };
+export { displaySetActiveFlightState, displaySetError, displaySetErrorFlightState, displaySetOffline, displaySetOnline, displaySetState, displaySetString, displaySetValue, displaySloggerLogs, displayUpdateFlightState, getMetricOffline, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, toggleMute, updateMetricOffline, updateTimestamp };

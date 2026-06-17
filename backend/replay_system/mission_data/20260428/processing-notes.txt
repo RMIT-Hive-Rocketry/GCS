@@ -9,3 +9,4 @@ Changes:
 - Subtracted 2800 from total_packet_count_av to zero the packet numbers
 - Rename timestamp_ms_log_time column to timestamp_ms
 - Corrected the data alignment issue mentioned in #105
+- Manually calculated approximate values for velocity and flight state

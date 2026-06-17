@@ -747,7 +747,7 @@
                         <g font-family="ui-monospace, SFMono-Regular, Menlo,
                                         Monaco, Consolas, monospace" font-size="18" letter-spacing="0.12em">
                             <!-- Centered title -->
-                            <text x="490" y="150" fill="white" text-anchor="middle">N₂O Supply</text>
+                            <text x="490" y="150" fill="white" text-anchor="middle">N₂O Supply Bottle</text>
                             <!-- Pressure label + green bold value -->
                             <text x="376" y="180" fill="white">Pressure:</text>
                             <text id="hmi-pressure-1" x="500" y="180" fill="#ffd931" font-weight="bold">
@@ -768,7 +768,7 @@
                         <g font-family="ui-monospace, SFMono-Regular, Menlo,
                                         Monaco, Consolas, monospace" font-size="18" letter-spacing="0.12em">
                             <!-- Centered title -->
-                            <text x="892.5" y="150" fill="white" text-anchor="middle">N₂O Filler-Stem Feed</text>
+                            <text x="892.5" y="150" fill="white" text-anchor="middle">N₂O Tank</text>
                             <!-- Pressure label + green bold value -->
                             <text x="780" y="180" fill="white">Pressure:</text>
                             <text id="hmi-pressure-2" x="905" y="180" fill="#ffd931" font-weight="bold">
@@ -788,7 +788,7 @@
                         <g font-family="ui-monospace, SFMono-Regular, Menlo,
                                         Monaco, Consolas, monospace" font-size="18" letter-spacing="0.12em">
                             <!-- Centered title -->
-                            <text x="675" y="610" fill="white" text-anchor="middle">O₂ Supply</text>
+                            <text x="675" y="610" fill="white" text-anchor="middle">O₂ Supply Bottle</text>
                             <!-- Pressure label + green bold value -->
                             <text x="565" y="640" fill="white">Pressure:</text>
                             <text id="hmi-pressure-3" x="690" y="640" fill="#ffd931" font-weight="bold">
@@ -1886,16 +1886,16 @@
 
             // N₂O In pressure
             const n2oEl = document.getElementById("sb-n2o-in");
-            if (n2oEl && data?.pressure_n2o_bottle != undefined) {
+            if (n2oEl && data?.bottle_pressure != undefined) {
                 n2oEl.textContent =
-                    Number(data.pressure_n2o_bottle).toFixed(1) + " bar";
+                    Number(data.bottle_pressure).toFixed(1) + " bar";
             }
 
             // O₂ pressure
             const o2El = document.getElementById("sb-o2");
-            if (o2El && data?.pressure_o2_tank != undefined) {
+            if (o2El && data?.o2_pressure != undefined) {
                 o2El.textContent =
-                    Number(data.pressure_o2_tank).toFixed(1) + " bar";
+                    Number(data.o2_pressure).toFixed(1) + " bar";
             }
         }
 
@@ -1931,41 +1931,39 @@
             // see TODO comment in horizon_pendant for explanation on normaliseApiData()
             if (data?.SYSTEM_ACTIVATE !== undefined || data?.SYS_ON !== undefined) {
                 hmiUpdateValveStates(normalizeApiData(data));
-                return;
             }
 
-            if (data?.pressure_n2o_bottle) {
-                hmiUpdateValue("hmi-pressure-1", data.pressure_n2o_bottle);
+            if (data?.bottle_pressure) {
+                hmiUpdateValue("hmi-pressure-1", data.bottle_pressure);
             }
-            if (data?.pressure_n2o_tank) {
-                hmiUpdateValue("hmi-pressure-2", data.pressure_n2o_tank);
+            if (data?.tank_pressure) {
+                hmiUpdateValue("hmi-pressure-2", data.tank_pressure);
             }
-            if (data?.pressure_n2o_tank) {
-                hmiUpdateValue("hmi-pressure-3", data.pressure_o2_tank);
+            if (data?.tank_pressure) {
+                hmiUpdateValue("hmi-pressure-3", data.o2_pressure);
             }
-
-            if (data?.temp_pipe_n2o_gse) {
-                hmiUpdateValue("HMI_N2O-INTTEMP", data.temp_pipe_n2o_gse);
+            if (data?.n2o_temp) {
+                hmiUpdateValue("HMI_N2O-INTTEMP", data.n2o_temp);
             }
 
             // Flight tank thermocouples (°C) — top, middle, bottom
             // Use !== undefined so a legitimate 0 °C reading isn't skipped
-            if (data?.temp_tank_top !== undefined) {
-                hmiUpdateValue("HMI_TANK_TOP_TEMP", data.temp_tank_top);
+            if (data?.rtd_top !== undefined) {
+                hmiUpdateValue("HMI_TANK_TOP_TEMP", data.rtd_top);
             }
-            if (data?.temp_tank_middle !== undefined) {
-                hmiUpdateValue("HMI_TANK_MIDDLE_TEMP", data.temp_tank_middle);
+            if (data?.rtd_middle !== undefined) {
+                hmiUpdateValue("HMI_TANK_MIDDLE_TEMP", data.rtd_middle);
             }
-            if (data?.temp_tank_bottom !== undefined) {
-                hmiUpdateValue("HMI_TANK_BOTTOM_TEMP", data.temp_tank_bottom);
+            if (data?.rtd_bottom !== undefined) {
+                hmiUpdateValue("HMI_TANK_BOTTOM_TEMP", data.rtd_bottom);
             }
 
             // Vent and weight rocket
-            if (data?.temp_vent !== undefined) {
-                hmiUpdateValue("HMI_VENT_TEMP", data.temp_vent);
+            if (data?.vent_temp !== undefined) {
+                hmiUpdateValue("HMI_VENT_TEMP", data.vent_temp);
             }
-            if (data?.weight_rocket !== undefined) {
-                hmiUpdateValue("HMI_WEIGHT", data.weight_rocket);
+            if (data?.rocket_weight !== undefined) {
+                hmiUpdateValue("HMI_WEIGHT", data.rocket_weight_tare);
             }
 
             // Refresh status bar with latest telemetry values

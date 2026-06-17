@@ -700,31 +700,31 @@ def get_sinusoid_packets_gsedaq(
     T = TIME_NOW - START_TIME
 
     values = {
-        "temp_tank_top": sinusoid(
+        "rtd_top": sinusoid(
             T, min=-10, max=50, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_tank_middle": sinusoid(
+        "rtd_middle": sinusoid(
             T, min=-20, max=40, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_tank_bottom": sinusoid(
+        "rtd_bottom": sinusoid(
             T, min=-30, max=30, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_vent": sinusoid(
+        "vent_temp": sinusoid(
             T, min=-90, max=25, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_pipe_n2o_gse": sinusoid(
+        "n2o_temp": sinusoid(
             T, min=-20, max=20, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "pressure_n2o_bottle": sinusoid(
+        "bottle_pressure": sinusoid(
             T, min=1, max=60, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "pressure_n2o_tank": sinusoid(
+        "tank_pressure": sinusoid(
             T, min=1, max=60, period=10, phase=-1 * 2 * math.pi / 4
         ),
-        "pressure_o2_tank": sinusoid(
+        "o2_pressure": sinusoid(
             T, min=40, max=60, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "weight_rocket": sinusoid(
+        "rocket_weight": sinusoid(
             T, min=0, max=10, period=10, phase=1 * 2 * math.pi / 4
         ),
     }
@@ -857,10 +857,10 @@ def main():
         )
 
     # Start a thread to send the GSE information with a standalone TCP server
-    gse_server_port = int(cfg["tcp"]["gse_port"])
+    gse_port = int(cfg["tcp"]["gse_port"])
     gse_server_manager_thread = threading.Thread(
         target=gse_server_manager,
-        args=(gse_server_port, START_TIME, EXPERIMENTAL, CORRUPTION),
+        args=(gse_port, START_TIME, EXPERIMENTAL, CORRUPTION),
     )
     gse_server_manager_thread.start()
 

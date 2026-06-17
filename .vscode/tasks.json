@@ -466,7 +466,10 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            }
+            },
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
         },
         {
             "label": "Run Simulation",

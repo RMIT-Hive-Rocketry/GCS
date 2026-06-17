@@ -84,21 +84,21 @@ function logMessage(message, logType = '', timestamp = '') {
 
 // Converting between metres and feet
 function metresToFeet(metres) {
-    if (metres === undefined || Number.isNaN(metres))
+    if (metres === undefined || Number.isNaN(metres) || metres === null)
         return undefined
     return metres * 3.28084
 }
 
 
 function feetToMetres(feet) {
-    if (feet === undefined || Number.isNaN(feet))
+    if (feet === undefined || Number.isNaN(feet) || feet === null)
         return undefined
     return feet / 3.28084
 }
 
 // Convert a compressed GPS value (which we get from a specific system?) into standard decimal coordinates
 function gpsToDecimal(gps) {
-    if (gps === undefined || Number.isNaN(gps) || gps === 0)
+    if (gps === undefined || Number.isNaN(gps) || gps === 0 || gps === null)
         return 0
 
     // Split string into parts

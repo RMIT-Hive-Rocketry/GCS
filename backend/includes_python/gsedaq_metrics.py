@@ -30,15 +30,15 @@ def _parse_ini_bool(raw: str) -> bool:
 class GseDaqMetrics:
     # More information:
     # RMIT ONLY: https://rmiteduau.sharepoint.com/:x:/r/sites/RMITHIVERocketTeam/Shared%20Documents/00%202026%20Competitions/IREC%202026/3.0%20Ground%20Control/daq/DAQ%20Sensors%20for%20GL.xlsx?d=w9088d352929443bb8d0e68a94ac8a5aa&csf=1&web=1&e=7MxgVF
-    temp_tank_top: float
-    temp_tank_middle: float
-    temp_tank_bottom: float
-    temp_vent: float
-    temp_pipe_n2o_gse: float
-    pressure_n2o_bottle: float
-    pressure_n2o_tank: float
-    pressure_o2_tank: float
-    weight_rocket: float
+    rtd_top: float
+    rtd_middle: float
+    rtd_bottom: float
+    vent_temp: float
+    n2o_temp: float
+    bottle_pressure: float
+    tank_pressure: float
+    o2_pressure: float
+    rocket_weight: float
 
     # TODO update with actual labview pattern when ready
     # Assuming the data from labview will look like this

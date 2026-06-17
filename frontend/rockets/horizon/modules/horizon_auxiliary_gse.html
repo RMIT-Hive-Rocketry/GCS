@@ -12,15 +12,15 @@
             </div>
             <div class="flex flex-row gap-2 grow justify-evenly text-center">
                 <label class="w-1/3">
-                    N<sub>2</sub>O&nbsp;Supply:<br /><input data-key="pressure_n2o_bottle" data-precision="1" readonly
+                    N<sub>2</sub>O&nbsp;Supply:<br /><input data-key="bottle_pressure" data-precision="1" readonly
                         autocomplete="off" style="border-bottom: 2px solid #FF0000" size="5" />bar
                 </label>
                 <label class="w-1/3">
-                    N<sub>2</sub>O&nbsp;Feed:<br /><input data-key="pressure_n2o_tank" data-precision="1" readonly
+                    N<sub>2</sub>O&nbsp;Feed:<br /><input data-key="tank_pressure" data-precision="1" readonly
                         autocomplete="off" style="border-bottom: 2px solid #00FF00" size="5" />bar
                 </label>
                 <label class="w-1/3">
-                    O<sub>2</sub>&nbsp;Supply:<br /><input data-key="pressure_o2_tank" data-precision="1" readonly
+                    O<sub>2</sub>&nbsp;Supply:<br /><input data-key="o2_pressure" data-precision="1" readonly
                         autocomplete="off" style="border-bottom: 2px solid #0000FF" size="5" />bar
                 </label>
             </div>
@@ -34,15 +34,15 @@
             </div>
             <div class="flex flex-row gap-2 grow justify-evenly text-center">
                 <label class="w-1/4">
-                    Top Tank<br /><input data-key="temp_tank_top" data-precision="0" readonly autocomplete="off"
+                    Top Tank<br /><input data-key="rtd_top" data-precision="0" readonly autocomplete="off"
                         style="border-bottom: 2px solid #ff0000" size="4" />&deg;C
                 </label>
                 <label class="w-1/4">
-                    Mid Tank<br /><input data-key="temp_tank_middle" data-precision="0" readonly autocomplete="off"
+                    Mid Tank<br /><input data-key="rtd_middle" data-precision="0" readonly autocomplete="off"
                         style="border-bottom: 2px solid #00FF00" size="4" />&deg;C
                 </label>
                 <label class="w-1/4">
-                    Bot Tank<input data-key="temp_tank_bottom" data-precision="0" readonly autocomplete="off"
+                    Bot Tank<input data-key="rtd_bottom" data-precision="0" readonly autocomplete="off"
                         style="border-bottom: 2px solid #0000FF" size="4" />&deg;C
                 </label>
             </div>
@@ -56,7 +56,7 @@
                 <svg id="graph-aux-venttemp" class="w-full h-full" width="0" height="0"></svg>
             </div>
             <label class="w-full text-center">
-                Temperature:<input data-key="temp_vent" data-precision="1" readonly autocomplete="off"
+                Temperature:<input data-key="vent_temp" data-precision="1" readonly autocomplete="off"
                     style="border-bottom: 2px solid #FF0000" size="6" />&deg;C
             </label>
         </section>
@@ -69,7 +69,7 @@
             </div>
             <div class="flex flex-row gap-4 grow justify-evenly">
                 <label>
-                    Temperature<input data-key="temp_pipe_n2o_gse" data-precision="1" readonly autocomplete="off"
+                    Temperature<input data-key="n2o_temp" data-precision="1" readonly autocomplete="off"
                         style="border-bottom: 2px solid #ff0000" size="5" />&deg;C
                 </label>
             </div>
@@ -79,7 +79,8 @@
     <!-- Rocket load cell weight -->
     <div class="grid grid-cols-2 gap-2 grow">
         <label class="text-center">
-            Rocket Mass:<input data-key="weight_rocket" data-precision="2" readonly autocomplete="off" size="10" />kg
+            Rocket Mass:<input data-key="rocket_weight_tare" data-precision="2" readonly autocomplete="off"
+                size="10" />kg
         </label>
         <label class="text-center">
             Rocket Fill Timer:<input data-key="gasBottleTime" data-type="string" readonly autocomplete="off"
