@@ -857,7 +857,7 @@ def main():
         )
 
     # Start a thread to send the GSE information with a standalone TCP server
-    gse_server_port = int(cfg["emulation"]["tcp_server_port"])
+    gse_server_port = int(cfg["tcp"]["gse_port"])
     gse_server_manager_thread = threading.Thread(
         target=gse_server_manager,
         args=(gse_server_port, START_TIME, EXPERIMENTAL, CORRUPTION),
