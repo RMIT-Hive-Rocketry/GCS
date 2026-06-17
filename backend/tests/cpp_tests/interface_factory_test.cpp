@@ -8,6 +8,7 @@
 #include "test_interface.hpp"
 #include "test_uart_e5_interface.hpp"
 #include "uart_e5_interface.hpp"
+#include "uart_feather_interface.hpp"
 
 using namespace std;
 
@@ -17,6 +18,14 @@ TEST(InterfaceFactoryTest, CreateUartE5) {
       create_interface("UART_E5", "/dev/null", lora_cfg);
   ASSERT_NE(interface, nullptr);
   EXPECT_NE(dynamic_pointer_cast<UartE5Interface>(interface), nullptr);
+}
+
+TEST(InterfaceFactoryTest, CreateUartFeather) {
+  LoraConfig lora_cfg{};
+  shared_ptr<RadioInterface> interface =
+      create_interface("UART_FEATHER", "/dev/null", lora_cfg);
+  ASSERT_NE(interface, nullptr);
+  EXPECT_NE(dynamic_pointer_cast<UartFeatherInterface>(interface), nullptr);
 }
 
 TEST(InterfaceFactoryTest, CreateTest) {
