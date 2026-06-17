@@ -1,0 +1,1 @@
+for pid in $(ps -C "python -u" -o pid --noheader); do sudo kill -15 $pid; done
