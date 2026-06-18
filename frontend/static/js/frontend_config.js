@@ -212,7 +212,7 @@ class Config {
                 },
             },
             {
-                ids: ['nav_status'],
+                ids: ['navigationStatus'],
                 accept: ['NF', 'DR', 'G2', 'G3', 'D2', 'D3', 'RK', 'TT'],
             },
             {
