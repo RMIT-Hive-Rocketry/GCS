@@ -228,12 +228,15 @@ function graphRender(chart) {
         const windowStart = (chart !== GRAPHS.test.colours) ? (now - max_time) : 0;
 
         if (chart.lastRender !== now) {
-            // Limit data to graph window
-            chart.lines.forEach((line) => {
-                line.data = line.data.filter(
-                    (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
-                );
-            });
+            // Don't draw lines between data points
+            if (cfg.graphs.max_gap_size > 0) {
+                chart.lines.forEach((line) => {
+                    line.data = line.data.filter(
+                        (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
+                    );
+                });
+            }
+
 
             const allPoints = chart.lines.flatMap((line) => line.data);
 
@@ -325,8 +328,10 @@ function graphRender(chart) {
                     // Line rendering logic is a bit messy oops
                     // If two points are close together, we draw a line between them.
                     lineData.data.forEach((d, i, data) => {
-                        d.prev = Math.abs(d.x - data[i - 1]?.x) <= cfg.graphs.max_gap_size;
-                        d.next = Math.abs(d.x - data[i + 1]?.x) <= cfg.graphs.max_gap_size;
+                        if (cfg.graphs.max_gap_size > 0) {
+                            d.prev = Math.abs(d.x - data[i - 1]?.x) <= cfg.graphs.max_gap_size;
+                            d.next = Math.abs(d.x - data[i + 1]?.x) <= cfg.graphs.max_gap_size;
+                        }
 
                         // If they're not close, we draw a point
                         if (d.x >= windowStart && d.x <= now) {
@@ -791,11 +796,13 @@ function graphRenderDiagnostics() {
 
         const windowStart = now - cfg.graphs.max_time_av;
 
-        graph.lines.forEach((line) => {
-            line.data = line.data.filter(
-                (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
-            );
-        });
+        if (cfg.graphs.max_gap_size > 0) {
+            graph.lines.forEach((line) => {
+                line.data = line.data.filter(
+                    (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
+                );
+            });
+        }
 
         graph.x.domain([windowStart, now]);
         graph.y.domain([0, 500]);
