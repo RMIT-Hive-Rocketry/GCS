@@ -12,7 +12,7 @@ import { Config as cfg } from '/js/frontend_config.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
 import { graphUpdateAuxData, graphUpdateAvionics, graphUpdatePosition, updateNetworkDiagnostics2 } from '/js/frontend_graphs.js';
 import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
-import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
+import { logMessage, metresToFeet } from '/js/frontend_utils.js';
 
 // Global display values
 const errors = []

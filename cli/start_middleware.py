@@ -186,7 +186,7 @@ def build_middleware_argv(
 def start_middleware(
     logger: logging.Logger,
     config: MiddlewareConfig,
-    performance_logging: process.RunningProcess = None,
+    performance_logging: process.RunningProcess | None = None,
 ) -> None:
 
     service_name = "server"  # Formally the middleware_server

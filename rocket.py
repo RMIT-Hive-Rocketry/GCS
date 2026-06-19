@@ -31,7 +31,7 @@ from cli.start_pendant_daemon import start_pendant_daemon
 from cli.runtime_launch_config import RuntimeLaunchConfig
 
 
-logger: logging.Logger = None
+logger: logging.Logger
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
 )
@@ -283,8 +283,7 @@ def _validate_interface_options(
         and interface_av is not None
         and (
             "test" in interface_av
-            or "test" in interface_gse
-            and interface_av != interface_gse
+            or ("test" in interface_gse and interface_av != interface_gse)
         )
     ):
         raise NotImplementedError(
@@ -373,7 +372,7 @@ def start_services(
 
     # 0.2 Interrupt further process loading if --frontend-only is being used
     if frontend_only is not None and frontend_only:
-        start_frontend_webserver(logger, None)
+        start_frontend_webserver(logger)
         return
 
     # 1 Build C++ middleware
@@ -614,7 +613,7 @@ def replay(
             raise click.UsageError(
                 "--simulation is required to run a specified scenario"
             )
-        if simulation != "TEST" and simulation != "DEMO":
+        if simulation not in {"TEST", "DEMO"}:
             raise NotImplementedError(
                 f"{simulation} has not been implemented yet"
             )

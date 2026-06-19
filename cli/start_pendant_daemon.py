@@ -5,7 +5,8 @@ import sys
 
 
 def start_pendant_daemon(
-    logger: logging.Logger, performance_logging: process.RunningProcess = None
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess | None = None,
 ) -> tuple[None, None] | None:
     service_name = "pendant_daemon"
     try:
