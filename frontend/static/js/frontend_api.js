@@ -338,8 +338,14 @@ function processDataForDisplay(apiData, apiId) {
             else {
                 logMessage(`Discard max altitude (${altitudeMax})`, 'warning')
             }
+        } else if (
+            altitudeMax === undefined
+            || apiData.altitude > altitudeMax
+        ) {
+            altitudeMax = apiData.altitude
         }
-        if (altitudeMax !== undefined && altitudeMax > 0) {
+
+        if (altitudeMax !== undefined) {
             processedData.altitudeMax = altitudeMax
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax)
         }
