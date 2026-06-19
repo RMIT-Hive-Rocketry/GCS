@@ -1,4 +1,4 @@
-timestamp_ms,rssi,snr,timestamp_s_server_side,total_packet_count_av,total_packet_count_gse,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,nav_status,qw,qx,qy,qz
+timestamp_ms,rssi,snr,timestamp_s_server_side,total_packet_count_av,total_packet_count_gse,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,navigationStatus,qw,qx,qy,qz
 369.297000000021,-86,9,0.443788796879971,1,0,0,0,0,0,0,0,0,0,NF,0,0,0,0
 1128.86800000002,-86,9,1.20379856249997,3,0,0,0,0,0,0,0,0,0,NF,0,0,0,0
 1888.89799999981,-86,9,1.96380832812997,5,0,0,0,0,0,0,0,0,0,NF,0,0,0,0
