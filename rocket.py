@@ -30,18 +30,15 @@ from cli.start_replay_system import (
 from cli.start_pendant_daemon import start_pendant_daemon
 from cli.runtime_launch_config import RuntimeLaunchConfig
 
+RUNNING_SERVICES: bool = False  # To help close the cli automatically
+APP_START_TIME = None  # Start Time Of application initialized within main before logging starts
+IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
+RunningProcesses = process.RunningProcess()
 logger: logging.Logger
 cleanup_reason: str = (
     "Program completed or undefined exit"  # Default clenaup message
 )
-RUNNING_SERVICES: bool = False  # To help close the cli automatically
-
-IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
-
-RunningProcesses = process.RunningProcess()
-
-APP_START_TIME = None  # Start Time Of application initialized within main before logging starts
 
 
 class Command(enum.Enum):
@@ -338,14 +335,14 @@ def start_services(
         replay_mode (str, optional): _description_. Defaults to None.
         mission_arg (str, optional): _description_. Defaults to None.
         simulation_arg (str, optional): _description_. Defaults to None.
-        experimental (bool, optional): Simulate all possible values over the entire domain. Defaults to False.
+        experimental (bool, optional): Simulate all possible values over the entire domzain. Defaults to False.
         corruption (bool, optional): Corrupt data packets to simulate heavy bit corruption. Defaults to False.
 
     Raises:
         NotImplementedError: _description_
         ValueError: _description_
     """
-    global RUNNING_SERVICES, APP_START_TIME
+    global RUNNING_SERVICES
     RUNNING_SERVICES = True
 
     print_splash()
