@@ -126,7 +126,6 @@ def parse_cluster(buffer, cluster_id) -> LabViewCluster:
 
     # Process line-delimited payloads
     name = ""
-    val = ""
     while "\n" in buffer:
         line, buffer = buffer.split("\n", 1)
         if line:
@@ -134,7 +133,6 @@ def parse_cluster(buffer, cluster_id) -> LabViewCluster:
             if "Name" in line:
                 name = line[6:-7]
             elif "Val" in line and cluster_data is not None:
-                # print(name, line[5:-6])
                 cluster_data[name] = line[5:-6]
 
     # Save cluster data into row
@@ -171,6 +169,15 @@ def start_labview_listener() -> None:
         gse_websocket.bind(f"ipc://{LABVIEW_SOCKET_PATH}")
 
         while not service_helper.time_to_stop():
+            # Attempt to initialise main program loop once per second
+            time.sleep(1)
+            # This is okay because if the program fails to start, it'll come back here
+            # Otherwise it'll be stuck in the inner loop, which updates at LABVIEW_POLL_RATE
+            # (we should refactor this when we can to make it less confusing)
+
+            # TBH I could move the file creation outside this function, and have a loop
+            # in __main__ which calls the function once per second? but that relies on it
+            # NEVER being async so we really need a better way of handling it :)
             cluster_id = 0
             try:
                 # Bind labview socket if it's not connected yet
@@ -179,8 +186,8 @@ def start_labview_listener() -> None:
                 )
                 labview_client_socket.connect((server_ip, server_port))
                 slogger.info("Connected. Waiting for data...")
-                buffer = ""
 
+                # Main labview listener loop
                 while not service_helper.time_to_stop():
                     # Limit program to running 50 times per second
                     time.sleep(LABVIEW_POLL_RATE)
@@ -191,9 +198,12 @@ def start_labview_listener() -> None:
                         slogger.info("LabVIEW server disconnected.")
                         break
 
-                    # Add chunk data to buffer and attempt to process it
-                    buffer += chunk.decode("utf-8", errors="replace")
+                    # Decode chunk data into buffer
+                    buffer = chunk.decode("utf-8", errors="replace")
+
+                    # Process chunk data
                     if "\n" in buffer:
+                        # Parse buffer data into a cluster
                         cluster_id += 1
                         cluster = parse_cluster(buffer, cluster_id)
 
@@ -209,13 +219,10 @@ def start_labview_listener() -> None:
                                 slogger.warning(
                                     f"labview ZMQ Push socket is likely full. error: {e}"
                                 )
-
             except ConnectionRefusedError:
-                slogger.debug("Connection refused. Retrying in 1s...")
-                time.sleep(1)
+                slogger.debug("Connection refused. Retrying...")
             except (ConnectionResetError, BrokenPipeError):
-                slogger.debug("Connection dropped. Reconnecting in 1s...")
-                time.sleep(1)
+                slogger.debug("Connection dropped. Reconnecting...")
             finally:
                 # Create new socket if it failed to connect
                 """
@@ -227,10 +234,9 @@ def start_labview_listener() -> None:
                     socket.IPPROTO_TCP, socket.TCP_NODELAY, 1
                 )
                 """
-                time.sleep(1)
     except OSError as error:
-        slogger.error("Failed to connect to GSE websocket")
-        slogger.error(str(error))
+        slogger.warning("Failed to connect to GSE websocket")
+        slogger.warning(str(error))
     finally:
         # Close the LabVIEW connection
         slogger.debug("LabVIEW client socket closing")
