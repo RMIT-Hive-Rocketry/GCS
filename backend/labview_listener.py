@@ -19,6 +19,9 @@ log_filename = f"labview_{time.strftime('%Y%m%d_%H%M%S')}.csv"
 log_file_path = os.path.join(log_dir_path, log_filename)
 
 LINGER_TIME_MS = 300
+LABVIEW_POLL_RATE = (
+    1 / 50
+)  # Number of times per second to read data from LabVIEW
 
 # path to the socket read by frontend api
 LABVIEW_SOCKET_PATH = os.path.abspath(
@@ -151,40 +154,39 @@ def start_labview_listener() -> None:
     # Create log file
     create_log_file()
 
-    # define sockets first to ensure they are not undefined
+    # Create GSE websocket (for publishing data to frontend, GL studio)
     context = zmq.Context()
+    gse_websocket = context.socket(zmq.PUB)
+    gse_websocket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
+    gse_websocket.setsockopt(zmq.SNDHWM, 1)  # Limit send buffer to 1 message
+
+    # Create labview client socket
     labview_complain_timer = RepeatingTimer(5)
-    labview_pub_socket = context.socket(zmq.PUB)
+    labview_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    labview_client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
     try:
-        # Establish socket connection to frontend
-        labview_pub_socket.setsockopt(zmq.LINGER, LINGER_TIME_MS)
-        labview_pub_socket.setsockopt(
-            zmq.SNDHWM, 1
-        )  # Limit send buffer to 1 message
-        labview_pub_socket.bind(f"ipc://{LABVIEW_SOCKET_PATH}")
+        # Bind GSE websocket (for publishing data)
+        slogger.debug("Starting GSE WebSocket")
+        gse_websocket.bind(f"ipc://{LABVIEW_SOCKET_PATH}")
 
         while not service_helper.time_to_stop():
-            time.sleep(1)
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             cluster_id = 0
-
             try:
-                # Establish connection to labview
+                # Bind labview socket if it's not connected yet
                 slogger.debug(
                     f"Connecting to LabVIEW server at {server_ip}:{server_port} ..."
                 )
-                client_socket.connect((server_ip, server_port))
+                labview_client_socket.connect((server_ip, server_port))
                 slogger.info("Connected. Waiting for data...")
                 buffer = ""
 
                 while not service_helper.time_to_stop():
                     # Limit program to running 50 times per second
-                    time.sleep(1 / 50)
+                    time.sleep(LABVIEW_POLL_RATE)
 
                     # Load data chunk
-                    chunk = client_socket.recv(4096)
+                    chunk = labview_client_socket.recv(4096)
                     if not chunk:
                         slogger.info("LabVIEW server disconnected.")
                         break
@@ -197,7 +199,7 @@ def start_labview_listener() -> None:
 
                         # send to frontend api
                         try:
-                            labview_pub_socket.send_json(
+                            gse_websocket.send_json(
                                 cluster.get_values(),
                                 flags=zmq.NOBLOCK,
                             )
@@ -215,24 +217,33 @@ def start_labview_listener() -> None:
                 slogger.debug("Connection dropped. Reconnecting in 1s...")
                 time.sleep(1)
             finally:
-                with contextlib.suppress(Exception):
-                    client_socket.close()
-
+                # Create new socket if it failed to connect
+                """
                 # Create a fresh socket before reconnecting.
-                client_socket = socket.socket(
+                labview_client_socket = socket.socket(
                     socket.AF_INET, socket.SOCK_STREAM
                 )
-                client_socket.setsockopt(
+                labview_client_socket.setsockopt(
                     socket.IPPROTO_TCP, socket.TCP_NODELAY, 1
                 )
+                """
+                time.sleep(1)
+    except OSError as error:
+        slogger.error("Failed to connect to GSE websocket")
+        slogger.error(str(error))
     finally:
-        # If this code print every single second, we need to move the client_socket code into another nested loop thing
-        slogger.debug("Labview sender closing socket")
-        labview_pub_socket.close()
-        slogger.debug("Labview sender closed socket")
-        slogger.debug(f"Labview sender closing context (<{LINGER_TIME_MS}ms)")
+        # Close the LabVIEW connection
+        slogger.debug("LabVIEW client socket closing")
+        labview_client_socket.close()
+        slogger.debug("LabVIEW client socket closed")
+
+        # Close the GSE websock on program termination
+        slogger.debug("GSE WebSocket closing")
+        gse_websocket.close()
+        slogger.debug("GSE WebSocket closed")
+        slogger.debug(f"Terminating GSE socket context (<{LINGER_TIME_MS}ms)")
         context.term()
-        slogger.debug("Labview sender thread resources cleaned up")
+        slogger.debug("GSE socket context thread resources cleaned up")
 
 
 if __name__ == "__main__":
