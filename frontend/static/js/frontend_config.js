@@ -40,7 +40,7 @@ class Config {
     static graphs = {
         max_time: 60,  // Seconds of graph shown for avionics graphs
         max_gap_size: -1,  // Max time between data points where line is drawn (set to -1 to disable)
-        render_rate: 20,  // Frames per second that graphs are updates
+        render_rate: 20,  // Frames per second that graphs are updated
         y_ticks: 8,
         line_colours: [
             "#FF0000",

@@ -228,14 +228,12 @@ function graphRender(chart) {
         const windowStart = (chart !== GRAPHS.test.colours) ? (now - max_time) : 0;
 
         if (chart.lastRender !== now) {
-            // Don't draw lines between data points
-            if (cfg.graphs.max_gap_size > 0) {
-                chart.lines.forEach((line) => {
-                    line.data = line.data.filter(
-                        (d) => d.x >= windowStart - cfg.graphs.max_gap_size,
-                    );
-                });
-            }
+            // Draw lines for twice as long as the width of the graph (just to be safe)
+            chart.lines.forEach((line) => {
+                line.data = line.data.filter(
+                    (d) => d.x >= windowStart - cfg.graphs.max_time,
+                );
+            });
 
 
             const allPoints = chart.lines.flatMap((line) => line.data);
@@ -331,6 +329,9 @@ function graphRender(chart) {
                         if (cfg.graphs.max_gap_size > 0) {
                             d.prev = Math.abs(d.x - data[i - 1]?.x) <= cfg.graphs.max_gap_size;
                             d.next = Math.abs(d.x - data[i + 1]?.x) <= cfg.graphs.max_gap_size;
+                        } else {
+                            d.prev = data[i - 1]?.x !== undefined;
+                            d.next = data[i + 1]?.x !== undefined;
                         }
 
                         // If they're not close, we draw a point
