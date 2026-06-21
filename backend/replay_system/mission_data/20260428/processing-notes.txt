@@ -4,9 +4,8 @@ The launch starts at around 70 seconds ^-^
 
 Changes:
 - Limited to total_packet_count_av between 2800 and 3050
-- Subtracted 1132797.178 from timestamp_ms_log_time to zero the time
+- Subtracted 1132797.178 from timestamp_ms to zero the time
 - Subtracted 1132.797178 from timestamp_s_server_side to zero the time
 - Subtracted 2800 from total_packet_count_av to zero the packet numbers
-- Rename timestamp_ms_log_time column to timestamp_ms
 - Corrected the data alignment issue mentioned in #105
 - Manually calculated approximate values for velocity and flight state

@@ -1,4 +1,4 @@
-timestamp_ms_log_time,rssi,snr,timestamp_s_server_side,total_packet_count_av,total_packet_count_gse,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,nav_status,qw,qx,qy,qz
+timestamp_ms,rssi,snr,timestamp_s_server_side,total_packet_count_av,total_packet_count_gse,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,nav_status,qw,qx,qy,qz
 114977.578,-103.0,-12.0,115.10387420654297,2,0,False,False,False,False,False,31.04238510131836,-103.5227279663086,A,D,1.0,0.0,0.0,0.0
 128028.211,-122.0,-15.0,128.15463256835938,4,0,False,False,False,False,False,31.042369842529297,-103.52273559570312,A,D,1.0,0.0,0.0,0.0
 128928.33899999999,-114.0,-13.0,129.05482482910156,6,0,False,False,False,False,False,31.042367935180664,-103.52273559570312,A,D,1.0,0.0,0.0,0.0
