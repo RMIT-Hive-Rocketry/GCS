@@ -449,7 +449,7 @@ def start_services(
     )
 
     # 6. Start the pendent emulator
-    if not nopendant and replay_mode is None and simulation_arg is None:
+    if not nopendant and replay_mode != "mission":
         launch_pendant_daemon = (
             config.get_config()["hardware"]["send_pendant_state_to_server"]
             == "true"
@@ -464,7 +464,7 @@ def start_services(
             )
 
     # 7. Start the labview listener
-    if replay_mode is None and simulation_arg is None:
+    if replay_mode != "mission" and simulation_arg is None:
         start_labview_listener(
             logger=logger, performance_logging=RunningProcesses
         )
