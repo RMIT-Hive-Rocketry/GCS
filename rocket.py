@@ -448,8 +448,8 @@ def start_services(
         performance_logging=RunningProcesses,
     )
 
-    # 5. Start the pendent emulator
-    if not nopendant:
+    # 6. Start the pendent emulator
+    if not nopendant and replay_mode is None and simulation_arg is None:
         launch_pendant_daemon = (
             config.get_config()["hardware"]["send_pendant_state_to_server"]
             == "true"
@@ -463,7 +463,13 @@ def start_services(
                 logger=logger, performance_logging=RunningProcesses
             )
 
-    # 6. Start the websocket / frontend API
+    # 7. Start the labview listener
+    if replay_mode is None and simulation_arg is None:
+        start_labview_listener(
+            logger=logger, performance_logging=RunningProcesses
+        )
+
+    # 8. Start the websocket / frontend API
     # This should be able to run even without the frontend enabled, so it can be run on other devices
     start_frontend_api(
         logger=logger,
@@ -471,10 +477,7 @@ def start_services(
         performance_logging=RunningProcesses,
     )
 
-    # 7. Start the labview listener
-    start_labview_listener(logger=logger, performance_logging=RunningProcesses)
-
-    # 8. Start the frontend web server
+    # 9. Start the frontend web server
     if frontend:
         start_frontend_webserver(
             logger=logger, performance_logging=RunningProcesses
