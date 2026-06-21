@@ -87,7 +87,7 @@ class Config {
         },
         gse: {
             transducers: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-transducers",
                 ylabel: "Pressure (bar)",
                 numLines: 3,
@@ -97,7 +97,7 @@ class Config {
                 data: [],
             },
             thermocouples: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-thermocouples",
                 ylabel: "Temperature (°C)",
                 numLines: 3,
@@ -107,7 +107,7 @@ class Config {
                 data: [],
             },
             vent_temp: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-venttemp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
@@ -117,7 +117,7 @@ class Config {
                 data: [],
             },
             supply_temp: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-n2o-supply-temp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
