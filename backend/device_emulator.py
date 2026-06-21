@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractclassmethod
 from config.config import get_config
 from typing import Optional, List, Tuple
 from dataclasses import asdict
@@ -22,7 +22,6 @@ import threading
 # This file is for lower level emulation. Hence some things are passed bitwise
 # If you want higher level emulation, please talk to @mcloughlan and I will
 # make a higher level emulation library so it's not repeated for each person
-
 
 class MockPacket(ABC):
     # Name of the fake device socat has made
@@ -79,16 +78,18 @@ class MockPacket(ABC):
         self.payload_after_id_and_meta: list[bytes] | None = None
         self.ORIGIN_DEVICE: MockPacket._SourceDevice | None = None
 
-    def write_payload(self):
+    def write_payload(self) -> None:
         """Writes payload of bytes to device"""
 
         if self._FAKE_DEVICE_NAME is None:
             raise ValueError("Cannot write to device. Device name not set.")
         try:
             payload_bytes = self.get_payload_bytes()
-            with MockPacket._write_lock:
-                with open(self._FAKE_DEVICE_NAME, "wb") as device:
-                    device.write(payload_bytes)
+            with (
+                MockPacket._write_lock
+                and open(self._FAKE_DEVICE_NAME, "wb") as device
+            ):
+                device.write(payload_bytes)
         except Exception as e:
             slogger.error(
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}"
@@ -330,9 +331,9 @@ class AVtoGCSData2(MockPacket):
         LONGITUDE: float = 144.96507800000,
         NAV_STATUS: str = "G2",
         QW: int = 0,
-        QX: int = 1,
-        QY: int = -1,
-        QZ: int = 0.5,
+        QX: int = 32768,
+        QY: int = -32768,
+        QZ: int = 16384,
     ):
         super().__init__()
         self.ID = 0x04
@@ -350,10 +351,10 @@ class AVtoGCSData2(MockPacket):
             ),
             metric.Metric.gps(LATITUDE, LONGITUDE),
             metric.Metric.navigation_status(NAV_STATUS),
-            metric.Metric.quaternion(QW),
-            metric.Metric.quaternion(QX),
-            metric.Metric.quaternion(QY),
-            metric.Metric.quaternion(QZ),
+            metric.Metric.quaternion(QW / 32768),
+            metric.Metric.quaternion(QX / 32768),
+            metric.Metric.quaternion(QY / 32768),
+            metric.Metric.quaternion(QZ / 32768),
         ]
 
 
