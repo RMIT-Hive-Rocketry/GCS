@@ -9,6 +9,7 @@ ping3~=5.1.5
 protobuf~=6.31.0
 pygame~=2.6.1
 pyserial~=3.5
+pysocket~=0.35
 pyzmq~=27.1.0
 rocketpy~=1.12.1
 websockets~=16.0
