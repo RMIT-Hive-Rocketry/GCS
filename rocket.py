@@ -399,17 +399,18 @@ def start_services(
     )
 
     # 3. Run C++ middleware (always gse + av argv; single = same type/path for both)
-    try:
-        start_middleware(
-            logger=logger,
-            performance_logging=RunningProcesses,
-            config=launch_config.middleware_config,
-        )
-    except Exception as e:
-        logger.error(
-            f"Failed to start middleware: {e}\nPropogating fatal error"
-        )
-        raise
+    if replay_mode != "mission":
+        try:
+            start_middleware(
+                logger=logger,
+                performance_logging=RunningProcesses,
+                config=launch_config.middleware_config,
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to start middleware: {e}\nPropogating fatal error"
+            )
+            raise
 
     # 4. Start device emulator
     # TODO maybe consider blocking further starts if this fails?
