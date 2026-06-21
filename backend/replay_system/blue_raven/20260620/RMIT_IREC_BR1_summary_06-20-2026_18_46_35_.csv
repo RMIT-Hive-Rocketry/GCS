@@ -1,0 +1,48 @@
+Rocket Name,RMIT WC BR1
+Firmware,74b3ab7 04/07/2026 12:36:51
+Serial number,SN1800 RMIT WC BR1
+Max Altitude,4461.10 feet
+Max velocity,424.01 feet/sec
+Pad altitude ASL,2960.44 feet
+Launch date,20-June-26
+Launch time,18:46:35.773
+Time to first burnout,11.4 sec
+Time to Apo channel fire,24.4 sec
+Time to gyro overload,0.0 sec
+Time to third channel fire,27.1 sec
+Time to main channel fire,63.8 sec
+Time to fourth channel fire,70.3 sec
+Launch rod angle,4.2 deg
+Tilt angle at burnout,32.0 deg
+Roll rate at burnout,38.3 deg/sec
+Thrust tilt efficiency,90.23%
+Number of ascent rolls,1.517
+Horiz. velocity at apogee,204.4 feet/sec
+Inertial navigation max alt,4763.2 feet
+Max motor burn acceleration,19.1 Gs
+Peak drag deceleration,13.0 Gs
+Apo channel max accel,16.1 Gs
+Main channel max accel,2.2 Gs
+3rd channel max accel,1.9 Gs
+4th channel max accel,4.6 Gs
+Max landing accel,268.8 Gs
+Drogue descent rate,-93.6 feet/sec
+Main chute deploy altitude,1122.0 feet
+Main chute descent rate,-57.6 feet
+Landing Time,18:47:58.213
+Temperature on pad,117.9 F
+Max Temperature,117.9 F
+Min Temperature,116.16 F
+Battery voltage on pad,4.14 V
+Min Battery voltage,4.14 V
+Battery voltage at landing,4.1 V
+Build date,07-Apr-26
+Build time,12:36:51.000
+Flight number,36
+Direction of 1st motion,-0.9984,-0.0256,-0.0504
+Gravity direction on pad,-0.9999,0.0038,0.0161
+Low-G accel pad offset,0.0007,-0.0000,-0.0000
+Hi-G accel pad offset,-0.07,-0.05,-0.13
+Pad gyro rates (deg/sec),-0.65,0.38,-0.12
+Pad Hi-G accel,-1.07,-0.05,-0.11
+Pad Low-G Accel,-1.00,0.00,0.02
