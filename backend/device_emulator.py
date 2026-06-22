@@ -23,6 +23,7 @@ import threading
 # If you want higher level emulation, please talk to @mcloughlan and I will
 # make a higher level emulation library so it's not repeated for each person
 
+
 class MockPacket(ABC):
     # Name of the fake device socat has made
     _FAKE_DEVICE_NAME: str | None = None
@@ -252,9 +253,9 @@ class AVtoGCSData1(MockPacket):
         GPS_FIX_FLAG: bool = False,
         PAYLOAD_CONNECTION_FLAG: bool = True,
         CAMERA_CONTROLLER_CONNECTION: bool = True,
-        ACCEL_LOW_X: int = 2048 * 1,
-        ACCEL_LOW_Y: int = 2048 * 2,
-        ACCEL_LOW_Z: int = -2048 * 3,
+        ACCEL_LOW_X: int = 1024 * 1,
+        ACCEL_LOW_Y: int = 1024 * 2,
+        ACCEL_LOW_Z: int = -1024 * 3,
         ACCEL_HIGH_X: int = -1024 * 1,
         ACCEL_HIGH_Y: int = -1024 * 2,
         ACCEL_HIGH_Z: int = 1024 * 3,

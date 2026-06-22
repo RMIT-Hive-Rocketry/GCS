@@ -49,6 +49,8 @@ function API_OnMessage(event_data) {
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id)
         sendDataToRegistry(apiData)
 
+        console.log(apiData)
+
         // Legacy Legacy support
         /*
         if (typeof hmiUpdate === 'function') {
@@ -60,7 +62,9 @@ function API_OnMessage(event_data) {
         if (apiData.id === pid.avionics || apiData.id === pid.avionics_rocket) {
             // Avionics packets
             // Display values
-            displayUpdateFlightState(apiData)
+            if (apiData.id === pid.avionics) {
+                displayUpdateFlightState(apiData)
+            }
 
             // Graphs
             graphUpdateAvionics(apiData)

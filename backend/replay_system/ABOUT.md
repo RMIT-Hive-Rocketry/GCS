@@ -69,7 +69,7 @@ if simulation mode is selected run
       <td rowspan=2>IREC 2026</td>
       <td rowspan=2><b style="color:#f76a2a">Horizon</b></td>
       <td>AV2</td>
-      <td><code>rocket replay --mode mission --mission IREC2026</code></td>
+      <td><code>rocket replay --mode mission --mission IREC2026 --start 2974700</code></td>
     </tr>
     <tr>
       <td>Blue Raven</td>
@@ -77,3 +77,4 @@ if simulation mode is selected run
     </tr>
   </tbody>
 </table>
+

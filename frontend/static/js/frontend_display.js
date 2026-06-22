@@ -693,6 +693,9 @@ function displayUpdateFlightState(data) {
     if (data?.flightState) {
         displaySetError('fs-flightstate', false)
 
+        if (data.flightState === -1)
+            return
+
         let stateName = ''
         if (
             data.flightState === 0
