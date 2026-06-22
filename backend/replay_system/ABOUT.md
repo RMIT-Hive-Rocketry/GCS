@@ -77,4 +77,3 @@ if simulation mode is selected run
     </tr>
   </tbody>
 </table>
-
