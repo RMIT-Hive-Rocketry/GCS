@@ -53,7 +53,7 @@ def process_csv_packets(
                         )
                         packets.append(packet)
         except FileNotFoundError:
-            slogger.error(f"Warning Missing File: {filename}")
+            slogger.error(f"Missing file: {filename}")
 
     return sorted(packets, key=lambda x: x.timestamp_ms)
 

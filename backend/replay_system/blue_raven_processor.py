@@ -10,12 +10,12 @@ import backend.includes_python.process_logging as slogger
 def process_blue_raven(replay_name: str) -> list[Packet]:
     packets = []
 
+    filepath = os.path.join(get_blue_raven_path(), replay_name)
+
+    hr_filename = ""
+    lr_filename = ""
+
     try:
-        filepath = os.path.join(get_blue_raven_path(), replay_name)
-
-        hr_filename = ""
-        lr_filename = ""
-
         for filename in os.listdir(filepath):
             if "hr" in filename.lower():
                 hr_filename = filename
@@ -23,7 +23,7 @@ def process_blue_raven(replay_name: str) -> list[Packet]:
                 lr_filename = filename
 
         if hr_filename == "" or lr_filename == "":
-            slogger.error(f"Warning Missing File: {filepath}")
+            slogger.error(f"Missing file: {filepath}")
             raise
 
         hr_filepath = os.path.join(filepath, hr_filename)
@@ -47,7 +47,7 @@ def process_blue_raven(replay_name: str) -> list[Packet]:
             packets.extend(row_packets)
 
     except FileNotFoundError:
-        slogger.error(f"Warning Missing File: {filepath}")
+        slogger.error(f"Missing file: {filepath}")
     except Exception as e:
         slogger.error(f"Error parsing Blue Raven data: {e}")
 

@@ -99,7 +99,7 @@ def create_app() -> Flask:
         if filename.endswith(valid_file_extensions) and os_path.isfile(
             filepath
         ):
-            slogger.debug(f"Serving static file: {filename}")
+            # slogger.debug(f"Serving static file: {filename}")
             return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
