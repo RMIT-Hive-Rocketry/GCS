@@ -72,7 +72,7 @@ The GCS, known as SOTERIA, is Hive's computer control system for GSE control, av
     </tr>
     <tr>
         <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a></td>
-        <td rowspan=2>@s4105951</td>
+        <td rowspan=2>@lambtails</td>
         <td>GCS IREC 2026 lead & senior software engineer</td>
         <td>2026</td>
     </tr>
