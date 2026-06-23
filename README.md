@@ -69,7 +69,7 @@ Ground Control Software Team
         <td>2025</td>
     </tr>
     <tr>
-        <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>s4105951</code>)</td>
+        <td rowspan=2><a href="https://www.linkedin.com/in/amber-taylor-20bb63264/">Amber Taylor</a> (<code>lambtails</code>)</td>
         <td>GCS IREC 2026 lead & senior software engineer</td>
         <td>2026</td>
     </tr>
