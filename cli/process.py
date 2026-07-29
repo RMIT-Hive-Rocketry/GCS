@@ -140,7 +140,7 @@ class LoggedSubProcess:
         self._stderr_thread.start()
 
     def stop(self) -> None:
-        """Stop the subprocess, kill it if it times out. Waits untill completion."""
+        """Stop the subprocess, kill it if it times out. Waits until completion."""
         if self._process and self._process.returncode is None:
             try:
                 self._process.terminate()
