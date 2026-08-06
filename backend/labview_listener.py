@@ -10,7 +10,6 @@ import zmq
 from backend.includes_python import service_helper
 from backend.includes_python.timers import RepeatingTimer
 
-
 cfg = get_config()
 server_ip = cfg["tcp"]["labview_server_ip"]
 server_port = int(cfg["tcp"]["labview_server_port"])
@@ -89,9 +88,14 @@ class LabViewCluster:
 
 
 def create_log_file() -> None:
+    # Ensure there's a folder for the log files to exist in
+    if not os.path.isdir(log_dir_path):
+        # If the log directory doesn't exist, create it :)
+        os.makedirs(log_dir_path)
+
     # Create the CSV file and write the header if it doesn't exist
     try:
-        with open(log_file_path, mode="a", newline="") as f:
+        with open(log_file_path, mode="w", newline="") as f:
             writer = csv.writer(f)
             # Write header only if file is empty
             if f.tell() == 0:
