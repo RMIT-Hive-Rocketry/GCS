@@ -222,7 +222,7 @@ class Packet(ABC):
             csv_path = os.path.join(cls._session_log_folder, f"{file_name}.csv")
             with open(csv_path, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["timestamp_ms_log_time", *headers])
+                writer.writerow(["timestamp_ms", *headers])
 
     @classmethod
     def setup(cls, STARTUP_TIME: datetime.datetime, CREATE_LOGS: bool) -> None:

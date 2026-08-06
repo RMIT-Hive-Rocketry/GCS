@@ -16,6 +16,11 @@ from backend.includes_python.devices.control_device_manager import (
 from backend.includes_python.devices.control_device import ControlDevice
 from config import config
 
+from backend.includes_python.devices.pygame_devices import HybridPygamePendant
+from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
+from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
+from backend.includes_python.devices.emulated_device import EmulatedDevice
+
 # Wait LINGER_TIME_MS before giving up on push request
 LINGER_TIME_MS = 300
 
@@ -35,27 +40,23 @@ def get_control_device() -> ControlDevice:
     manager = ControlDeviceManager()
 
     def hybrid_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import HybridPygamePendant
         return HybridPygamePendant
 
     manager.add_managed_device("hybrid_device", hybrid_import)
 
     def rpi_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
         return RPI_GPIO_Device
 
     manager.add_managed_device("rpi_gpio_device",rpi_import)
 
     def f710_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.pygame_devices import LogitechGamepadF710
         return LogitechGamepadF710
 
     manager.add_managed_device("f710", f710_import)
 
     # TEMPORARY: idk why this got left out but i adding it back
     def emulated_import() -> type[ControlDevice]:
-        from backend.includes_python.devices.emulated_device import Emulated_Device
-        return Emulated_Device
+        return EmulatedDevice
 
     manager.add_managed_device("emulated_device", emulated_import)
 

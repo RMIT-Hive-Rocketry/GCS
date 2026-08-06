@@ -1,4 +1,4 @@
-timestamp_ms,rssi,snr,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,nav_status,qw,qx,qy,qz
+timestamp_ms,rssi,snr,FlightState,dual_board_connectivity_state_flag,recovery_checks_complete_and_flight_ready,GPS_fix_flag,payload_connection_flag,camera_controller_connection_flag,GPS_latitude,GPS_longitude,navigationStatus,qw,qx,qy,qz
 7302.027,-33.0,10.0,0,False,False,False,False,False,0.0,0.0,NA,1.0,0.0,0.0,0.0
 10308.0,-33.0,10.0,0,False,False,False,False,False,-3628.921142578125,14401.0390625,NA,1.0,0.0,0.0,0.0
 12260.014,-33.0,10.0,0,False,False,False,False,False,-3628.921142578125,14401.0390625,NA,1.0,0.0,0.0,0.0

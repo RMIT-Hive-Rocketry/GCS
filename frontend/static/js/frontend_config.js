@@ -39,8 +39,8 @@ class Config {
     // Graphing
     static graphs = {
         max_time: 60,  // Seconds of graph shown for avionics graphs
-        max_gap_size: 4,  // Max time between data points where line is drawn
-        render_rate: 20,  // Frames per second that graphs are updates
+        max_gap_size: -1,  // Max time between data points where line is drawn (set to -1 to disable)
+        render_rate: 20,  // Frames per second that graphs are updated
         y_ticks: 8,
         line_colours: [
             "#FF0000",
@@ -87,7 +87,7 @@ class Config {
         },
         gse: {
             transducers: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-transducers",
                 ylabel: "Pressure (bar)",
                 numLines: 3,
@@ -97,7 +97,7 @@ class Config {
                 data: [],
             },
             thermocouples: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-thermocouples",
                 ylabel: "Temperature (°C)",
                 numLines: 3,
@@ -107,7 +107,7 @@ class Config {
                 data: [],
             },
             vent_temp: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-venttemp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
@@ -117,7 +117,7 @@ class Config {
                 data: [],
             },
             supply_temp: {
-                max_time: 20,
+                max_time: 60,
                 selector: "#graph-aux-n2o-supply-temp",
                 ylabel: "Temperature (°C)",
                 numLines: 1,
@@ -212,7 +212,7 @@ class Config {
                 },
             },
             {
-                ids: ['nav_status'],
+                ids: ['navigationStatus'],
                 accept: ['NF', 'DR', 'G2', 'G3', 'D2', 'D3', 'RK', 'TT'],
             },
             {

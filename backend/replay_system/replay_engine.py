@@ -44,7 +44,7 @@ def process_csv_packets(
             with open(filename, encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    timestamp_ms = float(row["timestamp_ms"])
+                    timestamp_ms = _float(row["timestamp_ms"])
                     if timestamp_ms > min_timestamp_ms:
                         packet = Packet(
                             timestamp_ms=timestamp_ms,
@@ -53,7 +53,7 @@ def process_csv_packets(
                         )
                         packets.append(packet)
         except FileNotFoundError:
-            slogger.error(f"Warning Missing File: {filename}")
+            slogger.error(f"Missing file: {filename}")
 
     return sorted(packets, key=lambda x: x.timestamp_ms)
 
@@ -163,6 +163,65 @@ def _unknown_packet_type(packet: Packet) -> None:
     raise ValueError
 
 
+"""
+Parse CSV values correctly, since they can be weird
+"""
+
+
+def _bool(value: bool | str | int | None) -> bool:
+    # Handle bool values from a CSV
+    if value is None:
+        return False
+
+    # String, could be "True" or "1" for truthy
+    if type(value) is str:
+        return value.lower() in ("true", "1")
+
+    # Integer, anything positive is truthy
+    if type(value) is int:
+        return value > 0
+
+    # Otherwise it's a boolean
+    return bool(value)
+
+
+def _float(value: bool | float | str | int | None) -> float:
+    # Handle float values from a CSV
+    # Nonetypes
+    if value is None or value == "":
+        return 0
+
+    # Attempt to cast everything else
+    try:
+        return float(value)
+    except ValueError:
+        return 0
+
+
+def _int(value: float | str | int | None) -> int:
+    # Handle integer values from a CSV
+    if value is None or value == "":
+        return 0
+
+    # Attempt everything else
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    try:
+        return int(float(value))
+    except ValueError:
+        pass
+
+    return 0
+
+
+"""
+Handle data packets
+"""
+
+
 def _handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
 
@@ -185,69 +244,59 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
         return packet
 
     # Check gyro values
-    """
-    # TEMPORARILY DISABLED
     packet = _gyro_capper(packet, "x")
     packet = _gyro_capper(packet, "y")
     packet = _gyro_capper(packet, "z")
-    """
 
     if service_helper.time_to_stop():
         return
 
     # Getting the flight state so its easier to convert into bits
-    flight_state = int(data["FlightState"])
     item = AVtoGCSData1(
-        RSSI=float(data["rssi"]),
-        SNR=float(data["snr"]),
-        FLIGHT_STATE_=flight_state,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
-            int(data["dual_board_connectivity_state_flag"])
+        RSSI=_float(data["rssi"]),
+        SNR=_float(data["snr"]),
+        FLIGHT_STATE_=_int(data["FlightState"]),
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=_bool(
+            data["dual_board_connectivity_state_flag"]
         ),
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
-            int(data["recovery_checks_complete_and_flight_ready"])
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=_bool(
+            data["recovery_checks_complete_and_flight_ready"]
         ),
-        GPS_FIX_FLAG=bool(int(data["GPS_fix_flag"])),
-        PAYLOAD_CONNECTION_FLAG=bool(int(data["payload_connection_flag"])),
-        CAMERA_CONTROLLER_CONNECTION=bool(
-            int(data["camera_controller_connection_flag"])
+        GPS_FIX_FLAG=_bool(data["GPS_fix_flag"]),
+        PAYLOAD_CONNECTION_FLAG=_bool(data["payload_connection_flag"]),
+        CAMERA_CONTROLLER_CONNECTION=_bool(
+            data["camera_controller_connection_flag"]
         ),
-        ACCEL_LOW_X=int(float(data["accel_low_x"]) * 2048),  # / 9.81 * 2048),
-        ACCEL_LOW_Y=int(float(data["accel_low_y"]) * 2048),  # / 9.81 * 2048),
-        ACCEL_LOW_Z=int(float(data["accel_low_z"]) * 2048),  # / 9.81 * 2048),
-        ACCEL_HIGH_X=int(
-            float(data["accel_high_x"]) * 2048
+        ACCEL_LOW_X=_int(_float(data["accel_low_x"]) * 1024),  # / 9.81 * 2048),
+        ACCEL_LOW_Y=_int(_float(data["accel_low_y"]) * 1024),  # / 9.81 * 2048),
+        ACCEL_LOW_Z=_int(_float(data["accel_low_z"]) * 1024),  # / 9.81 * 2048),
+        ACCEL_HIGH_X=_int(
+            _float(data["accel_high_x"]) * 1024
         ),  # / 9.81 * -1048),
-        ACCEL_HIGH_Y=int(
-            float(data["accel_high_y"]) * 2048
+        ACCEL_HIGH_Y=_int(
+            _float(data["accel_high_y"]) * 1024
         ),  # / 9.81 * -1048),
-        ACCEL_HIGH_Z=int(float(data["accel_high_z"]) * 2048),  # / 9.81 * 1048),
-        GYRO_X=int((float(data["gyro_x"])) / 0.00875),
-        GYRO_Y=int((float(data["gyro_y"])) / 0.00875),
-        GYRO_Z=int((float(data["gyro_z"])) / 0.00875),
-        ALTITUDE=float(data["altitude"]),
-        VELOCITY=float(data["velocity"]),
-        APOGEE_PRIMARY_TEST_COMPETE=bool(
-            int(data["apogee_primary_test_complete"])
+        ACCEL_HIGH_Z=_int(
+            _float(data["accel_high_z"]) * 1024
+        ),  # / 9.81 * 1048),
+        GYRO_X=_int((_float(data["gyro_x"])) / 0.00875),
+        GYRO_Y=_int((_float(data["gyro_y"])) / 0.00875),
+        GYRO_Z=_int((_float(data["gyro_z"])) / 0.00875),
+        ALTITUDE=_int(data["altitude"]),
+        VELOCITY=_int(data["velocity"]),
+        APOGEE_PRIMARY_TEST_COMPETE=_bool(data["apogee_primary_test_complete"]),
+        APOGEE_SECONDARY_TEST_COMPETE=_bool(
+            data["apogee_secondary_test_complete"]
         ),
-        APOGEE_SECONDARY_TEST_COMPETE=bool(
-            int(data["apogee_secondary_test_complete"])
+        APOGEE_PRIMARY_TEST_RESULTS=_bool(data["apogee_primary_test_results"]),
+        APOGEE_SECONDARY_TEST_RESULTS=_bool(
+            data["apogee_secondary_test_results"]
         ),
-        APOGEE_PRIMARY_TEST_RESULTS=bool(
-            int(data["apogee_primary_test_results"])
-        ),
-        APOGEE_SECONDARY_TEST_RESULTS=bool(
-            int(data["apogee_secondary_test_results"])
-        ),
-        MAIN_PRIMARY_TEST_COMPETE=bool(int(data["main_primary_test_complete"])),
-        MAIN_SECONDARY_TEST_COMPETE=bool(
-            int(data["main_secondary_test_complete"])
-        ),
-        MAIN_PRIMARY_TEST_RESULTS=bool(int(data["main_primary_test_results"])),
-        MAIN_SECONDARY_TEST_RESULTS=bool(
-            int(data["main_secondary_test_results"])
-        ),
-        MOVE_TO_BROADCAST=bool(int(data["broadcast_flag"])),
+        MAIN_PRIMARY_TEST_COMPETE=_bool(data["main_primary_test_complete"]),
+        MAIN_SECONDARY_TEST_COMPETE=_bool(data["main_secondary_test_complete"]),
+        MAIN_PRIMARY_TEST_RESULTS=_bool(data["main_primary_test_results"]),
+        MAIN_SECONDARY_TEST_RESULTS=_bool(data["main_secondary_test_results"]),
+        MOVE_TO_BROADCAST=_bool(data["broadcast_flag"]),
     )
     item.write_payload()
 
@@ -257,29 +306,28 @@ def _handle_av_to_gcs_data_2(packet: Packet) -> None:
     if service_helper.time_to_stop():
         return
     # Get flight state
-    flight_state = int(data["FlightState"])
     item = AVtoGCSData2(
-        RSSI=float(data["rssi"]),
-        SNR=float(data["snr"]),
-        FLIGHT_STATE_=flight_state,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
-            int(data["dual_board_connectivity_state_flag"])
+        RSSI=_float(data["rssi"]),
+        SNR=_float(data["snr"]),
+        FLIGHT_STATE_=_int(data["FlightState"]),
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=_bool(
+            data["dual_board_connectivity_state_flag"]
         ),
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
-            int(data["recovery_checks_complete_and_flight_ready"])
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=_bool(
+            data["recovery_checks_complete_and_flight_ready"]
         ),
-        GPS_FIX_FLAG=bool(int(data["GPS_fix_flag"])),
-        PAYLOAD_CONNECTION_FLAG=bool(int(data["payload_connection_flag"])),
-        CAMERA_CONTROLLER_CONNECTION=bool(
-            int(data["camera_controller_connection_flag"])
+        GPS_FIX_FLAG=_bool(data["GPS_fix_flag"]),
+        PAYLOAD_CONNECTION_FLAG=_bool(data["payload_connection_flag"]),
+        CAMERA_CONTROLLER_CONNECTION=_bool(
+            data["camera_controller_connection_flag"]
         ),
-        LATITUDE=float(data["GPS_latitude"]),
-        LONGITUDE=float(data["GPS_longitude"]),
-        NAV_STATUS=str(data["nav_status"]),
-        QW=float(data["qw"]),
-        QX=float(data["qz"]),
-        QY=float(data["qx"]),
-        QZ=float(data["qy"]),
+        LATITUDE=_float(data["GPS_latitude"]),
+        LONGITUDE=_float(data["GPS_longitude"]),
+        NAV_STATUS=data["navigationStatus"],
+        QW=_int(_float(data["qw"]) * 32768),
+        QX=_int(_float(data["qz"]) * 32768),
+        QY=_int(_float(data["qx"]) * 32768),
+        QZ=_int(_float(data["qy"]) * 32768),
     )
     item.write_payload()
 

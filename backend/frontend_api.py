@@ -323,7 +323,7 @@ async def consumer(websocket) -> None:
         push_socket.setsockopt(zmq.CONFLATE, 1)  # Replace old messages
         push_socket.connect(f"ipc://{socket_path}")
         expected_ids = [0x09, 253]  # What ID should we relay to the server?
-        slogger.debug("New websocket consumer started")
+        slogger.debug(f"New websocket consumer started: {socket_path}")
         try:
             async for message in websocket:
                 if shutdown_event.is_set():

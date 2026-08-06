@@ -12,7 +12,7 @@ import { Config as cfg } from '/js/frontend_config.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
 import { graphUpdateAuxData, graphUpdateAvionics, graphUpdatePosition, updateNetworkDiagnostics2 } from '/js/frontend_graphs.js';
 import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
-import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
+import { logMessage, metresToFeet } from '/js/frontend_utils.js';
 
 // Global display values
 const errors = []
@@ -49,6 +49,8 @@ function API_OnMessage(event_data) {
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id)
         sendDataToRegistry(apiData)
 
+        console.log(apiData)
+
         // Legacy Legacy support
         /*
         if (typeof hmiUpdate === 'function') {
@@ -60,7 +62,9 @@ function API_OnMessage(event_data) {
         if (apiData.id === pid.avionics || apiData.id === pid.avionics_rocket) {
             // Avionics packets
             // Display values
-            displayUpdateFlightState(apiData)
+            if (apiData.id === pid.avionics) {
+                displayUpdateFlightState(apiData)
+            }
 
             // Graphs
             graphUpdateAvionics(apiData)
@@ -338,8 +342,14 @@ function processDataForDisplay(apiData, apiId) {
             else {
                 logMessage(`Discard max altitude (${altitudeMax})`, 'warning')
             }
+        } else if (
+            altitudeMax === undefined
+            || apiData.altitude > altitudeMax
+        ) {
+            altitudeMax = apiData.altitude
         }
-        if (altitudeMax !== undefined && altitudeMax > 0) {
+
+        if (altitudeMax !== undefined) {
             processedData.altitudeMax = altitudeMax
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax)
         }
@@ -360,10 +370,10 @@ function processDataForDisplay(apiData, apiId) {
 
     // GPS position
     if (apiData.GPSLatitude !== undefined) {
-        processedData.GPSLatitude = gpsToDecimal(apiData.GPSLatitude)
+        processedData.GPSLatitude = apiData.GPSLatitude; // gpsToDecimal(apiData.GPSLatitude)
     }
     if (apiData.GPSLongitude !== undefined) {
-        processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude)
+        processedData.GPSLongitude = apiData.GPSLongitude // gpsToDecimal(apiData.GPSLongitude)
     }
 
     /* If the rocket is within 50m of the GCS, play a warning sound.
@@ -376,8 +386,8 @@ function processDataForDisplay(apiData, apiId) {
       */
     if (apiData.GPSLatitude !== undefined && apiData.GPSLongitude !== undefined) {
         // Distance to GCS in km (both latitude and longitude)
-        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - cfg.gps.gcs_lat)) * cfg.gps.lat_scale_factor)
-        const lon_distance = ((gpsToDecimal(apiData.GPSLongitude - cfg.gps.gcs_lon)) * cfg.gps.lon_scale_factor)
+        const lat_distance = ((apiData.GPSLatitude - cfg.gps.gcs_lat) * cfg.gps.lat_scale_factor)
+        const lon_distance = ((apiData.GPSLongitude - cfg.gps.gcs_lon) * cfg.gps.lon_scale_factor)
         const final_distance = Math.sqrt(lat_distance ** 2 + lon_distance ** 2)
 
         // Rocket_Warn sound
@@ -434,14 +444,14 @@ function processDataForDisplay(apiData, apiId) {
 
     // State flags
     // GPS fix (navigation state)
-    if (apiData.nav_status !== undefined) {
+    if (apiData.navigationStatus !== undefined) {
         if (
-            ['D2', 'D3', 'G2', 'G3', 'RK'].includes(apiData.nav_status)
+            ['D2', 'D3', 'G2', 'G3', 'RK'].includes(apiData.navigationStatus)
         ) {
             processedData.state.gpsFix = 1 // Green
-        } else if (['DR', 'TT'].includes(apiData.nav_status)) {
+        } else if (['DR', 'TT'].includes(apiData.navigationStatus)) {
             processedData.state.gpsFix = 2 // Yellow
-        } else if (['NA'].includes(apiData.nav_status)) {
+        } else if (['NA'].includes(apiData.navigationStatus)) {
             processedData.state.gpsFix = 5 // Red
         } else {
             processedData.state.gpsFix = 5 // Error

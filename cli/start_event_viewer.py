@@ -28,7 +28,7 @@ def start_event_viewer(
     logger: logging.Logger,
     socket_path: str,
     file_logging_enabled: bool,
-    performance_logging: process.RunningProcess = None,
+    performance_logging: process.RunningProcess | None = None,
 ) -> tuple[None, None] | None:
     service_name = "event viewer"
     try:

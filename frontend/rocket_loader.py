@@ -156,20 +156,14 @@ class Rocket:
 
     def print_rocket_configs(self) -> None:
         # Print out loaded rocket information from configs
-        print(
-            f"Loaded 'rockets/{self.name}' with {len(self.configs)} config(s):"
-        )
-        for c in self.configs:
-            self.print_config(c)
+        print(f"Loaded 'rockets/{self.name}' with {len(self.configs)} configs:")
+        for i, c in enumerate(self.configs):
+            self.print_config(_config=c, _index=i + 1)
 
-    def print_config(self, _config) -> None:
+    def print_config(self, _config, _index=1) -> None:
         # Print a single configuration
         print(
-            f"  {type(_config).__name__}() \
-                \n   - Rocket: {_config.ROCKET_NAME} \
-                \n   - Grid: ({_config.GRID[0]}, {_config.GRID[1]}) \
-                \n   - Pages: {len(_config.PAGES)} \
-                \n   - Modules: {len(_config.MODULES)}"
+            f'\t{_index}. {type(_config).__name__}({{ rocket:"{_config.ROCKET_NAME}", grid:({_config.GRID[0]}, {_config.GRID[1]}), pages:{len(_config.PAGES)}, modules:{len(_config.MODULES)} }})'
         )
 
     def generate_blueprint(self) -> None:

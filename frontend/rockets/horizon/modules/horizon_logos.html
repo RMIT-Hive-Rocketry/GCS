@@ -15,6 +15,32 @@
         <img id="toggleIcon" width="40" height="40" src="img/icons/sound-muted.svg" alt="Sound muted">
     </button>
 
-    <p class="text-white text-center text-lg font-bold">HAM Callsign<br><span class="text-horizon-yellow">KR4MFM</span>
-    </p>
+    <!--<p class="text-white text-center text-lg font-bold">
+        HAM Callsign<br><span class="text-horizon-yellow">KR4MFM</span>
+    </p>-->
+    <p id="digitalTime"></p>
 </div>
+
+
+
+<script>
+    // Digital Clock Implementation
+    function updateDigitalClock() {
+        const now = new Date();
+
+        // Format time
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+
+        // Format date
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+        // Update DOM
+        document.getElementById('digitalTime').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    // Update clock every second
+    setInterval(updateDigitalClock, 1000);
+    updateDigitalClock();
+</script>

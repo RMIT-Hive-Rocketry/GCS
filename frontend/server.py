@@ -13,7 +13,6 @@ from os import path as os_path
 import backend.includes_python.process_logging as slogger
 from config import config
 
-
 valid_file_extensions = (
     ".css",
     ".js",  # CSS, JavaScript
@@ -62,11 +61,12 @@ def create_app() -> Flask:
 
         # Check for config override via URL parameter
         rocket = request.args.get("rocket", "default")
-        if rocket is not None:
-            for r in app.config.get("rockets"):
-                if r.name == rocket:
-                    active = r.configs[0]
-                    name = r.name
+        rocket_configs = app.config.get("rockets")
+        if rocket is not None and rocket_configs is not None:
+            for rc in rocket_configs:
+                if rc.name == rocket:
+                    active = rc.configs[0]
+                    name = rc.name
                     break
 
         return render_template(
@@ -86,8 +86,9 @@ def create_app() -> Flask:
     def serve_html(filename) -> Response:
         # Make sure rocket assets are loaded from a different directory
         file_directory = dir_static
-        if filename.startswith(
-            tuple([r.name for r in app.config.get("rockets")])
+        rocket_configs = app.config.get("rockets")
+        if rocket_configs is not None and filename.startswith(
+            tuple([rc.name for rc in rocket_configs])
         ):
             file_directory = dir_rockets
 
@@ -98,7 +99,7 @@ def create_app() -> Flask:
         if filename.endswith(valid_file_extensions) and os_path.isfile(
             filepath
         ):
-            slogger.debug(f"Serving static file: {filename}")
+            # slogger.debug(f"Serving static file: {filename}")
             return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
