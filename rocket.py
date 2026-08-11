@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import click
-from cli import rocket_logging
-from cli import process
+from cli import rocket_logging, process
 from config import config
 import logging
 import subprocess
@@ -21,6 +20,7 @@ from cli.start_frontend_api import start_frontend_api
 from cli.start_simulation import start_simulator
 from cli.start_frontend_webserver import start_frontend_webserver
 from cli.start_performance_monitor import start_performance_monitor
+from cli.start_labview_listener import start_labview_listener
 from cli.start_replay_system import (
     start_replay_system,
     get_available_missions,
@@ -30,18 +30,15 @@ from cli.start_replay_system import (
 from cli.start_pendant_daemon import start_pendant_daemon
 from cli.runtime_launch_config import RuntimeLaunchConfig
 
-
-logger: logging.Logger = None
-cleanup_reason: str = (
-    "Program completed or undefined exit"  # Default clenaup message
-)
 RUNNING_SERVICES: bool = False  # To help close the cli automatically
-
+APP_START_TIME = None  # Start Time Of application initialized within main before logging starts
 IN_TEST_ENVIRONMENT: bool = os.environ.get("PYTEST_CURRENT_TEST", False)
 
 RunningProcesses = process.RunningProcess()
-
-APP_START_TIME = None  # Start Time Of application initialized within main before logging starts
+logger: logging.Logger
+cleanup_reason: str = (
+    "Program completed or undefined exit"  # Default clenaup message
+)
 
 
 class Command(enum.Enum):
@@ -283,8 +280,7 @@ def _validate_interface_options(
         and interface_av is not None
         and (
             "test" in interface_av
-            or "test" in interface_gse
-            and interface_av != interface_gse
+            or ("test" in interface_gse and interface_av != interface_gse)
         )
     ):
         raise NotImplementedError(
@@ -339,14 +335,14 @@ def start_services(
         replay_mode (str, optional): _description_. Defaults to None.
         mission_arg (str, optional): _description_. Defaults to None.
         simulation_arg (str, optional): _description_. Defaults to None.
-        experimental (bool, optional): Simulate all possible values over the entire domain. Defaults to False.
+        experimental (bool, optional): Simulate all possible values over the entire domzain. Defaults to False.
         corruption (bool, optional): Corrupt data packets to simulate heavy bit corruption. Defaults to False.
 
     Raises:
         NotImplementedError: _description_
         ValueError: _description_
     """
-    global RUNNING_SERVICES, APP_START_TIME
+    global RUNNING_SERVICES
     RUNNING_SERVICES = True
 
     print_splash()
@@ -373,7 +369,7 @@ def start_services(
 
     # 0.2 Interrupt further process loading if --frontend-only is being used
     if frontend_only is not None and frontend_only:
-        start_frontend_webserver(logger, None)
+        start_frontend_webserver(logger)
         return
 
     # 1 Build C++ middleware
@@ -452,8 +448,8 @@ def start_services(
         performance_logging=RunningProcesses,
     )
 
-    # 5. Start the pendent emulator
-    if not nopendant:
+    # 6. Start the pendent emulator
+    if not nopendant and replay_mode != "mission":
         launch_pendant_daemon = (
             config.get_config()["hardware"]["send_pendant_state_to_server"]
             == "true"
@@ -467,7 +463,13 @@ def start_services(
                 logger=logger, performance_logging=RunningProcesses
             )
 
-    # 6. Start the websocket / frontend API
+    # 7. Start the labview listener
+    if replay_mode != "mission" and simulation_arg is None:
+        start_labview_listener(
+            logger=logger, performance_logging=RunningProcesses
+        )
+
+    # 8. Start the websocket / frontend API
     # This should be able to run even without the frontend enabled, so it can be run on other devices
     start_frontend_api(
         logger=logger,
@@ -475,18 +477,20 @@ def start_services(
         performance_logging=RunningProcesses,
     )
 
-    # 7. Start the frontend web server
+    # 9. Start the frontend web server
     if frontend:
         start_frontend_webserver(
             logger=logger, performance_logging=RunningProcesses
         )
 
-    # 8. Start performance monitor after all other services have started
+    # 9. Start performance monitor after all other services have started
+    """
     start_performance_monitor(
         logger=logger,
         performance_logging=RunningProcesses,
         start_time=APP_START_TIME,
     )
+    """
 
 
 @click.group()
@@ -609,7 +613,7 @@ def replay(
             raise click.UsageError(
                 "--simulation is required to run a specified scenario"
             )
-        if simulation != "TEST" and simulation != "DEMO":
+        if simulation not in {"TEST", "DEMO"}:
             raise NotImplementedError(
                 f"{simulation} has not been implemented yet"
             )

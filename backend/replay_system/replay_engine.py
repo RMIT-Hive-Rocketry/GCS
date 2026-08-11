@@ -44,7 +44,7 @@ def process_csv_packets(
             with open(filename, encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    timestamp_ms = float(row["timestamp_ms"])
+                    timestamp_ms = _float(row["timestamp_ms"])
                     if timestamp_ms > min_timestamp_ms:
                         packet = Packet(
                             timestamp_ms=timestamp_ms,
@@ -53,7 +53,7 @@ def process_csv_packets(
                         )
                         packets.append(packet)
         except FileNotFoundError:
-            slogger.error(f"Warning Missing File: {filename}")
+            slogger.error(f"Missing file: {filename}")
 
     return sorted(packets, key=lambda x: x.timestamp_ms)
 
@@ -90,10 +90,10 @@ def replay_packets(packets: list[Packet], min_timestamp_ms: int) -> None:
             next_earliest_frame_time_av2 += 1 / MAX_FRAME_RATE
 
         time_to_wait = target_time - time.time()
-
-        if time_to_wait >= 3.0:
+        max_wait_time = 3
+        if time_to_wait >= max_wait_time:
             slogger.warning(
-                f"Time until next packet: {round(time_to_wait,3)} seconds"
+                f"Time until next packet: {round(time_to_wait, max_wait_time)} seconds"
             )
         # slogger.debug(f"Time to wait: {time_to_wait} for packet: {packet.packet_type} at time: {packet.timestamp_ms}")
         if time_to_wait > 0:
@@ -135,7 +135,7 @@ def send_packet(packet: Packet) -> None:
     handle_packets(packet)
 
 
-def handle_packets(packet: Packet):
+def handle_packets(packet: Packet) -> None:
     match packet.packet_type:
         case PacketType.AV_TO_GCS_DATA_1:
             _handle_av_to_gcs_data_1(packet)
@@ -154,7 +154,7 @@ def handle_packets(packet: Packet):
         case PacketType.GCS_TO_GSE_STATE_CMD:
             _handle_gcs_to_gse_state(packet)
         case _:
-            _unknown_packet_type
+            _unknown_packet_type(packet)
 
 
 def _unknown_packet_type(packet: Packet) -> None:
@@ -163,25 +163,84 @@ def _unknown_packet_type(packet: Packet) -> None:
     raise ValueError
 
 
+"""
+Parse CSV values correctly, since they can be weird
+"""
+
+
+def _bool(value: bool | str | int | None) -> bool:
+    # Handle bool values from a CSV
+    if value is None:
+        return False
+
+    # String, could be "True" or "1" for truthy
+    if type(value) is str:
+        return value.lower() in ("true", "1")
+
+    # Integer, anything positive is truthy
+    if type(value) is int:
+        return value > 0
+
+    # Otherwise it's a boolean
+    return bool(value)
+
+
+def _float(value: bool | float | str | int | None) -> float:
+    # Handle float values from a CSV
+    # Nonetypes
+    if value is None or value == "":
+        return 0
+
+    # Attempt to cast everything else
+    try:
+        return float(value)
+    except ValueError:
+        return 0
+
+
+def _int(value: float | str | int | None) -> int:
+    # Handle integer values from a CSV
+    if value is None or value == "":
+        return 0
+
+    # Attempt everything else
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    try:
+        return int(float(value))
+    except ValueError:
+        pass
+
+    return 0
+
+
+"""
+Handle data packets
+"""
+
+
 def _handle_av_to_gcs_data_1(packet: Packet) -> None:
     data = packet.data
 
     def _gyro_capper(packet: Packet, axis: str) -> Packet:
         key = "gyro_" + axis
-        CURRENT_VALUE = float(data[key])
+        current_value = float(data[key])
 
-        ABS_THRESHOLD = 245.0
+        abs_threshold = 245.0
 
-        if CURRENT_VALUE > ABS_THRESHOLD:
+        if current_value > abs_threshold:
             slogger.error(
-                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE"
+                f"BAD {key.upper()}={current_value} ENTRY DETECTED CAPPING VALUE"
             )
-            data[key] = ABS_THRESHOLD
-        elif CURRENT_VALUE < -ABS_THRESHOLD:
+            data[key] = abs_threshold
+        elif current_value < -abs_threshold:
             slogger.error(
-                f"BAD {key.upper()}={CURRENT_VALUE} ENTRY DETECTED CAPPING VALUE"
+                f"BAD {key.upper()}={current_value} ENTRY DETECTED CAPPING VALUE"
             )
-            data[key] = -ABS_THRESHOLD
+            data[key] = -abs_threshold
         return packet
 
     # Check gyro values
@@ -193,46 +252,51 @@ def _handle_av_to_gcs_data_1(packet: Packet) -> None:
         return
 
     # Getting the flight state so its easier to convert into bits
-    flight_state = int(data["FlightState"])
     item = AVtoGCSData1(
-        RSSI=float(data["rssi"]),
-        SNR=float(data["snr"]),
-        FLIGHT_STATE_=flight_state,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
+        RSSI=_float(data["rssi"]),
+        SNR=_float(data["snr"]),
+        FLIGHT_STATE_=_int(data["FlightState"]),
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=_bool(
             data["dual_board_connectivity_state_flag"]
         ),
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=_bool(
             data["recovery_checks_complete_and_flight_ready"]
         ),
-        GPS_FIX_FLAG=bool(data["GPS_fix_flag"]),
-        PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
-        CAMERA_CONTROLLER_CONNECTION=bool(
+        GPS_FIX_FLAG=_bool(data["GPS_fix_flag"]),
+        PAYLOAD_CONNECTION_FLAG=_bool(data["payload_connection_flag"]),
+        CAMERA_CONTROLLER_CONNECTION=_bool(
             data["camera_controller_connection_flag"]
         ),
-        ACCEL_LOW_X=int(float(data["accel_low_x"]) / 9.81 * 2048),
-        ACCEL_LOW_Y=int(float(data["accel_low_y"]) / 9.81 * 2048),
-        ACCEL_LOW_Z=int(float(data["accel_low_z"]) / 9.81 * 2048),
-        ACCEL_HIGH_X=int(float(data["accel_high_x"]) / 9.81 * -1048),
-        ACCEL_HIGH_Y=int(float(data["accel_high_y"]) / 9.81 * -1048),
-        ACCEL_HIGH_Z=int(float(data["accel_high_z"]) / 9.81 * 1048),
-        GYRO_X=int((float(data["gyro_x"])) / 0.00875),
-        GYRO_Y=int((float(data["gyro_y"])) / 0.00875),
-        GYRO_Z=int((float(data["gyro_z"])) / 0.00875),
-        ALTITUDE=float(data["altitude"]),
-        VELOCITY=float(data["velocity"]),
-        APOGEE_PRIMARY_TEST_COMPETE=bool(data["apogee_primary_test_complete"]),
-        APOGEE_SECONDARY_TEST_COMPETE=bool(
+        ACCEL_LOW_X=_int(_float(data["accel_low_x"]) * 1024),  # / 9.81 * 2048),
+        ACCEL_LOW_Y=_int(_float(data["accel_low_y"]) * 1024),  # / 9.81 * 2048),
+        ACCEL_LOW_Z=_int(_float(data["accel_low_z"]) * 1024),  # / 9.81 * 2048),
+        ACCEL_HIGH_X=_int(
+            _float(data["accel_high_x"]) * 1024
+        ),  # / 9.81 * -1048),
+        ACCEL_HIGH_Y=_int(
+            _float(data["accel_high_y"]) * 1024
+        ),  # / 9.81 * -1048),
+        ACCEL_HIGH_Z=_int(
+            _float(data["accel_high_z"]) * 1024
+        ),  # / 9.81 * 1048),
+        GYRO_X=_int((_float(data["gyro_x"])) / 0.00875),
+        GYRO_Y=_int((_float(data["gyro_y"])) / 0.00875),
+        GYRO_Z=_int((_float(data["gyro_z"])) / 0.00875),
+        ALTITUDE=_int(data["altitude"]),
+        VELOCITY=_int(data["velocity"]),
+        APOGEE_PRIMARY_TEST_COMPETE=_bool(data["apogee_primary_test_complete"]),
+        APOGEE_SECONDARY_TEST_COMPETE=_bool(
             data["apogee_secondary_test_complete"]
         ),
-        APOGEE_PRIMARY_TEST_RESULTS=bool(data["apogee_primary_test_results"]),
-        APOGEE_SECONDARY_TEST_RESULTS=bool(
+        APOGEE_PRIMARY_TEST_RESULTS=_bool(data["apogee_primary_test_results"]),
+        APOGEE_SECONDARY_TEST_RESULTS=_bool(
             data["apogee_secondary_test_results"]
         ),
-        MAIN_PRIMARY_TEST_COMPETE=bool(data["main_primary_test_complete"]),
-        MAIN_SECONDARY_TEST_COMPETE=bool(data["main_secondary_test_complete"]),
-        MAIN_PRIMARY_TEST_RESULTS=bool(data["main_primary_test_results"]),
-        MAIN_SECONDARY_TEST_RESULTS=bool(data["main_secondary_test_results"]),
-        MOVE_TO_BROADCAST=bool(data["broadcast_flag"]),
+        MAIN_PRIMARY_TEST_COMPETE=_bool(data["main_primary_test_complete"]),
+        MAIN_SECONDARY_TEST_COMPETE=_bool(data["main_secondary_test_complete"]),
+        MAIN_PRIMARY_TEST_RESULTS=_bool(data["main_primary_test_results"]),
+        MAIN_SECONDARY_TEST_RESULTS=_bool(data["main_secondary_test_results"]),
+        MOVE_TO_BROADCAST=_bool(data["broadcast_flag"]),
     )
     item.write_payload()
 
@@ -242,28 +306,28 @@ def _handle_av_to_gcs_data_2(packet: Packet) -> None:
     if service_helper.time_to_stop():
         return
     # Get flight state
-    flight_state = int(data["FlightState"])
     item = AVtoGCSData2(
-        RSSI=float(data["rssi"]),
-        SNR=float(data["snr"]),
-        FLIGHT_STATE_=flight_state,
-        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=bool(
+        RSSI=_float(data["rssi"]),
+        SNR=_float(data["snr"]),
+        FLIGHT_STATE_=_int(data["FlightState"]),
+        DUAL_BOARD_CONNECTIVITY_STATE_FLAG=_bool(
             data["dual_board_connectivity_state_flag"]
         ),
-        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=bool(
+        RECOVERY_CHECK_COMPLETE_AND_FLIGHT_READY=_bool(
             data["recovery_checks_complete_and_flight_ready"]
         ),
-        GPS_FIX_FLAG=bool(data["GPS_fix_flag"]),
-        PAYLOAD_CONNECTION_FLAG=bool(data["payload_connection_flag"]),
-        CAMERA_CONTROLLER_CONNECTION=bool(
+        GPS_FIX_FLAG=_bool(data["GPS_fix_flag"]),
+        PAYLOAD_CONNECTION_FLAG=_bool(data["payload_connection_flag"]),
+        CAMERA_CONTROLLER_CONNECTION=_bool(
             data["camera_controller_connection_flag"]
         ),
-        LATITUDE=float(data["GPS_latitude"]),
-        LONGITUDE=float(data["GPS_longitude"]),
-        QW=float(data["qw"]),
-        QX=float(data["qz"]),
-        QY=float(data["qx"]),
-        QZ=float(data["qy"]),
+        LATITUDE=_float(data["GPS_latitude"]),
+        LONGITUDE=_float(data["GPS_longitude"]),
+        NAV_STATUS=data["navigationStatus"],
+        QW=_int(_float(data["qw"]) * 32768),
+        QX=_int(_float(data["qz"]) * 32768),
+        QY=_int(_float(data["qx"]) * 32768),
+        QZ=_int(_float(data["qy"]) * 32768),
     )
     item.write_payload()
 
@@ -279,16 +343,16 @@ def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
     item = GSEtoGCSData1(
         RSSI=float(data["rssi"]),
         SNR=float(data["snr"]),
-        MANUAL_PURGED=bool(data["manual_purge_activated"]),
-        O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
+        MANUAL_PURGED=bool(int(data["manual_purge_activated"])),
+        O2_FILL_ACTIVATED=bool(int(data["o2_fill_activated"])),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(
             data["selector_switch_neutral_position"]
         ),
-        N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
-        IGNITION_FIRED=bool(data["ignition_fired"]),
-        IGNITION_SELECTED=bool(data["ignition_selected"]),
-        GAS_FILL_SELECTED=bool(data["gas_fill_selected"]),
-        SYSTEM_ACTIVATED=bool(data["system_activated"]),
+        N2O_FILL_ACTIVATED=bool(int(data["n20_fill_activated"])),
+        IGNITION_FIRED=bool(int(data["ignition_fired"])),
+        IGNITION_SELECTED=bool(int(data["ignition_selected"])),
+        GAS_FILL_SELECTED=bool(int(data["gas_fill_selected"])),
+        SYSTEM_ACTIVATED=bool(int(data["system_activated"])),
         TRANSDUCER1=float(data["transducer_1"]),
         TRANSDUCER2=float(data["transducer_2"]),
         TRANSDUCER3=float(data["transducer_3"]),
@@ -296,22 +360,22 @@ def _handle_gse_to_gcs_data_1(packet: Packet) -> None:
         THERMOCOUPLE2=float(data["thermocouple_2"]),
         THERMOCOUPLE3=float(data["thermocouple_3"]),
         THERMOCOUPLE4=float(data["thermocouple_4"]),
-        IGNITION_ERROR=bool(data["ignition_error"]),
-        RELAY3_ERROR=bool(data["relay_3_error"]),
-        RELAY2_ERROR=bool(data["relay_2_error"]),
-        RELAY1_ERROR=bool(data["relay_1_error"]),
-        THERMOCOUPLE_4_ERROR=bool(data["thermocouple_4_error"]),
-        THERMOCOUPLE_3_ERROR=bool(data["thermocouple_3_error"]),
-        THERMOCOUPLE_2_ERROR=bool(data["thermocouple_2_error"]),
-        THERMOCOUPLE_1_ERROR=bool(data["thermocouple_1_error"]),
-        LOAD_CELL_4_ERROR=bool(data["load_cell_4_error"]),
-        LOAD_CELL_3_ERROR=bool(data["load_cell_3_error"]),
-        LOAD_CELL_2_ERROR=bool(data["load_cell_2_error"]),
-        LOAD_CELL_1_ERROR=bool(data["load_cell_1_error"]),
-        TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
-        TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
-        TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
-        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"]),
+        IGNITION_ERROR=bool(int(data["ignition_error"])),
+        RELAY3_ERROR=bool(int(data["relay_3_error"])),
+        RELAY2_ERROR=bool(int(data["relay_2_error"])),
+        RELAY1_ERROR=bool(int(data["relay_1_error"])),
+        THERMOCOUPLE_4_ERROR=bool(int(data["thermocouple_4_error"])),
+        THERMOCOUPLE_3_ERROR=bool(int(data["thermocouple_3_error"])),
+        THERMOCOUPLE_2_ERROR=bool(int(data["thermocouple_2_error"])),
+        THERMOCOUPLE_1_ERROR=bool(int(data["thermocouple_1_error"])),
+        LOAD_CELL_4_ERROR=bool(int(data["load_cell_4_error"])),
+        LOAD_CELL_3_ERROR=bool(int(data["load_cell_3_error"])),
+        LOAD_CELL_2_ERROR=bool(int(data["load_cell_2_error"])),
+        LOAD_CELL_1_ERROR=bool(int(data["load_cell_1_error"])),
+        TRANSDUCER_4_ERROR=bool(int(data["transducer_4_error"])),
+        TRANSDUCER_3_ERROR=bool(int(data["transducer_3_error"])),
+        TRANSDUCER_2_ERROR=bool(int(data["transducer_2_error"])),
+        TRANSDUCER_1_ERROR=bool(int(data["transducer_1_error"])),
     )
     item.write_payload()
 
@@ -323,16 +387,16 @@ def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
     item = GSEtoGCSData2(
         RSSI=float(data["rssi"]),
         SNR=float(data["snr"]),
-        MANUAL_PURGED=bool(data["manual_purge_activated"]),
-        O2_FILL_ACTIVATED=bool(data["o2_fill_activated"]),
+        MANUAL_PURGED=bool(int(data["manual_purge_activated"])),
+        O2_FILL_ACTIVATED=bool(int(data["o2_fill_activated"])),
         SELECTOR_SWITCH_NEUTRAL_POSITION=bool(
             data["selector_switch_neutral_position"]
         ),
-        N2O_FILL_ACTIVATED=bool(data["n20_fill_activated"]),
-        IGNITION_FIRED=bool(data["ignition_fired"]),
-        IGNITION_SELECTED=bool(data["ignition_selected"]),
-        GAS_FILL_SELECTED=bool(data["gas_fill_selected"]),
-        SYSTEM_ACTIVATED=bool(data["system_activated"]),
+        N2O_FILL_ACTIVATED=bool(int(data["n20_fill_activated"])),
+        IGNITION_FIRED=bool(int(data["ignition_fired"])),
+        IGNITION_SELECTED=bool(int(data["ignition_selected"])),
+        GAS_FILL_SELECTED=bool(int(data["gas_fill_selected"])),
+        SYSTEM_ACTIVATED=bool(int(data["system_activated"])),
         INTERNAL_TEMPERATURE=float(data["internal_temp"]),
         WIND_SPEED=float(data["wind_speed"]),
         GAS_BOTTLE_WEIGHT_1=int(data["gas_bottle_weight_1"]),
@@ -341,22 +405,22 @@ def _handle_gse_to_gcs_data_2(packet: Packet) -> None:
         ADDITIONAL_VA_2=float(data["analog_voltage_input_2"]),
         ADDITIONAL_CURRENT_1=float(data["additional_current_input_1"]),
         ADDITIONAL_CURRENT_2=float(data["additional_current_input_2"]),
-        IGNITION_ERROR=bool(data["ignition_error"]),
-        RELAY3_ERROR=bool(data["relay_3_error"]),
-        RELAY2_ERROR=bool(data["relay_2_error"]),
-        RELAY1_ERROR=bool(data["relay_1_error"]),
-        THERMOCOUPLE_4_ERROR=bool(data["thermocouple_4_error"]),
-        THERMOCOUPLE_3_ERROR=bool(data["thermocouple_3_error"]),
-        THERMOCOUPLE_2_ERROR=bool(data["thermocouple_2_error"]),
-        THERMOCOUPLE_1_ERROR=bool(data["thermocouple_1_error"]),
-        LOAD_CELL_4_ERROR=bool(data["load_cell_4_error"]),
-        LOAD_CELL_3_ERROR=bool(data["load_cell_3_error"]),
-        LOAD_CELL_2_ERROR=bool(data["load_cell_2_error"]),
-        LOAD_CELL_1_ERROR=bool(data["load_cell_1_error"]),
-        TRANSDUCER_4_ERROR=bool(data["transducer_4_error"]),
-        TRANSDUCER_3_ERROR=bool(data["transducer_3_error"]),
-        TRANSDUCER_2_ERROR=bool(data["transducer_2_error"]),
-        TRANSDUCER_1_ERROR=bool(data["transducer_1_error"]),
+        IGNITION_ERROR=bool(int(data["ignition_error"])),
+        RELAY3_ERROR=bool(int(data["relay_3_error"])),
+        RELAY2_ERROR=bool(int(data["relay_2_error"])),
+        RELAY1_ERROR=bool(int(data["relay_1_error"])),
+        THERMOCOUPLE_4_ERROR=bool(int(data["thermocouple_4_error"])),
+        THERMOCOUPLE_3_ERROR=bool(int(data["thermocouple_3_error"])),
+        THERMOCOUPLE_2_ERROR=bool(int(data["thermocouple_2_error"])),
+        THERMOCOUPLE_1_ERROR=bool(int(data["thermocouple_1_error"])),
+        LOAD_CELL_4_ERROR=bool(int(data["load_cell_4_error"])),
+        LOAD_CELL_3_ERROR=bool(int(data["load_cell_3_error"])),
+        LOAD_CELL_2_ERROR=bool(int(data["load_cell_2_error"])),
+        LOAD_CELL_1_ERROR=bool(int(data["load_cell_1_error"])),
+        TRANSDUCER_4_ERROR=bool(int(data["transducer_4_error"])),
+        TRANSDUCER_3_ERROR=bool(int(data["transducer_3_error"])),
+        TRANSDUCER_2_ERROR=bool(int(data["transducer_2_error"])),
+        TRANSDUCER_1_ERROR=bool(int(data["transducer_1_error"])),
     )
     item.write_payload()
 
@@ -386,12 +450,11 @@ def validate_timeout_skip(packet: Packet, min_timeout_ms: int) -> int:
     return min_timeout_ms
 
 
-def get_mission_path():
-    base_path = os.path.join("backend", "replay_system", "mission_data")
-    return base_path
+def get_mission_path() -> os.PathLike:
+    return os.path.join("backend", "replay_system", "mission_data")
 
 
-def main():
+def main() -> None:
     # Using parser because there's too many arguments and I couldn't get sys working
     parser = argparse.ArgumentParser()
     parser.add_argument("--device-rocket", required=True)
@@ -448,13 +511,11 @@ def main():
                     "--mission requires also providing either the --mission or --blue-raven flag"
                 )
         else:
-            from backend.simulation.run_simulation import get_replay_sim_data
-
             if not args.simulation:
                 raise ValueError(
                     "No simulation was selected, required for simulation mode"
                 )
-            if args.simulation != "TEST" and args.simulation != "DEMO":
+            if args.simulation not in {"TEST", "DEMO"}:
                 raise NotImplementedError(
                     f"The simulation mode: {args.simulation} has not been implemented yet"
                 )
@@ -489,19 +550,19 @@ def main():
             replay_packets(processed_packets, valid_timeout)
             slogger.info("FINISHED SENDING PACKETS")
     except ValueError as ve:
-        slogger.error(f"Value Error in replay system: {str(ve)}")
+        slogger.error(f"Value Error in replay system: {ve!s}")
         raise
 
     except FileNotFoundError as fe:
-        slogger.error(f"File not found: {str(fe)}")
+        slogger.error(f"File not found: {fe!s}")
         raise
 
     except NotImplementedError as nie:
-        slogger.error(f"Feature has not been implemented: {str(nie)}")
+        slogger.error(f"Feature has not been implemented: {nie!s}")
         raise
 
     except Exception as e:
-        slogger.error(f"Something has gone wrong: {str(e)}")
+        slogger.error(f"Something has gone wrong: {e!s}")
         raise
 
 

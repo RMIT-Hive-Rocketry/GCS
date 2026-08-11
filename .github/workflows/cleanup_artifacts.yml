@@ -1,0 +1,13 @@
+name: Cleanup Artifacts
+
+on:
+    workflow_dispatch:
+
+jobs:
+    cleanup:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v6
+            -   run: bash scripts/cleanup_artifacts.sh
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

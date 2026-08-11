@@ -7,7 +7,7 @@ import sys
 def start_frontend_api(
     logger: logging.Logger,
     sub_socket_path: str,
-    performance_logging: process.RunningProcess = None,
+    performance_logging: process.RunningProcess | None = None,
 ) -> None:
     service_name = "frontend_api"
     try:
@@ -41,4 +41,4 @@ def start_frontend_api(
         logger.error(
             f"An error occurred while starting the rocket {service_name} {e}"
         )
-        return None, None
+        return

@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
   gcs_state.set_gse_only_mode(args.gse_only_mode);
 
   std::shared_ptr<RadioInterface> interface_gse =
-      create_interface(args.gse_type, args.gse_path);
+      create_interface(args.gse_type, args.gse_path, args.lora_cfg);
   interface_gse->initialize();
   slogger::info("Interface [GSE] initialised with type: " + args.gse_type);
 

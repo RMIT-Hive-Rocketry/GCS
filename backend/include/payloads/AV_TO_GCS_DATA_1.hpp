@@ -213,8 +213,8 @@ class AV_TO_GCS_DATA_1 {
   }
 
  private:
-  static float calc_low_accel_xy_(int16_t val) { return val / 2048.0f; }
-  static float calc_low_accel_z_(int16_t val) { return val / -2048.0f; }
+  static float calc_low_accel_xy_(int16_t val) { return val / 1024.0f; }
+  static float calc_low_accel_z_(int16_t val) { return val / -1024.0f; }
   static float calc_high_accel_xy_(int16_t val) { return val / -1024.0f; }
   static float calc_high_accel_z_(int16_t val) { return val / 1024.0f; }
   static float calc_gyro_(int16_t val) { return val * 0.00875f; }

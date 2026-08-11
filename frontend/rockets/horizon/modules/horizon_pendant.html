@@ -20,22 +20,10 @@
                 <img src="/img/pendant/hybrid-off.png" alt="Pendant base" />
                 <img src="/img/pendant/hybrid-system-active.png" data-key="pendant.hybrid.SYSTEM_ACTIVATE"
                     class="hidden" alt="System active" />
-                <!--<img
-                    src="/img/pendant/hybrid-standby.png"
-                    data-key="pendant.hybrid.STANDBY"
-                    class="hidden"
-                    alt="Standby"
-                />-->
                 <img src="/img/pendant/hybrid-fill.png" data-key="pendant.hybrid.GAS_FILL_SELECTED" class="hidden"
                     alt="Fill mode" />
                 <img src="/img/pendant/hybrid-fill-N2O.png" data-key="pendant.hybrid.N2O_FILL_ACTIVATE" class="hidden"
                     alt="N2O fill" />
-                <!--<img
-                    src="/img/pendant/hybrid-fill-neutral.png"
-                    data-key="pendant.hybrid.SELECTOR_SWITCH_NEUTRAL_POSITION"
-                    class="hidden"
-                    alt="Fill neutral"
-                />-->
                 <img src="/img/pendant/hybrid-fill-purge.png" data-key="pendant.hybrid.MANUAL_PURGE" class="hidden"
                     alt="Purge" />
                 <img src="/img/pendant/hybrid-armed.png" data-key="pendant.hybrid.IGNITION_SELECTED" class="hidden"
@@ -68,14 +56,15 @@
                 <ul class="pendant-input-list">
                     <li data-state-check="SYSTEM_ACTIVATE"><span class="dot"></span>System Active</li>
                     <li data-state-check="GAS_FILL_SELECTED"><span class="dot"></span>Fill Mode Selected</li>
-                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION"><span class="dot"></span>Fill Selector
+                    <li data-state-check="N2O_FILL_ACTIVATE" class="ml-4"><span class="dot"></span>N₂O Fill Active</li>
+                    <li data-state-check="SELECTOR_SWITCH_NEUTRAL_POSITION" class="ml-4"><span class="dot"></span>Fill
+                        Selector
                         Neutral</li>
-                    <li data-state-check="N2O_FILL_ACTIVATE"><span class="dot"></span>N₂O Fill Active</li>
-                    <li data-state-check="MANUAL_PURGE"><span class="dot"></span>Manual Purge</li>
+                    <li data-state-check="MANUAL_PURGE" class="ml-4"><span class="dot"></span>Manual Purge</li>
                     <li data-state-check="IGNITION_SELECTED"><span class="dot"></span>Armed</li>
-                    <li data-state-check="O2_FILL_ACTIVATE"><span class="dot"></span>O₂ Fill Active</li>
-                    <li data-state-check="IGNITION_FIRE"><span class="dot"></span>Ignition Fire</li>
-                    <li data-state-check="E_STOP" class="estop"><span class="dot"></span>E-STOP</li>
+                    <li data-state-check="O2_FILL_ACTIVATE" class="ml-4"><span class="dot"></span>O₂ Fill Active</li>
+                    <li data-state-check="IGNITION_FIRE" class="ml-4"><span class="dot"></span>Ignition Fire</li>
+                    <li data-state-check="E_STOP" class="estop" class="ml-4"><span class="dot"></span>E-STOP</li>
                 </ul>
             </div>
         </aside>
@@ -83,7 +72,7 @@
         <!-- Console row -->
         <div class="pendant-console">
             <div class="pendant-section-label console-header">Event Log</div>
-            <div class="console-log" data-console-log></div>
+            <div class="console-log flex flex-col justify-end" data-console-log></div>
         </div>
     </div>
 </div>
@@ -379,12 +368,12 @@
         OFF: { label: "OFF", cls: "phase-off" },
         STANDBY: { label: "STANDBY", cls: "phase-standby" },
         FILL_NEUTRAL: { label: "FILL - NEUTRAL", cls: "phase-fill-neutral" },
-        FILL_N2O:     { label: "FILL - N₂O",    cls: "phase-fill-n2o"     },
-        PURGE:        { label: "PURGE",              cls: "phase-purge"        },
-        ARMED:        { label: "ARMED",              cls: "phase-armed"        },
-        ARMED_O2:     { label: "O₂ FILL",   cls: "phase-armed-o2"     },
-        IGNITION:     { label: "IGNITION",           cls: "phase-ignition"     },
-        ESTOP:        { label: "E-STOP",             cls: "phase-estop"        },
+        FILL_N2O: { label: "FILL - N₂O", cls: "phase-fill-n2o" },
+        PURGE: { label: "PURGE", cls: "phase-purge" },
+        ARMED: { label: "ARMED", cls: "phase-armed" },
+        ARMED_O2: { label: "O₂ FILL", cls: "phase-armed-o2" },
+        IGNITION: { label: "IGNITION", cls: "phase-ignition" },
+        E_STOP: { label: "E-STOP", cls: "phase-estop" },
     };
 
     // This is the "priority order" of phases, since multiple can be true at once
@@ -458,6 +447,10 @@
 
         const new_pendant_state = [];
 
+        if (apiData["E_STOP"]) {
+            apiData["STANDBY"] = false;
+        }
+
         for (const state in apiData) {
             if (
                 typeof apiData[state] === "boolean" &&
@@ -496,9 +489,13 @@
         const info = PENDANT_PHASE_INFO[phase];
 
         const phaseEl = document.querySelector("[data-pendant-phase]");
-        if (phaseEl) {
+        if (phaseEl !== undefined) {
             phaseEl.textContent = info.label;
             phaseEl.className = "pendant-phase-value " + info.cls;
+        }
+
+        if (apiData.GAS_FILL_SELECTED === false) {
+            apiData.SELECTOR_SWITCH_NEUTRAL_POSITION = false;
         }
 
         // Update the per-input dots

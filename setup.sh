@@ -78,15 +78,11 @@ install_protobuf() {
 
     # Create temp directory for protobuf if it doesn't exist
     if [ -d "$HOME/protobuf" ]; then
-        echo "Warning: $HOME/protobuf directory already exists."
-
-        if ask "Do you want to remove it and continue with installation?"; then
-            rm -rf "$HOME/protobuf"
+        if [ "${CI_PROTOBUF_CACHED:-0}" = "1" ]; then
+            echo "Using cached protobuf source at $HOME/protobuf"
         else
             echo "Warning: $HOME/protobuf directory already exists."
-            read -p "Do you want to remove it and continue with installation? (y/n): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
+            if ask "Do you want to remove it and continue with installation?"; then
                 rm -rf "$HOME/protobuf"
             else
                 echo "Skipping protobuf installation."
@@ -95,10 +91,12 @@ install_protobuf() {
         fi
     fi
 
-    git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
-    if [ $? -ne 0 ]; then
-        error "Error: Failed to clone protobuf repository."
-        return 1
+    if [ ! -d "$HOME/protobuf" ]; then
+        git clone https://github.com/protocolbuffers/protobuf.git "$HOME/protobuf"
+        if [ $? -ne 0 ]; then
+            error "Error: Failed to clone protobuf repository."
+            return 1
+        fi
     fi
 
     cd "$HOME/protobuf"

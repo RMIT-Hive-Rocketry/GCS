@@ -52,11 +52,11 @@ class LoggedSubProcess:
     """Object to manage subprocess called by this CLI with centralised logging"""
 
     # All instances of this class.
-    _instances = []
+    _instances: list["LoggedSubProcess"] = []
     # Flag to control cleanup behavior. True means it will cleanup automatically
     _auto_cleanup = True
     # How long to wait for the process to finish before killing it
-    CLEANUP_TIMEOUT_S = 3
+    CLEANUP_TIMEOUT_S = 1
 
     def __init__(
         self,
@@ -140,10 +140,17 @@ class LoggedSubProcess:
         self._stderr_thread.start()
 
     def stop(self) -> None:
-        """Stop the subprocess"""
+        """Stop the subprocess, kill it if it times out. Waits until completion."""
         if self._process and self._process.returncode is None:
-            self._process.terminate()
-            self._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
+            try:
+                self._process.terminate()
+                self._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
+            except Exception as _:
+                self._logger_adapter.error(
+                    msg=f"Failed to stop subprocess {self._name} gracefully, escalating to kill"
+                )
+                self._process.kill()
+                self._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
             self._logger_adapter.info(
                 f"Stopped subprocess: {self._name} (PID: {self._process.pid})"
             )
@@ -309,7 +316,6 @@ class LoggedSubProcess:
         shutdown_order = list(reversed(cls._instances))
         for instance in shutdown_order:
             instance.stop()
-            instance._process.wait(LoggedSubProcess.CLEANUP_TIMEOUT_S)
 
 
 class ERRLoggedSubProcess(LoggedSubProcess):

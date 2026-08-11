@@ -102,7 +102,7 @@ class AV_TO_GCS_DATA_2 {
     proto_data.set_allocated_meta(packet_meta);
 
     // Use the macro for simple fields with same name
-    // proto_data.set_flightstate(flight_state_);
+    proto_data.set_flightstate(flight_state_);
 
     common::AVStateFlags* state_flags = new common::AVStateFlags();
     SET_SUB_PROTO_FIELD(state_flags, dual_board_connectivity_state_flag);

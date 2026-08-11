@@ -5,7 +5,6 @@ from backend.includes_python.devices.pendant_state import (
 )
 from backend.includes_python.devices.pygame_device import PygameDevice
 import backend.includes_python.process_logging as slogger
-from typing import List
 import pygame
 import time
 
@@ -16,7 +15,7 @@ class EmulatedDevice(PygameDevice):
     Based on the PygameDevice class, even though it doesn't actually use Pygame
     """
 
-    BUTTON_NAME_ID_MAP = {
+    BUTTON_NAME_ID_MAP: dict[PendantInput, int] = {
         PendantInput.SYSTEM_ACTIVE: 0,
         PendantInput.E_STOP: 5,
         PendantInput.FILL_MODE: 6,
@@ -29,7 +28,7 @@ class EmulatedDevice(PygameDevice):
 
     CONTROLLER_NAME = "EMULATED USB CONTROLLER - FOR TESTING ONLY"
 
-    BUTTON_SEQUENCE: List[List[PendantInput]] = [
+    BUTTON_SEQUENCE: list[list[PendantInput]] = [
         [],
         [PendantInput.SYSTEM_ACTIVE],
         [PendantInput.SYSTEM_ACTIVE, PendantInput.FILL_MODE],
