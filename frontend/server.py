@@ -13,7 +13,6 @@ from os import path as os_path
 import backend.includes_python.process_logging as slogger
 from config import config
 
-
 valid_file_extensions = (
     ".css",
     ".js",  # CSS, JavaScript
@@ -62,11 +61,12 @@ def create_app() -> Flask:
 
         # Check for config override via URL parameter
         rocket = request.args.get("rocket", "default")
-        if rocket is not None:
-            for r in app.config.get("rockets"):
-                if r.name == rocket:
-                    active = r.configs[0]
-                    name = r.name
+        rocket_configs = app.config.get("rockets")
+        if rocket is not None and rocket_configs is not None:
+            for rc in rocket_configs:
+                if rc.name == rocket:
+                    active = rc.configs[0]
+                    name = rc.name
                     break
 
         return render_template(
@@ -77,50 +77,18 @@ def create_app() -> Flask:
             websocket=websocket,
         )
 
-        # Generate positional classes for modules
-        grid = set()
-        for module in app.config["MODULES"]:
-            # All modules are hidden by default
-            class_list = {"module", "hidden"}
-
-            # For each module, update visibility and position for each page
-            for page in app.config["MODULES"][module]["pages"]:
-                # Encode position and size in grid
-                cols = "{}-c-{}-{}".format(page[0], page[1], page[3])
-                rows = "{}-r-{}-{}".format(page[0], page[2], page[4])
-
-                # Add classes to grid
-                grid.add("#{} .{}".format(page[0], cols))
-                grid.add("#{} .{}".format(page[0], rows))
-
-                # Add classes to module
-                class_list.add(page[0])
-                class_list.add(cols)
-                class_list.add(rows)
-
-            # Assign generated classes to module
-            app.config["MODULES"][module]["classes"] = " ".join(class_list)
-
-        # Add optimised grid to CSS
-        for grid_class in grid:
-            grid_type, grid_start, grid_span = grid_class.split("-")[-3:]
-            app.config["CSS"] += "\n{} {{grid-{}: {} / span {};}} ".format(
-                grid_class,
-                "column" if grid_type == "c" else "row",
-                int(grid_start) + 1,
-                grid_span,
-            )
-
-        # Render the page
-        return render_template("layout.html", config=app.config)
+    """
+    Static file loading
+    """
 
     # Serve static files and HTML pages
     @app.route("/<path:filename>")
     def serve_html(filename) -> Response:
         # Make sure rocket assets are loaded from a different directory
         file_directory = dir_static
-        if filename.startswith(
-            tuple([r.name for r in app.config.get("rockets")])
+        rocket_configs = app.config.get("rockets")
+        if rocket_configs is not None and filename.startswith(
+            tuple([rc.name for rc in rocket_configs])
         ):
             file_directory = dir_rockets
 
@@ -128,9 +96,11 @@ def create_app() -> Flask:
         filepath = os_path.join(file_directory, filename)
 
         # Load files with valid extensions
-        if filename.endswith(file_extensions) and os.path.isfile(filepath):
-            slogger.debug(f"Serving static file: {filename}")
-            return send_from_directory(static_dir, filename)
+        if filename.endswith(valid_file_extensions) and os_path.isfile(
+            filepath
+        ):
+            # slogger.debug(f"Serving static file: {filename}")
+            return send_from_directory(file_directory, filename)
 
         # Attempt to load filename as .html (so suffix isn't always required)
         if os_path.isfile(filepath + ".html"):
@@ -140,11 +110,11 @@ def create_app() -> Flask:
         # 404 page not found
         slogger.warning(f"404 not found: {filename}")
         abort(404)
+        return None
 
-    # Debugging
-    @app.route("/debug/api")
-    def debug_api():
-        return render_template("debug_api.html")
+    """
+    Debugging
+    """
 
     # Debug rocket loading
     @app.route("/debug/rockets")

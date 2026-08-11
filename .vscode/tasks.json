@@ -466,7 +466,10 @@
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
-            }
+            },
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
         },
         {
             "label": "Run Simulation",
@@ -565,6 +568,24 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             }
+        },
+        {
+            "label": "rsync send code to pi",
+            "type": "shell",
+            "command": "rsync",
+            "args": [
+                "-a",
+                "--exclude='.venv'",
+                "--exclude='.pytest_cache'",
+                "--exclude='build-debug'",
+                "--exclude='build-release'",
+                ".",
+                "soteria@rmitgcsserver.local:~/GCS-2026"
+            ],
+            "icon": {
+                "id": "debug-console"
+            },
+            "problemMatcher": []
         }
     ],
     "inputs": [

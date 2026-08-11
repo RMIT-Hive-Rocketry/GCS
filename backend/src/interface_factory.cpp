@@ -7,6 +7,7 @@
 #include "test_interface.hpp"
 #include "test_uart_e5_interface.hpp"
 #include "uart_e5_interface.hpp"
+#include "uart_feather_interface.hpp"
 
 namespace {
 
@@ -48,8 +49,9 @@ std::pair<std::string, uint16_t> parse_tcp_endpoint(
 std::shared_ptr<RadioInterface> create_interface(
     const std::string& INTERFACE_NAME, const std::string& DEVICE_PATH) {
   // If you are using UART for E5 you need the config. This is the wrong call
-  if (INTERFACE_NAME.find("UART_E5") != std::string::npos) {
-    throw std::runtime_error("UART E5 interface needs a lora config");
+  if (INTERFACE_NAME.find("UART_E5") != std::string::npos ||
+      INTERFACE_NAME == "UART_FEATHER") {
+    throw std::runtime_error("UART E5/Feather interface needs a lora config");
   }
   // Otherwise you can pass a blank because it is ignored
   return create_interface(INTERFACE_NAME, DEVICE_PATH, {});
@@ -66,6 +68,8 @@ std::shared_ptr<RadioInterface> create_interface(
 
   if (INTERFACE_NAME == "UART_E5") {
     interface = std::make_shared<UartE5Interface>(lora_cfg, DEVICE_PATH);
+  } else if (INTERFACE_NAME == "UART_FEATHER") {
+    interface = std::make_shared<UartFeatherInterface>(lora_cfg, DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST") {
     interface = std::make_shared<TestInterface>(DEVICE_PATH);
   } else if (INTERFACE_NAME == "TEST_UART_E5") {
@@ -81,6 +85,6 @@ std::shared_ptr<RadioInterface> create_interface(
 }
 
 bool is_valid_interface_type(const std::string& name) {
-  return name == "UART_E5" || name == "TEST" || name == "TEST_UART_E5" ||
-         name == "TCP";
+  return name == "UART_E5" || name == "UART_FEATHER" || name == "TEST" ||
+         name == "TEST_UART_E5" || name == "TCP";
 }

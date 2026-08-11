@@ -10,7 +10,7 @@ def start_fake_serial_device_emulator(
     interface_type: start_middleware.InterfaceType,
     experimental: bool,
     corruption: bool,
-    performance_logging: process.RunningProcess = None,
+    performance_logging: process.RunningProcess | None = None,
 ) -> None:
     service_name = "device emulator"
     try:

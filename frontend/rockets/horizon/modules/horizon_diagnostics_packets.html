@@ -5,27 +5,49 @@
     </div>
 
     <!-- AV radio -->
-    <div class="flex flex-col px-3 py-2.5 rounded-lg gap-2 shrink-0"
-         style="background:rgba(0,0,0,0.3); border:1px solid rgba(158,25,60,0.6);">
-        <div class="flex items-center gap-2">
-            <div
-                id="diag-av-indicator"
-                style="width:1.25rem; height:0.75rem; border-radius:9999px; flex-shrink:0;
-                    background:#ef4444; box-shadow:0 0 6px #ef4444;"
-            ></div>
-            <span class="font-bold text-sm tracking-wide"
-                  style="color:var(--color-horizon-yellow,#f59e0b);">AV</span>
+    <div id="diag-av-card" class="flex flex-col px-3 py-2 rounded-xl gap-1 shrink-0" style="
+    background:linear-gradient(180deg, rgba(12,12,16,0.9), rgba(4,4,8,0.9));
+    border:1px solid rgba(255,45,105,0.65);
+    box-shadow:0 0 8px rgba(255,45,105,0.15);
+">
+        <div class="flex items-center gap-2 mb-1">
+            <div id="diag-av-indicator" style="
+            width:10px;
+            height:10px;
+            border-radius:50%;
+            flex-shrink:0;
+            background:#ef4444;
+            box-shadow:0 0 6px #ef4444;
+        "></div>
+            <span class="font-bold" style="color:var(--color-horizon-yellow,#f59e0b); font-size:0.95rem;">AV</span>
         </div>
-        <div class="flex gap-4 text-xs" style="color:rgba(255,255,255,0.35); letter-spacing:0.04em;">
-            <span style="position:relative; bottom:4px;">RSSI: <input data-key="meta.av.rssi" data-precision="0" readonly autocomplete="off"
-                class="bg-transparent border-0 outline-none text-center w-8"
-                style="color:white; font-weight:700; background:rgba(255,255,255,0.07); border-radius:4px;" size="4" /></span>
-            <span style="position:relative; bottom:4px;">SNR: <input data-key="meta.av.snr" data-precision="0" readonly autocomplete="off"
-                class="bg-transparent border-0 outline-none text-center w-6"
-                style="color:white; font-weight:700; background:rgba(255,255,255,0.07); border-radius:4px;" size="3" /></span>
-            <span style="position:relative; bottom:4px;">Updates: <input data-key="meta.av.packets" data-precision="0" readonly autocomplete="off"
-                class="bg-transparent border-0 outline-none text-center w-14"
-                style="color:white; font-weight:700; background:rgba(255,255,255,0.07); border-radius:4px;" size="8" /></span>
+
+        <div style="
+        display:grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 4px;
+    ">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">RSSI</span>
+                <input data-key="meta.av.rssi" data-precision="0" readonly autocomplete="off"
+                    class="bg-transparent border-0 outline-none p-0"
+                    style="font-family:inherit; font-size:0.9rem; color:rgba(255,255,255,0.85); width:100%;" />
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">SNR</span>
+                <input data-key="meta.av.snr" data-precision="0" readonly autocomplete="off"
+                    class="bg-transparent border-0 outline-none p-0"
+                    style="font-family:inherit; font-size:0.9rem; color:rgba(255,255,255,0.85); width:100%;" />
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.45);">Packets</span>
+                <input data-key="meta.av.packets" data-precision="0" readonly autocomplete="off"
+                    class="bg-transparent border-0 outline-none p-0"
+                    style="font-family:inherit; font-size:0.9rem; color:rgba(255,255,255,0.85); width:100%;" />
+            </div>
         </div>
     </div>
 
@@ -35,5 +57,5 @@
 
     <!-- Last updated -->
     <p id="diag-last-updated" class="text-sm text-center font-semibold shrink-0"
-       style="color:var(--color-horizon-yellow,#f59e0b);">Last updated: --</p>
+        style="color:var(--color-horizon-yellow,#f59e0b);">Last updated: --</p>
 </div>

@@ -116,7 +116,7 @@ def main():
     slogger.info("Template Service info Test Message")
     slogger.success("Template Service success Test Message")
     slogger.warning("Template Service warning Test Message")
-    slogger.error("Template Service  error Test Message")
+    slogger.error("Template Service error Test Message")
     slogger.critical("Template Service critical Test Message")
 
     # the while loop continues until the signal from the process handler tells to stop

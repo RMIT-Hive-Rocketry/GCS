@@ -2,7 +2,7 @@ from backend.includes_python.devices.rpi_gpio_device import RPI_GPIO_Device
 from backend.includes_python import service_helper
 
 
-def main():
+def main() -> None:
     controller = RPI_GPIO_Device()
     last_state = None
     updates = 0

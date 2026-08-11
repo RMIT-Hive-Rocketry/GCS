@@ -6,11 +6,10 @@ import os
 import re
 import zmq
 from datetime import datetime
-from typing import Optional
 from backend.includes_python import service_helper
 
-# Capture application start time (initialized in rocket.py)
-APP_START_TIME: Optional[float] = None
+# Capture application start time (initialized in `initialise()`)
+APP_START_TIME: float | None = None
 
 # When False, use short prefixes on console (set in initialise() from config)
 DETAILED_LOGGING_PREFIX: bool = True
@@ -155,7 +154,6 @@ class LogsLoopback(logging.Handler):
         except Exception as ex:
             logging.error("[Logging] Error Within Log Passthrough: {ex}")
             # catch errors within the packet gen in case of malformed data and drop the packet quietly to avoid issues with cascade
-            pass
 
         try:
             # push new logs to socket to frontend.api and clear message buffer

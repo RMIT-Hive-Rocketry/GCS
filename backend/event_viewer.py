@@ -4,7 +4,6 @@ import zmq
 import os
 import csv
 from abc import ABC, abstractmethod
-from typing import Optional
 import sys
 from google.protobuf.message import Message as PbMessage
 import backend.proto.generated.AV_TO_GCS_DATA_1_pb2 as AV_TO_GCS_DATA_1_pb
@@ -223,7 +222,7 @@ class Packet(ABC):
             csv_path = os.path.join(cls._session_log_folder, f"{file_name}.csv")
             with open(csv_path, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["timestamp_ms_log_time", *headers])
+                writer.writerow(["timestamp_ms", *headers])
 
     @classmethod
     def setup(cls, STARTUP_TIME: datetime.datetime, CREATE_LOGS: bool) -> None:
@@ -265,14 +264,15 @@ class Packet(ABC):
         ) -> list[str | int | float | bool]:
             values = []
             for field, value in proto.ListFields():
-                if field.label == field.LABEL_REPEATED:
+                try:
                     # Handle repeated fields
                     for item in value:
                         if field.type == field.TYPE_MESSAGE:
                             values.extend(extract_proto_values(item))  # Recurse
                         else:
                             values.append(item)
-                else:
+                except:
+                    # If it doesn't work, it's not a repeated field :)
                     if field.type == field.TYPE_MESSAGE:
                         values.extend(extract_proto_values(value))  # Recurse
                     else:

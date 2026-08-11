@@ -9,30 +9,29 @@
 /* global hmiUpdate, rocketUpdate, updatePendantState */
 
 import { Config as cfg } from '/js/frontend_config.js';
-import { processPacket } from '/js/frontend_diagnostics.js';
 import { displaySloggerLogs, displayUpdateFlightState, playOtherSound, sendDataToRegistry, soundGetOther, timers, timestamp, updateMetricOffline, updateTimestamp } from '/js/frontend_display.js';
-import { graphUpdateAuxData, graphUpdateAvionics, graphUpdateDiagnostics, graphUpdatePosition } from '/js/frontend_graphs.js';
-import { gpsToDecimal, logMessage, metresToFeet } from '/js/frontend_utils.js';
-
-// Logging
-const errors = []
+import { graphUpdateAuxData, graphUpdateAvionics, graphUpdatePosition, updateNetworkDiagnostics2 } from '/js/frontend_graphs.js';
+import { updateNetworkDiagnostics } from '/js/frontend_network_diagnostics.js';
+import { logMessage, metresToFeet } from '/js/frontend_utils.js';
 
 // Global display values
-let altitudeMax
+const errors = []
 const altitudeHistory = []
+let altitudeMax
 let packetsAV1 = 0
 let packetsAV1offset = 0
 
 // Handle incoming messages through the API
 function API_OnMessage(event_data) {
     let apiLatest, apiData
+    const pid = cfg.api.packet_id
     try {
         // Handle incoming data
         apiLatest = JSON.parse(event_data)
 
         // When detected Slogger Packets just skip the whole validation part and just upload packets avoids feeding in old data just to get template to work
-        if (apiLatest.id === 40) {
-            /// // ----- sLogger PACKETS ----- /////
+        if (apiLatest.id === pid.logging) {
+            // Slogger
             displaySloggerLogs(apiLatest.data.slogger)
             return
         }
@@ -50,43 +49,50 @@ function API_OnMessage(event_data) {
         apiData = processDataForDisplay(apiLatest.data, apiLatest.id)
         sendDataToRegistry(apiData)
 
+        console.log(apiData)
+
         // Legacy Legacy support
+        /*
         if (typeof hmiUpdate === 'function') {
             hmiUpdate(apiData)
         }
+        */
 
         // Handle different packet types
-        if (apiData.id === 3 || apiData.id === 4) {
-            /// // ----- AVIONICS PACKETS ----- /////
+        if (apiData.id === pid.avionics || apiData.id === pid.avionics_rocket) {
+            // Avionics packets
             // Display values
-            displayUpdateFlightState(apiData)
+            if (apiData.id === pid.avionics) {
+                displayUpdateFlightState(apiData)
+            }
 
             // Graphs
             graphUpdateAvionics(apiData)
             graphUpdatePosition(apiData)
 
             // Rocket visualisation
-            if (apiData.id === 4) {
+            if (apiData.id === pid.avionics_rocket) {
                 if (typeof rocketUpdate === 'function') {
                     rocketUpdate(apiData)
                 }
             }
         }
-        else if (apiData.id === cfg.api.packet_id.pendant) {
-            /// // ----- PENDANT ----- /////
+        else if (apiData.id === pid.pendant) {
+            // Control pendant
             if (typeof updatePendantState === 'function') {
                 updatePendantState(apiData)
             }
         }
-        else if (apiData.id === cfg.api.packet_id.diagnostics) {
-            /// // ----- NETWORK DIAGNOSTICS ----- /////
-            processPacket(apiData)
-            graphUpdateDiagnostics(apiData)
+        else if (apiData.id === pid.network) {
+            // Network diagnostics
+            updateNetworkDiagnostics(apiData)
+            updateNetworkDiagnostics2(apiData)
         }
-        else if (apiData.id === 55) {
-            /// // ----- GSE PACKETS ----- /////
-            // Graphs
+        else if (apiData.id === pid.gse) {
+            // GSE packets
+            // console.log(apiData)
             graphUpdateAuxData(apiData)
+            hmiUpdate(apiData)
         }
     }
     catch (error) {
@@ -236,140 +242,10 @@ function processDataForDisplay(apiData, apiId) {
     if (processedData.meta === undefined) {
         processedData.meta = {}
     }
-    /***
-    This was made by Michael PP1 Hive 2026 team. I had to make changes to his code
-    for customizing and separating diagnostic page variables while it follows
-    the same logic of Michael. I just separated the code into pieces.
-    - Mohammad
-     */
-    // if (apiId === 50) {
-    //     // Get the table (return early if not loaded)
-    //     let packetsTable = document.getElementById("packets");
-    //     if (packetsTable === null) {
-    //         return processedData;
-    //     }
 
-    //     // Update data if present, otherwise add it
-    //     Object.entries(apiData).forEach(([device, deviceData]) => {
-    //         let currRow = packetsTable.querySelector(`tr td div[data-key='${device}']`);
-    //         if (currRow === null) {
-    //             // Append 2 rows
-    //             let topRow = packetsTable.insertRow(-1);
-    //             let bottomRow = packetsTable.insertRow(-1);
-
-    //             topRow.innerHTML = `
-    //             <tr>
-    //                 <td class="w-full flex gap-4 justify-start items-center">
-    //                     <div
-    //                         data-key="${device}"
-    //                         data-type="state"
-    //                         class="indicator-state mx-0 green"
-    //                     ></div>
-    //                     <span class="font-bold text-hive">${device}</span>
-    //                 </td>
-    //             </tr>
-    //             `;
-
-    //             // Set state to red if no pings coming through
-    //             if ((deviceData.ping == null) || (deviceData.ping < 0)) {
-    //                 topRow.querySelector(".indicator-state")?.classList.replace("green", "red");
-    //             }
-
-    //             bottomRow.innerHTML = `
-    //             <tr>
-    //                 <td style="border-bottom: 30px solid transparent;">
-    //                     <label>
-    //                         Packet Loss:<input
-    //                             data-key="${device}.packet_loss"
-    //                             data-precision="3"
-    //                             readonly
-    //                             autocomplete="off"
-    //                             class="text-right"
-    //                             size="4"
-    //                             value='${deviceData.packet_loss != null ? deviceData.packet_loss*100 : 0}'
-    //                         />%
-    //                     </label>
-    //                 </td>
-    //                 <td style="border-bottom: 30px solid transparent;">
-    //                     <label>
-    //                         Ping:<input
-    //                             data-key="${device}.ping"
-    //                             data-precision="0"
-    //                             readonly
-    //                             autocomplete="off"
-    //                             size="4"
-    //                             value='${deviceData.ping != null ? deviceData.ping : -1}'
-    //                         />
-    //                     </label>
-    //                 </td>
-    //             </tr>
-    //             `
-    //             // Not required at this stage
-    //             /* <td style="border-bottom: 30px solid transparent;">
-    //                     <label>
-    //                         Packets:<input
-    //                             data-key=${device}.packet_count
-    //                             data-precision="0"
-    //                             readonly
-    //                             autocomplete="off"
-    //                             class="text-right"
-    //                             size="11"
-    //                             value = 0
-    //                         />
-    //                     </label>
-    //                 </td>
-    //             */
-    //         }
-    //         else {
-    //             // Get the top row
-    //             const index = currRow.closest("tr").rowIndex;
-
-    //             // Update the state
-    //             let topRow = packetsTable.rows[index].querySelector('td div');
-    //             topRow.classList.value = `indicator-state mx-0 ${
-    //                 ((deviceData.ping != null) && (deviceData.ping >= 0)) ? 'green' : 'red'
-    //             }`;
-
-    //             // Update the packet loss then ping
-    //             let bottomRow = packetsTable.rows[index + 1].querySelectorAll('td label input');
-    //             bottomRow[0].setAttribute('value', (deviceData.packet_loss != null) ? deviceData.packet_loss*100 : 0);
-    //             bottomRow[1].setAttribute('value', (deviceData.ping != null) ? deviceData.ping : -1);
-    //         }
-
-    //         // The below may not be required
-    //         // // Regardless, track packet count
-    //         // let index = networkPackets.findIndex(item => item.name === device);
-    //         // if (index >= 0) {
-    //         //     // If the device in question exists, update count and offset
-    //         //     networkPackets[index].count++;
-
-    //         //     // Keep offset if no value was passed in (such as at the start)
-    //         //     if (typeof device.packet_loss !== 'undefined') {
-    //         //         networkPackets[index].offset = packet_loss;
-    //         //     }
-    //         // }
-    //         // else {
-    //         //     // Create a new record and update index
-    //         //     networkPackets.push({name: device, count: 1, offset: 0});
-
-    //         //     // index was -1, now need the last element
-    //         //     index += networkPackets.length;
-    //         // }
-
-    //         // // Calculate packet count as the total number of packets minus the % loss
-    //         // const actualPacketCount = Math.floor(networkPackets[index].count * ((100 - networkPackets[index].offset) / 100));
-    //         // let inputValue = packetsTable.querySelector(`input[data-key='${device}.packet_count']`);
-
-    //         // // Make sure the element exists
-    //         // if (inputValue != null) {
-    //         //     inputValue.value = actualPacketCount;
-    //         // }
-    //     });
-    // }
-
-    if (apiId === cfg.api.packet_id.diagnostics) {
+    if (apiId === cfg.api.packet_id.network) {
         // Track packet counts per device and attach to processedData.
-        // All HTML rendering is handled by graphUpdateDiagnostics() in frontend_graphs.js.
+        // All HTML rendering is handled by updateNetworkDiagnostics2() in frontend_graphs.js.
         Object.keys(apiData).forEach((device) => {
             if (typeof apiData[device] !== 'object' || apiData[device] === null)
                 return
@@ -466,8 +342,14 @@ function processDataForDisplay(apiData, apiId) {
             else {
                 logMessage(`Discard max altitude (${altitudeMax})`, 'warning')
             }
+        } else if (
+            altitudeMax === undefined
+            || apiData.altitude > altitudeMax
+        ) {
+            altitudeMax = apiData.altitude
         }
-        if (altitudeMax !== undefined && altitudeMax > 0) {
+
+        if (altitudeMax !== undefined) {
             processedData.altitudeMax = altitudeMax
             processedData.altitudeMaxFeet = metresToFeet(altitudeMax)
         }
@@ -476,7 +358,7 @@ function processDataForDisplay(apiData, apiId) {
         // The new altitude must be below the threshold, unlike the old one
         const prevAltitude = metresToFeet(altitudeHistory.at(-2))
         const currAltitude = metresToFeet(altitudeHistory.at(-1))
-        if ((currAltitude < cfg.sounds.parachute_altitude) && (prevAltitude >= cfg.sounds.parachute_altitude)) {
+        if ((currAltitude < cfg.audio.parachute_altitude) && (prevAltitude >= cfg.audio.parachute_altitude)) {
             playOtherSound('Parachute')
         }
     }
@@ -488,10 +370,10 @@ function processDataForDisplay(apiData, apiId) {
 
     // GPS position
     if (apiData.GPSLatitude !== undefined) {
-        processedData.GPSLatitude = gpsToDecimal(apiData.GPSLatitude)
+        processedData.GPSLatitude = apiData.GPSLatitude; // gpsToDecimal(apiData.GPSLatitude)
     }
     if (apiData.GPSLongitude !== undefined) {
-        processedData.GPSLongitude = gpsToDecimal(apiData.GPSLongitude)
+        processedData.GPSLongitude = apiData.GPSLongitude // gpsToDecimal(apiData.GPSLongitude)
     }
 
     /* If the rocket is within 50m of the GCS, play a warning sound.
@@ -503,27 +385,16 @@ function processDataForDisplay(apiData, apiId) {
        * testing, or else the rocket will appear to be very far from the GCS
       */
     if (apiData.GPSLatitude !== undefined && apiData.GPSLongitude !== undefined) {
-        // Scaling constants
-        const lat_kilometers = 110.87
-        const long_kilometers = 95.48
-
-        // (Decimal) Coordinates of the GCS
-        const lat_GCS = 31.039581
-        const long_GCS = 103.526623
-
-        /* Distance to GCS in km (both latitude and longitude). Use the decimal
-             * version of the coordinates as this is what the GCS coordinates are given
-             * as.
-            */
-        const lat_distance = ((gpsToDecimal(apiData.GPSLatitude - lat_GCS)) * lat_kilometers) ** 2
-        const long_distance = ((gpsToDecimal(apiData.GPSLongitude - long_GCS)) * long_kilometers) ** 2
-        const final_distance = Math.sqrt(lat_distance + long_distance)
+        // Distance to GCS in km (both latitude and longitude)
+        const lat_distance = ((apiData.GPSLatitude - cfg.gps.gcs_lat) * cfg.gps.lat_scale_factor)
+        const lon_distance = ((apiData.GPSLongitude - cfg.gps.gcs_lon) * cfg.gps.lon_scale_factor)
+        const final_distance = Math.sqrt(lat_distance ** 2 + lon_distance ** 2)
 
         // Rocket_Warn sound
         const currSound = soundGetOther(2)
 
         // 50m in km
-        if (final_distance <= 50 / 1000) {
+        if (final_distance <= cfg.audio.overhead_warn_radius / 1000) {
             // Sometimes the property might be equal to NaN, make sure no error is thrown
             if (!Number.isNaN(currSound.source.duration)) {
                 /* Volume rises in logarithmic fashion the longer the rocket stays within
@@ -574,16 +445,16 @@ function processDataForDisplay(apiData, apiId) {
     // State flags
     // GPS fix (navigation state)
     if (apiData.navigationStatus !== undefined) {
-        if (['NF'].includes(apiData.navigationStatus)) {
-            processedData.state.gpsFix = 3 // Red
-        }
-        else if (['DR', 'TT'].includes(apiData.navigationStatus)) {
-            processedData.state.gpsFix = 2 // Yellow
-        }
-        else if (
+        if (
             ['D2', 'D3', 'G2', 'G3', 'RK'].includes(apiData.navigationStatus)
         ) {
             processedData.state.gpsFix = 1 // Green
+        } else if (['DR', 'TT'].includes(apiData.navigationStatus)) {
+            processedData.state.gpsFix = 2 // Yellow
+        } else if (['NA'].includes(apiData.navigationStatus)) {
+            processedData.state.gpsFix = 5 // Red
+        } else {
+            processedData.state.gpsFix = 5 // Error
         }
     }
 
@@ -594,6 +465,8 @@ function processDataForDisplay(apiData, apiId) {
                 .dualBoardConnectivityStateFlag
                 ? 1
                 : 5 // green / error
+        } else {
+            processedData.state.dualBoard = 5;
         }
         // Recovery checks
         if (apiData.stateFlags.recoveryChecksCompleteAndFlightReady) {
@@ -601,6 +474,8 @@ function processDataForDisplay(apiData, apiId) {
                 .recoveryChecksCompleteAndFlightReady
                 ? 1
                 : 0
+        } else {
+            processedData.state.recoveryCheck = 5;
         }
         // Payload
         if (apiData.stateFlags.payloadConnectionFlag) {
@@ -608,6 +483,8 @@ function processDataForDisplay(apiData, apiId) {
                 .payloadConnectionFlag
                 ? 1
                 : 0
+        } else {
+            processedData.state.payload = 5;
         }
         // Camera controller
         if (apiData.stateFlags.cameraControllerConnectionFlag) {
@@ -615,6 +492,8 @@ function processDataForDisplay(apiData, apiId) {
                 .cameraControllerConnectionFlag
                 ? 1
                 : 0
+        } else {
+            processedData.state.camera = 5;
         }
     }
 

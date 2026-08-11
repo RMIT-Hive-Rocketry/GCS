@@ -1,291 +1,288 @@
 name: Build and Test
 
 on:
-    # While we are rationing workflow credits, ignore these
-    # Everyone should be pushing features through PRs now anyway
-    # Remove this when we reduce workflow time or go public in June
-    # push:
-    #   branches:
-    #     - main
-    #   paths:
-    #     - "setup.sh"
-    #     - "**/CMakeLists.txt"
-    #     - "backend/**"
-    #     - "**.c"
-    #     - "**.h"
-    #     - "**.cpp"
-    #     - "**.hpp"
-    #     - "**.proto"
-    #     - ".github/workflows/build_and_test_cpp.yml"
-    #     - "!docs/**"
-    #     - "!notes/**"
-    #     - "**/requirements.txt"
-    pull_request:
-        types: [review_requested, ready_for_review]
-        branches:
-            -   main
-        paths:
-            -   setup.sh
-            -   '**/CMakeLists.txt'
-            -   'backend/**'
-            -   '**.c'
-            -   '**.h'
-            -   '**.cpp'
-            -   '**.hpp'
-            -   '**.proto'
-            -   .github/workflows/build_and_test_cpp.yml
-            -   '!docs/**'
-            -   '!notes/**'
-            -   '**/requirements.txt'
+  push:
+    branches:
+      - main
+    paths:
+      - "setup.sh"
+      - "**/CMakeLists.txt"
+      - "backend/**"
+      - "**.c"
+      - "**.h"
+      - "**.cpp"
+      - "**.hpp"
+      - "**.proto"
+      - ".github/workflows/build_and_test_cpp.yml"
+      - "!docs/**"
+      - "!notes/**"
+      - "**/requirements.txt"
+  pull_request:
+    types: [ready_for_review]
+    branches:
+      - main
+    paths:
+      - setup.sh
+      - "**/CMakeLists.txt"
+      - "backend/**"
+      - "**.c"
+      - "**.h"
+      - "**.cpp"
+      - "**.hpp"
+      - "**.proto"
+      - .github/workflows/build_and_test_cpp.yml
+      - "!docs/**"
+      - "!notes/**"
+      - "**/requirements.txt"
 
 env:
-    ACT: false
+  ACT: false
 
 jobs:
-    build-cpp:
-        runs-on: ${{ matrix.os }}
+  build-cpp:
+    runs-on: ${{ matrix.os }}
 
-        strategy:
-            fail-fast: false
-            matrix:
-                # Do not add mac to here. It has a 10x cost to linux runtimes
-                os: [ubuntu-latest]
-                build_type: [Release, Debug]
-                cpp_compiler: [g++, clang++]
+    strategy:
+      fail-fast: false
+      matrix:
+        # Do not add mac to here. It has a 10x cost to linux runtimes
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
+        cpp_compiler: [g++, clang++]
 
-        steps:
-            -   uses: actions/checkout@v6
+    steps:
+      - uses: actions/checkout@v6
 
-            -   name: Set build directory
-                id: build-dir
-                run: |
-                    if [ "${{ matrix.build_type }}" = "Release" ]; then
-                      echo "dir=build-release" >> "$GITHUB_OUTPUT"
-                    else
-                      echo "dir=build-debug" >> "$GITHUB_OUTPUT"
-                    fi
+      - name: Set build directory
+        id: build-dir
+        run: |
+          if [ "${{ matrix.build_type }}" = "Release" ]; then
+            echo "dir=build-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=build-debug" >> "$GITHUB_OUTPUT"
+          fi
 
-            # Caching: prepare build dir and restore CMake FetchContent deps (abseil, protobuf, libzmq, cppzmq, googletest)
-            -   name: Prepare build directory for cache
-                run: mkdir -p ${{ steps.build-dir.outputs.dir }}
+      # Caching: prepare build dir and restore CMake FetchContent deps (abseil, protobuf, libzmq, cppzmq, googletest)
+      - name: Prepare build directory for cache
+        run: mkdir -p ${{ steps.build-dir.outputs.dir }}
 
-            -   name: Cache CMake FetchContent dependencies
-                id: cache-cmake-deps
-                uses: actions/cache@v5
-                with:
-                    path: ${{ steps.build-dir.outputs.dir }}/_deps
-                    key: cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', 'backend/tests/CMakeLists.txt') }}
-                    restore-keys: |
-                        cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
+      - name: Cache CMake FetchContent dependencies
+        id: cache-cmake-deps
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.build-dir.outputs.dir }}/_deps
+          key: cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', 'backend/tests/CMakeLists.txt') }}
+          restore-keys: |
+            cmake-deps-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
 
-            -   name: Cache setup.sh protobuf
-                id: cache-protobuf
-                uses: actions/cache@v5
-                with:
-                    path: ~/protobuf
-                    key: protobuf-${{ runner.os }}-30.1-v1
-                    restore-keys: protobuf-${{ runner.os }}-
+      - name: Cache setup.sh protobuf
+        id: cache-protobuf
+        uses: actions/cache@v5
+        with:
+          path: ~/protobuf
+          key: protobuf-${{ runner.os }}-30.1-v1
+          restore-keys: protobuf-${{ runner.os }}-
 
-            -   name: Cache pip
-                uses: actions/cache@v5
-                with:
-                    path: ~/.cache/pip
-                    key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
-                    restore-keys: pip-${{ runner.os }}-
+      - name: Cache pip
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
 
-            # Instructions are based off of [docs/setup.md]
-            # --- System dependencies ---
-            -   name: Install system dependencies
-                run: |
-                    sudo add-apt-repository ppa:deadsnakes/ppa -y
-                    sudo apt-get update
-                    sudo apt-get install -y \
-                      cmake \
-                      ccache \
-                      git \
-                      socat \
-                      python3.11 \
-                      python3.11-venv \
-                      python3.11-dev \
-                      qrencode \
-                      swig \
-                      libzmq3-dev \
-                      g++ \
-                      clang \
-                      build-essential \
-                      tree
+      # Instructions are based off of [docs/setup.md]
+      # --- System dependencies ---
+      - name: Install system dependencies
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            ccache \
+            git \
+            socat \
+            python3.11 \
+            python3.11-venv \
+            python3.11-dev \
+            qrencode \
+            swig \
+            libzmq3-dev \
+            g++ \
+            clang \
+            build-essential \
+            tree
 
-            # --- Python virtual environment ---
-            -   name: Set up Python virtual environment
-                run: |
-                    python3.11 -m venv .venv
-                    echo "VIRTUAL_ENV=\"${{ github.workspace }}/.venv\"" >> "$GITHUB_ENV"
-                    echo "${{ github.workspace }}/.venv/bin" >> "$GITHUB_PATH"
+      # --- Python virtual environment ---
+      - name: Set up Python virtual environment
+        run: |
+          python3.11 -m venv .venv
+          echo "VIRTUAL_ENV=\"${{ github.workspace }}/.venv\"" >> "$GITHUB_ENV"
+          echo "${{ github.workspace }}/.venv/bin" >> "$GITHUB_PATH"
 
-            # --- Setup ---
-            -   name: Run setup.sh
-                run: |
-                    source .venv/bin/activate
-                    if [ "${{ steps.cache-protobuf.outputs.cache-hit }}" = "true" ]; then
-                      CI_PROTOBUF_CACHED=1 bash setup.sh -y
-                    else
-                      bash setup.sh -y
-                    fi
+      # --- Setup ---
+      - name: Run setup.sh
+        run: |
+          source .venv/bin/activate
+          if [ "${{ steps.cache-protobuf.outputs.cache-hit }}" = "true" ]; then
+            CI_PROTOBUF_CACHED=1 bash setup.sh -y
+          else
+            bash setup.sh -y
+          fi
 
-            # Install dependencies only locally when ACT=true
-            -   name: Install Act dependencies
-                if: ${{ env.ACT == 'true' }}
-                run: |
-                    sudo apt-get update
-                    sudo apt-get install -y cmake
+      # Install dependencies only locally when ACT=true
+      - name: Install Act dependencies
+        if: ${{ env.ACT == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake
 
-            # Cache ccache to speed up recompilation when only some files change
-            -   name: Cache ccache
-                uses: actions/cache@v5
-                with:
-                    path: ~/.cache/ccache
-                    key: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('backend/**', 'CMakeLists.txt') }}
-                    restore-keys: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
+      # Cache ccache to speed up recompilation when only some files change
+      - name: Cache ccache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('backend/**', 'CMakeLists.txt') }}
+          restore-keys: ccache-${{ runner.os }}-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
 
-            # --- Set reusable strings for build output directory ---
-            -   name: Set reusable strings
-                id: strings
-                shell: bash
-                run: echo "build-output-dir=${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}" >> "$GITHUB_OUTPUT"
+      # --- Set reusable strings for build output directory ---
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: echo "build-output-dir=${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}" >> "$GITHUB_OUTPUT"
 
-            # --- Configure CMake ---
-            -   name: Configure CMake
-                env:
-                    CMAKE_CXX_COMPILER_LAUNCHER: ccache
-                    CMAKE_C_COMPILER_LAUNCHER: ccache
-                run: |
-                    BUILD_DIR="${{ steps.build-dir.outputs.dir }}"
-                    CMAKE_EXTRA=""
-                    if [ "${{ steps.cache-cmake-deps.outputs.cache-hit }}" = "true" ] && [ -d "$BUILD_DIR/_deps" ] && [ -n "$(ls -A $BUILD_DIR/_deps 2>/dev/null)" ]; then
-                      CMAKE_EXTRA="-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
-                      echo "Using cached CMake deps (FETCHCONTENT_FULLY_DISCONNECTED=ON)"
-                    fi
-                    echo $CMAKE_EXTRA
-                    cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
-                          -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
-                          -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
-                          -DBUILD_TESTS=ON \
-                          $CMAKE_EXTRA \
-                          -S "${{ github.workspace }}"
-
-            # --- Build the project ---
-            -   name: Build
-                run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --parallel
-
-            # --- Extract and list proto generated files for debugging ---
-            -   name: List protobuf generated files
-                run: |
-                    echo "Listing protobuf generated files in backend/proto/generated:"
-                    find "backend/proto/generated" -type f | sort
-
-            # --- Upload the entire build directory as an artifact ---
-            -   name: Upload Build Artifacts
-                uses: actions/upload-artifact@v7
-                with:
-                    name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-                    path: ${{ steps.build-dir.outputs.dir }}
-
-            # --- Specifically upload proto generated files as a separate artifact ---
-            -   name: Upload Proto Generated Files
-                uses: actions/upload-artifact@v7
-                with:
-                    name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-                    path: backend/proto/generated/
-
-    test-cpp:
-        runs-on: ubuntu-latest
-        needs: build-cpp
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-latest]
-                build_type: [Release, Debug]
-                cpp_compiler: [g++, clang++]
+      # --- Configure CMake ---
+      - name: Configure CMake
         env:
-            CI_BUILD_ENV: ${{ matrix.build_type }}
-        steps:
-            -   uses: actions/checkout@v6 # Needed for scripts
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+        run: |
+          BUILD_DIR="${{ steps.build-dir.outputs.dir }}"
+          CMAKE_EXTRA=""
+          if [ "${{ steps.cache-cmake-deps.outputs.cache-hit }}" = "true" ] && [ -d "$BUILD_DIR/_deps" ] && [ -n "$(ls -A $BUILD_DIR/_deps 2>/dev/null)" ]; then
+            CMAKE_EXTRA="-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
+            echo "Using cached CMake deps (FETCHCONTENT_FULLY_DISCONNECTED=ON)"
+          fi
+          echo $CMAKE_EXTRA
+          cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
+                -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" \
+                -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+                -DBUILD_TESTS=ON \
+                $CMAKE_EXTRA \
+                -S "${{ github.workspace }}"
 
-            -   name: Set build directory
-                id: build-dir
-                run: |
-                    if [ "${{ matrix.build_type }}" = "Release" ]; then
-                      echo "dir=build-release" >> "$GITHUB_OUTPUT"
-                    else
-                      echo "dir=build-debug" >> "$GITHUB_OUTPUT"
-                    fi
+      # --- Build the project ---
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --parallel
 
-            -   name: Cache pip (test job)
-                uses: actions/cache@v5
-                with:
-                    path: ~/.cache/pip
-                    key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
-                    restore-keys: pip-${{ runner.os }}-
+      # --- Extract and list proto generated files for debugging ---
+      - name: List protobuf generated files
+        run: |
+          echo "Listing protobuf generated files in backend/proto/generated:"
+          find "backend/proto/generated" -type f | sort
 
-            # --- Download main build artifacts ---
-            -   name: Download Build Artifacts
-                uses: actions/download-artifact@v8
-                with:
-                    name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-                    path: ${{ steps.build-dir.outputs.dir }}
+      # --- Upload the entire build directory as an artifact ---
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+          path: ${{ steps.build-dir.outputs.dir }}
 
-            # --- Download proto generated files as well (redundant but ensures they're explicitly available) ---
-            -   name: Download Proto Generated Files
-                uses: actions/download-artifact@v8
-                with:
-                    name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
-                    path: backend/proto/generated
+      # --- Specifically upload proto generated files as a separate artifact ---
+      - name: Upload Proto Generated Files
+        uses: actions/upload-artifact@v7
+        with:
+          name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+          path: backend/proto/generated/
 
-            -   name: Install testing dependencies
-                run: |
-                    sudo apt-get update
-                    sudo apt-get install -y cmake tree socat
+  test-cpp:
+    runs-on: ubuntu-latest
+    needs: build-cpp
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
+        cpp_compiler: [g++, clang++]
+    env:
+      CI_BUILD_ENV: ${{ matrix.build_type }}
+    steps:
+      - uses: actions/checkout@v6 # Needed for scripts
 
-            -   name: Install python testing dependencies
-                run: |
-                    python3 -m pip install --upgrade pip
-                    python3 -m pip install -r requirements.txt
-                    python3 -m pip install -r backend/tests/requirements.txt
+      - name: Set build directory
+        id: build-dir
+        run: |
+          if [ "${{ matrix.build_type }}" = "Release" ]; then
+            echo "dir=build-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=build-debug" >> "$GITHUB_OUTPUT"
+          fi
 
-            # --- Debug the directory structure including proto files ---
-            -   name: Debug directory structure
-                run: |
-                    echo "Listing proto generated files in backend/proto/generated:"
-                    find backend/proto/generated -type f | sort
-                    echo "Complete build directory structure:"
-                    tree ${{ steps.build-dir.outputs.dir }}
+      - name: Cache pip (test job)
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt', 'backend/tests/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
 
-            # --- Set executable permissions for tests and binaries ---
-            -   name: Set executable permissions for tests
-                run: chmod +x ${{ steps.build-dir.outputs.dir }}/backend/tests/runC++Tests
+      # --- Download main build artifacts ---
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: binaries-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+          path: ${{ steps.build-dir.outputs.dir }}
 
-            -   name: Set executable permissions for main binary
-                run: find ${{ steps.build-dir.outputs.dir }} -name "middleware*" -type f -exec chmod +x {} \;
+      # --- Download proto generated files as well (redundant but ensures they're explicitly available) ---
+      - name: Download Proto Generated Files
+        uses: actions/download-artifact@v8
+        with:
+          name: proto-generated-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.cpp_compiler }}-${{ github.sha }}-${{ github.event_name }}
+          path: backend/proto/generated
 
-            -   name: Run Tests
-                working-directory: ${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}
-                run: |
-                    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}/backend/proto/generated
-                    ctest -R 'RunAllC\+\+Tests|PythonTests' --output-on-failure --verbose 2>ctest.error
-                    cat ctest.error
-                    [ -s ctest.error ] && exit 1 || exit 0
+      - name: Install testing dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake tree socat
 
-    # try to cleanup artifacts after running
-    cleanup:
-        runs-on: ubuntu-latest
-        if: always() # run even on fails
-        needs: [build-cpp, test-cpp]
-        steps:
-            -   name: Cleanup workflow artifacts
-                run: |
-                    gh api /repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --paginate --jq '.artifacts[].id' | while read id; do
-                      gh api -X DELETE /repos/${{ github.repository }}/actions/artifacts/$id
-                      echo "Deleted artifact $id"
-                    done
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install python testing dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
+          python3 -m pip install -r backend/tests/requirements.txt
+
+      # --- Debug the directory structure including proto files ---
+      - name: Debug directory structure
+        run: |
+          echo "Listing proto generated files in backend/proto/generated:"
+          find backend/proto/generated -type f | sort
+          echo "Complete build directory structure:"
+          tree ${{ steps.build-dir.outputs.dir }}
+
+      # --- Set executable permissions for tests and binaries ---
+      - name: Set executable permissions for tests
+        run: chmod +x ${{ steps.build-dir.outputs.dir }}/backend/tests/runC++Tests
+
+      - name: Set executable permissions for main binary
+        run: find ${{ steps.build-dir.outputs.dir }} -name "middleware*" -type f -exec chmod +x {} \;
+
+      - name: Run Tests
+        working-directory: ${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}
+        run: |
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/${{ steps.build-dir.outputs.dir }}/backend/proto/generated
+          ctest -R 'RunAllC\+\+Tests|PythonTests' --output-on-failure --verbose 2>ctest.error
+          cat ctest.error
+          [ -s ctest.error ] && exit 1 || exit 0
+
+  # try to cleanup artifacts after running
+  cleanup:
+    runs-on: ubuntu-latest
+    if: always() # run even on fails
+    needs: [build-cpp, test-cpp]
+    steps:
+      - name: Cleanup workflow artifacts
+        run: |
+          gh api /repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --paginate --jq '.artifacts[].id' | while read id; do
+            gh api -X DELETE /repos/${{ github.repository }}/actions/artifacts/$id
+            echo "Deleted artifact $id"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

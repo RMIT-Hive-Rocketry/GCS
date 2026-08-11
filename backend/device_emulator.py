@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractclassmethod
 from config.config import get_config
 from typing import Optional, List, Tuple
 from dataclasses import asdict
@@ -79,16 +79,18 @@ class MockPacket(ABC):
         self.payload_after_id_and_meta: list[bytes] | None = None
         self.ORIGIN_DEVICE: MockPacket._SourceDevice | None = None
 
-    def write_payload(self):
+    def write_payload(self) -> None:
         """Writes payload of bytes to device"""
 
         if self._FAKE_DEVICE_NAME is None:
             raise ValueError("Cannot write to device. Device name not set.")
         try:
             payload_bytes = self.get_payload_bytes()
-            with MockPacket._write_lock:
-                with open(self._FAKE_DEVICE_NAME, "wb") as device:
-                    device.write(payload_bytes)
+            with (
+                MockPacket._write_lock
+                and open(self._FAKE_DEVICE_NAME, "wb") as device
+            ):
+                device.write(payload_bytes)
         except Exception as e:
             slogger.error(
                 f"Failed to write bytes to {self._FAKE_DEVICE_NAME}: {e}"
@@ -251,9 +253,9 @@ class AVtoGCSData1(MockPacket):
         GPS_FIX_FLAG: bool = False,
         PAYLOAD_CONNECTION_FLAG: bool = True,
         CAMERA_CONTROLLER_CONNECTION: bool = True,
-        ACCEL_LOW_X: int = 2048 * 1,
-        ACCEL_LOW_Y: int = 2048 * 2,
-        ACCEL_LOW_Z: int = -2048 * 3,
+        ACCEL_LOW_X: int = 1024 * 1,
+        ACCEL_LOW_Y: int = 1024 * 2,
+        ACCEL_LOW_Z: int = -1024 * 3,
         ACCEL_HIGH_X: int = -1024 * 1,
         ACCEL_HIGH_Y: int = -1024 * 2,
         ACCEL_HIGH_Z: int = 1024 * 3,
@@ -330,9 +332,9 @@ class AVtoGCSData2(MockPacket):
         LONGITUDE: float = 144.96507800000,
         NAV_STATUS: str = "G2",
         QW: int = 0,
-        QX: int = 1,
-        QY: int = -1,
-        QZ: int = 0.5,
+        QX: int = 32768,
+        QY: int = -32768,
+        QZ: int = 16384,
     ):
         super().__init__()
         self.ID = 0x04
@@ -350,10 +352,10 @@ class AVtoGCSData2(MockPacket):
             ),
             metric.Metric.gps(LATITUDE, LONGITUDE),
             metric.Metric.navigation_status(NAV_STATUS),
-            metric.Metric.quaternion(QW),
-            metric.Metric.quaternion(QX),
-            metric.Metric.quaternion(QY),
-            metric.Metric.quaternion(QZ),
+            metric.Metric.quaternion(QW / 32768),
+            metric.Metric.quaternion(QX / 32768),
+            metric.Metric.quaternion(QY / 32768),
+            metric.Metric.quaternion(QZ / 32768),
         ]
 
 
@@ -700,31 +702,31 @@ def get_sinusoid_packets_gsedaq(
     T = TIME_NOW - START_TIME
 
     values = {
-        "temp_tank_top": sinusoid(
+        "rtd_top": sinusoid(
             T, min=-10, max=50, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_tank_middle": sinusoid(
+        "rtd_middle": sinusoid(
             T, min=-20, max=40, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_tank_bottom": sinusoid(
+        "rtd_bottom": sinusoid(
             T, min=-30, max=30, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_vent": sinusoid(
+        "vent_temp": sinusoid(
             T, min=-90, max=25, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "temp_pipe_n2o_gse": sinusoid(
+        "n2o_temp": sinusoid(
             T, min=-20, max=20, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "pressure_n2o_bottle": sinusoid(
+        "bottle_pressure": sinusoid(
             T, min=1, max=60, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "pressure_n2o_tank": sinusoid(
+        "tank_pressure": sinusoid(
             T, min=1, max=60, period=10, phase=-1 * 2 * math.pi / 4
         ),
-        "pressure_o2_tank": sinusoid(
+        "o2_pressure": sinusoid(
             T, min=40, max=60, period=10, phase=1 * 2 * math.pi / 4
         ),
-        "weight_rocket": sinusoid(
+        "rocket_weight": sinusoid(
             T, min=0, max=10, period=10, phase=1 * 2 * math.pi / 4
         ),
     }
@@ -857,10 +859,10 @@ def main():
         )
 
     # Start a thread to send the GSE information with a standalone TCP server
-    gse_server_port = int(cfg["emulation"]["tcp_server_port"])
+    gse_port = int(cfg["tcp"]["gse_port"])
     gse_server_manager_thread = threading.Thread(
         target=gse_server_manager,
-        args=(gse_server_port, START_TIME, EXPERIMENTAL, CORRUPTION),
+        args=(gse_port, START_TIME, EXPERIMENTAL, CORRUPTION),
     )
     gse_server_manager_thread.start()
 

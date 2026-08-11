@@ -1,5 +1,11 @@
 # Anything not specified requires a review by someone on the backend
-*  @mcloughlan @s4105951
+*  @mcloughlan @lambtails
+
+# Frontend team does not require reviews when merging into their folder on the main branch
+frontend/**  @RMIT-Competition-Rocketry/gcs-frontend-capstone
+
+# If any permissions need to be changed, it can be done by IREC team
+.github/CODEOWNERS  @RMIT-Competition-Rocketry/spaceport-aurc-2025
 
 # Anyone on the org can add to docs and notes
 docs/*

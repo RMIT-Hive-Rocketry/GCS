@@ -5,13 +5,11 @@ from backend.includes_python.devices.pendant_state import (
 )
 from backend.includes_python.devices.control_device import ControlDevice
 import backend.includes_python.process_logging as slogger
-from typing import List, Dict, ClassVar
-
 import pygame
-
 import time
 from functools import cached_property
 from backend.includes_python.timers import RepeatingTimer
+from typing import ClassVar
 
 
 class PygameButton:
@@ -55,7 +53,7 @@ class PygameDevice(ControlDevice):
     If your extending it, you must define BUTTON_NAME_ID_MAP and CONTROLLER_NAME in the child
     """
 
-    BUTTON_NAME_ID_MAP: ClassVar[Dict[PendantInput, int]]
+    BUTTON_NAME_ID_MAP: ClassVar[dict[PendantInput, int]]
     CONTROLLER_NAME: ClassVar[str]
 
     # dont recompute every time

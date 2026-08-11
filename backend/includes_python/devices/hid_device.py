@@ -65,7 +65,7 @@ class HIDButton:
         self.bitmask = 1 << bit
         self.time_of_last_state_change = time.time()
 
-    def _try_update_state(self, new_state: bool):
+    def _try_update_state(self, new_state: bool) -> None:
         if new_state:
             self.safety_count = min(
                 self.safety_count + 1, HIDButton.MAX_SAFETY_COUNT
@@ -148,7 +148,7 @@ class HIDDevice(ControlDevice):
     device: hid.Device
     device_is_connected: bool = False
 
-    def _try_connect_device(self):
+    def _try_connect_device(self) -> None:
         try:
             self.device = hid.Device()
             self.device.open(HIDDevice.HID_VENDOR_ID, HIDDevice.HID_PRODUCT_ID)
@@ -185,12 +185,12 @@ class HIDDevice(ControlDevice):
             if not self.device_is_connected:
                 return
 
-            bytes = self.device.read(9999)
+            data = self.device.read(9999)
 
-            for _, btn in self.buttons.items():
-                btn.update_state(bytes)
+            for btn in self.buttons.values():
+                btn.update_state(data)
 
-            states: Dict[PendantInput, bool] = {
+            states: dict[PendantInput, bool] = {
                 btn_name: btn.is_pressed()
                 for btn_name, btn in self.buttons.items()
             }

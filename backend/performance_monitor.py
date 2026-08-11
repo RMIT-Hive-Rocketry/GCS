@@ -346,7 +346,7 @@ def main() -> None:
         return
 
     previous_sys_data = get_global_status()
-    our_previous_process_data = [
+    GCS_previous_process_data = [
         get_process_status(active_process[0])
         for active_process in processes_data_list
     ]
@@ -373,9 +373,9 @@ def main() -> None:
         "unix_time",
         "timestamp",
         "total_ram_percent",
-        "our_ram_percent",
+        "GCS_ram_percent",
         "total_cpu_percent",
-        "our_cpu_percent",
+        "GCS_cpu_percent",
         "cpu_temp",
         "motherboard_temp",
     ]
@@ -428,9 +428,9 @@ def main() -> None:
         )
 
         # Global Values our services resource use
-        our_ram_use = 0
-        our_cpu_use = 0
-        our_sys_data: list[ProcessSystemData] = []
+        GCS_ram_use = 0
+        GCS_cpu_use = 0
+        GCS_sys_data: list[ProcessSystemData] = []
 
         for idx, active_process in enumerate(processes_data_list):
             # Get Memory Data For Process
@@ -439,7 +439,7 @@ def main() -> None:
             if ps is None or (
                 ps.vm_rss == 0
                 and ps.cpu_usage_time
-                == our_previous_process_data[idx].cpu_usage_time
+                == GCS_previous_process_data[idx].cpu_usage_time
             ):
                 slogger.warning(
                     f"Service {active_process[1]} Cannot Be Accessed No Longer Logging"
@@ -448,25 +448,25 @@ def main() -> None:
                 continue
 
             # Countinus Addition of ram usage percent across system
-            our_ram_use += +ps.vm_rss
+            GCS_ram_use += +ps.vm_rss
 
             ps.mem_util_percent = ps.vm_rss / system_data.total_mem
 
             # Assign Individual deltas to the processes
             ps.delta_kernel_time = (
-                ps.kernel_time - our_previous_process_data[idx].kernel_time
+                ps.kernel_time - GCS_previous_process_data[idx].kernel_time
             )
             ps.delta_user_time = (
-                ps.user_time - our_previous_process_data[idx].user_time
+                ps.user_time - GCS_previous_process_data[idx].user_time
             )
 
             ps.delta_cpu_usage_time = (
                 ps.cpu_usage_time
-                - our_previous_process_data[idx].cpu_usage_time
+                - GCS_previous_process_data[idx].cpu_usage_time
             )
 
             # Total Current CpuUse cycles added across all monitored processes
-            our_cpu_use += ps.delta_cpu_usage_time
+            GCS_cpu_use += ps.delta_cpu_usage_time
 
             # map indiviudal utilisation to each processes
             if total_time_delta != 0:
@@ -480,18 +480,18 @@ def main() -> None:
             ps.pid = active_process[0]
             ps.name = active_process[1]
 
-            our_sys_data.append(ps)
+            GCS_sys_data.append(ps)
 
         if total_time_delta != 0:
-            our_cpu_use_percent = (our_cpu_use / total_time_delta) * 100
+            GCS_cpu_use_percent = (GCS_cpu_use / total_time_delta) * 100
             system_data.cpu_usage_percent = (
                 system_data.used_time_delta / total_time_delta
             ) * 100
         else:
-            our_cpu_use_percent = 0
+            GCS_cpu_use_percent = 0
             system_data.cpu_usage_percent = 0
 
-        our_ram_use_percent = (our_ram_use / system_data.total_mem) * 100
+        GCS_ram_use_percent = (GCS_ram_use / system_data.total_mem) * 100
         total_ram_use_percent = (
             system_data.vm_rss / system_data.total_mem
         ) * 100
@@ -501,15 +501,15 @@ def main() -> None:
             round(time.time(), 3),
             str(round(time.perf_counter() - float(START_TIME), 3)),
             round(total_ram_use_percent, 3),
-            round(our_ram_use_percent, 7),
+            round(GCS_ram_use_percent, 7),
             round(system_data.cpu_usage_percent, 7),
-            round(our_cpu_use_percent, 7),
+            round(GCS_cpu_use_percent, 7),
             round(system_data.cpu_temp, 2),
             round(system_data.mother_board_temp, 2),
         ]
 
         # Generate dynamic string of processes and details to append onto log
-        for osd in our_sys_data:
+        for osd in GCS_sys_data:
             row.extend(
                 [
                     osd.pid,
@@ -530,18 +530,25 @@ def main() -> None:
                 f"System CPU Util: {round(system_data.cpu_usage_percent,2)}% Ram Util: {round(total_ram_use_percent,2)}%"
             )
             slogger.debug(
-                f"Program CPU Util: {round(our_cpu_use_percent,2)}% Ram Util: {round(our_ram_use_percent,2)}%"
+                f"Program CPU Util: {round(GCS_cpu_use_percent,2)}% Ram Util: {round(GCS_ram_use_percent,2)}%"
             )
             loop_start_time = time.time()
+
+        if GCS_cpu_use_percent > system_data.cpu_usage_percent:
+            slogger.error(
+                "Performance Monitor Detected, GCS cpu util exceeds System Util"
+            )
+
+        if GCS_ram_use_percent > total_ram_use_percent:
+            slogger.error(
+                "Performance Monitor Detected, GCS cpu util exceeds System Util"
+            )
 
         # Update Old Values with current ones
         previous_sys_data = system_data
 
-        our_previous_process_data.clear()
-        our_previous_process_data = [
-            get_process_status(active_process[0])
-            for active_process in processes_data_list
-        ]
+        GCS_previous_process_data.clear()
+        GCS_previous_process_data = GCS_sys_data
 
         # Wait For Next sampling Interval
         time.sleep(sampling_interval)

@@ -12,7 +12,8 @@ class IgnoreWebMessagesFilter(logging.Filter):
 
 
 def start_frontend_webserver(
-    logger: logging.Logger, performance_logging: process.RunningProcess = None
+    logger: logging.Logger,
+    performance_logging: process.RunningProcess | None = None,
 ) -> None:
     service_name = "frontend_webserver"
     try:
@@ -53,4 +54,4 @@ def start_frontend_webserver(
 
     except Exception as e:
         logger.error(f"An error occurred while starting {service_name}: {e}")
-        return None, None
+        return
