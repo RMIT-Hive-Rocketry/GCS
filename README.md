@@ -21,6 +21,7 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 </p>
 <p align="center">
   <img src="docs/assets/irec2025stand.jpeg" height="250px" alt="Stand at IREC 2025"/>
+  <img height="250px" alt="Stand at IREC 2026" src="https://github.com/user-attachments/assets/b3792fd3-d1a3-4243-8b6a-3d9c7154c089" />
 </p>
 
 © 2026 RMIT Competition Rocketry - Licensed under the MIT License
