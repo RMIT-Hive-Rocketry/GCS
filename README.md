@@ -14,6 +14,8 @@ Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 **Named after Soteria, the Greek goddess of safety and deliverance from harm.**
 
 <p align="center">
+  <img width="501" height="120" alt="gcs-banner" src="https://github.com/user-attachments/assets/b9dd49d6-7977-4612-9a57-3f174391df0d" />  
+    <br>
   <img src="docs/assets/serp2launchSetup.jpg" height="200px" alt="Serpentine launch setup"/>
   <img src="docs/assets/serp2launch.jpg" height="200px" alt="Serpentine launch">
 </p>
