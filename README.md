@@ -1,4 +1,7 @@
-<img height=200px src="docs/assets/graphical-banner.png" alt="Soteria banner">
+<img height=820px src="https://github.com/user-attachments/assets/6114244d-271f-4595-bd79-0ca1badcfed9" alt="Soteria banner">
+
+<br>
+<br>
 
 <p>
     <img src="https://raw.githubusercontent.com/RMIT-Competition-Rocketry/.github/refs/heads/main/assets/hive_badge.svg" height="20rem" alt="Hive badge">
@@ -11,17 +14,20 @@
 
 Repository for RMIT HIVE's rocketry GCS (**Ground Control Station**).
 
-**Named after Soteria, the Greek goddess of safety and deliverance from harm.**
+Previously named Soteria, the Greek goddess of safety and deliverance from harm.
 
 <p align="center">
-  <img width="501" height="120" alt="gcs-banner" src="https://github.com/user-attachments/assets/b9dd49d6-7977-4612-9a57-3f174391df0d" />  
-    <br>
+    <img width="100%" style="max-width:820px" alt="gcs-banner-v2" src="https://github.com/user-attachments/assets/0ef35029-85c1-4a04-a5ff-d3ad557112f8" />
+</p>
+
+<p align="center">
   <img src="docs/assets/serp2launchSetup.jpg" height="200px" alt="Serpentine launch setup"/>
   <img src="docs/assets/serp2launch.jpg" height="200px" alt="Serpentine launch">
 </p>
 <p align="center">
   <img src="docs/assets/irec2025stand.jpeg" height="250px" alt="Stand at IREC 2025"/>
   <img height="250px" alt="Stand at IREC 2026" src="https://github.com/user-attachments/assets/b3792fd3-d1a3-4243-8b6a-3d9c7154c089" />
+    <img width="820px" alt="Horizon_rocket" src="https://github.com/user-attachments/assets/3b7d7173-49ef-4d94-a215-14c5cdede06d" />
 </p>
 
 © 2026 RMIT Competition Rocketry - Licensed under the MIT License
@@ -215,6 +221,17 @@ The GCS, known as SOTERIA, is Hive's computer control system for GSE control, av
 
 And to all those at RMIT Hive!
 
+### Graduate Companies
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/081d22c9-c4cd-4fa0-b440-d11371334136">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/2ca0a491-f619-47ce-888b-afe87d0f029e">
+  <img height=70 alt="Your Project Logo" src="https://github.com/user-attachments/assets/8393b2d2-c152-475a-9bcd-9ed634f2e643">
+</picture>
+<br>
+We're open to sponsors!
+
+
 ## Software Development Components
 
 This project was built using the following tools, languages and systems.
@@ -248,6 +265,13 @@ This project was built using the following tools, languages and systems.
 | ![GUI interface](docs/assets/frontend-example.png) | ![HMI page](docs/assets/hmi-example.png) | ![CLI interface](docs/assets/cli.png) |
 
 ## Conference Appearances
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/80c80913-1c45-4a62-bb0c-e795b5a93bee">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/36e10b15-2290-4610-a666-24d7721752ac">
+  <img height=50 alt="Your Project Logo" src="https://github.com/user-attachments/assets/8393b2d2-c152-475a-9bcd-9ed634f2e643">
+</picture>
+<br>
 
 [PyCon AU 2026](https://2026.pycon.org.au/schedule/9KBBEQ/), August 2026
 
